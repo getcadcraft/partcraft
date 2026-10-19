@@ -64,6 +64,15 @@ A cut goes into the material, away from the face you sketched on. If the status 
 
 A sketch on the pocket's floor follows the floor: change the pocket depth and the sketch moves with it.
 
+## Pull or push a whole face
+
+To make a face stand out further or sink in, you don't need to draw its outline. Click the flat face, then in the right panel:
+
+- {{ui:Extrude from it}} pulls the face out: PartCraft adds a sketch on the face holding its outline (holes in the face stay holes) and an Extrude of 10 mm.
+- {{ui:Cut into it}} pushes the face in: the same sketch and a Cut halfway into the part.
+
+Both are one step: {{key:Mod+Z}} takes away the sketch and the feature together. The new feature is selected, so type a number straight away and press {{key:Enter}} for its depth. The outline is copied as fixed lines and arcs: it does not follow later changes to the face. If part of the outline can't be copied (a free-form curve), the sketch opens instead with what could be copied; finish it, then choose {{ui:Exit}} and {{ui:Extrude}} or {{ui:Cut}}.
+
 ## Profiles with islands
 
 A sketch can hold several closed loops. Loops side by side become separate bosses (or cuts); a loop inside another becomes a hole through the boss. For example, a rectangle with two circles inside extrudes as a plate with two holes.

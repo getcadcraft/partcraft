@@ -93,6 +93,11 @@ body.app-shell .sp-tab { bottom: 3rem; }
 .pc-node[aria-selected="true"] { border-color: var(--ink); background: var(--sheet); font-weight: 700; }
 .pc-node-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pc-node-flag { font-size: .8125rem; color: var(--ink-2); }
+.pc-tree .pc-node { grid-template-columns: 1.2rem minmax(0, 1fr) auto auto; }   /* icon, name, main value (0.6 PU.5), flag */
+.pc-node-val { font-size: .8125rem; color: var(--ink-2); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.pc-tree li { position: relative; }
+.pc-node.is-editing .pc-node-val { visibility: hidden; }
+.pc-node-edit { position: absolute; right: 1.6rem; top: 50%; transform: translateY(-50%); width: 6.5rem; padding: .1rem .3rem; font-size: .8125rem; }
 .pc-node.is-child { padding-left: 1.4rem; }
 .pc-node.is-error .pc-node-flag, .pc-node.is-error .bi { color: var(--layer-red); }
 .pc-node.is-warn .pc-node-flag { color: var(--layer-ochre); }
@@ -140,6 +145,11 @@ body.app-shell .sp-tab { bottom: 3rem; }
 .pc-list li:first-child { border-top: 0; }
 .pc-list .grow { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pc-list .is-bad { color: var(--layer-red); font-weight: 700; }
+.pc-list li.pc-rel-row { display: block; position: relative; }
+.pc-rel-group > summary { cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 7.5rem; }
+.pc-rel-group > summary.is-bad { color: var(--layer-red); font-weight: 700; }
+.pc-rel-group > .pc-list { margin: .15rem 0 0 .9rem; }
+.pc-rel-acts { position: absolute; top: .18rem; right: 0; display: flex; gap: .4rem; white-space: nowrap; }
 /* where a parameter is used (0.5 WL.30): a quiet line under its row; the parameters a script reads */
 .pc-ptable tr.pc-puses td { padding-top: 0; font-size: var(--fs-sm, 0.875rem); }
 .pc-ptable tr.pc-puses .pc-linkbtn { font-size: inherit; }
@@ -165,6 +175,8 @@ body.app-shell .sp-tab { bottom: 3rem; }
 /* ---- Stage ---- */
 .pc-stage { grid-area: stage; position: relative; min-width: 0; min-height: 0; overflow: hidden; background: var(--sheet); }
 .pc-gl, .pc-sketch { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+/* the value box beside a drag handle (0.6 PU.2, handles.js) */
+.pc-handle-val { position: absolute; z-index: 3; width: 5.5rem; padding: .1rem .3rem; font-size: .8125rem; font-variant-numeric: tabular-nums; }
 .pc-sketch { cursor: crosshair; }
 .pc-sketch[data-tool="select"] { cursor: default; }
 .pc-dim-input {
@@ -533,3 +545,27 @@ button.cs-shown-h:focus-visible { outline: var(--pen-2) solid var(--action); }
 @media (max-width: 1599.98px) {
   .pc-tool[data-cmd="std-part"] > span, .pc-tool[data-cmd="view-normal"] > span { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 }
+
+/* Nest flat parts on sheets (0.6 LC.17, nest-ui.js; session lc-make) */
+.pc-dialog:has(.pc-nest) { width: min(52rem, calc(100vw - 2rem)); }
+.pc-nest { display: grid; gap: .5rem; min-width: 0; max-height: 70vh; overflow: auto; }
+.pc-nest > * { min-width: 0; }
+.pc-nest-sheetbox { display: grid; grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr)); gap: .4rem .75rem; align-items: end; }
+.pc-nest-field { display: grid; gap: .15rem; font-size: .8125rem; color: var(--ink-2); }
+.pc-nest-table .pc-input { width: 5rem; }
+.pc-nest-notes p, .pc-nest-out p { margin: 0; font-size: .8125rem; }
+.pc-nest-svg { max-height: 22rem; }
+.pc-nest-sheet { fill: var(--sheet); stroke: var(--ink-2); stroke-width: 1px; vector-effect: non-scaling-stroke; }
+.pc-nest-part { fill: color-mix(in srgb, var(--layer-violet) 18%, transparent); }
+.pc-nest-table .pc-select { width: auto; }
+
+/* Tolerance stack-ups (0.6 LC.18, stackup-ui.js; session lc-make): a wider Measure-style card */
+.pc-measure.pc-stk { width: min(40rem, calc(100% - 1.5rem)); }
+.pc-stk-row { display: flex; flex-wrap: wrap; align-items: end; gap: .4rem .75rem; margin: .4rem 0; }
+.pc-stk-field { display: grid; gap: .15rem; font-size: .8125rem; color: var(--ink-2); }
+.pc-stk-field .pc-input { width: 9rem; }
+.pc-stk-wrap { overflow-x: auto; }
+.pc-stk-table .pc-stk-num { width: 5.5rem; padding: .15rem .3rem; }
+.pc-stk-table .pc-select-sm { max-width: 11rem; }
+.pc-stk-rank { font-weight: 600; text-align: center; }
+.pc-stk-bar { display: inline-block; min-width: 4rem; padding: 0 .25rem; background-color: transparent; background-image: linear-gradient(color-mix(in srgb, var(--layer-violet) 30%, transparent), color-mix(in srgb, var(--layer-violet) 30%, transparent)); background-repeat: no-repeat; background-size: var(--share) 100%; font-variant-numeric: tabular-nums; }

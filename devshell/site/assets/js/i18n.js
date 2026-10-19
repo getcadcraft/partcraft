@@ -125,5 +125,6 @@ export function setLocale(loc) {
 
 // globalThis.ccI18n: how shared libraries (lib/dwg, lib/skp, libitem.js — docs/LANG.md § Shared libraries) reach the
 // page's language without importing this file; catalog() lets one hand it to its worker.
-const api = { t, has, locale, missing, init, setLocale, fill, choosePlural, pluralCategory, catalog, isRtl };if (typeof globalThis !== 'undefined' && !globalThis.ccI18n) globalThis.ccI18n = api;
+const api = { t, has, locale, missing, init, setLocale, fill, choosePlural, pluralCategory, catalog, isRtl };
+if (typeof globalThis !== 'undefined' && !globalThis.ccI18n) globalThis.ccI18n = api;
 export default api;

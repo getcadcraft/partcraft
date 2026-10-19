@@ -1241,6 +1241,8 @@ await (await import(path.join(REPO, 'tools/partcraft-test/test-assembly-tools.mj
 await (await import(path.join(REPO, 'tools/partcraft-test/test-workspaces.mjs'))).runWorkspaceTests({ ok, section, near });
 await (await import(path.join(REPO, 'tools/partcraft-test/test-design-features.mjs'))).runDesignFeatureTests({ ok, section, oc, skip, M });
 await (await import(path.join(REPO, 'tools/partcraft-test/test-sheetmetal.mjs'))).runSheetMetalTests({ ok, section, oc, skip });   // 0.4 P15–P17
+await (await import(path.join(REPO, 'tools/partcraft-test/test-nest.mjs'))).runNestTests({ ok, section, oc, skip });   // 0.6 LC.17 (session lc-make)
+await (await import(path.join(REPO, 'tools/partcraft-test/test-stackup.mjs'))).runStackupTests({ ok, section });   // 0.6 LC.18 (session lc-make)
 await (await import(path.join(REPO, 'tools/partcraft-test/test-configs.mjs'))).runConfigTests({ ok, section });   // 0.4 P18
 await (await import(path.join(REPO, 'tools/partcraft-test/test-stdparts.mjs'))).runStdPartsTests({ ok, section, M });   // 0.5 MQ.4
 await (await import(path.join(REPO, 'tools/partcraft-test/test-joints.mjs'))).runJointTests({ ok, section, M });   // 0.4 P19
@@ -1267,6 +1269,7 @@ await (await import(path.join(REPO, 'tools/partcraft-test/test-flow.mjs'))).runF
 await (await import(path.join(REPO, 'tools/partcraft-test/test-flow-turb.mjs'))).runFlowTurbTests({ ok, section, near, oc });
 await (await import(path.join(REPO, 'tools/partcraft-test/test-threads.mjs'))).runThreadTests({ ok, section });
 await (await import(path.join(REPO, 'tools/partcraft-test/test-script.mjs'))).runScriptTests({ ok, section });
+await (await import(path.join(REPO, 'tools/partcraft-test/test-pu.mjs'))).runPuTests({ ok, section, M });   // 0.6 PU.1–PU.6
 
 section('exact kernel: hygiene');
 {

@@ -10,6 +10,8 @@
  *             in a sketch two fingers pan)
  *   autorel   add relations while sketching (default on): coincident where a click snaps to a point or a curve,
  *             horizontal / vertical for nearly level lines
+ *   dimdraw   dimension as you draw (default on; 0.6 PU.1): sizes typed while drawing a line, rectangle, circle or arc become
+ *             driving dimensions (sketchview.js dimDraw)
  *   corner    corner indicator: view cube (default) / axis icon / none (viewcube.js)
  *   bed       the 3D printer's bed, width × depth × height in mm (empty = not checked; 0.5 SG.4): Check for 3D printing
  *             warns when a part is larger
@@ -38,6 +40,8 @@
   <legend><?= Lang::e('ui.settings.sketching') ?></legend>
   <label class="shell-check"><input type="checkbox" name="pcAutoRel"> <?= Lang::e('ui.settings.autorel') ?></label>
   <p class="shell-hint-text"><?= Lang::e('ui.settings.autorel.hint') ?></p>
+  <label class="shell-check"><input type="checkbox" name="pcDimDraw"> <?= Lang::e('ui.settings.dimdraw') ?></label>
+  <p class="shell-hint-text"><?= Lang::e('ui.settings.dimdraw.hint') ?></p>
 </fieldset>
 <fieldset class="shell-set">
   <legend><?= Lang::e('ui.settings.corner') ?></legend>

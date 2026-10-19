@@ -78,7 +78,7 @@ When a new relation or dimension contradicts the others, PartCraft does not move
 To fix it:
 
 1. Press {{key:Mod+Z}} to undo the last change, or
-2. Find the red item in the **Relations and dimensions** list in the right panel and choose **Delete** beside it. You can also click its symbol or number in the sketch and press {{key:Delete}}.
+2. Find the red item in the **Relations and dimensions** list in the right panel (a group that holds it is open and red) and choose **Delete** beside it. You can also click its symbol or number in the sketch and press {{key:Delete}}.
 
 :::note
 There are no "driven" (reference) dimensions in this build. A dimension that would only report a size the other relations already fix is treated as over defined. Read sizes in the panel instead: select a line and look at the Dimension buttons, or check the part facts after you extrude.
@@ -97,5 +97,12 @@ With nothing selected, the right panel lists **Relations and dimensions**. Each 
 - **Edit** (dimensions only): opens the number box;
 - **Select**: selects it in the sketch;
 - **Delete**: removes it.
+
+Relations of one kind that appear more than once share one row, such as "Coincident × 5" for a rectangle tied to the origin. Click the row to open it: each relation is listed by what it ties ("point p2, point p4") with its own **Select** and **Delete**. The row itself has:
+
+- **Select**: selects all of them in the sketch;
+- **Delete all**: removes all of them in one step ({{key:Mod+Z}} brings them back).
+
+A group that holds an over defined relation opens by itself, with its name in red. Dimensions are always listed one per row, with their values.
 
 With geometry selected, the list shows only the **Relations on the selection**.

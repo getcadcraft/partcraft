@@ -10,7 +10,8 @@
 %   s         the source per unit area: one number, or one per element (charge density, C/m³)
 %   bc        struct: bc.fixed = { struct('nodes', n, 'value', V), … } (fixed potentials; electrodes are groups)
 %             Edges with no fixed value are natural (c ∂φ/∂n = 0: no flux crosses them, field lines run along).
-%   opts      struct, optional: show (true), name ('potential')
+%   opts      struct, optional: show (true), name ('potential'), load (nodes × 1: an extra load added to the
+%             right-hand side as it is, e.g. magnetostatic2d's permanent magnets; 0.6 SG.7+)
 % Returns:    r.phi (nodes × 1), r.grad (elements × 2: ∇φ at the element centres), r.flux (elements × 2:
 %             −c∇φ, the field D = εE for electrostatics), r.energy (½ φᵀKφ = ½∫c|∇φ|² per unit depth, J/m),
 %             r.charge (one per bc.fixed group: Σ(Kφ − f) over its nodes = the charge on that electrode per unit
@@ -50,6 +51,10 @@ ce = c(:) .* ones(ne, 1);
 K = assemble(Q, Ke, ce, nn);
 se = s(:) .* ones(ne, 1);
 f = accumarray(Q(:), repmat(se * a * b / 4, 4, 1), [nn 1]);
+ld = getopt(opts, 'load', []);
+if ~isempty(ld)
+  f = f + ld(:);
+end
 
 phi = zeros(nn, 1);
 fixed = []; vals = [];

@@ -42,7 +42,22 @@ Each tool has a toolbar button and a key. Choose the same button again, press {{
 | {{ui:Trim}} | {{key:T}} | Click the piece of a curve to remove, up to the nearest crossings |
 | {{ui:Dimension}} | {{key:D}} | See [Fully define a sketch](topic:relations-dimensions) |
 
-While you draw, a small label next to the pointer shows the length, the size or the diameter.
+While you draw, a small box next to the pointer shows the length, the size, the diameter or the radius.
+
+### Type the size as you draw
+
+After the first click of a line, rectangle, circle or arc, you can type the size instead of clicking it. Typing a number opens the box beside the pointer with that number in it:
+
+| Tool | Boxes ({{key:Tab}} moves to the next) | What happens on {{key:Enter}} |
+|---|---|---|
+| {{ui:Line}}, {{ui:Centerline}} | Length, then Angle (°) from the sketch's X axis | The line is drawn that long, toward the pointer or at the typed angle; the chain goes on from its end |
+| {{ui:Rectangle}} | Width, then Height | The rectangle is drawn from the first corner toward the pointer; a size you did not type comes from the pointer |
+| {{ui:Circle}} | Diameter | The circle is drawn at that diameter |
+| {{ui:Arc}} | Radius after the center, then Arc angle (°) after the start | The start goes that far from the center; then the arc goes that far round, the way you moved the pointer |
+
+Each size you typed becomes a **driving dimension** in the same step, so the sketch comes out sized: {{key:Mod+Z}} takes away the shape and its dimensions together. Clicking instead of pressing {{key:Enter}} keeps what you typed and takes the rest from the click. {{key:Esc}} closes the box and goes back to the pointer.
+
+Turn this off in {{ui:Settings}} › {{ui:PartCraft}} › **Dimension as you draw** if you only want to draw by clicks. See [PartCraft settings](topic:settings).
 
 {{ui:More}}, at the end of the sketch tools, holds the control-point spline, Extend, Offset, Mirror, Polygon, Slot, the sketch patterns and Project edge: see [Splines, trim, offset and other sketch tools](topic:sketch-tools).
 

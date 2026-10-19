@@ -76,6 +76,7 @@ $__tools = [
         ['asm-insert-file', 'box-arrow-in-down', Lang::t('ui.tb.assembly.asm_insert_file'), Lang::t('ui.tb.assembly.asm_insert_file.title')],
         ['asm-joint', 'link-45deg', Lang::t('ui.tb.assembly.asm_joint'), Lang::t('ui.tb.assembly.asm_joint.title')],
         ['asm-check', 'exclamation-diamond', Lang::t('ui.tb.assembly.asm_check'), Lang::t('ui.tb.assembly.asm_check.title')],
+        ['asm-stackup', 'rulers', Lang::t('ui.tb.assembly.asm_stackup'), Lang::t('ui.tb.assembly.asm_stackup.title')],
         ['asm-edit', 'pencil', Lang::t('ui.tb.assembly.asm_edit'), Lang::t('ui.tb.assembly.asm_edit.title')],
         ['asm-close', 'x-square', Lang::t('ui.tb.assembly.asm_close'), Lang::t('ui.tb.assembly.asm_close.title')],
     ],
@@ -193,6 +194,7 @@ $__tools = [
                 <button type="button" role="menuitemcheckbox" aria-checked="false" data-cmd="view-draft" title="<?= Lang::e('draft.menu.title') ?>"><?= Lang::e('draft.menu') ?></button>
                 <button type="button" role="menuitemcheckbox" aria-checked="false" data-cmd="view-zebra" title="<?= Lang::e('analysis.menu.zebra.title') ?>"><?= Lang::e('analysis.menu.zebra') ?></button>
                 <button type="button" role="menuitemcheckbox" aria-checked="false" data-cmd="view-curvature" title="<?= Lang::e('analysis.menu.curvature.title') ?>"><?= Lang::e('analysis.menu.curvature') ?></button>
+                <button type="button" role="menuitemcheckbox" aria-checked="true" data-cmd="view-planes" title="<?= Lang::e('ui.tb.views.planes.title') ?>"><?= Lang::e('ui.tb.views.planes') ?></button>
                 <hr>
                 <?php foreach (['iso', 'front', 'back', 'top', 'bottom', 'right', 'left'] as $__v): ?>
                   <button type="button" role="menuitem" data-cmd="view-<?= e($__v) ?>"><?= Lang::e('ui.tb.view.' . $__v) ?></button>
@@ -216,6 +218,7 @@ $__tools = [
                 <button type="button" role="menuitem" data-cmd="export-sw-macro" title="<?= Lang::e('ui.tb.export.sw_macro.title') ?>"><?= Lang::e('ui.tb.export.sw_macro') ?></button>
                 <a role="menuitem" class="pc-menu-link" data-sw-back href="<?= e($__build['url']) ?>CadCraftExport.swb" download="CadCraftExport.swb" title="<?= Lang::e('ui.tb.export.sw_back.title') ?>"><?= Lang::e('ui.tb.export.sw_back') ?></a>
                 <button type="button" role="menuitem" data-cmd="export-dxf"><?= Lang::e('ui.tb.export.dxf') ?></button>
+                <button type="button" role="menuitem" data-cmd="export-nest" title="<?= Lang::e('ui.tb.export.nest.title') ?>"><?= Lang::e('ui.tb.export.nest') ?></button>
                 <button type="button" role="menuitem" data-cmd="export-drawing"><?= Lang::e('ui.tb.export.drawing') ?></button>
                 <button type="button" role="menuitem" data-cmd="export-bom" hidden><?= Lang::e('ui.tb.export.bom') ?></button>
               </div>

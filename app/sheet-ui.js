@@ -122,7 +122,8 @@ export function installSheetUI(host) {
       kids.push(el('div', { className: 'pc-actions' }, host.btn(t('sheet.flat.dxf'), () => {
         const { text } = dxfFlat(fl, (b) => t(b.up ? 'sheet.flat.note_up' : 'sheet.flat.note_down', { angle: fmt(b.angle), r: fmt(b.r) }));
         host.saveText(t('sheet.flat.file', { name: host.fileBase() }), text, 'application/dxf');
-      }, 'pc-btn', { dataset: { sheetDxf: '1' }, title: t('sheet.flat.dxf_title') })));
+      }, 'pc-btn', { dataset: { sheetDxf: '1' }, title: t('sheet.flat.dxf_title') }),
+      host.nest ? host.btn(t('nest.open'), () => host.nest(fl), 'pc-btn', { dataset: { sheetNest: '1' }, title: t('nest.open_title') }) : null));
     }
     return el('div', { className: 'pc-block', dataset: { sheetFlatBlock: '1' } }, ...kids);
   }

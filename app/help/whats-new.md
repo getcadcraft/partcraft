@@ -1,65 +1,61 @@
 ---
-title: What's new in 0.5
-summary: PartCraft 0.5 adds threads you can print, standard bolts, nuts, washers, pins, bearings and keys, a 3D printing check, IFC export with every property, interference you can filter, scripts beside the model, sealed Python, menu styles, and a layout for phones.
+title: What's new in 0.6
+summary: PartCraft 0.6 adds sizes typed as you draw, drag handles, one click from a face to a feature, values in the history, base planes that step back, nesting flat parts on sheets, tolerance stack-ups, configurations that turn features off, and permanent magnets in 2-D magnetics.
 section: start
 order: 5
-keywords: whats new, what's new, release notes, changelog, changes, 0.5, version, new features, thread, modelled thread, standard part, bolt, nut, washer, bearing, 3d printing, stl, 3mf, ifc, interference, parameters used by, script panel, python, cpython, magnetic, electromagnet, menu style, feature tree, keys, mouse, settings, phone, fold phone, tablet, studio, live
+keywords: whats new, what's new, release notes, changelog, changes, 0.6, version, new features, dimension as you draw, typed size, drag handle, extrude from face, cut into, hole here, base planes, history values, relations, nest, nesting, sheet, plate, dxf, laser, waterjet, tolerance, stack-up, stackup, rss, worst case, iso 2768, gd&t, frame analysis, frame3d, configuration, suppress, magnet, permanent magnet, magnetics, interface size, toolbar, pen, touch, indonesian
 ---
 
-This is what changed in PartCraft 0.5, compared with 0.4. PartCraft still builds every part with the mesh kernel, as in 0.4: see [The mesh kernel](topic:solid-kernels).
+This is what changed in PartCraft 0.6, compared with 0.5. Sketching and changing a part take fewer clicks, and flat parts and assemblies get new checks.
 
 ## New
 
-### Modeling
+### Sketching and changing parts
 
-- **Threads.** {{ui:Features}} › {{ui:More}} › {{ui:Thread}} puts a thread on a round face you pick, a shaft or a bore: ISO metric M1.6 to M64 or trapezoidal Tr8×1.5 to Tr60×9, sized to the face or chosen, over the whole face or a length from the open end, right or left hand. It stays a drawn (cosmetic) thread with its callout unless you tick **Modelled**, which cuts the real helical thread with a clearance (0.1 mm to start with) so printed bolts and nuts fit. Tapped holes can be modelled the same way. See [Threads on shafts and bores, drawn or modelled](topic:threads).
-- **Standard parts.** {{ui:Standard part}} in the File group opens a hex head screw or bolt (metric or inch), a hex nut, a plain washer, a parallel pin, a deep groove ball bearing or a parallel key as a new part, with every size of its standard as a configuration. See [Open a standard part](topic:standard-parts).
-- **Type to change a feature.** Select a feature, or add one, and type a number: it goes into the feature's main value, such as an extrude's depth. {{key:Enter}} sets it. See [Change sizes without opening the sketch](topic:change-sizes).
+- **Dimension as you draw.** While drawing a line, rectangle, circle or arc, type its size ({{key:Tab}} for the next one: angle, height, arc angle) and press {{key:Enter}}. The shape is drawn at that size and each typed size becomes a dimension, so sketches come out sized. {{ui:Settings}} › {{ui:PartCraft}} › {{ui:Dimension as you draw}} turns it off. See [Type the size as you draw](topic:sketch-basics#type-the-size-as-you-draw).
+- **Drag handles.** Select an Extrude and drag the arrow on its end face to change the depth, or a Revolve's curved arrow to change its angle. The part follows as you drag, letting go is one undo step, and {{key:Esc}} goes back. Type in the box beside the arrow to set the value exactly. See [Drag it in the view](topic:change-sizes#drag-it-in-the-view).
+- **One click from a face to a feature.** Pick a flat face and choose {{ui:Extrude from it}} (pulls the whole face out), {{ui:Cut into it}} (pushes it in) or {{ui:Hole here}} (a hole through where you clicked). Each is one undo step; type a number straight after for the depth or the diameter. See [Pull or push a whole face](topic:extrude-and-cut#pull-or-push-a-whole-face) and [Drill holes](topic:holes).
+- **Values in the history.** Each feature's row shows its main number, such as "Extrude1 25 mm" or "Hole1 Ø6.6 thru". Double-click it, or press {{key:F2}}, to change it right there, with equations and undo included. See [Change the number in the history](topic:change-sizes#change-the-number-in-the-history).
+- **The base planes step back.** Once a part has a solid, the Front, Top and Right planes are drawn faint and clicks go through them to the part. They come back in full while you choose where to sketch or when you select one in the history. {{ui:Views}} › {{ui:Base planes}} hides them altogether. See [The 3D view](topic:workspace#the-3d-view-middle).
+- **Repeated relations in one row.** The sketch panel lists "Coincident × 5" instead of five rows. Open the row to see each one, or {{ui:Select}} or {{ui:Delete}} all of them at once. See [The relations list](topic:relations-dimensions#the-relations-list).
+- **Configurations can turn features off.** Save a configuration with a feature suppressed, such as no holes or no chamfer. Applying it turns that feature off and the others back on, with its sizes, in one step: one part, with and without. See [Turn features on and off in a configuration](topic:design-tables#turn-features-on-and-off-in-a-configuration).
 
-### Parameters and scripts
+### Making and checking
 
-- **See where a parameter is used.** Under each parameter on the {{ui:Parameters}} tab: "Used by:" and the features, parameters, configurations and scripts that use it, or "Not used yet." Click a feature to go to it. See [Drive a part with parameters](topic:parameters).
-- **Scripts read the part's parameters** with `param('width')` and `params()` (`cs.param` and `cs.params` in Lua and Python). Each script's tab lists the parameters it reads, and marks names the part does not have. The command-line tool's `run --part` passes them too.
-- **Script while you model.** The Design workspace's right panel has a Script tab with the script editor: the feature tree still selects, double-click edits a sketch, the view turns, and {{key:F5}} runs. {{ui:Pop out}} moves the panel to a window of its own, for a second screen; {{ui:Put back}} returns it. See [Write and run scripts](topic:craftscript).
-- **Python is sealed off.** Python now runs on CPython built for WebAssembly. Like CraftScript and Lua, a Python script reaches only the part, the variables and the built-in functions: no network, no files. Each run starts fresh, and the first Python run loads about 7 MB instead of about 13 MB. Scripts work as before. See [Scripts in Python](topic:craftscript-python).
-- **Magnetic fields in 2-D.** A new tutorial works out an electromagnet's field with the analysis library: the field in the gap, the inductance, the pull and where the core saturates. See [Magnetic fields in 2-D (tutorial)](topic:magnetic-fields-2d).
+- **Nest flat parts on sheets.** {{ui:Export}} › {{ui:Nest flat parts on sheets…}}, or {{ui:Nest on sheets…}} under a sheet metal flat pattern, lays flat parts on plates or a roll with edge margins, a space between parts, turns and grain. It shows how many plates and how much material it takes, and saves the layout as a DXF for the laser or waterjet. Parts come from the flat pattern, from every sheet metal part of an assembly, or from any DXF file; small parts are placed inside big parts' holes. See [Nest flat parts on sheets](topic:nest-flat-parts).
+- **Tolerance stack-ups.** In an assembly, {{ui:Stack-up}} lets you click a chain of faces through the parts and see how much the gap at its end can vary: worst case and RSS (root sum square), how many assemblies in a million fall outside your limits, and the dimensions that matter most, ranked first. Tolerances come from each part's general tolerance (±, +/−, ISO 2768), from the GD&T frames on its drawing, or typed. It is saved with the assembly, and exports as CSV. See [Tolerance stack-ups](topic:tolerance-stackup).
 
-### Assemblies and files
+### Scripts and analysis
 
-- **Check for 3D printing.** {{ui:Export}} › {{ui:Check for 3D printing (STL or 3MF)…}} checks a part or a whole assembly for a slicer: holes in the surface, edges shared by more than two faces, faces turned the wrong way, shells inside out or passing through themselves. It gives the size, volume, triangles, the area on the bed and the overhang, then downloads STL or 3MF. {{ui:Settings}} › {{ui:PartCraft}} › {{ui:3D printer}} sets your bed size. See [Get a part ready for 3D printing](topic:print-3d).
-- **IFC 4 export with every property.** {{ui:Export}} › {{ui:IFC 4 (with every property)}} writes a part or an assembly for building and plant models: the shape, the material, the part's properties, every parameter, the title block and quantities. An assembly writes each part once, and each copy keeps its own values. See [Export for printing, STEP and DXF](topic:export-files).
-- **Interference you can filter.** Interference results now have kinds: {{ui:Overlap}}, {{ui:Thread fit (cosmetic threads)}}, {{ui:Thread depth mismatch}} and the new {{ui:Touching faces}}. Show or hide each kind, or {{ui:Hide this pair}}. The filters are saved with the assembly, and each change is one undo step. See [Check an assembly for clashes and motion](topic:check-assembly).
-- **Add-ons can extend PartCraft:** commands, a panel tab, Properties sections, importers and exporters. PartCraft comes with none yet.
+- **Frame analysis in the analysis library.** `frame3d` is frame analysis written out as a script you can read, run and change. DetailCraft and BimCraft export a whole model for it. See [The analysis library](topic:craftscript-library#groups).
+- **Permanent magnets in 2-D magnetics.** `magnetostatic2d` takes permanent magnets, with a remanence and direction for each region. A new example puts a magnet in an iron core with an air gap and works out the magnet's working point, how much flux leaks, the field in the gap and the pull. See [Permanent magnets](topic:magnetic-fields-2d#permanent-magnets).
 
-## Improved
+## Changed
 
-- A tidier {{ui:Features}} › {{ui:More}} menu with group headings. Tools the mesh kernel can't build are dimmed, and the menu scrolls in a short window. The first solid you make fills the view.
-- The command-line tool opens parts that carry scripts or studies. See [Scripts and the command line](topic:scripts-and-cli).
-- The toolbar keeps to one row on a 1440 px window again: {{ui:Standard part}} and {{ui:Normal to}} show as icons below 1600 px, and {{ui:Standard part}} is hidden inside a sketch, since it opens a new part.
+- **Newer file versions, only when needed.** An assembly with a stack-up is saved as assembly version 5, and a part with a configuration that turns features off is saved as part version 4. PartCraft 0.5 refuses both with its "newer version" message instead of opening them wrong. Assemblies without a stack-up, and parts without such a configuration, are saved as before. See [Save and reopen](topic:save-reopen).
+- The toolbar stays one row on a 1440 px window.
 
 ## Fixed
 
-- Tapped holes showed no thread: no dashed circles in the view and no note on the drawing. They show again.
-- {{key:Enter}} did nothing in the panel's number boxes. It now sets the value.
-- {{ui:Features}} › {{ui:More}} ran off a short window. It scrolls now.
+- Typing a single digit after selecting a feature, then {{key:Enter}}, did nothing. Two or more digits worked; one digit works now.
 
 ## In every app
 
-- **CadCraft Studio is the desktop app.** From 0.5 the desktop download is CadCraft Studio: all eight apps in one install. The separate installer for each app stops. PartCraft still runs in the browser, and as a browser edition you can download.
-- **Installers are not signed yet.** Code signing comes with 0.6. On Windows, if SmartScreen stops the installer, choose {{ui:More info}}, then {{ui:Run anyway}}. The macOS disk image (Apple silicon and Intel, macOS 13 or later) is not signed or notarized: the first time, right-click the app and choose {{ui:Open}}. iPad, Android and iPhone come with 0.6.
-- **Work together live.** In CadCraft Studio, {{ui:Live}} shares the file you have open: teammates on the same network join with a short code and edit with you, each with their own undo. In PartCraft everyone builds one part's feature tree, and every window builds the same solid. Sessions on your own network are free, for everyone. Invite links over the internet aren't open yet. See [Work together live](common:work-together-live) and [Model one part together, live](topic:work-live).
-- **Menus, keys and mouse.** In {{ui:Settings}} › {{ui:PartCraft}} › {{ui:Menus, keys and mouse}}, pick a menu style ({{ui:PartCraft}} or {{ui:Feature tree}}, a ribbon), give any command your own key, move commands between menus, set the wheel and the mouse buttons, and export or import a style as a `.ccinput.json` file. {{ui:Use this style in every app}} opens every app in its matching style. See [Menus, keys and mouse](topic:menus-keys-and-mouse).
-- **A wider Settings dialog,** in two columns, so more fits without scrolling. See [PartCraft settings](topic:settings).
-- **Floating and bottom panels fit the window.** A floating panel stays above the status bar and shrinks with a small window; on a short window a panel docked at the bottom leaves the view room. See [Arrange the panels and use a second monitor](common:arrange-panels).
-- **Phones and fold phones.** On a screen up to 760 px wide, or a phone held sideways, the view keeps the screen: panels open as sheets from a bar at the bottom, the toolbar is one row that scrolls sideways, and the view cube sits small in a corner. {{ui:Tools}} hides the toolbar and {{ui:Move}} puts it at the bottom. Turning the phone, or opening and closing a fold phone, keeps your work, the selection and an open dialog. The app bar's {{ui:More}} menu holds the version, Find and the links. Phones work, but PartCraft is made for larger screens. See [Trackpad, touch and small screens](topic:trackpad-and-touch).
-- **Touch tablets.** On a touch screen each toolbar is one row that scrolls sideways instead of wrapping onto several lines.
-- **Spanish** stays a machine-made draft that has not been reviewed yet. Help topics are in English.
+- **The toolbar can't get lost.** While full screen hides the bars, a small {{ui:Show bars}} tab stays at the top of the window. {{ui:Settings}} › {{ui:General}} › {{ui:Reset the layout}} puts the toolbar, panels, screen mode and menu style back to how the app starts (your interface size and panel text size stay). In CadCraft Studio, its own {{ui:Settings}} has {{ui:Reset the layout in every app}}. See [Where did my toolbar go?](common:lost-toolbar).
+- **A menu on the toolbar.** Right-click the toolbar, or press and hold it, to arrange it, lock it so nothing moves by accident, or reset it. Ribbon menu styles collapse to their tab names: a tab opens its tools for one command; double-click a tab or use the pin to keep the ribbon open. See [The toolbar's own menu](common:lost-toolbar#the-toolbars-own-menu).
+- **Interface size.** {{ui:Settings}} › {{ui:General}} › {{ui:Interface size}} makes the bars, toolbars, panels and dialogs 80 % to 140 % of normal, for this app only, so two apps side by side on one monitor both fit. The drawing keeps its own zoom. See [Everything is too big or too small](common:lost-toolbar#everything-is-too-big-or-too-small).
+- **Pen and touch.** On a tablet or a touch-screen laptop with a pen, your palm is ignored while you draw, fingers can be left to moving the view, a two-finger tap undoes and a three-finger tap redoes, and the pen's side button and eraser end can undo or redo. {{ui:Settings}} › {{ui:General}} › {{ui:Pen and touch}}. See [Draw with a pen on a tablet](common:pen-and-touch).
+- **Live sessions can grow past 20 people.** In CadCraft Studio, when more people knock than the usual 20, Studio tells you what to expect and you choose {{ui:Allow anyway}} for this session or {{ui:Keep it at 20}}. {{ui:Recent edits}} in the Live panel shows who changed what. See [Work together live](common:work-together-live#when-many-people-join).
+- **Bahasa Indonesia** is new in {{ui:Settings}} › {{ui:General}} › {{ui:Language}}: a machine-made draft of every word, not yet reviewed by a native speaker. **Spanish (Mexico)** is still a draft too. Help topics are in English.
+- **Installers are still not signed** (signing comes next, in 0.7), and CadCraft Studio is not in an app store yet. Check the SHA-256 beside each file on getcadcraft.com/download. On Windows, if SmartScreen stops the installer, choose {{ui:More info}}, then {{ui:Run anyway}}. On a Mac, the first time, right-click CadCraft Studio and choose {{ui:Open}}. There is no iPad or iPhone build yet.
+- **Fixed:** with the bars hidden, {{ui:Arrange the toolbar…}} in Settings was grayed out, and from the keyboard it lost its place after the first move.
 
 ## Not in this version yet
 
-- Still the mesh kernel: sweeps, lofts and surfaces, several bodies, sheet metal, ribs, rounds on curved edges, shells and drafts on curved faces, STEP import and exact STEP still say "Not built yet".
-- Threads: a left-hand modelled thread is the mirror image of a right-hand one. The standard parts carry no threads (add a Thread feature). No gears yet, and no inch keys or inch washers.
-- Working live: assemblies are not shared (an assembly opened during a session is your own copy), a sketch travels whole, so two people in one sketch at once means the later edit wins.
-- Python packages (numpy and others), and Python in Save for offline.
-- Cloud saving.
-- [What is not built yet](topic:not-built-yet)
+- Stack-ups run in one direction only. GD&T frames give ± half the zone, a material-condition bonus isn't counted, and RSS assumes ±3σ normal.
+- Faint base planes can't be clicked. A typed line angle other than 0°, 90°, 180° or 270° isn't dimensioned. There's no drag handle on Through all or up-to ends, or on values set by an equation.
+- A big nest runs for a few seconds and the page waits.
+- Magnetics: permanent magnets are in 2-D only. A mesher for curved parts, saturating steel and motor parts aren't built yet.
+- Configurations: variant packs, library variants, a configurator page and picking variants in BimCraft aren't built yet. More machining strategies (3-D finishing, rest machining, posts, turning) aren't built yet.
+
+Everything else is in [What is not built yet](topic:not-built-yet).

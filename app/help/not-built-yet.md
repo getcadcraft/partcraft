@@ -48,6 +48,8 @@ Some rows in the tables below suggest one of these features as the way round som
 | A body list in the history; leaving hidden bodies out of exports | Rename and hide bodies in the part panel's body list; delete or suppress the feature that made a body to leave it out |
 | A non-uniform scale that keeps cylinders and cones analytic; non-uniform scaling of offset surfaces | {{ui:Scale body}} makes curved faces close B-splines (within 0.0000004 mm); a uniform scale stays exact |
 | Combining surface bodies; Minkowski sums | {{ui:Stitch}} or {{ui:Thicken}} first, then {{ui:Combine}} |
+| Tolerance analysis: stack-ups that turn corners (2D and 3D vector loops), sensitivities worked out from the geometry, Monte Carlo with other distributions, size tolerances on sketch dimensions, bonus tolerance from material condition | {{ui:Stack-up}} in an assembly: one direction, worst case and RSS, tolerances typed, from the title block's general tolerance or from GD&T frames: see [Tolerance stack-ups](topic:tolerance-stackup) |
+| Nesting: cutting order and lead-ins, cutting shared edges once, keeping and reusing leftover sheet, parts that must be kept together | {{ui:Nest flat parts on sheets…}} with spacing, margins, turns and grain: see [Nest flat parts on sheets](topic:nest-flat-parts); plan the cut in your cutter's own software |
 | Sheet metal: hems, jogs, miter and contour flanges; flanges on curved edges or on a bent base flange's faces; sketched bends; corner closures; forming tools; converting a solid to sheet metal; the flat of a bent base flange with cuts in it; bend tables | {{ui:Base flange}} (a plate or a bent profile), {{ui:Edge flange}} on a plate's straight edges with bend reliefs, and the flat pattern with a K-factor: see [Sheet metal](topic:sheet-metal) |
 | Draft analysis on assemblies; finding the parting line; wall-thickness analysis | {{ui:Draft analysis}} on the part in Design: see [Check draft for moulding and casting](topic:draft-analysis); open each part of an assembly to check it |
 
@@ -70,7 +72,7 @@ Some rows in the tables below suggest one of these features as the way round som
 
 | Not built yet | Instead, today |
 |---|---|
-| Building a part's saved configurations from the command line by name; configurations that suppress features or change materials | Export them as a CSV design table and pass it with `--table`; configurations set parameters only: see [Configurations and design tables](topic:design-tables) |
+| Building a part's saved configurations from the command line by name (with their features turned off); configurations that change materials | Export them as a CSV design table and pass it with `--table` (values only); configurations set parameters and turn features on and off: see [Configurations and design tables](topic:design-tables) |
 | Equations on the numbers of the newest features' own panels (plane, sweep, draft and similar) | Write them in a script or with `partcraft set` ([Scripts and the command line](topic:scripts-and-cli)) |
 | A part shown in inches | Sizes show in millimeters; type `2in` in a number box or an expression and it becomes 50.8 |
 
@@ -131,7 +133,7 @@ Some rows in the tables below suggest one of these features as the way round som
 | Turbulent flow with design accuracy (the Spalart–Allmaras model is in as experimental: pipe friction 30 to 34 % high, backward-step reattachment 21 to 39 % short; planned: finer cells near the walls), heat in flow, unsteady (time-accurate) flow, free surfaces, non-Newtonian fluids, rotating parts | Laminar, steady, isothermal flow of a Newtonian fluid, or the experimental turbulent model for qualitative patterns: see [Simulate fluid flow](topic:flow-simulation); the panel warns when the Reynolds number is past laminar |
 | Stress limits and manufacturing rules (overhangs, milling directions) in generative design; several materials in one shape | Stiffest shape for a volume; check the outcome in Simulation: see [Grow a shape from loads](topic:generative-design) |
 | An outcome as an editable (smooth, parametric) solid | STL, faceted STEP or a part with the outcome as an imported faceted solid |
-| Electric machine design: a rotor turning in a stator, torque against angle, saturating steel, permanent magnets, eddy currents and iron and copper losses; magnetic fields in 3-D or on curved meshes | Linear 2-D magnetostatics on a grid in the analysis library: coils, iron, gaps, inductance and pull: see [Magnetic fields in 2-D](topic:magnetic-fields-2d) |
+| Electric machine design: a rotor turning in a stator, torque against angle, saturating steel, magnets that lose strength past their knee, eddy currents and iron and copper losses; magnetic fields in 3-D or on curved meshes | Linear 2-D magnetostatics on a grid in the analysis library: coils, iron, permanent magnets on their recoil line, gaps, inductance and pull: see [Magnetic fields in 2-D](topic:magnetic-fields-2d) |
 
 ## Scripts
 
@@ -149,7 +151,7 @@ Some rows in the tables below suggest one of these features as the way round som
 | Not built yet | Instead, today |
 |---|---|
 | Cloud saving, sharing and version history | Not available yet. Save files to your computer and keep versions by name |
-| PartCraft as an installed app on iPad, Android and iPhone | Use PartCraft in the device's browser; on the desktop it runs in a browser or in CadCraft Studio |
+| PartCraft as an installed app on iPad and iPhone | Use PartCraft in the device's browser; on Android and on the desktop it also runs in CadCraft Studio (getcadcraft.com/download) |
 | Context (right-click) menus | Toolbar and right panel |
 | Working fully offline from a fresh start | Only when the app has been saved for offline use: see [Working offline](common:offline) |
 

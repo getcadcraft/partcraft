@@ -26,6 +26,20 @@ Which box is which? The boxes are listed in the order the dimensions were made. 
 
 Select a feature in the history (or just add it) and type a number: it goes into the feature's main box, the one you change most (an Extrude's **Depth**, a Revolve's **Angle**, a Hole's **Diameter**, a pattern's **Count**, a Fillet's **Radius**, a Shell's wall). Press {{key:Enter}} to set it, or {{key:Esc}} to keep the old one. Adding an Extrude says so in the status bar: "Extrude1 added. Change its numbers on the right, or type a number now for its depth."
 
+## Change the number in the history
+
+Each feature's row in the history shows its main number beside its name: "Extrude1 25 mm", "Hole1 Ø6.6 thru", "Fillet1 R2", "LPattern1 4 × 20 mm". Double-click the number (or select the row and press {{key:F2}}) and a box opens right there. Type the new value and press {{key:Enter}}; {{key:Esc}} keeps the old one. It works exactly like the feature's box on the right: the same limits, `=` to type an equation such as `=width/2`, and one step to undo.
+
+On an Extrude, a Hole or a pattern, a double-click anywhere on the row opens the box. On a Fillet, Chamfer, Shell, Draft or Thread a double-click on the name still goes to picking its edges or faces, so double-click the number itself. Sketches have no number in the row: a double-click opens the sketch.
+
+## Drag it in the view
+
+Select an Extrude in the history (or click it in the view, then its row) and an orange arrow stands on its end face, with the depth in a box beside it. Drag the arrow: the part follows as you drag, and letting go sets the new depth as one step ({{key:Mod+Z}} puts it back). Press {{key:Esc}} while dragging to go back to where you started. The depth moves in steps of a tenth of its size: 1 mm on a 25 mm extrude, 0.1 mm on a 3 mm one.
+
+A Revolve gets a curved arrow at the end of its turn: drag it round the axis to change the angle, in whole degrees from 1° to 360°.
+
+Or click into the box beside the arrow, type a value (or `=` and an equation) and press {{key:Enter}}. There is no arrow on an Extrude that goes **Through all** or up to a face, or on a value an equation drives: change those on the right.
+
 ## The numbers that drive a part
 
 | Where | What you can change |

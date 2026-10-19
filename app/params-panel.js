@@ -76,6 +76,8 @@ export function mountParams(host) {
       // configurations (configs.js): the op's new list, else the old one, following renamed and deleted parameters
       const cfg = CF.followParams(r && r.configs !== undefined ? r.configs : p.configs, before, trial);
       if (cfg && cfg.rows.length) p.configs = cfg; else delete p.configs;
+      // 0.6 LC.14: a configuration that controls features turns its own off and every other one on, in the same step
+      if (r && r.off) for (const f of p.features) { if (r.off.has(f.id)) f.suppressed = true; else delete f.suppressed; }
       p.params = trial;
       PP.tidyParams(p);
       return PP.applyPartParams(p);
@@ -129,8 +131,13 @@ export function mountParams(host) {
       });
     }
     // Esc keeps the old number; Enter sets the typed one (leaving the box fires its change)
-    inp.addEventListener('keydown', (e) => { if (e.key === 'Escape') { inp.value = show(value); inp.blur(); } else if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); inp.blur(); } });
-    inp.addEventListener('change', () => typed(key, inp.value, value, onchange, { min, max }).then((ok) => { if (!ok && inp.isConnected) inp.value = show(value); }));
+    // Applied once per new text, on Enter, change or leaving the box: a value set by script (the first digit typed with a
+    // feature selected, partcraft.js) fires no change event when the box loses focus (0.6, found by PU.3's test)
+    let last = show(value);
+    const apply = () => { if (inp.value === last) return; last = inp.value; typed(key, inp.value, value, onchange, { min, max }).then((ok) => { if (!ok && inp.isConnected) inp.value = last = show(value); }); };
+    inp.addEventListener('keydown', (e) => { if (e.key === 'Escape') { inp.value = show(value); inp.blur(); } else if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); apply(); inp.blur(); } });
+    inp.addEventListener('change', apply);
+    inp.addEventListener('blur', apply);
     return inp;
   }
 
@@ -220,6 +227,9 @@ export function mountParams(host) {
   // ---------------------------------------------------------------- configurations (design-table rows saved in the part)
   const cfgOf = () => host.part().configs || null;
   const valuesText = (row) => Object.entries(row.values).map(([k, v]) => `${k} ${fmt(v)}`).join(', ');
+  /** The names of the features a row turns off (0.6 LC.14), in the part's order. */
+  const offNames = (row) => { const off = new Set(row.off || []); return host.part().features.filter((f) => off.has(f.id)).map((f) => f.name); };
+  const rowText = (row) => { const off = offNames(row); return off.length ? t('configs.values_off', { values: valuesText(row), off: off.join(', ') }) : valuesText(row); };
   function importTable(file) {
     const rd = new FileReader();
     rd.onload = () => {
@@ -227,26 +237,28 @@ export function mountParams(host) {
       if (!part.params || !part.params.vars.length) { host.status(t('configs.need_params'), true); return; }
       let rows;
       try { rows = CF.rowsFromTable(String(rd.result).slice(0, 4 * 1024 * 1024), part.params); } catch (e) { host.status(e.message, true); return; }
-      const r = edit(t('configs.undo.import'), () => { let cfg = cfgOf(); for (const row of rows) cfg = CF.saveRow(cfg, row); return { ok: true, configs: cfg }; });
+      // a design table carries values only: a row it replaces keeps the features it turns off (0.6 LC.14)
+      const r = edit(t('configs.undo.import'), () => { let cfg = cfgOf(); for (const row of rows) cfg = CF.saveRow(cfg, row, { keepOff: true }); return { ok: true, configs: cfg }; });
       if (r.ok === false) host.status(r.error, true);
       else host.status(t('configs.imported', { n: rows.length, file: file.name.slice(0, 120) }));
     };
     rd.readAsText(file);
   }
   function applyRow(row) {
-    const r = edit(t('configs.undo.apply', { name: row.name }), (p) => { CF.applyRow(p, row); return { ok: true, configs: { ...cfgOf(), active: row.name } }; });
+    const off = CF.featuresOff(cfgOf(), row);
+    const r = edit(t('configs.undo.apply', { name: row.name }), (p) => { CF.applyRow(p, row); return { ok: true, configs: { ...cfgOf(), active: row.name }, off }; });
     if (r.ok === false) host.status(r.error, true);
-    else if (!r.applied?.errors?.length) host.status(t('configs.applied', { name: row.name, values: valuesText(row) }));
+    else if (!r.applied?.errors?.length) host.status(t('configs.applied', { name: row.name, values: rowText(row) }));
   }
   function saveCurrent(name, label) {
     const part = host.part();
     const clean = CF.cleanName(name);
     if (!clean) { host.status(t('configs.need_name'), true); return false; }
     if (!part.params || !part.params.vars.some(PR.isDriving)) { host.status(t('configs.need_params'), true); return false; }
-    const row = CF.rowFromCurrent(part.params, clean);
+    const row = CF.rowFromCurrent(part.params, clean, part.features);
     const r = edit(label || t('configs.undo.save', { name: clean }), () => ({ ok: true, configs: { ...CF.saveRow(cfgOf(), row), active: row.name } }));
     if (r.ok === false) { host.status(r.error, true); return false; }
-    host.status(t('configs.saved', { name: clean, values: valuesText(row) }));
+    host.status(t('configs.saved', { name: clean, values: rowText(row) }));
     return true;
   }
   function renameRow(row, to) {
@@ -395,16 +407,16 @@ export function mountParams(host) {
     // configurations
     const csvIn = el('input', { type: 'file', className: 'visually-hidden', accept: '.csv,text/csv', tabIndex: -1, 'aria-hidden': 'true', dataset: { tableFile: '' } });
     csvIn.addEventListener('change', () => { const f = csvIn.files[0]; csvIn.value = ''; if (f) importTable(f); });
-    const cfg = cfgOf(), params = host.part().params;
+    const cfg = cfgOf(), params = host.part().params, feats = host.part().features;
     const crows = (cfg?.rows || []).map((r, i) => {
-      const active = cfg.active === r.name, same = active && params && CF.rowMatches(params, r);
+      const active = cfg.active === r.name, same = active && params && CF.rowMatches(params, r, feats, cfg);
       const nameIn = el('input', { type: 'text', className: 'pc-input pc-config-name', value: r.name, maxLength: CF.CONFIG_NAME_MAX, 'aria-label': t('configs.name_label'), dataset: { configName: r.name } });
       nameIn.addEventListener('change', () => { if (CF.cleanName(nameIn.value) !== r.name) renameRow(r, nameIn.value); });
       nameIn.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); nameIn.blur(); } e.stopPropagation(); });
       return el('li', { className: 'pc-prow' + (active ? ' is-active' : ''), dataset: { row: String(i), config: r.name } },
         nameIn,
         active ? el('span', { className: 'pc-config-state', dataset: { configState: same ? 'active' : 'changed' } }, t(same ? 'configs.active' : 'configs.active_changed')) : null,
-        el('span', { className: 'pc-muted pc-prow-vals' }, valuesText(r)),
+        el('span', { className: 'pc-muted pc-prow-vals', dataset: { configOff: (r.off || []).length ? offNames(r).join(', ') : '' } }, rowText(r)),
         el('span', { className: 'pc-actions' },
           el('button', { type: 'button', className: 'pc-btn pc-btn-sm', onclick: () => applyRow(r), dataset: { configApply: r.name }, title: t('configs.apply_title') }, t('configs.apply')),
           el('button', { type: 'button', className: 'pc-btn pc-btn-sm', onclick: () => saveCurrent(r.name, t('configs.undo.update', { name: r.name })), dataset: { configUpdate: r.name }, title: t('configs.update_title') }, t('configs.update')),
@@ -415,6 +427,7 @@ export function mountParams(host) {
     cfgName.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); saveNew(); } e.stopPropagation(); });
     out.push(el('div', { className: 'pc-block', dataset: { configs: '' } }, el('p', { className: 'pc-props-sub', style: 'margin-top:0' }, t('configs.title')),
       crows.length ? el('ul', { className: 'pc-prows', dataset: { rows: '' } }, ...crows) : el('p', { className: 'pc-muted' }, t('configs.empty')),
+      el('p', { className: 'pc-muted', dataset: { configsHint: '' } }, t('configs.features_hint')),
       el('div', { className: 'pc-config-new' }, cfgName, el('button', { type: 'button', className: 'pc-btn', onclick: saveNew, dataset: { configSave: '' } }, t('configs.save'))),
       el('div', { className: 'pc-actions' }, el('button', { type: 'button', className: 'pc-btn', onclick: () => csvIn.click(), dataset: { tableImport: '' }, title: t('configs.import_title') }, t('configs.import')), el('button', { type: 'button', className: 'pc-btn', onclick: exportTable, dataset: { tableExport: '' } }, t('configs.export'))),
       csvIn));

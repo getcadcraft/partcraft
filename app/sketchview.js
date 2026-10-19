@@ -19,7 +19,11 @@
  * edge: host.pickEdge(clientX, clientY) → the exact kernel's edge record, host.frame() the sketch plane). The geometry work
  * is sketch-tools.js; each tool is one undo step and says how many relations it dropped.
  * `autoRelations` (Settings › PartCraft, on by default): off = drawing adds no coincident / horizontal / vertical
- * relations on its own (the pointer still snaps). `isPad(e)` from the host: a trackpad swipe pans, a pinch zooms.
+ * relations on its own (the pointer still snaps).
+ * `dimDraw` (Settings › PartCraft "Dimension as you draw", on by default; 0.6 PU.1): while a line, rectangle, circle or arc is
+ * being drawn its live size shows in a box beside the pointer; typing a number fills that box (Tab: the next one — a line's
+ * angle, a rectangle's height, an arc's angle after its radius), Enter draws the shape at the typed sizes and each typed size
+ * becomes a driving dimension in the same undo step; leaving a box keeps its value while the pointer gives the rest. `isPad(e)` from the host: a trackpad swipe pans, a pinch zooms.
  * Snapping: end points and the origin (→ coincident), onto curves (→ point on curve), and
  * nearly horizontal / vertical lines (→ horizontal / vertical relation).
  * Double click a dimension to change it. Wheel zooms at the pointer; middle or right drag pans;
@@ -76,6 +80,7 @@ export class SketchEditor {
     this.active = false;
     this.pointers = new Map();
     this.autoRelations = true;
+    this.dimDraw = true;        // 0.6 PU.1: type sizes while drawing (Settings › PartCraft)
     this.pasteClip = null;      // { clip, label } while the paste tool runs
     this.bind();
   }
@@ -210,8 +215,9 @@ export class SketchEditor {
     this.input.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); this.inputDone(true); }
       else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); this.inputDone(false); }
+      else if (e.key === 'Tab' && this.inputTab) { e.preventDefault(); e.stopPropagation(); this.inputTab(e.shiftKey); }
     });
-    this.input.addEventListener('blur', () => { if (this.inputCb && !this.inputClosing) this.inputDone(true); });
+    this.input.addEventListener('blur', () => { if (this.inputCb && !this.inputClosing) { if (this.inputBlur) this.inputBlur(); else this.inputDone(true); } });
   }
 
   zoomAt(x, y, k) {
@@ -354,6 +360,7 @@ export class SketchEditor {
     if (k === 'Enter' && (this.step || this.tool === 'mirror')) { this.finishStep(); return true; }
     if ((k === 'Delete' || k === 'Backspace') && this.sel.size) { this.deleteSelection(); return true; }
     if (this.tool === 'offset' && k.toLowerCase() === 'b') { this.offsetBoth = !this.offsetBoth; this.host.status(this.offsetBoth ? t('ui.sketch.offset.both_on') : t('ui.sketch.offset.both_off')); this.draw(); return true; }
+    if (/^[0-9.]$/.test(k) && this.ddStart(k)) return true;   // 0.6 PU.1: a size typed while drawing
     const tools = { l: 'line', n: 'centerline', r: 'rect', c: 'circle', a: 'arc', p: 'point', d: 'dimension', f: 'fillet', s: 'select', b: 'spline', t: 'trim', e: 'extend', o: 'offset', m: 'mirror' };
     if (tools[k.toLowerCase()] && !e.shiftKey) { this.setTool(tools[k.toLowerCase()]); return true; }
     if (k.toLowerCase() === 'q') { this.toggleConstruction(); return true; }
@@ -441,7 +448,11 @@ export class SketchEditor {
   // ---------------------------------------------------------------- drawing tools
   click(x, y, e) {
     const tl = this.tool;
-    const sn = tl === 'dimension' || tl === 'fillet' ? null : this.snap(x, y, this.step?.exclude);
+    // sizes typed for this shape, then a click instead of Enter: the click gives only the direction (0.6 PU.1)
+    if (!e?.ddPoint && this.step?.dd && Object.keys(this.step.dd).length && ['line', 'centerline', 'rect', 'circle', 'arc'].includes(tl)) { this.cursor = this.toSketch(x, y); this.snapAt = null; this.click(x, y, { ddPoint: this.ddPoint() }); return; }
+    // a shape drawn from typed sizes (0.6 PU.1) lands exactly where they put it: no snapping
+    const sn = e?.ddPoint ? { xy: e.ddPoint, ref: null, on: null, dd: true } : tl === 'dimension' || tl === 'fillet' ? null : this.snap(x, y, this.step?.exclude);
+    const dd = sn?.dd ? { ...(this.step?.dd || {}) } : null;
     if (tl === 'paste' && this.pasteClip) {
       const { clip, label } = this.pasteClip;
       const d = [sn.xy[0] - clip.anchor[0], sn.xy[1] - clip.anchor[1]];
@@ -458,52 +469,61 @@ export class SketchEditor {
       return;
     }
     if (tl === 'line' || tl === 'centerline') {
-      if (!this.step) { this.step = { a: sn }; this.draw(); return; }
+      if (!this.step) { this.step = { a: sn }; this.ddHint(); this.draw(); return; }
       const a = this.step.a;
-      const { b, hv } = this.hvSnap(a, sn);
-      if (Math.hypot(b.xy[0] - a.xy[0], b.xy[1] - a.xy[1]) * this.view.s < 2) return;
+      const { b, hv } = dd ? { b: sn, hv: this.step.ddHv || null } : this.hvSnap(a, sn);
+      if (Math.hypot(b.xy[0] - a.xy[0], b.xy[1] - a.xy[1]) * this.view.s < 2 && !dd) return;
       let made = null;
       this.host.commit(tl === 'line' ? t('ui.sketch.op.line') : t('ui.sketch.op.centerline'), (sk) => {
         made = S.addLine(sk, this.R(a), this.R(b), { construction: tl === 'centerline' });
         if (!a.ref) this.joinSnap(sk, made.p1, a);
         if (!b.ref) this.joinSnap(sk, made.p2, b);
         if (hv) try { S.addConstraint(sk, hv, [made.id]); } catch { /* already implied */ }
+        if (dd?.len !== undefined) this.ddDim(sk, 'distance', [made.id], dd.len);
       });
-      if (tl === 'line' && made && !b.ref) this.step = { a: { xy: S.pointXY(this.sk, made.p2), ref: made.p2 }, exclude: new Set([made.id, made.p2]) };
+      if (tl === 'line' && made && !b.ref) { this.step = { a: { xy: S.pointXY(this.sk, made.p2), ref: made.p2 }, exclude: new Set([made.id, made.p2]) }; if (dd) this.ddHint(); }
       else this.step = null;
       this.draw();
       return;
     }
     if (tl === 'rect') {
-      if (!this.step) { this.step = { a: sn }; this.draw(); return; }
+      if (!this.step) { this.step = { a: sn }; this.ddHint(); this.draw(); return; }
       const a = this.step.a;
-      if (Math.abs(sn.xy[0] - a.xy[0]) * this.view.s < 3 || Math.abs(sn.xy[1] - a.xy[1]) * this.view.s < 3) return;
+      if (!dd && (Math.abs(sn.xy[0] - a.xy[0]) * this.view.s < 3 || Math.abs(sn.xy[1] - a.xy[1]) * this.view.s < 3)) return;
       this.host.commit(t('ui.sketch.op.rectangle'), (sk) => {
         const r = S.addRect(sk, a.xy, sn.xy);
         const l0 = S.byId(sk, r.lines[0]), l2 = S.byId(sk, r.lines[2]);
         if (a.ref || a.on) this.joinSnap(sk, l0.p1, a, true);
         if (sn.ref || sn.on) this.joinSnap(sk, l2.p1, sn, true);
+        if (dd?.w !== undefined) this.ddDim(sk, 'distance', [r.lines[0]], dd.w);
+        if (dd?.h !== undefined) this.ddDim(sk, 'distance', [r.lines[1]], dd.h);
       });
       this.step = null;
       return;
     }
     if (tl === 'circle') {
-      if (!this.step) { this.step = { c: sn }; this.draw(); return; }
+      if (!this.step) { this.step = { c: sn }; this.ddHint(); this.draw(); return; }
       const c = this.step.c;
-      const r = Math.hypot(sn.xy[0] - c.xy[0], sn.xy[1] - c.xy[1]);
-      if (r * this.view.s < 2) return;
-      this.host.commit(t('ui.sketch.op.circle'), (sk) => { const m = S.addCircle(sk, this.R(c), r); if (!c.ref) this.joinSnap(sk, m.c, c); });
+      const r = dd?.d !== undefined ? dd.d / 2 : Math.hypot(sn.xy[0] - c.xy[0], sn.xy[1] - c.xy[1]);
+      if (r * this.view.s < 2 && !dd) return;
+      this.host.commit(t('ui.sketch.op.circle'), (sk) => { const m = S.addCircle(sk, this.R(c), r); if (!c.ref) this.joinSnap(sk, m.c, c); if (dd?.d !== undefined) this.ddDim(sk, 'diameter', [m.id], dd.d); });
       this.step = null;
       return;
     }
     if (tl === 'arc') {
-      if (!this.step) { this.step = { c: sn }; this.draw(); return; }
-      if (!this.step.s) { if (Math.hypot(sn.xy[0] - this.step.c.xy[0], sn.xy[1] - this.step.c.xy[1]) * this.view.s < 2) return; this.step.s = sn; this.step.turn = 0; this.step.lastAng = null; this.draw(); return; }
-      const { c, s } = this.step;
+      if (!this.step) { this.step = { c: sn }; this.ddHint(); this.draw(); return; }
+      if (!this.step.s) {
+        if (Math.hypot(sn.xy[0] - this.step.c.xy[0], sn.xy[1] - this.step.c.xy[1]) * this.view.s < 2 && !dd) return;
+        this.step.s = sn; this.step.turn = 0; this.step.lastAng = null;
+        if (dd?.r !== undefined) this.step.rTyped = dd.r;   // its radius dimension comes with the arc
+        this.step.dd = {}; this.ddHint(); this.draw(); return;
+      }
+      const { c, s, rTyped } = this.step;
       const cw = (this.step.turn || 0) < 0;
       this.host.commit(t('ui.sketch.op.arc'), (sk) => {
         const m = cw ? S.addArc(sk, this.R(c), this.R(sn), this.R(s)) : S.addArc(sk, this.R(c), this.R(s), this.R(sn));
         if (!c.ref) this.joinSnap(sk, m.c, c);
+        if (rTyped !== undefined) this.ddDim(sk, 'radius', [m.id], rTyped);
       });
       this.step = null;
       return;
@@ -724,8 +744,9 @@ export class SketchEditor {
     this.inputRaw = this.host.dimTyped ? (raw) => this.host.dimTyped(id, raw) : null;
   }
 
-  askValue([x, y], value, label, done) {
+  askValue([x, y], value, label, done, typed = null) {
     this.inputRaw = null;
+    this.inputTab = null; this.inputBlur = null;
     const inp = this.input;
     inp.hidden = false;
     inp.value = fmt(value);
@@ -735,6 +756,10 @@ export class SketchEditor {
     inp.style.top = Math.max(4, y - 14) + 'px';
     this.inputCb = done;
     this.inputClosing = false;
+    // a key already typed (0.6 PU.1): the box takes the focus now, so the next keys land in it, after that one;
+    // `true` = focus now with the value selected (Tab to the next size box)
+    if (typed === true) { inp.focus(); inp.select(); return; }
+    if (typed !== null) { inp.value = typed; inp.focus(); inp.setSelectionRange(typed.length, typed.length); return; }
     setTimeout(() => { inp.focus(); inp.select(); }, 0);
   }
 
@@ -756,7 +781,119 @@ export class SketchEditor {
     this.host.refocus?.();
   }
 
-  hideInput() { this.inputClosing = true; this.input.hidden = true; this.inputCb = null; }
+  hideInput() { this.inputClosing = true; this.input.hidden = true; this.inputCb = null; this.inputTab = null; this.inputBlur = null; }
+
+  // ---------------------------------------------------------------- dimension as you draw (0.6 PU.1)
+  /** The boxes the shape being drawn takes, in Tab order: [[key, label]], or null (nothing being drawn, or the setting is off). */
+  ddFields() {
+    const st = this.step, tl = this.tool;
+    if (!this.dimDraw || !st) return null;
+    if (tl === 'line' || tl === 'centerline') return [['len', t('ui.sketch.dd.length')], ['ang', t('ui.sketch.dd.angle')]];
+    if (tl === 'rect') return [['w', t('ui.sketch.dd.width')], ['h', t('ui.sketch.dd.height')]];
+    if (tl === 'circle') return [['d', t('ui.sketch.dd.diameter')]];
+    if (tl === 'arc') return st.s ? [['sweep', t('ui.sketch.dd.sweep')]] : [['r', t('ui.sketch.dd.radius')]];
+    return null;
+  }
+  /** What the status bar says once a shape is started (the setting on). */
+  ddHint() {
+    if (!this.dimDraw || !this.step) return;
+    const tl = this.tool, key = tl === 'arc' ? (this.step.s ? 'arc_sweep' : 'arc_r') : tl === 'centerline' ? 'line' : tl;
+    if (['line', 'rect', 'circle', 'arc_r', 'arc_sweep'].includes(key)) this.host.status(t('ui.sketch.dd.hint.' + key));
+  }
+  /** The sizes the pointer gives now. */
+  ddLive() {
+    const st = this.step, cur = this.snapAt?.xy || this.cursor;
+    if (!st || !cur) return {};
+    const d = (p) => Math.hypot(cur[0] - p[0], cur[1] - p[1]);
+    if (st.a) { const a = st.a.xy; return { len: d(a), ang: Math.atan2(cur[1] - a[1], cur[0] - a[0]) * 180 / Math.PI, w: Math.abs(cur[0] - a[0]), h: Math.abs(cur[1] - a[1]) }; }
+    if (st.c && !st.s) return { d: 2 * d(st.c.xy), r: d(st.c.xy) };
+    if (st.c && st.s) {
+      const c = st.c.xy, a0 = Math.atan2(st.s.xy[1] - c[1], st.s.xy[0] - c[0]), a1 = Math.atan2(cur[1] - c[1], cur[0] - c[0]);
+      let sw = (a1 - a0) * 180 / Math.PI;
+      if ((st.turn || 0) < 0) sw = -sw;
+      return { sweep: ((sw % 360) + 360) % 360 };
+    }
+    return {};
+  }
+  /** A digit typed while drawing opens the first box not typed yet, holding that digit. → false when nothing takes it. */
+  ddStart(ch) {
+    const f = this.ddFields();
+    if (!f) return false;
+    const st = this.step;
+    st.dd = st.dd || {};
+    const i = f.findIndex(([k]) => st.dd[k] === undefined);
+    this.ddOpen(i < 0 ? 0 : i, ch);
+    return true;
+  }
+  ddOpen(i, ch = null) {
+    const f = this.ddFields();
+    if (!f) return;
+    const st = this.step, [k, label] = f[i];
+    const live = this.ddLive();
+    const shown = st.dd[k] ?? live[k] ?? 0;
+    this.askValue(this.ddAt || this.toScreen(this.cursor || [0, 0]), k === 'ang' ? +shown.toFixed(1) : shown, label, (v) => { if (this.ddSet(k, v)) this.ddCommit(); }, ch ?? true);
+    const keep = () => { const raw = this.input.value.trim(); const v = parseNumber(raw); if (raw && v !== null) this.ddSet(k, v); };
+    this.inputBlur = () => { keep(); this.hideInput(); this.draw(); };
+    this.inputTab = (back) => { keep(); if (f.length > 1) this.ddOpen((i + (back ? f.length - 1 : 1)) % f.length); };
+    this.input.dataset.dd = k;
+    this.host.status(t('ui.sketch.dd.typing', { what: label }));
+    this.draw();
+  }
+  /** Keep a typed size for the shape being drawn. → false (and why, in the status bar) when it can't be one. */
+  ddSet(k, v) {
+    const st = this.step;
+    if (!st) return false;
+    if (k === 'ang') { st.dd.ang = ((v % 360) + 360) % 360; this.draw(); return true; }
+    if (k === 'sweep' && !(v > 0 && v < 360)) { this.host.status(t('ui.sketch.dd.bad_sweep')); return false; }
+    if (!(v > 0)) { this.host.status(t('ui.sketch.dim.positive')); return false; }
+    st.dd[k] = v;
+    this.draw();
+    return true;
+  }
+  /** Where the typed sizes (and the pointer, for the rest) put the shape's next point, in sketch coordinates. */
+  ddPoint() {
+    const st = this.step, tl = this.tool, dd = st.dd || {}, live = this.ddLive();
+    const cur = this.snapAt?.xy || this.cursor || [0, 0];
+    const dirFrom = (o, q = cur) => { const dx = q[0] - o[0], dy = q[1] - o[1], l = Math.hypot(dx, dy); return l > 1e-12 ? [dx / l, dy / l] : [1, 0]; };
+    if (tl === 'line' || tl === 'centerline') {
+      const a = st.a.xy;
+      let dir, hv = null;
+      if (dd.ang !== undefined) {
+        const r = dd.ang * Math.PI / 180, m = dd.ang % 180;
+        dir = [Math.cos(r), Math.sin(r)];
+        if (this.autoRelations) hv = m === 0 ? 'horizontal' : m === 90 ? 'vertical' : null;
+      } else { const q = this.hvSnap(st.a, { xy: cur }); hv = q.hv; dir = dirFrom(a, q.b.xy); }
+      st.ddHv = hv;
+      const len = dd.len ?? live.len ?? 0;
+      return [a[0] + dir[0] * len, a[1] + dir[1] * len];
+    }
+    if (tl === 'rect') {
+      const a = st.a.xy, sx = cur[0] >= a[0] ? 1 : -1, sy = cur[1] >= a[1] ? 1 : -1;
+      return [a[0] + sx * (dd.w ?? live.w ?? 0), a[1] + sy * (dd.h ?? live.h ?? 0)];
+    }
+    if (tl === 'circle') { const c = st.c.xy, r = (dd.d ?? live.d ?? 0) / 2, u = dirFrom(c); return [c[0] + u[0] * r, c[1] + u[1] * r]; }
+    if (tl === 'arc' && !st.s) { const c = st.c.xy, r = dd.r ?? live.r ?? 0, u = dirFrom(c); return [c[0] + u[0] * r, c[1] + u[1] * r]; }
+    if (tl === 'arc') {
+      const c = st.c.xy, s = st.s.xy, sw = (dd.sweep ?? live.sweep ?? 0) * Math.PI / 180 * ((st.turn || 0) < 0 ? -1 : 1);
+      const vx = s[0] - c[0], vy = s[1] - c[1];
+      return [c[0] + vx * Math.cos(sw) - vy * Math.sin(sw), c[1] + vx * Math.sin(sw) + vy * Math.cos(sw)];
+    }
+    return cur;
+  }
+  /** Enter in a size box: draw the shape (or the arc's start) where the sizes put it. */
+  ddCommit() {
+    if (!this.step) return;
+    const xy = this.ddPoint();
+    const st = this.step, a = st.a?.xy || st.c?.xy;
+    if (this.tool === 'rect' && a && (Math.abs(xy[0] - a[0]) < 1e-9 || Math.abs(xy[1] - a[1]) < 1e-9)) { this.host.status(t('ui.sketch.dd.need_pointer')); return; }
+    const [x, y] = this.toScreen(xy);
+    this.click(x, y, { ddPoint: xy });
+    this.draw();
+  }
+  /** A typed size as a driving dimension, in the shape's own undo step; a size the sketch already fixes stays a plain number. */
+  ddDim(sk, type, refs, v) {
+    try { const c = S.addConstraint(sk, type, refs, v); const g = dimGeometry(sk, c); if (g?.at) setLabel(sk, c, g.at); } catch { /* already fixed by other relations */ }
+  }
 
   // ---------------------------------------------------------------- edits
   deleteSelection() {
@@ -859,7 +996,10 @@ export class SketchEditor {
   }
 
   drawPreview(ctx, T) {
-    const tl = this.tool, st = this.step, cur = this.snapAt?.xy || this.cursor;
+    const tl = this.tool, st = this.step;
+    const typed = !!(st?.dd && Object.keys(st.dd).length && ['line', 'centerline', 'rect', 'circle', 'arc'].includes(tl));
+    const cur = typed && (this.snapAt?.xy || this.cursor) ? this.ddPoint() : this.snapAt?.xy || this.cursor;   // 0.6 PU.1
+    this.ddAt = null;
     if (!cur || tl === 'select') return;
     ctx.strokeStyle = T.sel; ctx.fillStyle = T.sel; ctx.lineWidth = 1.5; ctx.setLineDash([5, 4]);
     const P = (q) => this.toScreen(q);
@@ -867,28 +1007,29 @@ export class SketchEditor {
     if (this.drawToolPreview(ctx, T, cur)) { ctx.setLineDash([]); return; }
     ctx.beginPath();
     if ((tl === 'line' || tl === 'centerline') && st) {
-      const { b, hv } = this.hvSnap(st.a, this.snapAt || { xy: cur });
+      const { b, hv } = typed ? { b: { xy: cur }, hv: st.ddHv } : this.hvSnap(st.a, this.snapAt || { xy: cur });
       ctx.moveTo(...P(st.a.xy)); ctx.lineTo(...P(b.xy));
       ctx.stroke(); ctx.setLineDash([]);
       const len = Math.hypot(b.xy[0] - st.a.xy[0], b.xy[1] - st.a.xy[1]);
-      this.tag(ctx, T, P(b.xy), (hv ? t(hv === 'horizontal' ? 'ui.sketch.tag.horizontal' : 'ui.sketch.tag.vertical', { len: fmt(len, 2) }) : fmt(len, 2)));
+      this.tag(ctx, T, P(b.xy), (hv ? t(hv === 'horizontal' ? 'ui.sketch.tag.horizontal' : 'ui.sketch.tag.vertical', { len: fmt(len, 2) }) : fmt(len, 2)), this.dimDraw);
     } else if (tl === 'rect' && st) {
       const a = P(st.a.xy), b = P(cur);
       ctx.rect(Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.abs(b[0] - a[0]), Math.abs(b[1] - a[1]));
       ctx.stroke(); ctx.setLineDash([]);
-      this.tag(ctx, T, b, fmt(Math.abs(cur[0] - st.a.xy[0]), 2) + ' × ' + fmt(Math.abs(cur[1] - st.a.xy[1]), 2));
+      this.tag(ctx, T, b, fmt(Math.abs(cur[0] - st.a.xy[0]), 2) + ' × ' + fmt(Math.abs(cur[1] - st.a.xy[1]), 2), this.dimDraw);
     } else if (tl === 'circle' && st) {
       const c = P(st.c.xy), r = Math.hypot(cur[0] - st.c.xy[0], cur[1] - st.c.xy[1]);
       ctx.arc(c[0], c[1], r * this.view.s, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
-      this.tag(ctx, T, P(cur), '⌀' + fmt(2 * r, 2));
+      this.tag(ctx, T, P(cur), '⌀' + fmt(2 * r, 2), this.dimDraw);
     } else if (tl === 'arc' && st) {
       const c = P(st.c.xy);
-      if (!st.s) { ctx.moveTo(...c); ctx.lineTo(...P(cur)); ctx.stroke(); }
+      if (!st.s) { ctx.moveTo(...c); ctx.lineTo(...P(cur)); ctx.stroke(); if (this.dimDraw) { ctx.setLineDash([]); this.tag(ctx, T, P(cur), 'R' + fmt(Math.hypot(cur[0] - st.c.xy[0], cur[1] - st.c.xy[1]), 2), true); } }
       else {
         const r = Math.hypot(st.s.xy[0] - st.c.xy[0], st.s.xy[1] - st.c.xy[1]);
         const a0 = Math.atan2(st.s.xy[1] - st.c.xy[1], st.s.xy[0] - st.c.xy[0]), a1 = Math.atan2(cur[1] - st.c.xy[1], cur[0] - st.c.xy[0]);
         ctx.arc(c[0], c[1], r * this.view.s, -a0, -a1, (st.turn || 0) >= 0);
         ctx.stroke();
+        if (this.dimDraw) { ctx.setLineDash([]); this.tag(ctx, T, P(cur), fmt(this.ddLive().sweep ?? 0, 1) + '°', true); }
       }
       ctx.setLineDash([]);
     }
@@ -1059,10 +1200,12 @@ export class SketchEditor {
     ctx.stroke();
   }
 
-  tag(ctx, T, [x, y], text) {
+  tag(ctx, T, [x, y], text, boxed = false) {
     ctx.font = '600 12px ' + T.font;
     const w = ctx.measureText(text).width + 8;
     ctx.fillStyle = T.paper; ctx.fillRect(x + 10, y + 8, w, 18);
+    // a box you can type into (0.6 PU.1): outlined like one; the size box opens over it
+    if (boxed) { ctx.strokeStyle = T.sel; ctx.lineWidth = 1; ctx.setLineDash([]); ctx.strokeRect(x + 10.5, y + 8.5, w - 1, 17); this.ddAt = [x + 10 + 45, y + 8 + 14]; }
     ctx.fillStyle = T.full; ctx.fillText(text, x + 14, y + 21);
   }
 

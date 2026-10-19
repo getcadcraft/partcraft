@@ -17,6 +17,8 @@ keywords: hole, hole wizard, drill, modelled thread, 3D printing, counterbore, c
 
 Holes go through the part, 6 mm across. The right panel shows **Holes**: how many were made, "one per sketch point".
 
+**One hole, fast:** click the flat face where the hole goes and choose {{ui:Hole here}} in the right panel. PartCraft adds a sketch on the face with one point where you clicked and a Hole through the part, in one step. Type a number straight away and press {{key:Enter}} for its diameter. To place it exactly, open the new sketch and dimension the point.
+
 **Which sketch is used:** the sketch you just closed or the selected one; otherwise the most recent unused sketch that has loose points. If there is none: "Make a sketch with points where the holes go first (Sketch on a face, then Point)."
 
 ## Settings

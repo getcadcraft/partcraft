@@ -1,12 +1,12 @@
 ---
 title: Magnetic fields in 2-D (tutorial)
-summary: Work out the magnetic field of an electromagnet with the analysis library: run the example, read the flux density, the gap field, the inductance and the pull, change the design, and build your own model of coils and iron.
+summary: Work out the magnetic field of an electromagnet or a permanent magnet with the analysis library: run the examples, read the flux density, the gap field, the inductance and the pull, change the design, and build your own model of coils, magnets and iron.
 section: tasks
 order: 147
-keywords: magnetic, magnetostatics, magnetic field, flux density, tesla, electromagnet, solenoid, coil, ampere turns, iron core, air gap, permeability, inductance, magnetic force, reluctance, magnetic circuit, vector potential, electromagnetics, finite element, fem, motor, actuator, transformer, magnetostatic2d
+keywords: magnetic, magnetostatics, magnetic field, flux density, tesla, electromagnet, solenoid, coil, ampere turns, iron core, air gap, permeability, inductance, magnetic force, reluctance, magnetic circuit, vector potential, electromagnetics, finite element, fem, motor, actuator, transformer, magnetostatic2d, permanent magnet, neodymium, ndfeb, ferrite, remanence, working point, recoil, leakage, holding magnet
 ---
 
-PartCraft's analysis library can work out the magnetic field of coils and iron in 2-D: a cross-section of something that is long and the same along its length, such as an electromagnet, a transformer core, a busbar or a motor's cross-section. This tutorial runs the library's electromagnet example, reads what it says, changes it, and then shows how to model your own shape.
+PartCraft's analysis library can work out the magnetic field of coils and iron in 2-D: a cross-section of something that is long and the same along its length, such as an electromagnet, a transformer core, a busbar or a motor's cross-section. This tutorial runs the library's electromagnet example, reads what it says, changes it, shows how to model your own shape, and then adds a permanent magnet.
 
 It uses the Script workspace and the [analysis library](topic:craftscript-library). You do not need to know the CraftScript language to follow it; the example says what each line does.
 
@@ -69,10 +69,37 @@ The library works in metres, and the view in millimetres, so a field shown as it
 
 By default the edge of the box holds the field in: no flux leaves it. Make the box at least two or three times the size of the magnet so that this does not squeeze the field. For a symmetric magnet you can model half of it: the header of `magnetostatic2d` says which edge condition to use on a line of symmetry.
 
+## Permanent magnets
+
+The second example, **Examples** › **Permanent magnet in an iron core: working point, leakage, pull**, is the same core with the coil taken away and a 10 mm slice of the left leg replaced by a magnet, magnetised upward. Run it with {{key:F5}}. It prints:
+
+```
+the magnet works at B = 1.036 T, H = -124 kA/m (on its recoil line B = Br + μ0 μr H)
+B in the gap 0.6778 T; the magnetic circuit without leakage 0.9692 T (-30.1 %)
+leakage factor 1.53: of the flux leaving the magnet, 65 % crosses the gap between the pole faces
+pull across the gap about 3656 N per metre of depth (182.8 N for 50 mm deep)
+```
+
+- **The working point.** A magnet is described by its **remanence** Br (the field it keeps when it is shorted by iron: about 1.2 T for a sintered NdFeB magnet, 0.4 T for ferrite) and its recoil permeability (about 1.05 and 1.1). Opening a gap pushes it down its recoil line: here to 1.04 T, with H pointing against B inside it.
+- **Leakage.** The hand calculation with no leakage gives 0.97 T in the gap; the model gives 0.68 T. A magnet drives its flux with a strong push over a short length, so a lot of it goes straight back across the window instead of through the gap. The leakage factor says how much: 1.53 here. Set `g = 0;` for a closed keeper: the magnet then works within half a percent of the hand calculation.
+- **Magnets in your own model.** Give `magnetostatic2d` the magnets as `struct('Br', Br)`, where `Br` has one row per grid square with the remanence along x and y in tesla (zero outside the magnets), and give the magnet squares their recoil permeability in the permeability list:
+
+  ```
+  Brem = [zeros(numel(mag), 1), 1.2 * mag];     % 1.2 T upward in the squares where mag is true
+  r = magnetostatic2d(m, 1 + (mur - 1) * iron + 0.05 * mag, 0, struct(), struct('Br', Brem));
+  ```
+
+  For a magnet magnetised at an angle, put `Br·cos(angle)` and `Br·sin(angle)` in the two columns; for a ring magnetised outward, work out each square's direction from its position. `r.H` gives the field strength H in each square.
+
+The model keeps a magnet on its straight recoil line however hard it is driven. A real magnet driven past its knee (by a large gap, a strong coil or heat) loses part of its strength for good; check the working point against the maker's curve for the grade and temperature.
+
+The library's tests check magnets against two hand results: a round magnet in open air (inside it, B = Br / (1 + μr)) and a magnet closed by an iron keeper (the magnetic circuit), both within 1 %.
+
 ## What it does not do yet
 
 - **Saturation.** The iron is linear: double the current, double the field, without limit.
-- **Permanent magnets**, **eddy currents** and **losses** (iron loss, copper loss).
+- **Demagnetisation.** Magnets stay on their straight recoil line (see above).
+- **Eddy currents** and **losses** (iron loss, copper loss).
 - **Moving parts and torque.** No rotor turning in a stator, no torque against angle.
 - **Round shapes.** The grid is made of equal squares, so curved outlines come out stepped.
 - **3-D.** Everything is a cross-section of something long.

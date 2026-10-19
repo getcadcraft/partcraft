@@ -50,6 +50,7 @@ export const COMMANDS = [
   C('export.sw-macro', 'export', 'bi-file-earmark-code', 'export-sw-macro'),
   C('export.sw-back', 'export', 'bi-file-earmark-arrow-down', '[data-sw-back]'),
   C('export.dxf', 'export', 'bi-file-earmark', 'export-dxf'),
+  C('export.nest', 'export', 'bi-grid-3x3', 'export-nest'),   // 0.6 LC.17 (closing: registry gap)
   C('export.drawing', 'export', 'bi-file-earmark-pdf', 'export-drawing'),
   C('export.bom', 'export', 'bi-list-ol', 'export-bom', { mode: 'assembly' }),
 
@@ -125,6 +126,7 @@ export const COMMANDS = [
   C('asm.insert-file', 'assembly', 'bi-box-arrow-in-down', 'asm-insert-file', { ws: 'design', mode: 'assembly' }),
   C('asm.joint', 'assembly', 'bi-link-45deg', 'asm-joint', { ws: 'design', mode: 'assembly' }),
   C('asm.check', 'assembly', 'bi-exclamation-diamond', 'asm-check', { ws: 'design', mode: 'assembly' }),
+  C('asm.stackup', 'assembly', 'bi-rulers', 'asm-stackup', { ws: 'design', mode: 'assembly' }),   // 0.6 LC.18
   C('asm.edit', 'assembly', 'bi-pencil', 'asm-edit', { ws: 'design', mode: 'assembly' }),
   C('asm.close', 'assembly', 'bi-x-square', 'asm-close', { ws: 'design', mode: 'assembly' }),
 
@@ -184,6 +186,7 @@ export const COMMANDS = [
   C('view.draft', 'view', 'bi-triangle-half', 'view-draft'),
   C('view.zebra', 'view', 'bi-distribute-horizontal', 'view-zebra'),
   C('view.curvature', 'view', 'bi-bezier', 'view-curvature'),
+  C('view.planes', 'view', 'bi-layers', 'view-planes'),   // 0.6 PU (base planes on/off)
   C('view.iso', 'view', 'bi-box', 'view-iso'),
   C('view.front', 'view', 'bi-square', 'view-front'),
   C('view.back', 'view', 'bi-square', 'view-back'),
@@ -233,9 +236,9 @@ export const STYLES = {
         ['sketchedit', ['sketch.trim', 'sketch.extend', 'sketch.offset', 'sketch.fillet', 'sketch.mirror', 'sketch.lpattern', 'sketch.cpattern', 'sketch.project']],
       ]),
       rtab('surfaces', [['surfaces', ['feature.patch', 'feature.surfloft', 'feature.gordon', 'feature.stitch', 'feature.thicken', 'feature.offsetsurf', 'feature.extendsurf', 'feature.trimsurf']], ['sheetmetal', ['feature.sheetbase', 'feature.sheetflange']]]),
-      rtab('evaluate', [['measure', ['view.measure', 'view.mass']], ['inspect', ['view.section', 'view.draft', 'view.zebra', 'view.curvature']]]),
+      rtab('evaluate', [['measure', ['view.measure', 'view.mass']], ['inspect', ['view.section', 'view.draft', 'view.zebra', 'view.curvature', 'view.planes']]]),
       rtab('drawing', [['drawing', ['drawing.open', 'drawing.back', 'drawing.pdf']], ['annotation', ['drawing.datum', 'drawing.fcf', 'drawing.finish', 'drawing.detail']]]),
-      rtab('assembly', [['assembly', ['asm.new', 'asm.back', 'asm.close']], ['components', ['asm.insert-copy', 'asm.insert-file', 'asm.edit']], ['mates', ['asm.joint', 'asm.check']]]),
+      rtab('assembly', [['assembly', ['asm.new', 'asm.back', 'asm.close']], ['components', ['asm.insert-copy', 'asm.insert-file', 'asm.edit']], ['mates', ['asm.joint', 'asm.check', 'asm.stackup']]]),
       rtab('studies', [['workspaces', ids('ws.')], ['simulation', ids('sim.')], ['generative', ids('gen.')], ['manufacture', ids('cam.')], ['form', ids('form.')], ['script', ids('script.')]]),
       rtab('view', [['orient', ['view.fit', 'view.normal', 'view.iso', 'view.front', 'view.back', 'view.top', 'view.bottom', 'view.right', 'view.left']], ['clipboard', ['edit.cut', 'edit.copy', 'edit.paste', 'edit.paste-in-place', 'edit.duplicate', 'edit.delete', 'edit.select-all', 'edit.select-none']]]),
     ],

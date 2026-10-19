@@ -107,7 +107,7 @@ export async function runClashFilterTests({ ok, section, M = null }) {
       'tampered filters (an unknown kind, a pair with itself, not an object, a bad id) are refused');
     const gone = A.readAssembly(JSON.stringify((() => { const j = JSON.parse(A.toJSON(asm)); j.clashFilter.pairs.push(['i1', 'i99']); return j; })()));
     ok(gone.clashFilter.pairs.length === 1, 'a pair naming an instance the assembly lacks is dropped on read');
-    const v3 = JSON.parse(A.toJSON(asm)); v3.version = 5;
+    const v3 = JSON.parse(A.toJSON(asm)); v3.version = A.VERSION + 1;   // 0.6 LC.18 made 5 a real version (stack-ups)
     ok(throws(() => A.readAssembly(JSON.stringify(v3)), /newer/), 'a newer version is refused, as before');
     A.removeInstance(asm, ix.id);
     ok(asm.clashFilter.pairs.length === 0 && asm.clashFilter.hide.length === 2, 'removing the block drops its hidden pair');

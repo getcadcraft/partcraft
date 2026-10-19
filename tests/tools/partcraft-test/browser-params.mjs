@@ -146,6 +146,27 @@ export async function run(h) {
   await page.click('[data-config-apply="tall"]'); await built();
   ok(nearRel(await vol(), 100 * 50 * 65, 1e-9), 'Apply tall again: 325000, as the next steps expect');
 
+  console.log('\n== configurations that turn features off (0.6 LC.14)');
+  const vol0 = () => pc(() => window.partcraft.regen?.stats?.volume || 0);   // nothing built = no stats
+  await tab('props');
+  await page.click('.pc-tree [data-id="f2"]');
+  await page.click('.pc-actions button:has-text("Suppress")'); await built();
+  ok((await pc(() => !!window.partcraft.part.features[1].suppressed)) && (await vol0()) === 0, 'Extrude1 suppressed from its Properties: nothing solid');
+  await tab('params');
+  await page.fill('[data-config-new]', 'sketch only'); await page.click('[data-config-save]'); await built(); await settle();
+  const so = (await cfgs()).rows.find((r) => r.name === 'sketch only');
+  ok(so && JSON.stringify(so.off) === '["f2"]' && (await page.getAttribute('[data-config="sketch only"] [data-config-off]', 'data-config-off')) === 'Extrude1', 'Save current values records Extrude1 as turned off, and the row says so');
+  const stepsF = await pc(() => window.partcraft.hist.undoStack.length);
+  await page.click('[data-config-apply="tall"]'); await built();
+  ok(!(await pc(() => !!window.partcraft.part.features[1].suppressed)) && nearRel(await vol(), 325000, 1e-9) && (await pc(() => window.partcraft.hist.undoStack.length)) === stepsF + 1, 'Apply tall (saved with everything on): Extrude1 back on, 325000, one undo step');
+  await page.click('[data-config-apply="sketch only"]'); await built();
+  ok((await pc(() => !!window.partcraft.part.features[1].suppressed)) && (await vol0()) === 0 && (await page.getAttribute('[data-config="sketch only"] [data-config-state]', 'data-config-state')) === 'active', 'Apply "sketch only": Extrude1 off again, the row active');
+  ok((await pc(() => { const { P } = window.partcraft; return JSON.parse(P.toJSON(window.partcraft.part)).version; })) === 4, 'the part file is version 4 now');
+  await shot('05c-configuration-features');
+  await page.click('[data-config-apply="tall"]'); await built();
+  await page.click('[data-config-delete="sketch only"]'); await built(); await settle();
+  ok(nearRel(await vol(), 325000, 1e-9) && !(await cfgs()).rows.some((r) => r.off), 'tall again and the row deleted: 325000, nothing turned off, as the next steps expect');
+
   console.log('\n== rollback both ways');
   await page.click('.pc-gl');
   await page.keyboard.press('[');

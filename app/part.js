@@ -36,6 +36,8 @@
  *            reader that ignores params builds the same part.
  *   configs (optional, version 3; 0.4 P18): { rows: [{ name, values: { <parameter>: number } }], active } — configurations
  *            (configs.js): named rows of driving-parameter values; the part as saved is built with its current parameters.
+ *            0.6 LC.14: a row may carry `off: [feature id]` (features it turns off); a file with any such row is version 4,
+ *            so a 0.5 PartCraft refuses it by its version instead of dropping the rows' features silently.
  *
  *   PlaneRef: { kind:'base', name:'front'|'top'|'right' }
  *           | { kind:'face', feature, face:'start'|'end'|'side', entity? }   follows the feature when it changes
@@ -68,7 +70,7 @@ import { readMaterial } from './bom.js';
 import { t } from './i18n.js';
 
 export const FORMAT = 'partcraft';
-export const VERSION = 3;   // 2 added fillet, chamfer, shell, import, named face references and drawing notes; 3 added studies; 1 and 2 open unchanged
+export const VERSION = 4;   // 2 added fillet, chamfer, shell, import, named face references and drawing notes; 3 added studies; 4 configurations that turn features off (0.6 LC.14); 1–3 open unchanged
 
 // Each type's name for people. Getters, read when shown: workers and Node import this before the language catalog. The
 // other modules' tables are getters too and are copied as getters (a spread would read them now).
@@ -216,8 +218,10 @@ export function deleteFeatures(part, ids) {
   return names;
 }
 
-/** The version a file of this part needs: 3 with studies (a version-2 reader would drop them silently), else 2. */
-export const fileVersion = (part) => ((part.studies && Object.keys(part.studies).length) || usesDesign(part) || usesSurface(part) || usesBodies(part) || hasParamsKey(part) || usesSheet(part) || usesSheetMetal(part) || hasConfigs(part) || usesRib(part) || usesThread(part) ? 3 : 2);
+/** The version a file of this part needs: 4 when a configuration turns features off, 3 with studies (a version-2 reader
+ *  would drop them silently), else 2. */
+export const fileVersion = (part) => (configsOff(part) ? 4 : ((part.studies && Object.keys(part.studies).length) || usesDesign(part) || usesSurface(part) || usesBodies(part) || hasParamsKey(part) || usesSheet(part) || usesSheetMetal(part) || hasConfigs(part) || usesRib(part) || usesThread(part) ? 3 : 2));
+const configsOff = (part) => !!(part.configs && part.configs.rows && part.configs.rows.some((r) => r.off && r.off.length));
 const hasConfigs = (part) => !!(part.configs && part.configs.rows && part.configs.rows.length);
 /** 0.4 P14: a material, or a drawing's sheet size, title block or revisions — a version-2 reader would drop them silently. */
 const usesSheet = (part) => !!(part.material || (part.drawing && ((part.drawing.sheet && part.drawing.sheet !== 'a3') || part.drawing.title || (part.drawing.revisions && part.drawing.revisions.length) || part.drawing.holeTable)));
@@ -384,7 +388,7 @@ export function readPart(raw) {
   // params after the features: every equation must drive a number this file has (params-part.js targets)
   if (j.params !== undefined && j.params !== null) { const pp = readPartParams(j.params, part); if (pp) part.params = pp; }
   // configurations after the parameters: every value must name one of them (configs.js, 0.4 P18)
-  if (j.configs !== undefined && j.configs !== null) { const cf = readConfigs(j.configs, part.params); if (cf) part.configs = cf; }
+  if (j.configs !== undefined && j.configs !== null) { const cf = readConfigs(j.configs, part.params, part.features); if (cf) part.configs = cf; }
   if (j.rollback === null || j.rollback === undefined) part.rollback = null;
   else if (Number.isInteger(j.rollback) && j.rollback >= 0 && j.rollback < part.features.length) part.rollback = j.rollback;
   return part;

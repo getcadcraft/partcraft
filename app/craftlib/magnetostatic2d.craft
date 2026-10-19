@@ -9,24 +9,42 @@
 %             bc the outer boundary is held at A = 0 (flux parallel to it: a closed box). An edge left free is
 %             natural (ν ∂A/∂n = 0: the field crosses it at right angles — a symmetry plane of the current, or an
 %             "open" end). On a symmetry plane where the current is mirrored with opposite sign, hold A = 0.
-%   opts      struct, optional: show (true)
+%   opts      struct, optional: show (true); Br (permanent magnets, 0.6 SG.7+): the remanent flux density per
+%             element, elements × 2 [Br_x Br_y] in T (zero outside the magnets), or one row for all; give the magnet
+%             its recoil permeability in mur (NdFeB about 1.05, ferrite about 1.1)
 % Returns:    r.A (nodes × 1, Wb/m), r.B (elements × 2: Bx = ∂A/∂y, By = −∂A/∂x at the element centres, T),
+%             r.H (elements × 2: H = ν (B − Br), A/m; in a magnet H points against B where it works),
 %             r.Bmag, r.energy (½∫ν|B|² per unit depth, J/m), r.fields {A (node), B (element, 3 components)}.
-% Method:     −∇·(ν ∇A_z) = J_z with ν = 1/(μ0 μr): the same operator as poisson2d (it is called with c = ν,
-%             s = J), then B = ∇ × (A_z ẑ). Bilinear elements; B is constant-ish per element (evaluated at the centre).
+% Method:     −∇·(ν ∇A_z) = J_z + (∇ × ν Br)_z with ν = 1/(μ0 μr): the same operator as poisson2d (it is called
+%             with c = ν, s = J), then B = ∇ × (A_z ẑ). A magnet is B = μ0 μr H + Br (its straight recoil line);
+%             its term enters as the load ∫ ν (Br_x ∂N/∂y − Br_y ∂N/∂x) per element (the usual A-formulation with magnets,
+%             e.g. N. Bianchi, Electrical Machine Analysis Using Finite Elements, CRC Press, 2005), which
+%             is the same as a current sheet Br/μ0 round the magnet's sides. Bilinear elements; B is constant-ish per
+%             element (evaluated at the centre).
 % Units:      SI: m, A/m², T, Wb/m; μ0 = 4π·10⁻⁷ H/m.
-% Assumes:    2-D (infinitely long in z), static, linear materials (no saturation), no eddy currents.
-% Limits:     equal rectangles only; an iron part needs the mesh fine at its edges; no permanent magnets.
+% Assumes:    2-D (infinitely long in z), static, linear materials (no saturation), no eddy currents; magnets
+%             on their straight recoil line (no demagnetisation knee: a magnet driven past it loses strength in
+%             reality, not here).
+% Limits:     equal rectangles only (round magnets are staircases: refine); an iron part needs the mesh fine at
+%             its edges; the field is singular at a magnet's corners next to iron — read fluxes and averages.
 % References: P. P. Silvester, R. L. Ferrari, Finite Elements for Electrical Engineers (3rd ed., 1996) ch. 3
 %             (vector potential in 2-D); J. D. Jackson, Classical Electrodynamics (3rd ed.) §5.1–5.4 (a long
 %             solenoid: B = μ0 n I inside); two current sheets of strip length 2L at ±a give
 %             B(0) = (2/π) μ0 K atan(L/a) at the centre (Biot–Savart for infinite strips).
+%             Magnets: J. A. Osborn, "Demagnetizing factors of the general ellipsoid", Phys. Rev. 67 (1945) 351 (a
+%             long round bar magnetised across its axis: N = ½, so inside B = Br / (1 + μr)); P. Campbell, Permanent
+%             Magnet Materials and their Application (Cambridge, 1994) (a magnet in an iron circuit, equal
+%             areas, no leakage: B = Br l_m / (l_m + μr (g + l_iron / μr_iron))).
 % Check:      a long "solenoid" in 2-D: two current sheets K = n I = 1000 A/m at x = ±1 (0.25 thick), 80 long, a
 %             quarter model (A = 0 on the plane x = 0 between the opposite currents, natural on y = 0, on the open
 %             ends and on the outer side x = 4, which then acts as an ideal return path of zero reluctance):
 %             B at the centre vs μ0 n I within 2 % (measured 0.001 %); coil and an iron core μr = 100 running the
 %             full length of the model (an endless solenoid): B = μr μ0 n I (bin/test-craftscript.mjs --lib). With A = 0 on a box around a solenoid in open air the
 %             finite-length value (2/π)·atan(L/a) is approached as the box grows (16 × 80: −5.5 %, 32 × 100: −2.1 %).
+%             Magnets (0.6 SG.7+): a round magnet (radius R, Br = 1.2 T across it, μr = 1.05) in air, quarter model
+%             in a 16 R box, R/16 squares: B inside = Br / (1 + μr) within 1 % (measured −0.3 %: the box is the
+%             error, (R/L)²); a magnet closed by an iron keeper (μr 1000, no gap): B in the magnet = the circuit's
+%             within 1 % (measured +0.4 %); no Br = the results above unchanged.
 function r = magnetostatic2d(m, mur, J, bc, opts)
 if nargin < 5
   opts = struct();
@@ -41,11 +59,29 @@ if nargin < 4 || ~isfield(bc, 'fixed')
 end
 mu0 = 4e-7 * pi;
 nu = 1 ./ (mu0 * mur);
-p = poisson2d(m, nu, J, bc, struct('show', false, 'name', 'A'));
+Q = meshElems(m);
+ne = size(Q, 1);
+nue = nu(:) .* ones(ne, 1);
+Br = getopt(opts, 'Br', [0 0]);
+if size(Br, 1) == 1
+  Br = repmat(Br, ne, 1);
+end
+ld = [];
+if any(Br(:) ~= 0)
+  % permanent magnets: ∫ ν (Br_x ∂N/∂y − Br_y ∂N/∂x) over each element, with ∫ ∂N/∂y = a/2 · [−1 −1 1 1] and
+  % ∫ ∂N/∂x = b/2 · [−1 1 1 −1] on the bilinear a × b rectangle (nodes (0,0) (a,0) (a,b) (0,b))
+  X = meshNodes(m);
+  a = X(Q(1, 2), 1) - X(Q(1, 1), 1);
+  b = X(Q(1, 4), 2) - X(Q(1, 1), 2);
+  fe = (nue .* Br(:, 1)) * ([-1 -1 1 1] * a / 2) - (nue .* Br(:, 2)) * ([-1 1 1 -1] * b / 2);
+  ld = accumarray(Q(:), fe(:), [size(X, 1) 1]);
+end
+p = poisson2d(m, nu, J, bc, struct('show', false, 'name', 'A', 'load', ld));
 B = [p.grad(:, 2), -p.grad(:, 1)];
 r = struct();
 r.A = p.phi;
 r.B = B;
+r.H = [nue .* (B(:, 1) - Br(:, 1)), nue .* (B(:, 2) - Br(:, 2))];
 r.Bmag = sqrt(sum(B .^ 2, 2));
 r.energy = p.energy;
 ne = size(B, 1);

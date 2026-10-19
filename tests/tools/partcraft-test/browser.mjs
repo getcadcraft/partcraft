@@ -910,6 +910,7 @@ g = GProp_GProps(); BRepGProp.VolumeProperties_s(s, g); print(g.Mass(), BRepChec
   await (await import('./browser-adaptive.mjs')).run(areaHelpers);
   await (await import('./browser-drawing-sheet.mjs')).run(areaHelpers);
   await (await import('./browser-gordon.mjs')).run(areaHelpers);
+  await (await import('./browser-pu.mjs')).run(areaHelpers);   // 0.6 PU.1–PU.6 (session part-usability)
 
   ok(problems.length === 0, 'no console errors' + (problems.length ? ':\n    ' + problems.join('\n    ') : ''));
 

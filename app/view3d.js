@@ -12,6 +12,7 @@
  *   hit = { kind:'face', tri, point, normal, featureIndex, group } | { kind:'edge', a, b } | { kind:'plane', name } | null
  *   Workspace hooks (workspaces.js): setOverlay(id, Object3D|null) (scene objects that survive setMesh), clearOverlays(),
  *   setFaceColors(Float32Array|null) (result plots on the part; cleared by setMesh), setPartVisible(bool).
+ *   Base planes: setPlanesVisible(bool), setPlanesFaint(bool) (0.6 PU.4: faint planes are drawn but never picked).
  */
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -86,6 +87,7 @@ export class View3D {
     this.sketchFrame = null;
     this.sketchView = null;
     this.showPlanes = true;
+    this.planesFaint = false;
     this.colors = {};
     this.applyTheme();
     new MutationObserver(() => this.applyTheme()).observe(document.documentElement, { attributes: true, attributeFilter: ['data-space'] });
@@ -178,8 +180,9 @@ export class View3D {
     const sel = this.selectedPlane === g.userData.plane, hov = this.hoverPlane === g.userData.plane;
     const col = sel ? this.colors.pick : hov ? this.colors.hover : this.colors.plane;
     g.children[0].material.color.copy(col);
-    g.children[0].material.opacity = sel || hov ? 0.22 : 0.07;
+    g.children[0].material.opacity = sel || hov ? 0.22 : this.planesFaint ? 0.015 : 0.07;
     g.children[1].material.color.copy(col);
+    g.children[1].material.opacity = this.planesFaint && !sel ? 0.18 : 0.6;
   }
   setPlaneState(selected, hover) {
     this.selectedPlane = selected; this.hoverPlane = hover;
@@ -187,6 +190,13 @@ export class View3D {
     this.render();
   }
   setPlanesVisible(on) { this.showPlanes = on; this.planes.visible = on; this.render(); }
+  /** 0.6 PU.4: once the part has a solid the base planes step back — drawn faint and not picked (the origin triad stays). */
+  setPlanesFaint(on) {
+    if (this.planesFaint === !!on) return;
+    this.planesFaint = !!on;
+    for (const g of this.planes.children) this.tintPlane(g);
+    this.render();
+  }
 
   // ---------------------------------------------------------------- the part
   setMesh(mesh) {
@@ -675,7 +685,7 @@ export class View3D {
       const hf = ray.intersectObjects(fills, false)[0];
       if (hf) hits.push({ d: hf.distance + (this.mesh ? 1e9 : 0), hit: { kind: 'ref', id: hf.object.userData.ref } });
     }
-    if (planes && this.planes.visible) {
+    if (planes && this.planes.visible && !this.planesFaint) {
       const fills = this.planes.children.filter((g) => g.userData.plane).map((g) => g.children[0]);
       const h = ray.intersectObjects(fills, false)[0];
       if (h) hits.push({ d: h.distance + (this.mesh ? 1e9 : 0), hit: { kind: 'plane', name: h.object.userData.plane } });

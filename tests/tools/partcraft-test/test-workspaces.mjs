@@ -73,8 +73,8 @@ export async function runWorkspaceTests({ ok, section }) {
     const v1 = JSON.parse(P.toJSON(F.flange().part)); v1.version = 1;
     const v2 = JSON.parse(P.toJSON(F.flange().part)); v2.version = 2;
     ok(P.readPart(JSON.stringify(v1)).features.length === v1.features.length && P.readPart(JSON.stringify(v2)).features.length === v2.features.length, 'version 1 and version 2 files still open');
-    const v4 = { ...j, version: 4 };
-    ok(throws(() => P.readPart(JSON.stringify(v4)), /newer PartCraft.*version 4.*reads version 3/), 'version 4 is refused, saying this build reads version 3');
+    const v4 = { ...j, version: P.VERSION + 1 };   // 0.6 LC.14 made 4 a real version (configurations that turn features off)
+    ok(throws(() => P.readPart(JSON.stringify(v4)), new RegExp(`newer PartCraft.*version ${P.VERSION + 1}.*reads version ${P.VERSION}`)), `version ${P.VERSION + 1} is refused, saying this build reads version ${P.VERSION}`);
     // tampering
     const bad = (fn, re, what) => { const t = JSON.parse(JSON.stringify(j)); fn(t); ok(throws(() => P.readPart(JSON.stringify(t)), re), what); };
     bad((t) => { t.studies.mystery = {}; }, /"mystery" study data that this PartCraft does not read/, 'a study key nobody registered is refused, named');

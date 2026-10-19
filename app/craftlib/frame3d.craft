@@ -1,0 +1,264 @@
+% SPDX-License-Identifier: Apache-2.0
+% frame3d — linear static analysis of a 3D frame (beams, columns, braces) by the direct stiffness method
+%
+% Usage:      r = frame3d(fr)
+%   fr        struct (0.6 LC.4; DetailCraft's and BimCraft's Analysis panels write it with "Export as CraftScript"):
+%             fr.nodes        nodes × 3, [x y z] (global Z up)
+%             fr.members      members × 2, the node numbers at the i and j ends
+%             fr.props        members × 7, [E G A Iy Iz J roll] — roll (degrees) turns the local y and z axes about x
+%             fr.fixed        nodes × 6 logical, the held directions [ux uy uz rx ry rz]
+%             fr.releases     members × 12 logical, optional: freed end actions [N Vy Vz T My Mz] at i, then at j
+%             fr.springs      nodes × 6, optional: support springs on directions that are not held
+%             fr.nodeLoads    nodes × 6, optional: [Fx Fy Fz Mx My Mz] at each node
+%             fr.memberLoads  rows [member dir kind w1 w2 a b], optional: dir 1 2 3 = local x y z, 4 5 6 = global X Y Z;
+%                             kind 1 = distributed, w1 at a to w2 at b (force per length; a, b from the i end; b = 0
+%                             means the whole member), kind 2 = a point force w1 at a
+% Returns:    r.U (nodes × 6 displacements and rotations, global), r.R (nodes × 6 reactions; zero where nothing
+%             holds), r.F (members × 12 end forces in local axes: what the nodes exert on the member, [N Vy Vz T My
+%             Mz] at i then j), r.L (member lengths), r.dofs (unknowns), r.held (directions held because no member
+%             stiffens them: free rotations at pins), r.applied / r.reacted ([Fx Fy Fz Mx My Mz] of every load and of
+%             every reaction about the origin: they add up to zero).
+% Method:     Euler–Bernoulli beam-columns (no shear deformation, no warping), 12 dofs each: axial E·A/L, torsion
+%             G·J/L, bending E·Iz in the local x–y plane and E·Iy in x–z. Local axes: x from i to j; z = the part of
+%             global Z square to x ("up"), or global +X for a vertical member; y = z × x; then the roll. Loads along a
+%             member → equivalent nodal loads through the shape functions (linear axial, cubic Hermite bending),
+%             4-point Gauss–Legendre (exact for uniform, linear and point loads). Released end actions are condensed
+%             out of the member matrix with its loads: k* = k_aa − k_ar k_rr⁻¹ k_ra, p* = p_a − k_ar k_rr⁻¹ p_r.
+%             K = Σ Tᵀ k* T (sparse), held dofs removed, springs on the diagonal, u_free = K_ff \ f_f. A rotation no
+%             member resists (all members at a node pinned and square to it) is found from the eigenvectors of the
+%             node's 3×3 rotation block and given a spring along it, which changes nothing else. End forces
+%             f = k* T u − p*; reactions = K u − f at the held dofs.
+% Units:      consistent: mm, N, MPa → displacements in mm, rotations in radians, forces in N, moments in N·mm.
+% Assumes:    small displacements, linear elastic, first order (no P-Δ), loads on the member axis; an analysis aid,
+%             not a code check (no design code is applied).
+% Limits:     no shear deformation (deep, short members are a little too stiff), no warping torsion of open
+%             sections, no member offsets (members are analysed on their work lines), no tension-only members.
+% References: W. McGuire, R. H. Gallagher, R. D. Ziemian, Matrix Structural Analysis, 2nd ed. (2000), §4.3 (the
+%             12×12 element), §4.4 (transformation), §7.4 (releases by condensation); J. S. Przemieniecki, Theory of
+%             Matrix Structural Analysis (1968), §5.4; AISC Steel Construction Manual, 16th ed. (2023), Table 3-23
+%             (beam formulas used by the checks).
+% Check:      cantilever, simple beam, fixed-fixed beam, propped cantilever by an end release, two-span beam, portal
+%             frame by slope-deflection, an L-shaped grid in torsion and a two-bar truss — each against its closed
+%             form, and every case against the app's own solver (lib/frame/frame-solve.js) to 1e-6 (bin/test-frame.mjs).
+function r = frame3d(fr)
+t0 = tic;
+X = fr.nodes; nn = size(X, 1);
+Mb = fr.members; m = size(Mb, 1);
+P = fr.props;
+rel = logical(getopt(fr, 'releases', false(m, 12)));
+held = logical(fr.fixed);
+spr = getopt(fr, 'springs', zeros(nn, 6));
+NL = getopt(fr, 'nodeLoads', zeros(nn, 6));
+ML = getopt(fr, 'memberLoads', zeros(0, 7));
+n = 6 * nn;
+F = reshape(NL', [], 1);                         % node-major: dof 6(k−1) + d
+I = zeros(144 * m, 1); J = I; V = I;
+Tm = cell(1, m); Kc = cell(1, m); Pc = cell(1, m); D = zeros(m, 12); Lm = zeros(m, 1);
+g = [-0.8611363115940526 -0.3399810435848563 0.3399810435848563 0.8611363115940526];
+gw = [0.3478548451374538 0.6521451548625461 0.6521451548625461 0.3478548451374538];
+for e = 1:m
+  a = Mb(e, 1); b = Mb(e, 2);
+  d = X(b, :) - X(a, :); L = norm(d); ex = d / L; Lm(e) = L;
+  if abs(ex(3)) > 0.999999
+    ez = [1 0 0];
+  else
+    ez = [0 0 1] - ex(3) * ex; ez = ez / norm(ez);
+  end
+  ey = cross(ez, ex);
+  if P(e, 7) ~= 0
+    c = cosd(P(e, 7)); s = sind(P(e, 7));
+    y2 = c * ey + s * ez; ez = -s * ey + c * ez; ey = y2;
+  end
+  R3 = [ex; ey; ez];
+  T = kron(eye(4), R3);
+  k = beamK(P(e, 1), P(e, 2), P(e, 3), P(e, 4), P(e, 5), P(e, 6), L);
+  % loads along the member → equivalent nodal loads (local)
+  p = zeros(12, 1);
+  rows = find(ML(:, 1) == e);
+  for q = rows'
+    w = ML(q, :);
+    if w(2) <= 3
+      cmp = zeros(1, 3); cmp(w(2)) = 1;
+    else
+      G3 = zeros(1, 3); G3(w(2) - 3) = 1; cmp = (R3 * G3')';
+    end
+    for c3 = 1:3
+      if abs(cmp(c3)) < 1e-15
+        continue;
+      end
+      if w(3) == 2
+        p = addLoad(p, c3, w(6) / L, w(4) * cmp(c3), L);
+      else
+        a0 = w(6); b0 = w(7);
+        if b0 <= 0
+          b0 = L;
+        end
+        a1 = max(0, min(L, a0)); b1 = max(0, min(L, b0));
+        h = (b1 - a1) / 2;
+        for gi = 1:4
+          x = a1 + h * (g(gi) + 1);
+          qx = w(4) + (w(5) - w(4)) * (x - a0) / (b0 - a0);
+          p = addLoad(p, c3, x / L, qx * cmp(c3) * gw(gi) * h, L);
+        end
+      end
+    end
+  end
+  % releases: static condensation of the member matrix and its loads
+  rr = find(rel(e, :)); kk = setdiff(1:12, rr);
+  kc = k; pc = p;
+  if ~isempty(rr)
+    Gm = k(kk, rr) / k(rr, rr);
+    kc = zeros(12, 12); kc(kk, kk) = k(kk, kk) - Gm * k(rr, kk);
+    pc = zeros(12, 1); pc(kk) = p(kk) - Gm * p(rr);
+  end
+  kg = T' * kc * T;
+  dofs = [6 * a - 5:6 * a, 6 * b - 5:6 * b];
+  [ii, jj] = ndgrid(dofs, dofs);
+  span = 144 * (e - 1) + (1:144);
+  I(span) = ii(:); J(span) = jj(:); V(span) = kg(:);
+  F(dofs) = F(dofs) + T' * pc;
+  Tm{e} = T; Kc{e} = kc; Pc{e} = pc; D(e, :) = dofs;
+end
+sp = reshape(spr', [], 1); sp(reshape(held', [], 1)) = 0;
+hd = find(sp);
+K = sparse([I; hd], [J; hd], [V; sp(hd)], n, n);
+
+% directions nothing stiffens: a translation with a zero diagonal is held; a rotation no member resists gets a spring
+heldv = reshape(held', [], 1);
+dg = full(diag(K));
+dT = dg; dT(mod((1:n)' - 1, 6) >= 3) = 0;
+idle = (dg <= 1e-14 * max(dT)) & ~heldv & mod((1:n)' - 1, 6) < 3;
+used = false(nn, 1); used(Mb(:)) = true;
+dR = dg; dR(mod((1:n)' - 1, 6) < 3) = 0; big = max(dR);
+if big <= 0
+  big = 1;
+end
+sI = []; sJ = []; sV = []; heldRot = zeros(0, 4);
+for nd = find(used)'
+  rd = 6 * nd - 2:6 * nd;
+  B = full(K(rd, rd)) + diag(big * heldv(rd));
+  [Vv, Dd] = eig((B + B') / 2);
+  lam = diag(Dd);
+  for q = 1:3
+    if lam(q) <= 1e-10 * big
+      v = Vv(:, q);
+      [ii, jj] = ndgrid(rd, rd); vv = big * (v * v');
+      sI = [sI; ii(:)]; sJ = [sJ; jj(:)]; sV = [sV; vv(:)];
+      heldRot = [heldRot; nd v'];
+    end
+  end
+end
+if ~isempty(sI)
+  K = K + sparse(sI, sJ, sV, n, n);
+end
+heldAll = heldv | idle;
+free = find(~heldAll & kron(used, ones(6, 1)));
+u = zeros(n, 1);
+try
+  u(free) = K(free, free) \ F(free);
+catch err
+  error('frame3d: the frame can move without straining (a mechanism): add supports, bracing or fixed joints (%s)', err.message);
+end
+for q = 1:size(heldRot, 1)
+  rd = 6 * heldRot(q, 1) - 2:6 * heldRot(q, 1);
+  if abs(heldRot(q, 2:4) * F(rd)) > 1e-6
+    error('frame3d: a moment at node %d turns a joint no member holds (a mechanism)', heldRot(q, 1));
+  end
+end
+
+% end forces, reactions, totals
+Fe = zeros(m, 12);
+Rv = zeros(n, 1);
+for e = 1:m
+  fe = Kc{e} * (Tm{e} * u(D(e, :))) - Pc{e};
+  fe(rel(e, :)) = 0;
+  Fe(e, :) = fe';
+  Rv(D(e, :)) = Rv(D(e, :)) + Tm{e}' * fe;
+end
+Rv = Rv - reshape(NL', [], 1);
+sup = heldv | sp > 0;
+Rv(~sup) = 0;
+r = struct();
+r.U = reshape(u, 6, nn)';
+r.R = reshape(Rv, 6, nn)';
+r.F = Fe;
+r.L = Lm;
+r.dofs = numel(free);
+r.held = heldRot;
+r.reacted = resultant(X, r.R);
+r.applied = loadsResultant(X, NL, Mb, ML, Lm, Tm);
+r.seconds = toc(t0);
+fprintf('frame3d: %d nodes, %d members, %d unknowns, max displacement %.4g, sum of reactions [%.4g %.4g %.4g]\n', ...
+  nn, m, r.dofs, max(sqrt(sum(r.U(:, 1:3) .^ 2, 2))), r.reacted(1), r.reacted(2), r.reacted(3));
+end
+
+function k = beamK(E, G, A, Iy, Iz, J, L)
+% the 12×12 local stiffness (McGuire et al. eq. 4.34)
+k = zeros(12, 12);
+ea = E * A / L; gj = G * J / L;
+k([1 7], [1 7]) = ea * [1 -1; -1 1];
+k([4 10], [4 10]) = gj * [1 -1; -1 1];
+z = E * Iz / L ^ 3 * [12 6*L -12 6*L; 6*L 4*L^2 -6*L 2*L^2; -12 -6*L 12 -6*L; 6*L 2*L^2 -6*L 4*L^2];
+k([2 6 8 12], [2 6 8 12]) = z;
+y = E * Iy / L ^ 3 * [12 -6*L -12 -6*L; -6*L 4*L^2 6*L 2*L^2; -12 6*L 12 6*L; -6*L 2*L^2 6*L 4*L^2];
+k([3 5 9 11], [3 5 9 11]) = y;
+end
+
+function p = addLoad(p, c, xi, q, L)
+% a force q along local axis c at ξ = x/L, spread to the ends by the shape functions
+N1 = 1 - 3 * xi ^ 2 + 2 * xi ^ 3; N2 = L * (xi - 2 * xi ^ 2 + xi ^ 3);
+N3 = 3 * xi ^ 2 - 2 * xi ^ 3; N4 = L * (-xi ^ 2 + xi ^ 3);
+if c == 1
+  p(1) = p(1) + q * (1 - xi); p(7) = p(7) + q * xi;
+elseif c == 2
+  p([2 6 8 12]) = p([2 6 8 12]) + q * [N1; N2; N3; N4];
+else
+  p([3 5 9 11]) = p([3 5 9 11]) + q * [N1; -N2; N3; -N4];
+end
+end
+
+function t = resultant(X, R)
+% [Fx Fy Fz Mx My Mz] of node forces about the origin
+x = X(:, 1); y = X(:, 2); z = X(:, 3);
+rxF = [y .* R(:, 3) - z .* R(:, 2), z .* R(:, 1) - x .* R(:, 3), x .* R(:, 2) - y .* R(:, 1)];
+t = [sum(R(:, 1:3), 1), sum(R(:, 4:6), 1) + sum(rxF, 1)];
+end
+
+function t = loadsResultant(X, NL, Mb, ML, Lm, Tm)
+t = resultant(X, NL);
+g = [-0.8611363115940526 -0.3399810435848563 0.3399810435848563 0.8611363115940526];
+gw = [0.3478548451374538 0.6521451548625461 0.6521451548625461 0.3478548451374538];
+for q = 1:size(ML, 1)
+  w = ML(q, :); e = w(1); L = Lm(e); R3 = Tm{e}(1:3, 1:3);
+  if w(2) <= 3
+    dir = R3(w(2), :);
+  else
+    dir = zeros(1, 3); dir(w(2) - 3) = 1;
+  end
+  o = X(Mb(e, 1), :); ex = R3(1, :);
+  if w(3) == 2
+    pts = min(w(6), L); f = w(4);
+  else
+    a0 = w(6); b0 = w(7);
+    if b0 <= 0
+      b0 = L;
+    end
+    a1 = max(0, min(L, a0)); b1 = max(0, min(L, b0)); h = (b1 - a1) / 2;
+    pts = a1 + h * (g + 1);
+    f = (w(4) + (w(5) - w(4)) * (pts - a0) / (b0 - a0)) .* gw * h;
+  end
+  for k = 1:numel(pts)
+    Fv = dir * f(k); pt = o + ex * pts(k);
+    t = t + [Fv, cross(pt, Fv)];
+  end
+end
+end
+
+function v = getopt(s, name, default)
+% a field of a struct, or the default when it is not there
+if isfield(s, name)
+  v = s.(name);
+else
+  v = default;
+end
+end

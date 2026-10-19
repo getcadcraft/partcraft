@@ -33,7 +33,7 @@ The toolbar is grouped. It changes with what you are doing, so it fits one row:
 | Assembly | {{ui:Add copy}}, {{ui:Insert}}, {{ui:Joint}}, {{ui:Clash}}, {{ui:Edit part}}, {{ui:Close}} | Only in an assembly |
 | Assembly | {{ui:Back}} | While you edit a part from an assembly |
 | Edit | {{ui:Undo}}, {{ui:Redo}}, {{ui:Copy}}, {{ui:Paste}}, {{ui:More}} (a menu: Cut, Copy, Paste, Paste in place, Duplicate, Delete, Select all, Select none) | Always; each item works on the sketch, the history or the assembly you are in |
-| View | {{ui:Fit}}, {{ui:Normal to}}, {{ui:Views}} (a menu: Isometric, Front, Back, Top, Bottom, Right, Left) | Always |
+| View | {{ui:Fit}}, {{ui:Normal to}}, {{ui:Views}} (a menu: Measure, Mass properties, Section, Draft, Zebra, Curvature, {{ui:Base planes}}, then Isometric, Front, Back, Top, Bottom, Right, Left) | Always |
 
 Hover over a button to see what it does and its key. A grayed-out button cannot be used right now: for example the feature buttons while a sketch is open, or {{ui:Joint}} before the assembly has two parts.
 
@@ -60,6 +60,7 @@ The panel on the left is the part's feature history, the list PartCraft rebuilds
 | ⚠ not built | The feature needs another one that failed or is off |
 | off | Suppressed |
 
+- Each feature shows its main number after its name, such as "25 mm" for an Extrude or "Ø6.6 thru" for a hole. Double-click the number, or press {{key:F2}} on the row, to change it right there. See [Change sizes](topic:change-sizes).
 - Click a feature to edit it on the right. Double-click a sketch to open it.
 - When you roll back, a **Rollback bar · roll forward** row sits in the list. Features below it are grayed and not built.
 - With a row focused, {{key:Up}} and {{key:Down}} move between rows, and {{key:Alt+Up}} / {{key:Alt+Down}} move the feature itself, where the history allows.
@@ -74,11 +75,14 @@ In an assembly the box is headed **Assembly**: Parts, Instances, Joints, Not joi
 
 ## The 3D view (middle)
 
-The view shows the solid, the base planes (when the part is empty or you are choosing where to sketch) and any sketch not yet used by a feature.
+The view shows the solid, the base planes and any sketch not yet used by a feature.
+
+The base planes are drawn in full while the part is empty. Once it has a solid they step back: drawn faint, so they don't cover the part, and clicks go through them to the part. They come back in full while you choose where to sketch ({{ui:Sketch}} with nothing picked) and when you select one in the history. {{ui:Views}} › {{ui:Base planes}} hides them altogether; they still show while you choose where to sketch. PartCraft remembers that choice.
 
 - Drag to turn the part, right-drag or middle-drag to pan, roll the wheel to zoom at the pointer. Details in [Keys and mouse](topic:keyboard).
 - Hover a face, edge or plane to see it light up. Click to pick it. Faces highlight whole and edges are drawn and picked whole. {{key:Shift}}+click collects several edges or faces. They stay marked.
 - The view cube at the top right turns with the part: click a face, edge or corner to look from there, drag it to turn, the house button goes back to the start. See [The view cube](topic:view-cube).
+- A selected Extrude shows an orange arrow on its end face, a Revolve a curved arrow at the end of its turn: drag it to change the depth or the angle, or type in the box beside it. See [Change sizes](topic:change-sizes#drag-it-in-the-view).
 - When a part is empty, a box headed **Start a part** lists the first steps.
 - Drop a `.partcraft.json` or `.partcraft-asm.json` file anywhere on the view to open it. Opening `.step` and `.stp` files is not built yet in this version.
 
@@ -100,7 +104,7 @@ The panel on the right shows whatever is selected, and its heading names it:
 
 - **Part** (nothing selected): the part's **Name** and the **Curves** setting.
 - A plane: a {{ui:Sketch on it}} button.
-- A **Face**: what kind it is (Flat face, Cylinder with its radius and axis, Cone, Sphere or Torus), its area, which feature made it, and {{ui:Sketch on this face}}, {{ui:Normal to}} and {{ui:Export face as DXF}} for a flat face.
+- A **Face**: what kind it is (Flat face, Cylinder with its radius and axis, Cone, Sphere or Torus), its area, which feature made it, and for a flat face {{ui:Sketch on this face}}, {{ui:Normal to}}, {{ui:Export face as DXF}}, {{ui:Extrude from it}}, {{ui:Cut into it}} and {{ui:Hole here}} (see [Pull or push a whole face](topic:extrude-and-cut#pull-or-push-a-whole-face)).
 - An **Edge**: its kind (straight, a circle with its centre and radius, or a curve), its length and the two faces it lies between (such as "Extrude1 end face and Extrude1 side"), with {{ui:Fillet}} and {{ui:Chamfer}} buttons.
 - Several edges or faces picked with {{key:Shift}}: how many, with {{ui:Fillet}} and {{ui:Chamfer}} for edges, and {{ui:Clear}}.
 - A feature: its numbers and options, the dimensions of its sketch, then {{ui:Suppress}}, {{ui:Roll back to here}}, {{ui:Move up}}, {{ui:Move down}}, {{ui:Delete}} and its **Name**.

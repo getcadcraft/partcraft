@@ -6,6 +6,7 @@
       { "name": "example_mbb", "summary": "MBB beam topology" },
       { "name": "example_capacitor", "summary": "Capacitor field" },
       { "name": "example_electromagnet", "summary": "Electromagnet: field, gap, inductance" },
+      { "name": "example_magnet", "summary": "Permanent magnet in an iron core: working point, leakage, pull" },
       { "name": "example_channel", "summary": "Channel flow" }
     ] },
     { "id": "mesh", "label": "Meshing", "items": [
@@ -20,6 +21,9 @@
     { "id": "static", "label": "Static stress", "items": [
       { "name": "static_voxel", "summary": "Linear static analysis on cubes (h8i, direct or multigrid)" },
       { "name": "static_tet", "summary": "Linear static analysis on 10-node tetrahedra, face loads" }
+    ] },
+    { "id": "frame", "label": "Frames", "items": [
+      { "name": "frame3d", "summary": "3D frames of beams, columns and braces: stiffness method, releases, member loads" }
     ] },
     { "id": "modal", "label": "Vibration", "items": [
       { "name": "modal_tet", "summary": "Natural frequencies and mode shapes (T10, consistent mass)" }
@@ -36,7 +40,7 @@
     ] },
     { "id": "em", "label": "Electromagnetics", "items": [
       { "name": "poisson2d", "summary": "2-D Poisson: electrostatic potential, capacitance" },
-      { "name": "magnetostatic2d", "summary": "2-D magnetostatics, vector potential A_z" }
+      { "name": "magnetostatic2d", "summary": "2-D magnetostatics, vector potential A_z, permanent magnets" }
     ] },
     { "id": "fluid", "label": "Fluid flow", "items": [
       { "name": "lbm2d", "summary": "2-D lattice Boltzmann (D2Q9), all in script" },

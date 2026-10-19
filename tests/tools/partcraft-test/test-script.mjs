@@ -273,6 +273,9 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   let pass = 0, fail = 0;
   const ok = (c, m) => { if (c) { pass++; if (VERBOSE) console.log('  ok   ' + m); } else { fail++; console.log('  FAIL ' + m); } };
   const section = (t) => console.log('\n== ' + t);
+  // run alone, the app's words come from its language file, as bin/test-partcraft.mjs sets them up (closing_PART_2)
+  const fs = await import('node:fs');
+  (await import(DEV + 'i18n.js')).init({ locale: 'en', strings: JSON.parse(fs.readFileSync(path.join(DEV, 'lang/en.json'), 'utf8')) });
   await runScriptTests({ ok, section });
   console.log(`\n${pass} passed, ${fail} failed`);
   process.exit(fail ? 1 : 0);

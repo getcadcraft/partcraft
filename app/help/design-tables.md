@@ -1,9 +1,9 @@
 ---
 title: Configurations and design tables
-summary: Keep several sizes of one part as named configurations saved in the part file, switch between them with one click, bring them in or out as a CSV design table, or build them all from the command line.
+summary: Keep several sizes and versions of one part as named configurations saved in the part file, with features turned on or off in each, switch between them with one click, bring them in or out as a CSV design table, or build them all from the command line.
 section: tasks
 order: 106
-keywords: design table, configurations, configuration, sizes, family of parts, csv, spreadsheet, variants, table driven, iparts, part family
+keywords: design table, configurations, configuration, sizes, family of parts, csv, spreadsheet, variants, table driven, iparts, part family, suppress, suppressed, turn off a feature, options, with or without, configurator
 ---
 
 A **configuration** is one size of the part: a named set of values for its parameters. The part keeps its configurations in its own file, so they travel with it. A **design table** is the same thing as a CSV file, one row per configuration.
@@ -25,6 +25,22 @@ The new configuration is marked **active**. Change a parameter afterwards and it
 - {{ui:Delete}} removes the configuration. The parameters keep their values.
 
 Each of these is one step: {{key:Mod+Z}} goes back. If you rename a parameter, every configuration follows the new name; if you delete one, it drops out of them.
+
+## Turn features on and off in a configuration
+
+A configuration also keeps which features are turned off, so one part can have versions **with** and **without** something: mounting holes, a chamfer, a boss.
+
+1. Turn the feature off: click it in the history, then {{ui:Suppress}} in {{ui:Properties}}.
+2. Save the configuration as usual, for example `No holes`. Its row lists what it turns off.
+3. Turn the feature back on ({{ui:Unsuppress}}) and save another configuration, for example `With holes`.
+
+Once any configuration turns a feature off, applying a configuration turns its features off and **every other feature on**, together with its parameter values, in one step. A configuration saved before features were turned off in any of them counts as "everything on". {{ui:Update}} saves the features as they are now, with the values.
+
+A part whose configurations turn features off is saved as a newer file version: an older PartCraft says the file is from a newer version instead of opening it without them.
+
+:::note
+The CSV design table carries parameter values only. Importing a table over a configuration changes its values and keeps the features it turns off; the command line's `--table` builds the values only.
+:::
 
 The part file is saved with the configurations and with whichever one was active. The part opens with the values it was saved with.
 

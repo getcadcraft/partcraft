@@ -19,6 +19,7 @@ The **Examples** group holds five short scripts that use the library end to end.
 | Capacitor field | Two plates 4 mm wide, 1 mm apart: potential and field, the capacitance with fringing against the ideal value and Palmer's formula |
 | Channel flow | Lattice Boltzmann flow past a post in a channel: the velocity field and the convergence history |
 | Electromagnet | A C-shaped iron core with an air gap and a coil: the flux density, the field in the gap against the magnetic-circuit formula, the inductance and the pull across the gap. Walked through in [Magnetic fields in 2-D](topic:magnetic-fields-2d) |
+| Permanent magnet | The same core with a permanent magnet instead of the coil: the magnet's working point, the field in the gap against the magnetic circuit, how much flux leaks, the pull. In [Magnetic fields in 2-D](topic:magnetic-fields-2d#permanent-magnets) |
 
 ## Groups
 
@@ -26,10 +27,11 @@ The **Examples** group holds five short scripts that use the library end to end.
 |---|---|---|
 | Meshing | `box_mesh`, `cylinder_mesh`, `voxel_mesh`, `tet_mesh`, `mesh_quality`, `nodes_at`, `face_nodes` | Boxes and cylinders as hexahedra, cubes or tetrahedra; cubes or tetrahedra of any model (the part, a body, a loaded STL); element volumes and quality; picking nodes on a plane or a face |
 | Static stress | `static_voxel`, `static_tet` | Linear static stress on cubes or on 10-node tetrahedra: displacements, stresses, von Mises, reactions |
+| Frames | `frame3d` | 3D frames of beams, columns and braces by the direct stiffness method: end releases, supports and springs, loads along members; displacements, reactions, member end forces. DetailCraft's and BimCraft's {{ui:Export as CraftScript}} writes a whole model for it. An analysis aid, not a code check |
 | Vibration | `modal_tet` | Natural frequencies and mode shapes |
 | Heat | `heat_steady`, `heat_transient`, `heat_system` | Steady and transient conduction with fixed temperatures, heat input, generation, flux and convection |
 | Topology optimization | `top88`, `top99`, `topopt3d` | The published 88- and 99-line 2-D codes, and the same method in 3-D on cubes |
-| Electromagnetics | `poisson2d`, `magnetostatic2d` | 2-D electrostatics (potential, field, capacitance, charge) and magnetostatics (vector potential, flux density) |
+| Electromagnetics | `poisson2d`, `magnetostatic2d` | 2-D electrostatics (potential, field, capacitance, charge) and magnetostatics (vector potential, flux density, permanent magnets) |
 | Fluid flow | `lbm2d`, `lbm3d` | Lattice Boltzmann flow: 2-D written out in the script, 3-D on PartCraft's own flow kernel |
 
 Every function's header gives its exact arguments. Units are those of PartCraft's studies unless the header says otherwise: millimetres, newtons, megapascals, tonnes per cubic millimetre for density, watts and kelvin for heat. The electromagnetic and lattice Boltzmann functions work in any consistent units; their headers say how.
@@ -42,7 +44,7 @@ Each function's header ends with a **check**: a small case with a known answer. 
 - the cantilever's first frequency against beam theory (0.24 % lower, as expected for a short beam) and against **Simulation**'s modal solver;
 - heat: a heated plane wall exactly, a small body cooling as the lumped-capacity formula says, a slab's temperature dying away as theory says;
 - topology optimization: `top88` reproduces the paper's 94 iterations and compliance 203.1925 (and 218.8032 with the density filter); `topopt3d` ends at the same compliance as the **Generative** workspace with the same settings;
-- a capacitor's capacitance and a long solenoid's field against their textbook values, and the electromagnet's gap field against the magnetic-circuit formula;
+- a capacitor's capacitance and a long solenoid's field against their textbook values, the electromagnet's gap field against the magnetic-circuit formula, and permanent magnets against a round magnet in air and a magnet closed by an iron keeper;
 - channel flow against the exact parabolic profile.
 
 ## Read a function

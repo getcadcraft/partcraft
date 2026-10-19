@@ -215,6 +215,22 @@ export async function run(h) {
     await page.waitForTimeout(300);
     await shot('06c-electromagnet');
   }
+  if (lib.items.includes('example_magnet')) {   // 0.6 SG.7+: a permanent magnet (magnetostatic2d opts.Br), in the worker
+    console.log('\n== the permanent magnet example (0.6 SG.7+: magnetostatic2d with Br → working point, leakage, pull)');
+    await page.click('[data-cs-pane="lib"]');
+    await page.click('[data-cs-lib="example_magnet"]');
+    await page.waitForFunction(() => /Permanent magnet/.test(document.querySelector('[data-cs-lib-doc]')?.textContent || '') && !document.querySelector('[data-cs-lib-open]').disabled, null, { timeout: 10000 });
+    await page.click('[data-cs-lib-open]');
+    await runF5();
+    out = await consoleText();
+    const wp = out.match(/the magnet works at B = ([0-9.]+) T/), bg = out.match(/B in the gap ([0-9.]+) T; the magnetic circuit without leakage ([0-9.]+) T/);
+    ok(wp && bg && Number(bg[1]) < Number(bg[2]) && Number(wp[1]) > Number(bg[1]) && Number(wp[1]) < 1.2 && /leakage factor/.test(out) && /Done in/.test(out.slice(-400)), `example_magnet runs from the library with F5: ${wp ? wp[0] : ''}; ${bg ? bg[0] : out.slice(-300)}`);
+    const pmDock = await page.evaluate(() => [...document.querySelectorAll('.cs-dock-tab')].map((t) => t.textContent.trim()));
+    ok(pmDock.some((t) => /Permanent magnet: B_y/.test(t)), `its B_y plot is in the dock (${pmDock.join(', ')})`);
+    await page.click('.pc-tools [data-cmd="view-fit"]');
+    await page.waitForTimeout(300);
+    await shot('06d-permanent-magnet');
+  }
   await page.click('[data-cs-pane="editor"]');
 
   console.log('\n== files: drop a script and a data file, open a script, save a script');

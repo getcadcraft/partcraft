@@ -33,6 +33,7 @@
  *              (no volume, faces in contact within touchTol; only with touch: true)
  *   filterClashes(asm, list) → { shown, hidden }   asm.clashFilter = { hide: [kinds], pairs: [[inst a, inst b] sorted] }
  *              (written only when it holds something; such a file is version 4)
+ *   asm.stackups = [stack-up] (stackup.js, 0.6 LC.18; written only when there is one; such a file is version 5)
  *   jointTree(asm, builds, world) → [{ joint, parent, child, normal }]   the joints placement walked, parents first
  *   freeIds(asm) → Set of instances no joint path ties to the grounded part (only these move by hand)
  *   movePlace(place, { move?: [dx,dy,dz], rotate?: { axis: [x,y,z], angle (deg), about: [x,y,z] } }) → new place
@@ -43,10 +44,11 @@ import { readPart, readPlane, toJSON as partJSON } from './part.js';
 import { planeFrame } from './kernel.js';
 import { readPartProps } from './bom.js';
 import { readViews } from './explode.js';
+import { readStackups } from './stackup.js';
 import { t } from './i18n.js';
 
 export const FORMAT = 'partcraft-assembly';
-export const VERSION = 4;   // 4: interference filters (0.5 WL.33); 3: 0.4's joints
+export const VERSION = 5;   // 5: tolerance stack-ups (0.6 LC.18); 4: interference filters (0.5 WL.33); 3: 0.4's joints
 export const JOINT_TYPES = { rigid: 'Rigid', revolute: 'Revolute', slider: 'Slider', cylindrical: 'Cylindrical', planar: 'Planar', ball: 'Ball', pinslot: 'PinSlot' };
 /** The values a joint lets move (its degrees of freedom), first = the one a motion check sweeps by default. */
 export const JOINT_DOF = { rigid: [], revolute: ['angle'], slider: ['offset'], cylindrical: ['angle', 'offset'], planar: ['dx', 'dy', 'angle'], ball: ['angle', 'tiltX', 'tiltY'], pinslot: ['slide', 'angle'] };
@@ -90,6 +92,7 @@ export function removeInstance(asm, id) {
   asm.joints = asm.joints.filter((j) => j.a.inst !== id && j.b.inst !== id);
   for (const v of asm.views || []) v.steps = v.steps.map((s) => ({ ...s, insts: s.insts.filter((i) => i !== id) })).filter((s) => s.insts.length);
   if (asm.clashFilter) { asm.clashFilter.pairs = asm.clashFilter.pairs.filter((pr) => !pr.includes(id)); tidyFilter(asm); }
+  for (const s of asm.stackups || []) for (const l of s.links) if (l.inst === id) l.inst = null;   // its links keep their numbers
   const used = new Set(asm.instances.map((i) => i.part));
   for (const pid of Object.keys(asm.parts)) if (!used.has(pid)) delete asm.parts[pid];
 }
@@ -451,6 +454,8 @@ export function readAssembly(raw) {
   asm.views = readViews(j.views, insts, take);
   const cf = readClashFilter(j.clashFilter, insts);
   if (cf) asm.clashFilter = cf;
+  const su = readStackups(j.stackups, asm.instances.map((i) => i.id));
+  if (su.length) asm.stackups = su;
   asm.seq = maxN + 1;
   asm.version = fileVersion(asm);   // what its contents need (and what it is written as)
   return asm;
@@ -480,6 +485,7 @@ export function readLimits(L, type) {
 /** readLimits that answers null instead of throwing (limits that no longer fit a joint's new type). */
 export function readLimitsSafe(L, type) { try { return readLimits(L, type); } catch { return null; } }
 
-/** 4 with interference filters (0.5 WL.33); 3 when a joint is of a 0.4 type or limits a value per name; else 2 (readers of version 2 open it). */
-export const fileVersion = (asm) => (asm.clashFilter ? 4 : asm.joints.some((j) => NEW_TYPES.has(j.type) || (j.limits && typeof j.limits.min !== 'number') || EXTRA_VALUES.some((k) => j[k] !== undefined && j[k] !== 0)) ? 3 : 2);
+/** 5 with tolerance stack-ups (0.6 LC.18); 4 with interference filters (0.5 WL.33); 3 when a joint is of a 0.4 type or limits a
+ *  value per name; else 2 (readers of version 2 open it). */
+export const fileVersion = (asm) => (asm.stackups?.length ? 5 : asm.clashFilter ? 4 : asm.joints.some((j) => NEW_TYPES.has(j.type) || (j.limits && typeof j.limits.min !== 'number') || EXTRA_VALUES.some((k) => j[k] !== undefined && j[k] !== 0)) ? 3 : 2);
 export const toJSON = (asm) => JSON.stringify({ ...asm, version: fileVersion(asm) }, null, 1);

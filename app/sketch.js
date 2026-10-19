@@ -357,6 +357,21 @@ function signedDist(p, [a, b]) {
   return (dx * (p[1] - a[1]) - dy * (p[0] - a[0])) / l;
 }
 
+/** The sketch panel's list (0.6 PU.6): relations of one kind that appear more than once become one group
+ *  `{type, items}` in the place of the first of them; dimensions (they carry values) and single relations stay `{c}`. */
+export function groupConstraints(list) {
+  const count = new Map();
+  for (const c of list) if (CONSTRAINTS[c.type] && !CONSTRAINTS[c.type].dim) count.set(c.type, (count.get(c.type) || 0) + 1);
+  const out = [], groups = new Map();
+  for (const c of list) {
+    if ((count.get(c.type) || 0) < 2) { out.push({ c }); continue; }
+    let g = groups.get(c.type);
+    if (!g) { g = { type: c.type, items: [] }; groups.set(c.type, g); out.push(g); }
+    g.items.push(c);
+  }
+  return out;
+}
+
 /** Human description of a constraint, e.g. "Distance 50" or "Parallel". */
 export function describe(c, fmt = (v) => String(+v.toFixed(4))) {
   const def = CONSTRAINTS[c.type];

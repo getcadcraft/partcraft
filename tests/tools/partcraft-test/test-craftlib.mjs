@@ -253,12 +253,35 @@ mur = 1 + 99 * (xc < a);
 Jf = (K / t) * (xc > a & xc < a + t);
 s = magnetostatic2d(m, mur, Jf, bc, struct('show', false));
 Biron = -mean(s.B(xc < 0.5 & yc < 1, 2)) / (100 * mu0 * K);
+Br0 = 1.2; murm = 1.05; R = 1; L = 16; n = 16;
+m = quadGrid(L, L, L * n, L * n); X = meshNodes(m); Q = meshElems(m);
+xc = (X(Q(:, 1), 1) + X(Q(:, 2), 1)) / 2; yc = (X(Q(:, 1), 2) + X(Q(:, 4), 2)) / 2;
+mag = xc .^ 2 + yc .^ 2 < R ^ 2;
+bc = struct(); bc.fixed = {struct('nodes', [nodes_at(m, 1, 0); nodes_at(m, 1, L); nodes_at(m, 2, L)], 'value', 0)};
+s = magnetostatic2d(m, 1 + (murm - 1) * mag, 0, bc, struct('show', false, 'Br', [zeros(numel(mag), 1), Br0 * mag]));
+core = xc .^ 2 + yc .^ 2 < (R / 2) ^ 2;
+Bround = mean(s.B(core, 2)) / (Br0 / (1 + murm)); Bxround = max(abs(s.B(core, 1)));
+s1 = magnetostatic2d(m, 1, 0, bc, struct('show', false, 'Br', [zeros(numel(mag), 1), Br0 * mag]));
+Bround1 = mean(s1.B(core, 2)) / (Br0 / 2);
+Hrec = max(abs(s.B(core, 2) - (Br0 + mu0 * murm * s.H(core, 2))));
+t = 0.020; W = 0.100; H = 0.080; lm = 0.010; h = 0.001; muri = 1000;
+m = quadGrid(0.140, 0.120, 140, 120, [-0.070 -0.060]); X = meshNodes(m); Q = meshElems(m);
+xc = (X(Q(:, 1), 1) + X(Q(:, 2), 1)) / 2; yc = (X(Q(:, 1), 2) + X(Q(:, 4), 2)) / 2;
+frame = abs(xc) < W / 2 & abs(yc) < H / 2; window = abs(xc) < W / 2 - t & abs(yc) < H / 2 - t;
+mag = xc > -W / 2 & xc < -W / 2 + t & abs(yc) < lm / 2;
+s = magnetostatic2d(m, 1 + (muri - 1) * (frame & ~window & ~mag) + (murm - 1) * mag, 0, struct(), struct('show', false, 'Br', [zeros(numel(mag), 1), Br0 * mag]));
+Bkeep = mean(s.B(mag & abs(xc + W / 2 - t / 2) < t / 4, 2)) / (Br0 * lm / (lm + murm * (2 * ((W - t) + (H - t)) - lm) / muri));
 `);
     if (w) {
       ok(Math.abs(w.num('Cfull') - 1) < 1e-9 && Math.abs(w.num('Qfull') - 1) < 1e-9, `poisson2d: plates spanning the domain (no fringing) give C' = ε0 w/d exactly (energy ${f(w.num('Cfull'), 12)}, charge ${f(w.num('Qfull'), 12)} × ε0 w/d)`);
       ok(w.num('ratio') > 1 && Math.abs(pct(w.num('ratio'), w.num('palmer'))) <= 3, `poisson2d: plates w = 4d in a 16d box (h = d/8): C' = ${f(w.num('ratio'), 4)} × ε0 w/d — fringing adds ${f(100 * (w.num('ratio') - 1), 1)} %; Palmer's formula ${f(w.num('palmer'), 4)} (${f(pct(w.num('ratio'), w.num('palmer')), 2)} %, ≤ 3 %)`);
       ok(Math.abs(w.num('Bair') - 1) <= 0.02, `magnetostatic2d: long solenoid (quarter model, ideal return path), B at the centre ${f(w.num('Bair'), 5)} × μ0 n I (${f(100 * (w.num('Bair') - 1), 3)} %, ≤ 2 %)`);
       ok(Math.abs(w.num('Biron') - 1) <= 0.02, `magnetostatic2d: coil and an iron core μr = 100 the full length of the model (an endless solenoid), B = ${f(w.num('Biron'), 5)} × μr μ0 n I (≤ 2 %)`);
+      // 0.6 SG.7+: permanent magnets (opts.Br)
+      ok(Math.abs(w.num('Bround') - 1) <= 0.01 && w.num('Bxround') < 0.01, `magnetostatic2d magnets: a round magnet in air (Br 1.2 T across it, μr 1.05; quarter model, 16 R box, R/16 squares): B inside = ${f(w.num('Bround'), 5)} × Br/(1 + μr) (${f(100 * (w.num('Bround') - 1), 2)} %, ≤ 1 %), straight across (|Bx| ≤ ${f(w.num('Bxround'), 4)} T)`);
+      ok(Math.abs(w.num('Bround1') - 1) <= 0.01, `magnetostatic2d magnets: the same with μr = 1: B inside = ${f(w.num('Bround1'), 5)} × Br/2 (the 2-D demagnetising factor ½; ≤ 1 %)`);
+      ok(w.num('Hrec') < 1e-9, `magnetostatic2d magnets: r.H puts every magnet element on its recoil line B = Br + μ0 μr H (worst ${w.num('Hrec').toExponential(1)} T)`);
+      ok(Math.abs(w.num('Bkeep') - 1) <= 0.01, `magnetostatic2d magnets: a magnet closed by an iron keeper (μr 1000, no gap): B in the magnet = ${f(w.num('Bkeep'), 5)} × the magnetic circuit's (${f(100 * (w.num('Bkeep') - 1), 2)} %, ≤ 1 %)`);
     }
   }
 
@@ -284,7 +307,7 @@ e3 = max(abs(r3.ux(2, 2:ny-1) - ua)) / max(ua); s3 = r3.steps; c3 = r3.converged
 
   // ───────────────────────────────────────────────────────────── the examples
   section('Library: examples run');
-  for (const ex of ['example_cantilever', 'example_mbb', 'example_capacitor', 'example_channel', 'example_electromagnet']) {
+  for (const ex of ['example_cantilever', 'example_mbb', 'example_capacitor', 'example_channel', 'example_electromagnet', 'example_magnet']) {
     const w = await craft(ex, fs.readFileSync(path.join(LIB, ex + '.craft'), 'utf8'));
     if (w) ok(w.displays.some((d) => d.show === 'field') && w.displays.some((d) => d.plot), `${ex} runs: a field on the canvas and a plot (${(w.ms / 1000).toFixed(1)} s)`);
     // 0.5 SG.7 (#573): the electromagnet against the magnetic circuit, B_gap = μ0 N I / (g + l/μr); FEM a little lower
@@ -293,6 +316,13 @@ e3 = max(abs(r3.ux(2, 2:ny-1) - ua)) / max(ua); s3 = r3.steps; c3 = r3.converged
       const e = w.num('Bgap') / w.num('Bc') - 1;
       ok(e < 0 && e > -0.05, `example_electromagnet: B in the gap ${f(w.num('Bgap'), 4)} T vs the magnetic circuit ${f(w.num('Bc'), 4)} T (${f(100 * e, 2)} %, within −5 %)`);
       ok(w.num('L') > w.num('Lc') && w.num('L') < 2 * w.num('Lc') && Math.abs(w.num('F') - w.num('Bgap') ** 2 * 0.02 / (2 * 4e-7 * Math.PI)) < 1e-6 * w.num('F'), `example_electromagnet: inductance ${f(w.num('L'), 4)} H/m above the circuit's ${f(w.num('Lc'), 4)} H/m (leakage), pull ${f(w.num('F'), 0)} N/m = B² w / 2μ0`);
+    }
+    // 0.6 SG.7+: the permanent magnet against the magnetic circuit without leakage — the gap gets less (the magnet's
+    // flux leaks across the window), the magnet works between the gap field and Br, on its recoil line
+    if (w && ex === 'example_magnet') {
+      const mu0 = 4e-7 * Math.PI, e = w.num('Bgap') / w.num('Bc') - 1;
+      ok(e < 0 && e > -0.5 && w.num('sigma') > 1 && w.num('Bm') > w.num('Bgap') && w.num('Bm') < 1.2, `example_magnet: B in the gap ${f(w.num('Bgap'), 4)} T under the leak-free circuit's ${f(w.num('Bc'), 4)} T (${f(100 * e, 1)} %), leakage factor ${f(w.num('sigma'), 2)}, the magnet at ${f(w.num('Bm'), 3)} T (between the gap and Br)`);
+      ok(Math.abs(w.num('Bm') - (1.2 + mu0 * 1.05 * w.num('Hm'))) < 1e-6 && w.num('Hm') < 0 && Math.abs(w.num('F') - w.num('Bgap') ** 2 * 0.02 / (2 * mu0)) < 1e-6 * w.num('F'), `example_magnet: working point on the recoil line (H = ${f(w.num('Hm') / 1000, 0)} kA/m, against B), pull ${f(w.num('F'), 0)} N/m = B² w / 2μ0`);
     }
   }
 

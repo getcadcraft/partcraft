@@ -163,11 +163,13 @@ Clicking away also applies the value.
 | {{key:Up}} / {{key:Down}} | Move between rows |
 | {{key:Enter}} or {{key:Space}} | Select the row |
 | {{key:Alt+Up}} / {{key:Alt+Down}} | Move the selected feature up or down, where the history allows |
+| {{key:F2}} | Change the feature's main number in its row; {{key:Enter}} sets it, {{key:Esc}} keeps the old one |
 
 | Mouse | Action |
 |---|---|
 | Click | Select a plane or feature |
 | Double-click a sketch | Open it |
+| Double-click a feature's number | Change it in the row |
 
 ## In an assembly
 

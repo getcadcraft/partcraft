@@ -1,0 +1,64 @@
+% SPDX-License-Identifier: Apache-2.0
+% Permanent magnet — a library example (run it with F5; "Make a copy" to change it)
+%
+% The electromagnet's C-shaped iron core (μr = 1000, 20 mm thick, 100 × 80 mm outside, a 2 mm air gap in its right leg),
+% with the coil replaced by a permanent magnet: a 10 mm slice of its left leg, magnetised upward (Br = 1.2 T, recoil
+% permeability 1.05, about a sintered NdFeB magnet), seen end-on (2-D: everything is long in z, results are per metre of
+% depth). magnetostatic2d solves for A_z in a 180 × 140 mm box of air (A = 0 on the box) on a 1 mm grid with the magnet
+% given as opts.Br; the canvas shows the flux density B.
+% Compared with the magnetic circuit (one flux path, no leakage, no fringing): B_gap = Br l_m / (l_m + μr (g + l_iron / μr_iron)).
+% A magnet drives only about l_m · Br / μ0 ≈ 9,500 A of "push" across a short length, so much of its flux goes straight
+% back across the window instead of through the gap: the gap gets less than the circuit says, and the leakage factor
+% σ = flux in the magnet / flux in the gap tells how much. The pull across the gap is F' = B² w / (2 μ0).
+% Plotted: B_y along the line y = 0 across the core (the magnet, the window, the gap).
+% Units: SI (m, T, A/m); μ0 = 4π·10⁻⁷ H/m. Change Br, murm, lm, g or h below and run it again; set g = 0 for a closed
+% keeper (then the magnet works close to Br).
+% Limits: linear iron (no saturation), the magnet on its straight recoil line (it does not lose strength however hard
+% it is driven: real magnets do, past their knee), a uniform grid. See the help topic "Magnetic fields in 2-D".
+clf
+mu0 = 4e-7 * pi;
+Br = 1.2;                         % remanence (T), magnetised upward (+y)
+murm = 1.05;                      % the magnet's recoil permeability
+lm = 0.010;                       % magnet length along its magnetisation (m)
+g = 0.002;                        % air gap (m); a whole number of grid squares
+mur = 1000;                       % relative permeability of the core
+t = 0.020;                        % core thickness (m)
+W = 0.100; H = 0.080;             % core outside (m)
+h = 0.001;                        % grid size (m)
+box = [0.180 0.140];
+m = quadGrid(box(1), box(2), round(box(1) / h), round(box(2) / h), -box / 2);
+X = meshNodes(m); Q = meshElems(m);
+xc = (X(Q(:, 1), 1) + X(Q(:, 2), 1)) / 2; yc = (X(Q(:, 1), 2) + X(Q(:, 4), 2)) / 2;
+% the core: the frame minus its window, minus the gap in the right leg, minus the magnet in the left leg
+frame = abs(xc) < W / 2 & abs(yc) < H / 2;
+window = abs(xc) < W / 2 - t & abs(yc) < H / 2 - t;
+gap = xc > W / 2 - t & abs(yc) < g / 2;
+mag = xc > -W / 2 & xc < -W / 2 + t & abs(yc) < lm / 2;
+iron = frame & ~window & ~gap & ~mag;
+Brem = [zeros(numel(mag), 1), Br * mag];
+r = magnetostatic2d(m, 1 + (mur - 1) * iron + (murm - 1) * mag, 0, struct(), struct('show', false, 'Br', Brem));
+% shown on the same grid in millimetres, the part's unit, so it is drawn at its real size in the view
+mm = quadGrid(1000 * box(1), 1000 * box(2), round(box(1) / h), round(box(2) / h), -500 * box);
+show(field(mm, [r.B, zeros(size(r.B, 1), 1)], 'elem', 'B', 'T'), 'name', 'Permanent magnet: flux density B');
+% the magnet's working point, away from its corners; the gap, away from its ends
+inm = mag & abs(xc + W / 2 - t / 2) < t / 4;
+Bm = mean(r.B(inm, 2)); Hm = mean(r.H(inm, 2));
+li = 2 * ((W - t) + (H - t)) - g - lm;     % mean iron path
+Bc = Br * lm / (lm + murm * (g + li / mur));
+fprintf('the magnet works at B = %.3f T, H = %.0f kA/m (on its recoil line B = Br + μ0 μr H)\n', Bm, Hm / 1000);
+if g > 0
+  ing = gap & xc > W / 2 - t + h & xc < W / 2 - h;
+  Bgap = mean(abs(r.B(ing, 2)));
+  sigma = Bm / Bgap;
+  fprintf('B in the gap %.4f T; the magnetic circuit without leakage %.4f T (%+.1f %%)\n', Bgap, Bc, 100 * (Bgap / Bc - 1));
+  fprintf('leakage factor %.2f: of the flux leaving the magnet, %.0f %% crosses the gap between the pole faces\n', sigma, 100 / sigma);
+  F = Bgap^2 * t / (2 * mu0);
+  fprintf('pull across the gap about %.0f N per metre of depth (%.1f N for 50 mm deep)\n', F, F * 0.05);
+else
+  fprintf('closed keeper: the magnetic circuit gives %.4f T in the magnet (%+.1f %%)\n', Bc, 100 * (Bm / Bc - 1));
+end
+fprintf('|B| peaks at %.2f T next to the magnet''s corners (a singular point of the model: read averages)\n', max(r.Bmag));
+% B_y along y = 0
+row = find(abs(yc - h / 2) < h / 4);
+[xs, o] = sort(xc(row));
+plot(1000 * xs', r.B(row(o), 2)', 'title', 'Permanent magnet: B_y along y = 0', 'xlabel', 'x (mm)', 'ylabel', 'B_y (T)');

@@ -33,6 +33,10 @@ Turn it off when you want to place geometry near other geometry without tying it
 The setting changes only what new drawing adds. Relations already in a sketch stay, and the Fillet tool still makes its tangent arc and radius.
 :::
 
+## Sketching: dimension as you draw
+
+**Dimension as you draw** (on at the start): while a line, rectangle, circle or arc is being drawn, typing a number fills the size box beside the pointer ({{key:Tab}} goes to the next box) and {{key:Enter}} draws the shape at that size, with a driving dimension for each size you typed. Off: typing a number while you draw does nothing, and shapes are drawn by clicks only. See [Type the size as you draw](topic:sketch-basics#type-the-size-as-you-draw).
+
 ## Corner indicator
 
 What shows in the corner of the 3D view: **View cube** (the start; top right — click a face, edge or corner to look from there, drag it to orbit, drag its compass ring to turn the model), **Axis icon** (a small X, Y, Z marker at the bottom left that turns with the view: X red, Y green, Z blue) or **None**. Neither shows while you sketch or on the drawing sheet. See [The view cube](topic:view-cube).

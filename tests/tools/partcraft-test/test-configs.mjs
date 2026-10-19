@@ -4,7 +4,8 @@
  * test-configs.mjs — PartCraft configurations (0.4 P18): design-table rows saved in the part (configs.js). A row from the
  * current values (driving parameters only), applying it (the linked extrude follows), matching, rename / delete, rows
  * following renamed and deleted parameters, the part file (round trip, version 3, tampered files refused), CSV in and
- * out (a name that reads as a formula is quoted), and the .pcscript round trip (with the P14 material).
+ * out (a name that reads as a formula is quoted), and the .pcscript round trip (with the P14 material); 0.6 LC.14: rows that turn
+ * features off (applied with the values, the file at version 4, tampered ids dropped).
  *   node tools/partcraft-test/test-configs.mjs [--verbose]    (or runConfigTests() from bin/test-partcraft.mjs)
  */
 import fs from 'node:fs';
@@ -103,6 +104,60 @@ export async function runConfigTests({ ok, section }) {
     ok(same(again.slice(0, 3), rows), 'and back in: the same rows');
     let threw = ''; try { CF.rowsFromTable('name,size\r\nA,3\r\n', part.params); } catch (e) { threw = e.message; }
     ok(/no parameter with that name/.test(threw), 'a column that is not a parameter is refused');
+  }
+
+  section('configurations that turn features off (0.6 LC.14: a configurator\'s "with / without" options)');
+  {
+    const K = await import(DEV + 'kernel.js');
+    const { default: Module } = await import(path.join(REPO, 'public_html/assets/vendor/manifold-3d/current/manifold.js'));
+    const M = await Module(); M.setup();
+    // the plate (100 × 60 × d) with a 20 × 20 boss 30 deep on it: 60000 + 20·20·(30 − 10) = 68000 mm³ at d 10
+    const { part } = make();
+    const sk = S.newSketch(); S.addRect(sk, [0, 0], [20, 20]);
+    const s2 = P.addFeature(part, 'sketch', { plane: { kind: 'base', name: 'front' }, sketch: sk });
+    const boss = P.addFeature(part, 'extrude', { sketch: s2.id, depth: 30 });
+    const vol = () => K.regenerate(part, M).stats.volume;
+    const close = (a, b) => Math.abs(a - b) <= 1e-6 * b;
+    ok(close(vol(), 68000), 'the plate with its boss: 68000 mm³');
+    const withBoss = CF.rowFromCurrent(part.params, 'With boss', part.features);
+    ok(withBoss.off === undefined, 'a row saved with every feature on carries no "off" (the file stays as before)');
+    P.featureById(part, boss.id).suppressed = true;
+    part.params.vars[1].expr = '20';
+    const plain = CF.rowFromCurrent(part.params, 'Plain thick', part.features);
+    ok(same(plain.off, [boss.id]) && same(plain.values, { w: 100, d: 20 }), 'with the boss suppressed and d 20: the row records the boss as off, and the values');
+    let cfg = CF.saveRow(CF.saveRow(null, withBoss), plain);
+    cfg = CF.saveRow(cfg, { name: 'Old row', values: { w: 100, d: 10 } });
+    ok(CF.controlsFeatures(cfg) && same([...CF.featuresOff(cfg, cfg.rows[2])], []) && same([...CF.featuresOff(cfg, cfg.rows[1])], [boss.id]), 'once a row turns a feature off, the configurations control features: a row without "off" means everything on');
+    ok(CF.featuresOff(CF.saveRow(null, withBoss), withBoss) === null, 'configurations that never turn a feature off leave features alone');
+    // apply as the panel does: values + features in one go
+    const apply = (row) => { CF.applyRow(part.params, row); const off = CF.featuresOff(cfg, row); if (off) for (const f of part.features) { if (off.has(f.id)) f.suppressed = true; else delete f.suppressed; } PP.applyPartParams(part); };
+    apply(cfg.rows[0]);
+    ok(!P.featureById(part, boss.id).suppressed && close(vol(), 68000) && CF.rowMatches(part.params, cfg.rows[0], part.features, cfg), 'applying "With boss": the boss is on again, 68000 mm³, and the row matches');
+    apply(cfg.rows[1]);
+    ok(P.featureById(part, boss.id).suppressed && close(vol(), 100 * 60 * 20), 'applying "Plain thick": the boss is off and the plate 20 deep: 120000 mm³');
+    ok(CF.rowMatches(part.params, cfg.rows[1], part.features, cfg) && !CF.rowMatches(part.params, cfg.rows[0], part.features, cfg), 'the current part matches "Plain thick", not "With boss"');
+    delete P.featureById(part, boss.id).suppressed;
+    ok(!CF.rowMatches(part.params, cfg.rows[1], part.features, cfg), 'turning the boss back on by hand: "Plain thick" is changed since (features count)');
+    // rename, delete, follow parameters and a design-table import keep "off"
+    const rn = CF.renameRow(cfg, 'Plain thick', 'Plain');
+    ok(same(rn.rows[1].off, [boss.id]) && same(CF.deleteRow(rn, 'With boss').rows[0].off, [boss.id]), 'rename and delete keep a row\'s features');
+    const before = JSON.parse(JSON.stringify(part.params)), after = JSON.parse(JSON.stringify(part.params)); after.vars[0].name = 'width';
+    ok(same(CF.followParams(cfg, before, after).rows[1].off, [boss.id]), 'a parameter renamed: the row keeps its features');
+    const imp = CF.saveRow(cfg, { name: 'plain thick', values: { w: 110, d: 20 } }, { keepOff: true });
+    ok(same(imp.rows[1].off, [boss.id]) && imp.rows[1].values.w === 110, 'a design-table import over a row changes its values and keeps its features');
+    ok(CF.saveRow(cfg, { name: 'Plain thick', values: { w: 100, d: 20 } }).rows[1].off === undefined, 'Update (saving over a row) records the features as they are now (all on here)');
+    // the file: version 4 only with features off; read back; tampered ids
+    part.configs = cfg;
+    const json = P.toJSON(part), back = P.readPart(json);
+    ok(JSON.parse(json).version === 4 && P.VERSION === 4 && same(back.configs, cfg), 'saved and read back: version 4 (a 0.5 PartCraft refuses it by its version), the rows\' features intact');
+    part.configs = CF.saveRow(null, withBoss);
+    ok(JSON.parse(P.toJSON(part)).version === 3, 'configurations without features off stay version 3');
+    const j = JSON.parse(json);
+    j.configs.rows[1].off = ['nope', 7, boss.id, boss.id, s2.id];
+    const t2 = P.readPart(JSON.stringify(j));
+    ok(same(t2.configs.rows[1].off, [s2.id, boss.id]), 'tampered "off": ids the part lacks and non-strings dropped, each once, in the part\'s order');
+    j.configs.rows[1].off = ['nope'];
+    ok(P.readPart(JSON.stringify(j)).configs.rows[1].off === undefined, 'nothing left after dropping unknown ids: the row has no "off"');
   }
 }
 

@@ -57,7 +57,9 @@ Both panels end with **Flat pattern**. Press {{ui:Lay flat}}:
 
 Every bend takes the length of the sheet's neutral layer through it, the **bend allowance**: angle (in radians) × (inside radius + K-factor × thickness). So a 90° bend of a 2 mm sheet with a 2 mm radius and K-factor 0.44 adds 4.52 mm of flat sheet.
 
-On a flat plate, holes, cuts and bend reliefs show in the flat where they really are, including holes through a flange. A bent base flange lays out as one rectangle: its developed length × its depth, with a bend line per corner.
+On a flat plate, holes, cuts and bend reliefs show in the flat where they really are, including holes through a flange.
+
+To cut many, press {{ui:Nest on sheets…}} under the flat pattern: see [Nest flat parts on sheets](topic:nest-flat-parts). A bent base flange lays out as one rectangle: its developed length × its depth, with a bend line per corner.
 
 {{ui:Save DXF}} saves the flat pattern for a laser, punch or waterjet, in millimetres:
 
