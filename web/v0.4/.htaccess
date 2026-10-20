@@ -1,9 +1,0 @@
-# PartCraft browser edition: file types some servers do not know (see INSTALL.md).
-AddType application/wasm .wasm
-AddType text/javascript .js
-AddType application/json .json
-AddType font/woff2 .woff2
-DirectoryIndex index.html
-# Optional, for faster solving (needs mod_headers):
-# Header set Cross-Origin-Opener-Policy "same-origin"
-# Header set Cross-Origin-Embedder-Policy "require-corp"

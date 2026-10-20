@@ -1,8 +1,0 @@
-h5wasm 0.10.3 (npm, published 2026-06-11) — https://github.com/usnistgov/h5wasm
-Tarball https://registry.npmjs.org/h5wasm/-/h5wasm-0.10.3.tgz sha256 2a9f35ab25c000c164e9dec5e61a0909d0884163ed5dc793e775603805d9570b
-License: NIST software statement (public-domain style: use, copy, modify, distribute; keep the notice; acknowledge NIST)
-for h5wasm itself, plus the HDF5 library's BSD-style license (The HDF Group) — both in LICENSE (the package's LICENSE.txt).
-Files copied unchanged from the tarball: dist/esm/hdf5_hl.js (ES module API) and dist/esm/hdf5_util.js (Emscripten
-module with the WebAssembly embedded, so there is no separate .wasm). The same two files run in a browser worker and in Node.
-Used by PartCraft's CraftScript io (assets/apps/partcraft/dev/cs-lib-io.js) for .h5 load/save, loaded only when an HDF5
-file is opened or saved.

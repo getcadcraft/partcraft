@@ -1,7 +1,0 @@
-wasmoon 1.16.0 (npm, published 2023-12-08) — https://github.com/ceifa/wasmoon
-Tarball https://registry.npmjs.org/wasmoon/-/wasmoon-1.16.0.tgz sha256 7a07cb6d39af10911fabd50740833477b18b47b6f03148f15218edf474c8af56
-License: MIT (LICENSE in this folder); embeds Lua 5.4 (MIT, Lua.org, PUC-Rio).
-Files copied unchanged from the tarball: dist/index.js (UMD: CommonJS in Node, sets globalThis.wasmoon when import()ed
-as a module in a browser worker) and dist/glue.wasm (Lua 5.4 compiled with Emscripten). The caller passes glue.wasm's
-same-origin URL to new LuaFactory(url) — the library's browser default would fetch it from unpkg.com.
-Used by PartCraft's CraftScript Lua adapter (assets/apps/partcraft/dev/cs-lang-lua.js), loaded only when a Lua script runs.

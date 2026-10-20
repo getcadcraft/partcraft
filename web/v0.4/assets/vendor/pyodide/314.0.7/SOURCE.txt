@@ -1,9 +1,0 @@
-Pyodide 314.0.7 (npm, published 2026-09-14) — https://github.com/pyodide/pyodide — CPython 3.14.2 compiled to WebAssembly.
-Tarball https://registry.npmjs.org/pyodide/-/pyodide-314.0.7.tgz sha256 66b7949e5a0cba2250b586d7e368bf12fb482800748d182c4618254b685ffaa0
-License: MPL-2.0 (LICENSE.md in this folder, the license text). CPython itself is under the PSF License; its standard library
-is python_stdlib.zip.
-Files copied unchanged from the tarball: pyodide.mjs (loadPyodide, ES module), pyodide.asm.mjs + pyodide.asm.wasm (CPython),
-python_stdlib.zip, pyodide-lock.json, package.json. Left out: the .d.ts/.map files and the console pages. No extra packages
-(numpy etc.): they would be fetched from a CDN, and the apps fetch nothing from outside.
-Used by PartCraft's CraftScript Python adapter (assets/apps/partcraft/dev/cs-lang-python.js, 0.4 P10), loaded only when a
-Python script runs; loadPyodide({ indexURL }) gets this folder's same-origin URL.
