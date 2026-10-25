@@ -14,6 +14,7 @@
  * that follow the feature when its dimensions change:
  *   extrude  'start' / 'end' caps, 'side' + line id for each straight edge of the profile
  *   revolve  'side' + line id for each profile line square to the axis (the flat rings)
+ *   import   'flat' + plane number for each flat face of a body made from a mesh (meshimport.js planarRegions, D7.49)
  * Normals point out of the finished body (a cut's floor faces back up).
  *
  *   regenerate(part, M, { upTo }) → { results: Map(id → result), mesh, stats, frames, candidates, axes }
@@ -31,6 +32,8 @@ import { ISO_COARSE, threadCallout as holeCallout } from './design-features.js';
 import { threadTool, threadDims, sizeFor, threadCallout, DEFAULT_CLEARANCE } from './threads.js';
 import { t } from './i18n.js';
 import * as MF from './meshfaces.js';
+import { meshOf, UNITS } from './meshimport.js';
+import { memberTools } from './weldment.js';
 
 class FeatureError extends Error {}
 /** Exact-only features the mesh kernel builds anyway, approximately (0.4 K.4). */
@@ -46,7 +49,7 @@ function resolvePlane(ref, ctx) {
   const owner = ctx.part.features.find((f) => f.id === ref.feature);
   if (!res || res.status !== 'ok') fail(owner ? t('model.kernel.face_gone_not_built', { name: owner.name }) : t('model.kernel.face_gone_deleted'));
   if (ref.face === 'named') fail(t('kernel.mesh.named_face'));
-  const c = (ctx.candidates.get(ref.feature) || []).find((k) => k.ref.face === ref.face && (ref.face !== 'side' || k.ref.entity === ref.entity));
+  const c = (ctx.candidates.get(ref.feature) || []).find((k) => k.ref.face === ref.face && ((ref.face !== 'side' && ref.face !== 'flat') || k.ref.entity === ref.entity));
   if (!c) fail(t('model.kernel.face_gone_from', { name: owner.name }));
   return c.frame;
 }
@@ -77,8 +80,8 @@ function resolveDir(ref, ctx) {
 
 /** Extent of the body along a plane normal, relative to the plane: [min, max] or null. */
 function bodyRange(ctx, frame) {
-  if (!ctx.body) return null;
-  const bb = ctx.body.boundingBox();
+  if (!ctx.hasBody()) return null;
+  const bb = ctx.bodyBox();
   let lo = Infinity, hi = -Infinity;
   for (const x of [bb.min[0], bb.max[0]]) for (const y of [bb.min[1], bb.max[1]]) for (const z of [bb.min[2], bb.max[2]]) {
     const d = V.dot(V.sub([x, y, z], frame.o), frame.n);
@@ -116,6 +119,22 @@ function sideCandidates(sk, loops, frame, curves, op, extra) {
   return out;
 }
 
+/** Triangles of a body made from a mesh (D7.49) know their flat face from manifold's faceID: below the tool's plane count it is
+ *  the plane, above it a triangle on no flat face. → Int32Array (surface index in its tool's list | −1 none | −2 not known), or
+ *  null when no such tool is in the body. */
+function faceHintsOf(gm, hints) {
+  if (!hints || !hints.size) return null;
+  const runs = gm.runIndex, ids = gm.runOriginalID, fid = gm.faceID;
+  let out = null;
+  for (let r = 0; r + 1 < runs.length; r++) {
+    const K = hints.get(ids[r]);
+    if (K === undefined || !fid || !fid.length) continue;
+    if (!out) out = new Int32Array(gm.triVerts.length / 3).fill(-2);
+    for (let ti = runs[r] / 3; ti < runs[r + 1] / 3; ti++) out[ti] = fid[ti] < K ? fid[ti] : -1;
+  }
+  return out;
+}
+
 /** The named faces and edges of the body as it is now (K.2b): its mesh, each triangle's tool, meshfaces.js. */
 function bodyFaces(ctx) {
   const gm = ctx.body.getMesh();
@@ -133,7 +152,7 @@ function bodyFaces(ctx) {
     for (let ti = runs[r] / 3; ti < runs[r + 1] / 3; ti++) triTool[ti] = k;
   }
   const mesh = { positions, indices };
-  return { mesh, ...MF.namedFaces(mesh, triTool, lists, { segments: ctx.part.resolution || 64 }) };
+  return { mesh, ...MF.namedFaces(mesh, triTool, lists, { segments: ctx.part.resolution || 64, triHint: faceHintsOf(gm, ctx.faceHints) }) };
 }
 
 /**
@@ -666,6 +685,10 @@ const FEATURES = {
 
   thread(f, ctx) { return threadFeature(f, ctx); },
 
+  import(f, ctx) { return meshImport(f, ctx); },
+
+  member(f, ctx) { return memberTools(f, ctx, { fail, frames: ctx.frames, sketchOf: (id) => ctx.part.features.find((x) => x.id === id && x.type === 'sketch') }); },
+
   lpattern(f, ctx) {
     if (f.bodies?.length) fail(t('kernel.mesh.pattern_bodies'));
     const seeds = seedTools(f, ctx);
@@ -723,6 +746,44 @@ const FEATURES = {
   },
 };
 
+/**
+ * A body from a mesh (0.7 D7.49): the repaired mesh the file keeps (meshimport.js), scaled to mm and turned Y up, made a manifold
+ * with a reserved original id and each triangle's flat face as its faceID, so after any boolean every triangle still says which
+ * flat face it lies on (faceHintsOf). Flat faces are named `<feature>.flat:<k>` and offered to sketches as candidates.
+ */
+function meshImport(f, ctx) {
+  if (!f.mesh) fail(t('kernel.feature.not_built', { label: FEATURE_LABELS.import }));
+  let src;
+  try { src = meshOf(f.mesh); } catch { fail(t('kernel.mesh.import_bad')); }
+  const s = UNITS[f.units] ?? 1, zup = f.up !== 'y';
+  const at = (x, y, z) => (zup ? [x * s, z * s, -y * s] : [x * s, y * s, z * s]);
+  const dir = (x, y, z) => (zup ? [x, z, -y] : [x, y, z]);
+  const P = src.positions, vp = new Float32Array(P.length);
+  for (let i = 0; i < P.length; i += 3) { const q = at(P[i], P[i + 1], P[i + 2]); vp[i] = q[0]; vp[i + 1] = q[1]; vp[i + 2] = q[2]; }
+  const { triPlane, planes } = src.flats;
+  const K = planes.length, nt = src.indices.length / 3;
+  const faceID = new Uint32Array(nt);
+  for (let ti = 0; ti < nt; ti++) faceID[ti] = triPlane[ti] >= 0 ? triPlane[ti] : K + ti;
+  const oid = ctx.M.Manifold.reserveIDs(1);
+  let m;
+  try {
+    m = ctx.T(new ctx.M.Manifold(new ctx.M.Mesh({ numProp: 3, vertProperties: vp, triVerts: src.indices, faceID, runIndex: new Uint32Array([0, nt * 3]), runOriginalID: new Uint32Array([oid]) })));
+  } catch {
+    const r = f.report || {};
+    fail(r.openEdges || r.nonManifold ? t('kernel.mesh.import_open', { n: r.openEdges || 0, m: r.nonManifold || 0 }) : t('kernel.mesh.import_not_solid'));
+  }
+  if (m.status() !== 'NoError' || m.isEmpty()) fail(t('kernel.mesh.import_not_solid'));
+  const op = f.op || 'add', out = op === 'cut' ? -1 : 1;   // a cut's faces point back into the tool
+  const surfs = [], cands = [];
+  planes.forEach((p, k) => {
+    const n = dir(...p.n), o = at(...p.o);
+    surfs.push({ ...MF.plane(`${f.id}.flat:${k}`, n, o), noSpread: true });   // i18n-ignore: a face name (identifier)
+    cands.push({ ref: { face: 'flat', entity: String(k) }, frame: V.frameFor(V.mul(n, out), o) });
+  });
+  ctx.candidates.set(f.id, cands);
+  return { tools: [{ m, op, surfs, oid, faceHint: K }] };
+}
+
 function seedTools(f, ctx) {
   if (!f.seeds.length) fail(t('model.kernel.choose_seeds'));
   const out = [];
@@ -736,22 +797,177 @@ function seedTools(f, ctx) {
   return out;
 }
 
+// ---- checkpoints (0.7 D7.51): every boolean copies the whole body, so a 750-feature part costs seconds to build from nothing.
+// A checkpoint keeps the body, the tools and the per-feature tables after feature n-1, keyed by a hash of features 0..n-1 (as
+// they were handed in) and the resolution. A rebuild takes the newest checkpoint whose key still matches and builds from there
+// (edit near the end, undo, redo, rollback, entering and leaving a sketch). One chain, newest build; kept in manifold's memory,
+// so it is capped by count and triangles. `regenerate(part, M, { checkpoints: false })` and clearCheckpoints() skip / free it.
+const CP = { M: null, list: [], tris: 0 };
+const CP_MS = 120, CP_MAX = 32, CP_TRIS = 1500000;
+let cpMs = CP_MS;
+/** Tests: the build time between checkpoints (0 = after every feature); null = the default. */
+export function __setCheckpointInterval(ms) { cpMs = ms === null ? CP_MS : ms; }
+
+function prefixKeys(part) {
+  for (const f of part.features) if (f.type === 'sketch' && f.sketch) solveSketch(f.sketch);   // the page reads the solved sketches; solving twice changes nothing
+  let h1 = 0xdeadbeef ^ (part.resolution | 0), h2 = 0x41c6ce57;
+  const keys = [];
+  for (const f of part.features) {
+    const s = JSON.stringify(f);
+    for (let i = 0; i < s.length; i++) { const c = s.charCodeAt(i); h1 = Math.imul(h1 ^ c, 2654435761); h2 = Math.imul(h2 ^ c, 1597334677); }
+    h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+    h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+    keys.push((h2 >>> 0).toString(36) + (h1 >>> 0).toString(36) + ':' + s.length);
+  }
+  return keys;
+}
+
+function cpFree(list) { for (const m of list) { try { m.delete(); } catch { /* already gone */ } } }
+
+function cpDrop(from) {
+  while (CP.list.length > from) {
+    const c = CP.list.pop();
+    cpFree(c.own);
+    CP.tris -= c.tris;
+  }
+}
+
+/** Free the middle checkpoint whose neighbours are closest, so the ones left stay evenly spread. Its body goes; the tools it
+ *  owns (later checkpoints still list them) move to the next checkpoint. */
+function cpThin() {
+  const L = CP.list;
+  if (L.length < 3) return false;
+  let at = 1, gap = Infinity;
+  for (let i = 1; i < L.length - 1; i++) { const g = L[i + 1].n - L[i - 1].n; if (g < gap) { gap = g; at = i; } }
+  const c = L[at], next = L[at + 1];
+  const used = new Set();
+  for (const ts of next.tools.values()) for (const tl of ts) used.add(tl.m);
+  for (const m of c.own) { if (m === c.body && !used.has(m)) cpFree([m]); else next.own.push(m); }
+  L.splice(at, 1);
+  CP.tris -= c.tris;
+  return true;
+}
+
+/** Keep the state after n features. Everything the build made that is not the body or a tool is freed here. */
+function cpTake(ctx, live, origin, toolSurfs, keys, n) {
+  const tris = ctx.body ? ctx.body.numTri() : 0;
+  if (CP.list.some((c) => c.n === n)) return false;
+  while (CP.list.length && CP.list[CP.list.length - 1].n > n && CP.tris + tris > CP_TRIS) cpDrop(CP.list.length - 1);
+  while ((CP.list.length >= CP_MAX || CP.tris + tris > CP_TRIS) && cpThin());
+  if (CP.list.length >= CP_MAX || CP.tris + tris > CP_TRIS) return false;
+  const keep = new Set();
+  if (ctx.body) keep.add(ctx.body);
+  for (const ts of ctx.tools.values()) for (const tl of ts) keep.add(tl.m);
+  const own = [];
+  for (const m of live) { if (keep.has(m)) own.push(m); else cpFree([m]); }
+  live.length = 0;
+  const c = { n, key: keys[n - 1], res: ctx.part.resolution, body: ctx.body, own, tris, results: new Map([...ctx.results].map(([k, v]) => [k, { ...v }])), origin: new Map(origin), toolSurfs: new Map(toolSurfs), faceHints: new Map(ctx.faceHints) };
+  for (const k of ['frames', 'candidates', 'axes', 'holeAxes', 'tools', 'refGeom', 'threads']) c[k] = new Map(ctx[k]);
+  let at = CP.list.length;
+  while (at > 0 && CP.list[at - 1].n > n) at--;
+  CP.list.splice(at, 0, c);
+  CP.tris += tris;
+  return true;
+}
+
+/** Free the checkpoints (the manifold memory they hold). */
+export function clearCheckpoints() { cpDrop(0); CP.M = null; }
+
 /**
  * Rebuild the part. Mutates each sketch's geometry to its solved state. Never throws for a
  * feature problem; returns everything the UI and exports need as plain data (no live WASM objects).
  */
-export function regenerate(part, M, { upTo = null } = {}) {
+export function regenerate(part, M, opts = {}) {
+  return build(part, M, opts, opts.batch !== false) || build(part, M, opts, false);   // null = the batched build met something it cannot match: build one at a time
+}
+
+function build(part, M, { upTo = null, checkpoints = true } = {}, batch = true) {
   const live = [];
+  let bodyNow = null, aborted = false;
+  const pending = [];   // batch: add / cut tools waiting to be applied to bodyNow (see flushPending)
   const ctx = {
-    part, M, body: null,
+    part, M,
     T: (m) => { live.push(m); return m; },
     results: new Map(), frames: new Map(), candidates: new Map(), axes: new Map(), holeAxes: new Map(), tools: new Map(), refGeom: new Map(), threads: new Map(),
   };
   const origin = new Map();   // manifold original id → feature id
   const toolSurfs = new Map();   // manifold original id → that tool's named surfaces (meshfaces.js, K.2b)
   ctx.toolSurfs = toolSurfs;
+  const faceHints = new Map();   // manifold original id → plane count of a body made from a mesh (faceHintsOf, D7.49)
+  ctx.faceHints = faceHints;
+  // The body is whatever the features so far made. In a batch build the add / cut tools queue up and are applied together
+  // (one subtract and one add on the whole body instead of a copy of it per tool); anything that reads `ctx.body` applies them first.
+  Object.defineProperty(ctx, 'body', { get() { flushPending(); return bodyNow; }, set(v) { bodyNow = v; }, enumerable: true });
+  ctx.hasBody = () => !!bodyNow || pending.some((p) => p.op === 'add');
+  ctx.bodyBox = () => {
+    const boxes = pending.filter((p) => p.op === 'add').map((p) => p.m.boundingBox());
+    if (bodyNow) boxes.push(bodyNow.boundingBox());
+    const min = [Infinity, Infinity, Infinity], max = [-Infinity, -Infinity, -Infinity];
+    for (const b of boxes) for (let k = 0; k < 3; k++) { min[k] = Math.min(min[k], b.min[k]); max[k] = Math.max(max[k], b.max[k]); }
+    return { min, max };
+  };
+  const checkOk = (m) => { if (m.status() !== 'NoError') aborted = true; return m; };
+  function flushPending() {
+    if (!pending.length || aborted) { pending.length = 0; return; }
+    const ops = pending.splice(0);
+    try {
+      while (!bodyNow && ops.length) bodyNow = ops.shift().m;   // the first add is the body itself
+      if (!ops.length) return;
+      // tools whose boxes touch depend on each other's order; the rest commute, so each cluster is folded on its own:
+      // (X − C) ∪ A, with A what the cluster adds and C what it takes away (add T: A ∪ T, C − T; cut T: A − T, C ∪ T)
+      const eps = 1e-6, boxes = ops.map((o) => o.m.boundingBox());
+      const root = ops.map((_, i) => i);
+      const find = (i) => { while (root[i] !== i) { root[i] = root[root[i]]; i = root[i]; } return i; };
+      const byX = ops.map((_, i) => i).sort((a, b) => boxes[a].min[0] - boxes[b].min[0]);
+      for (let a = 0; a < byX.length; a++) {
+        const i = byX[a];
+        for (let b = a + 1; b < byX.length; b++) {
+          const j = byX[b];
+          if (boxes[j].min[0] > boxes[i].max[0] + eps) break;
+          if (boxes[j].min[1] <= boxes[i].max[1] + eps && boxes[i].min[1] <= boxes[j].max[1] + eps && boxes[j].min[2] <= boxes[i].max[2] + eps && boxes[i].min[2] <= boxes[j].max[2] + eps) root[find(i)] = find(j);
+        }
+      }
+      const clusters = new Map();
+      ops.forEach((o, i) => { const k = find(i); if (!clusters.has(k)) clusters.set(k, []); clusters.get(k).push(o); });
+      const As = [], Cs = [];
+      for (const list of clusters.values()) {
+        let A = null, C = null;
+        for (const o of list) {
+          if (o.op === 'add') { A = A ? checkOk(ctx.T(A.add(o.m))) : o.m; C = C ? checkOk(ctx.T(C.subtract(o.m))) : null; }
+          else { C = C ? checkOk(ctx.T(C.add(o.m))) : o.m; A = A ? checkOk(ctx.T(A.subtract(o.m))) : null; }
+          if (A && A.isEmpty()) A = null;
+          if (C && C.isEmpty()) C = null;
+        }
+        if (A) As.push(A);
+        if (C) Cs.push(C);
+      }
+      let body = bodyNow;
+      if (Cs.length) { body = checkOk(ctx.T(body.subtract(Cs.length > 1 ? checkOk(ctx.T(ctx.M.Manifold.union(Cs))) : Cs[0]))); if (body.isEmpty()) aborted = true; }
+      if (As.length && !aborted) body = checkOk(ctx.T(body.add(As.length > 1 ? checkOk(ctx.T(ctx.M.Manifold.union(As))) : As[0])));
+      if (!aborted) bodyNow = body;
+    } catch { aborted = true; }
+  }
   const built = upTo === null ? builtCount(part) : Math.min(upTo, part.features.length);
+  // D7.51: start from the newest checkpoint whose features are unchanged (an edit near the end, an undo, entering and leaving a sketch)
+  let first = 0, lastCp = performance.now();
+  const keys = checkpoints ? prefixKeys(part) : null;   // after solving the sketches, so a rebuild of an unchanged part hashes the same
+  if (keys) {
+    if (CP.M !== M) { cpDrop(0); CP.M = M; }
+    let q = CP.list.findIndex((c) => c.res !== part.resolution || c.n > keys.length || c.key !== keys[c.n - 1]);
+    if (q >= 0) cpDrop(q);
+    const c = CP.list.filter((x) => x.n <= built).pop();
+    if (c) {
+      first = c.n;
+      ctx.body = c.body;
+      for (const [k, v] of c.results) ctx.results.set(k, { ...v });
+      for (const k of ['frames', 'candidates', 'axes', 'holeAxes', 'tools', 'refGeom', 'threads']) for (const [a, b] of c[k]) ctx[k].set(a, b);
+      for (const [a, b] of c.origin) origin.set(a, b);
+      for (const [a, b] of c.toolSurfs) toolSurfs.set(a, b);
+      for (const [a, b] of c.faceHints) faceHints.set(a, b);
+    }
+  }
   part.features.forEach((f, i) => {
+    if (i < first) return;
     const r = { status: 'ok' };
     ctx.results.set(f.id, r);
     if (i >= built) { r.status = 'rolled'; return; }
@@ -764,41 +980,59 @@ export function regenerate(part, M, { upTo = null } = {}) {
       return;
     }
     ctx.solveInfo = null;
-    if (EXACT_ONLY.has(f.type) && !MESH_BUILT.has(f.type)) { r.status = 'skipped'; r.message = t('kernel.feature.not_built', { label: FEATURE_LABELS[f.type] }); return; }
+    if (EXACT_ONLY.has(f.type) && !MESH_BUILT.has(f.type) && !(f.type === 'import' && f.mesh)) { r.status = 'skipped'; r.message = t('kernel.feature.not_built', { label: FEATURE_LABELS[f.type] }); return; }
     try {
       const out = FEATURES[f.type](f, ctx) || {};
       if (out.solve) r.solve = out.solve;
       if (out.warning) r.warning = out.warning;
       if (out.count) r.count = out.count;
+      if (out.info) r.info = out.info;   // a feature's own facts (a member's cut list, D7.50)
       if (out.tools) {
         const tools = out.tools.map((tl) => {
-          const m = ctx.T(tl.m.asOriginal());
-          origin.set(m.originalID(), f.id);
-          if (tl.surfs) toolSurfs.set(m.originalID(), tl.surfs);
+          // a mesh body keeps the id it was made with (its faceIDs name its flat faces); every other tool becomes an original
+          const m = tl.oid !== undefined ? tl.m : ctx.T(tl.m.asOriginal());
+          const oid = tl.oid !== undefined ? tl.oid : m.originalID();
+          origin.set(oid, f.id);
+          if (tl.surfs) toolSurfs.set(oid, tl.surfs);
+          if (tl.faceHint !== undefined) faceHints.set(oid, tl.faceHint);
           return { m, op: tl.op, surfs: tl.surfs || null };
         });
         ctx.tools.set(f.id, tools);
-        let body = ctx.body;
-        for (const tl of tools) {
-          if (tl.op === 'new') fail(t('kernel.mesh.new_body'));
-          if (tl.op === 'add') body = body ? ctx.T(body.add(tl.m)) : tl.m;
-          else if (tl.op === 'intersect') { if (!body) fail(t('model.kernel.nothing_to_intersect')); body = ctx.T(body.intersect(tl.m)); }
-          else {
-            if (!body) fail(t('model.kernel.nothing_to_cut'));
-            body = ctx.T(body.subtract(tl.m));
+        if (batch && tools.every((tl) => tl.op === 'add' || tl.op === 'cut')) {
+          // validate the way the one-at-a-time path does, then queue
+          let has = ctx.hasBody();
+          for (const tl of tools) { if (tl.op === 'add') has = true; else if (!has) fail(t('model.kernel.nothing_to_cut')); }
+          for (const tl of tools) {
+            if (!pending.length && !bodyNow) { bodyNow = tl.m; continue; }   // the base: no queue
+            pending.push({ m: tl.m, op: tl.op });
           }
+        } else {
+          let body = ctx.body;
+          for (const tl of tools) {
+            if (tl.op === 'new') fail(t('kernel.mesh.new_body'));
+            if (tl.op === 'add') body = body ? ctx.T(body.add(tl.m)) : tl.m;
+            else if (tl.op === 'intersect') { if (!body) fail(t('model.kernel.nothing_to_intersect')); body = ctx.T(body.intersect(tl.m)); }
+            else {
+              if (!body) fail(t('model.kernel.nothing_to_cut'));
+              body = ctx.T(body.subtract(tl.m));
+            }
+          }
+          const st = body.status();
+          if (st !== 'NoError') fail(t('model.kernel.kernel_failed', { status: String(st) }));
+          if (ctx.body && body.isEmpty()) r.warning = t('model.kernel.nothing_left');
+          ctx.body = body.isEmpty() ? null : body;
         }
-        const st = body.status();
-        if (st !== 'NoError') fail(t('model.kernel.kernel_failed', { status: String(st) }));
-        if (ctx.body && body.isEmpty()) r.warning = t('model.kernel.nothing_left');
-        ctx.body = body.isEmpty() ? null : body;
       }
     } catch (e) {
       r.status = 'error';
       r.message = e instanceof FeatureError ? e.message : t('model.kernel.build_failed', { error: e && e.message ? e.message : String(e) });
       if (f.type === 'sketch' && ctx.solveInfo) r.solve = ctx.solveInfo;
     }
+    // an expensive stretch since the last checkpoint: keep the body and the tools as they stand after this feature
+    if (keys && !aborted && i < built && performance.now() - lastCp >= cpMs) { flushPending(); if (!aborted && cpTake(ctx, live, origin, toolSurfs, keys, i + 1)) lastCp = performance.now(); }
   });
+  flushPending();
+  if (aborted) { for (const m of live) { try { m.delete(); } catch { /* already gone */ } } return null; }
 
   let mesh = null, stats = null, faces = null, edges = null;
   if (ctx.body) {
@@ -836,7 +1070,7 @@ export function regenerate(part, M, { upTo = null } = {}) {
       if (k === undefined) { k = surfLists.length; listOf.set(ids[r], k); surfLists.push(sf); }
       for (let ti = runs[r] / 3; ti < runs[r + 1] / 3; ti++) triTool[ti] = k;
     }
-    const nf = MF.namedFaces(mesh, triTool, surfLists, { segments: part.resolution || 64 });
+    const nf = MF.namedFaces(mesh, triTool, surfLists, { segments: part.resolution || 64, triHint: faceHintsOf(gm, faceHints) });
     faces = nf.faces; edges = nf.edges;
     mesh.triFace = nf.triFace;
     // the view draws these edges instead of its own 25° feature edges, so only when every triangle has its face
@@ -848,7 +1082,7 @@ export function regenerate(part, M, { upTo = null } = {}) {
   // faces / edges: brep.js's tables from the mesh (meshfaces.js), so the workspaces and picking read either kernel's result
   // threads (cosmetic and modelled) of features that built: dashed circles in the view, callouts on the drawing
   for (const id of [...ctx.threads.keys()]) if (ctx.results.get(id)?.status !== 'ok') ctx.threads.delete(id);
-  return { results: ctx.results, mesh, stats, frames: ctx.frames, candidates: ctx.candidates, axes: ctx.axes, holeAxes: ctx.holeAxes, refGeom: ctx.refGeom, faces, edges, named: !!faces, threads: ctx.threads };
+  return { resumed: first, results: ctx.results, mesh, stats, frames: ctx.frames, candidates: ctx.candidates, axes: ctx.axes, holeAxes: ctx.holeAxes, refGeom: ctx.refGeom, faces, edges, named: !!faces, threads: ctx.threads };
 }
 
 // a blocking feature's status → the message key ("Needs Extrude1, which is failing.")

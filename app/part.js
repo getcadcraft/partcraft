@@ -19,6 +19,9 @@
  *   chamfer  { edges: [EdgeRef], d }          (exact kernel only) equal-distance chamfer
  *   shell    { faces: [FaceRef], t, outward } (exact kernel only) hollow the body, the picked faces open
  *   import   { file, step, up:'z'|'y' }       (exact kernel only) a solid read from STEP text (kept in the file)
+ *            { file, mesh, units, up, op, report }   (0.7 D7.49, version 5; the mesh kernel) a body from an STL / OBJ / 3MF mesh:
+ *            mesh = meshimport.js encodeMesh (repaired, in the file's units and axes), units = UNITS key, op 'add'|'cut'|'intersect',
+ *            report = what the import repaired and what stayed open (meshimport.js readReport)
  *   EdgeRef:  { faces: [faceName, faceName], at: [x,y,z] }   the edge between two named faces (brep.js), nearest `at`
  *   FaceRef:  { name: faceName, at: [x,y,z] }
  *
@@ -42,6 +45,7 @@
  *   PlaneRef: { kind:'base', name:'front'|'top'|'right' }
  *           | { kind:'face', feature, face:'start'|'end'|'side', entity? }   follows the feature when it changes
  *           | { kind:'face', feature, face:'named', name }                   any named face of the exact kernel (brep.js)
+ *           | { kind:'face', feature, face:'flat', entity }                  a flat face of an imported mesh (its plane's number, D7.49)
  *           | { kind:'fixed', o:[x,y,z], n:[x,y,z] }                          a plane that stays where it was picked
  *   DirRef:   { kind:'world', axis:'x'|'y'|'z' } | { kind:'line', sketch, entity } | { kind:'axis', feature } (a revolve's axis)
  *           | { kind:'fixed', o:[x,y,z], d:[x,y,z] }                          an edge picked on the model
@@ -51,11 +55,15 @@
  *   Freeform features (surface.js, 2026-10-11): form (a form.js cage), patch, surfloft, stitch, thicken, offsetsurf,
  *   extendsurf, trimsurf, gordon (curve network, gordon.js) — surface bodies live under the id of the feature that made
  *   them; also version 3.
+ *   Structural members (weldment.js, 0.7 D7.50; version 5): member { segs: [{ sketch, line }], section, rotate, anchor, corner,
+ *   caps, gussets } — steel sections along sketch lines, built by the mesh kernel.
  *   Body tools (bodies.js, 2026-10-11): combine, movebody, scalebody, pathpattern, body copies in l/cpattern (`bodies`),
  *   extrude / revolve op intersect | new; body ids follow brep-bodies.js trackBodies. Also version 3.
  *   bodyInfo (optional, version 3; 0.4): { <body id>: { name?, hidden? } } — bodies renamed or hidden in the view
  *            (bodies.js readBodyInfo; display only).
  */
+import { cleanStock } from './nest/nest-stock.js';
+import { cleanJob } from './laser/laser-model.js';
 import { newSketch, readSketch } from './sketch.js';
 import { readNotes } from './gdt.js';
 import { DESIGN_LABELS, DESIGN_BASE, DESIGN_EXACT_ONLY, DESIGN_DEFAULTS, designDeps, readDesign, usesDesign, HOLE_KINDS, makeReaders } from './design-features.js';
@@ -67,10 +75,12 @@ import { readConfigs } from './configs.js';
 import { RIB_LABELS, RIB_BASE, RIB_EXACT_ONLY, RIB_DEFAULTS, readRib, usesRib } from './rib.js';
 import { THREAD_LABELS, THREAD_BASE, THREAD_DEFAULTS, readThread, readHoleThread, usesThread } from './threads.js';
 import { readMaterial } from './bom.js';
+import { decodeMesh, readReport, UNITS } from './meshimport.js';
+import { WELD_LABELS, WELD_BASE, WELD_DEFAULTS, readMember, usesMember, memberDeps } from './weldment.js';
 import { t } from './i18n.js';
 
 export const FORMAT = 'partcraft';
-export const VERSION = 4;   // 2 added fillet, chamfer, shell, import, named face references and drawing notes; 3 added studies; 4 configurations that turn features off (0.6 LC.14); 1–3 open unchanged
+export const VERSION = 5;   // 2 added fillet, chamfer, shell, import, named face references and drawing notes; 3 added studies; 4 configurations that turn features off (0.6 LC.14); 5 bodies from meshes (0.7 D7.49); 1–4 open unchanged
 
 // Each type's name for people. Getters, read when shown: workers and Node import this before the language catalog. The
 // other modules' tables are getters too and are copied as getters (a spread would read them now).
@@ -86,7 +96,7 @@ export const FEATURE_LABELS = Object.defineProperties({
   get chamfer() { return t('model.feature.chamfer'); },
   get shell() { return t('model.feature.shell'); },
   get import() { return t('model.feature.import'); },
-}, Object.assign({}, ...[DESIGN_LABELS, SURFACE_LABELS, BODY_LABELS, SHEET_LABELS, RIB_LABELS, THREAD_LABELS].map((L) => Object.getOwnPropertyDescriptors(L))));
+}, Object.assign({}, ...[DESIGN_LABELS, SURFACE_LABELS, BODY_LABELS, SHEET_LABELS, RIB_LABELS, THREAD_LABELS, WELD_LABELS].map((L) => Object.getOwnPropertyDescriptors(L))));
 /** Features only the exact (OpenCascade) kernel builds. */
 export const EXACT_ONLY = new Set(['fillet', 'chamfer', 'shell', 'import', ...DESIGN_EXACT_ONLY, ...SURFACE_EXACT_ONLY, ...BODY_EXACT_ONLY, ...SHEET_EXACT_ONLY, ...RIB_EXACT_ONLY]);
 
@@ -100,7 +110,7 @@ export const indexOf = (part, id) => part.features.findIndex((f) => f.id === id)
 export const builtCount = (part) => (part.rollback === null ? part.features.length : Math.min(part.rollback, part.features.length));
 
 function nextName(part, type) {
-  const base = { sketch: 'Sketch', extrude: 'Extrude', revolve: 'Revolve', hole: 'Hole', lpattern: 'LPattern', cpattern: 'CirPattern', mirror: 'Mirror', fillet: 'Fillet', chamfer: 'Chamfer', shell: 'Shell', import: 'Imported', ...DESIGN_BASE, ...SURFACE_BASE, ...BODY_BASE, ...SHEET_BASE, ...RIB_BASE, ...THREAD_BASE }[type];
+  const base = { sketch: 'Sketch', extrude: 'Extrude', revolve: 'Revolve', hole: 'Hole', lpattern: 'LPattern', cpattern: 'CirPattern', mirror: 'Mirror', fillet: 'Fillet', chamfer: 'Chamfer', shell: 'Shell', import: 'Imported', ...DESIGN_BASE, ...SURFACE_BASE, ...BODY_BASE, ...SHEET_BASE, ...RIB_BASE, ...THREAD_BASE, ...WELD_BASE }[type];
   let n = 1;
   const names = new Set(part.features.map((f) => f.name));
   while (names.has(base + n)) n++;
@@ -124,6 +134,7 @@ const DEFAULTS = {
   ...BODY_DEFAULTS,
   ...SHEET_DEFAULTS,
   ...RIB_DEFAULTS,
+  ...WELD_DEFAULTS,
   ...THREAD_DEFAULTS,
 };
 
@@ -139,6 +150,7 @@ export function nameFeatures(name) {
 /** Insert a new feature at the rollback bar (or the end); the bar moves past it. Returns it. */
 export function addFeature(part, type, props = {}) {
   const f = { id: 'f' + part.seq++, type, name: nextName(part, type), ...DEFAULTS[type](), ...props };
+  if (type === 'import' && f.mesh && !f.step) delete f.step;   // a body from a mesh carries no STEP text (D7.49)
   const at = builtCount(part);
   part.features.splice(at, 0, f);
   if (part.rollback !== null) part.rollback = at + 1;
@@ -164,6 +176,7 @@ export function dependsOn(f) {
   for (const x of surfaceDeps(f)) d.add(x);
   for (const x of bodiesDeps(f)) d.add(x);
   for (const x of sheetDeps(f, nameFeatures)) d.add(x);
+  for (const x of memberDeps(f)) d.add(x);
   if (f.plane && f.plane.kind === 'ref') d.add(f.plane.feature);
   return [...d];
 }
@@ -220,7 +233,9 @@ export function deleteFeatures(part, ids) {
 
 /** The version a file of this part needs: 4 when a configuration turns features off, 3 with studies (a version-2 reader
  *  would drop them silently), else 2. */
-export const fileVersion = (part) => (configsOff(part) ? 4 : ((part.studies && Object.keys(part.studies).length) || usesDesign(part) || usesSurface(part) || usesBodies(part) || hasParamsKey(part) || usesSheet(part) || usesSheetMetal(part) || hasConfigs(part) || usesRib(part) || usesThread(part) ? 3 : 2));
+export const fileVersion = (part) => (usesMeshImport(part) || usesMember(part) ? 5 : configsOff(part) ? 4 : ((part.studies && Object.keys(part.studies).length) || usesDesign(part) || usesSurface(part) || usesBodies(part) || hasParamsKey(part) || usesSheet(part) || usesSheetMetal(part) || hasConfigs(part) || usesRib(part) || usesThread(part) ? 3 : 2));
+/** 0.7 D7.49: a body from a mesh (a 0.6 reader would refuse its import feature with a misleading "STEP data is bad"). */
+export const usesMeshImport = (part) => part.features.some((f) => f.type === 'import' && f.mesh);
 const configsOff = (part) => !!(part.configs && part.configs.rows && part.configs.rows.some((r) => r.off && r.off.length));
 const hasConfigs = (part) => !!(part.configs && part.configs.rows && part.configs.rows.length);
 /** 0.4 P14: a material, or a drawing's sheet size, title block or revisions — a version-2 reader would drop them silently. */
@@ -282,6 +297,7 @@ export function readPlane(p, ids, types = null) {
     if (p.face === 'side') { if (typeof p.entity !== 'string' || p.entity.length > 40) throw new Error(t('model.part.file.face_bad')); r.entity = p.entity; }
     return r;
   }
+  if (p.kind === 'face' && p.face === 'flat' && ids.has(p.feature) && /^\d{1,5}$/.test(String(p.entity))) return { kind: 'face', feature: p.feature, face: 'flat', entity: String(p.entity) };
   if (p.kind === 'face' && p.face === 'named' && goodName(p.name) && ids.has(nameFeatures(p.name)[0])) return { kind: 'face', feature: nameFeatures(p.name)[0], face: 'named', name: p.name };
   if (p.kind === 'fixed' && vec3(p.o) && vec3(p.n) && Math.hypot(...p.n) > 1e-9) return { kind: 'fixed', o: [...p.o], n: [...p.n] };
   throw new Error(t('model.part.file.plane_bad'));
@@ -358,6 +374,8 @@ export function readPart(raw) {
         readBodies(f, g, dc, makeReaders(dc)); break;
       case 'sheetbase': case 'sheetflange':
         readSheet(f, g, dc, makeReaders(dc)); break;
+      case 'member':
+        readMember(f, g, dc); break;
       case 'rib':
         readRib(f, g, dc); break;
       case 'thread':
@@ -372,6 +390,17 @@ export function readPart(raw) {
         need(num(f.t, 1e-6, 1e5), 'model.file.bad.the_thickness');
         Object.assign(g, { t: f.t, outward: f.outward === true }); break;
       case 'import':
+        if (f.mesh !== undefined) {
+          // a body from a mesh (D7.49): the mesh checked in full (counts, every index, every number), then the small fields
+          need(!f.step, 'model.file.bad.its_mesh');   // (addFeature's defaults leave step '')
+          try { decodeMesh(f.mesh); } catch { need(false, 'model.file.bad.its_mesh'); }
+          need(f.units === undefined || Object.hasOwn(UNITS, f.units), 'model.file.bad.its_units');
+          need(f.op === undefined || ['add', 'cut', 'intersect'].includes(f.op), 'model.file.bad.the_operation');
+          Object.assign(g, { file: text(f.file, 200), mesh: { nv: f.mesh.nv, nt: f.mesh.nt, v: f.mesh.v, i: f.mesh.i }, units: f.units || 'mm', up: f.up === 'y' ? 'y' : 'z', op: f.op || 'add' });
+          const rep = readReport(f.report);
+          if (rep) g.report = rep;
+          break;
+        }
         need(typeof f.step === 'string' && f.step.length <= 60 * 1024 * 1024 && /^\s*ISO-10303-21;/.test(f.step), 'model.file.bad.its_step_data');
         Object.assign(g, { file: text(f.file, 200), step: f.step, up: f.up === 'y' ? 'y' : 'z' }); break;
     }
@@ -389,6 +418,8 @@ export function readPart(raw) {
   if (j.params !== undefined && j.params !== null) { const pp = readPartParams(j.params, part); if (pp) part.params = pp; }
   // configurations after the parameters: every value must name one of them (configs.js, 0.4 P18)
   if (j.configs !== undefined && j.configs !== null) { const cf = readConfigs(j.configs, part.params, part.features); if (cf) part.configs = cf; }
+  if (j.stock !== undefined && j.stock !== null) { const st = cleanStock(j.stock); if (st.items.length) part.stock = st; }
+  if (j.laser !== undefined && j.laser !== null) { const lj = cleanJob(j.laser); if (lj.layers.length) part.laser = lj; }   // 0.7 SU.772: the Laser program's settings   // 0.7 SU.755: offcut stock (nest/nest-stock.js)
   if (j.rollback === null || j.rollback === undefined) part.rollback = null;
   else if (Number.isInteger(j.rollback) && j.rollback >= 0 && j.rollback < part.features.length) part.rollback = j.rollback;
   return part;
@@ -447,10 +478,17 @@ export function readDrawing(d) {
 
 /** Undo history of whole-part JSON snapshots. */
 export class History {
-  constructor(limit = 200) { this.limit = limit; this.undoStack = []; this.redoStack = []; }
+  /** `limit` steps, and at most `maxBytes` of snapshots (0.7 D7.51: a 750-feature part is 0.2 MB a step, so 200 steps were 42 MB; a part with
+   *  big sketches more): the oldest go first, the newest MIN_STEPS always stay. */
+  constructor(limit = 200, maxBytes = 96e6) { this.limit = limit; this.maxBytes = maxBytes; this.undoStack = []; this.redoStack = []; }
+  get bytes() { let n = 0; for (const s of this.undoStack) n += s.json.length; return n; }
+  trim() {
+    let n = this.bytes;
+    while (this.undoStack.length > this.limit || (n > this.maxBytes && this.undoStack.length > History.MIN_STEPS)) n -= this.undoStack.shift().json.length;
+  }
   push(part, label) {
     this.undoStack.push({ json: JSON.stringify(part), label });
-    if (this.undoStack.length > this.limit) this.undoStack.shift();
+    this.trim();
     this.redoStack = [];
   }
   undo(part) {
@@ -463,7 +501,9 @@ export class History {
     const s = this.redoStack.pop();
     if (!s) return null;
     this.undoStack.push({ json: JSON.stringify(part), label: s.label });
+    this.trim();
     return { part: JSON.parse(s.json), label: s.label };
   }
   clear() { this.undoStack = []; this.redoStack = []; }
 }
+History.MIN_STEPS = 20;

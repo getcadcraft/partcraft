@@ -3,7 +3,7 @@ title: Build an assembly with joints
 summary: Start an assembly from a part, insert copies and other part files, join them with rigid, revolute, slider, cylindrical, planar, ball and pin-in-slot joints on flat faces, center joints on axes, edit a part in place and save the assembly.
 section: tasks
 order: 110
-keywords: assembly, mate, mates, joint, rigid, revolute, slider, cylindrical, planar, ball, ball joint, spherical, pin slot, pin in slot, insert component, grounded, fixed, concentric, coincident, edit part, in context, partcraft-asm
+keywords: assembly, mate, mates, joint, loop, closed loop, linkage, four-bar, mechanism, rigid, revolute, slider, cylindrical, planar, ball, ball joint, spherical, pin slot, pin in slot, insert component, grounded, fixed, concentric, coincident, edit part, in context, partcraft-asm
 ---
 
 An assembly puts parts together. In PartCraft, **joints** place the parts: each joint sits on a flat face of each of two parts and puts them face to face. A revolute joint lets one part turn, a slider lets it slide, a rigid joint holds it.
@@ -71,6 +71,24 @@ The X and Y of a face are those of the first part's face; the joint's centre is 
 4. Set **Centre on** to "Axis of Revolve1" for both sides. The flanges now share an axis.
 5. Type `22.5` in **Angle (°)** to line up the bolt holes, or drag the slider.
 
+## Closed loops: linkages
+
+Parts joined in a ring (a four-bar linkage, a crank and slider, a frame braced on both sides) form a **loop**. PartCraft solves
+every loop so it closes: the joints on it take the values that join the ring up, moving as little as they can from where they
+were.
+
+- **Set or drag** a value of a joint on a loop and the rest of the loop follows. For a four-bar linkage, drag the crank's
+  **Angle** and the coupler and rocker move with it. The value you set is kept; the others are worked out from it.
+- In the list, a joint on a loop that can still move is **blue**: another value could still be set. A loop that cannot move
+  (a braced frame) stays black. A loop that cannot close is **red**.
+- The **Part** box shows **Loops**: how many are closed and how many values can still move, for example "1 closed; 1 value can
+  still move".
+- {{ui:Check the motion for clashes}} sweeps a joint on a loop with the loop following it, step by step (see
+  [Check an assembly for clashes and motion](topic:check-assembly)).
+
+A flat linkage stacked from flat bars must agree in depth: two parts joined face to face on both sides of a ring need the same
+stack height both ways. Use a joint's **Offset** to lift a part where the stack does not add up, or the loop cannot close.
+
 ## Work with the parts
 
 Click a part in the view or in the list to select it. The right panel shows its part name, how many copies there are, its volume, its joints, and whether it is grounded, set by its joints, or "Not joined: stays where it was put". Buttons:
@@ -100,7 +118,7 @@ Bringing the change back is one step in the assembly's undo list.
 ## Joint problems
 
 - A part no joint reaches is listed as **free** and the panel says "Bracket2 is not joined to the grounded part, so it stays where it was put."
-- Joints must form a tree from the grounded part. A joint that closes a loop is not solved: "Revolute3 closes a loop and is off by 2.000 mm. Joints in a loop are not solved yet; remove one."
+- A loop that cannot close (the lengths do not reach, a limit stops a joint, the faces do not agree in depth): "Revolute3 closes a loop that cannot close: it is off by 2.000 mm. Check the faces, offsets and limits of the loop's joints." Its joints turn red.
 - If a face or axis a joint uses is gone after editing a part: "The face this joint uses is gone from Bracket." Remove the joint and make it again.
 
 Next: [Check an assembly for clashes and motion](topic:check-assembly).

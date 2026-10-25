@@ -3,7 +3,7 @@ title: Configurations and design tables
 summary: Keep several sizes and versions of one part as named configurations saved in the part file, with features turned on or off in each, switch between them with one click, bring them in or out as a CSV design table, or build them all from the command line.
 section: tasks
 order: 106
-keywords: design table, configurations, configuration, sizes, family of parts, csv, spreadsheet, variants, table driven, iparts, part family, suppress, suppressed, turn off a feature, options, with or without, configurator
+keywords: design table, configurations, configuration, sizes, family of parts, csv, spreadsheet, variants, table driven, part family, suppress, suppressed, turn off a feature, options, with or without, configurator
 ---
 
 A **configuration** is one size of the part: a named set of values for its parameters. The part keeps its configurations in its own file, so they travel with it. A **design table** is the same thing as a CSV file, one row per configuration.
@@ -63,6 +63,8 @@ The first column may be called `name`, `config` or `configuration`; every other 
 A configuration name that a spreadsheet would read as a formula (starting with `=`, `+`, `-` or `@`) is written with a leading `'`.
 
 ## Every size at once
+
+{{ui:Variant pack…}} under **Configurations** builds every configuration, or a chosen few, as STEP, IFC, DWG and a preview in one zip, with a table of their parameters: see [Make a variant pack from your configurations](topic:variant-pack).
 
 The command line tool builds one file per row of a CSV design table:
 

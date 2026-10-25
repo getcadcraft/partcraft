@@ -93,6 +93,7 @@ export class View3D {
     new MutationObserver(() => this.applyTheme()).observe(document.documentElement, { attributes: true, attributeFilter: ['data-space'] });
     this.resizeObserver = new ResizeObserver(() => this.resize());
     this.resizeObserver.observe(canvas.parentElement);
+    this.resizeObserver.observe(canvas);   // a workspace layout insets the canvas inside its host (0.7 WS.14)
     this.buildPlanes();
     this.resize();
     this.view('iso');
@@ -118,8 +119,9 @@ export class View3D {
   }
 
   resize() {
-    const host = this.canvas.parentElement;
-    const w = Math.max(1, host.clientWidth), h = Math.max(1, host.clientHeight);
+    // the canvas's own box (a workspace layout insets it between its blocks, 0.7 WS.14); its host's when it has none yet
+    const host = this.canvas.parentElement, c = this.canvas;
+    const w = Math.max(1, c.clientWidth || host.clientWidth), h = Math.max(1, c.clientHeight || host.clientHeight);
     this.w = w; this.h = h;
     this.renderer.setSize(w, h, false);
     this.updateFrustum();

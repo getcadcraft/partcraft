@@ -210,6 +210,9 @@ body.app-shell .sp-tab { bottom: 3rem; }
 .pc-chip.is-full { color: var(--ink); border-color: var(--ink); }
 .pc-chip.is-under { color: var(--layer-blue); border-color: var(--layer-blue); }
 .pc-chip.is-over, .pc-chip.is-error { color: var(--layer-red); border-color: var(--layer-red); }
+/* a joint on a loop (0.7 D7.40): blue = the loop can still move, red = it does not close (as the sketch's state chip) */
+.pc-node[data-loop-state="under"] .pc-node-name { color: var(--layer-blue); }
+.pc-node[data-loop-state="over"] .pc-node-name { color: var(--layer-red); }
 .pc-chip.is-ok { color: var(--layer-green); border-color: var(--layer-green); }
 
 /* ---- Drawing sheet (sheetview.js) ---- */
@@ -532,6 +535,20 @@ button.cs-shown-h:focus-visible { outline: var(--pen-2) solid var(--action); }
 .pc-print-verdict[data-print-ok="1"] { color: var(--layer-green); }
 .pc-print-verdict[data-print-ok="0"], .pc-print-problems { color: var(--layer-red); }
 .pc-print-facts { color: var(--ink-2); font-variant-numeric: tabular-nums; }
+/* 0.7 D7.50: a structural member feature's cut list */
+.pc-cutlist { width: 100%; border-collapse: collapse; font-size: .8125rem; font-variant-numeric: tabular-nums; margin: 0 0 .5rem; }
+.pc-cutlist th, .pc-cutlist td { border-bottom: var(--pen-1) solid var(--line); padding: .2rem .25rem; text-align: left; vertical-align: top; overflow-wrap: anywhere; }
+.pc-cutlist th { font-weight: 600; color: var(--ink-2); }
+/* 0.7 D7.49: an STL / OBJ / 3MF opened as a body */
+.pc-mesh p, .pc-mesh ul { margin: 0 0 .6rem; }
+.pc-mesh ul { padding-left: 1.1rem; }
+.pc-mesh-verdict { font-weight: 700; }
+.pc-mesh-verdict[data-mesh-closed="1"] { color: var(--layer-green); }
+.pc-mesh-verdict[data-mesh-closed="0"] { color: var(--layer-red); }
+.pc-mesh-picks { display: grid; gap: .4rem; }
+.pc-mesh-row { display: grid; grid-template-columns: 9rem minmax(0, 1fr) auto; gap: .5rem; align-items: center; }
+.pc-mesh-row small { color: var(--ink-2); }
+.pc-mesh-size { color: var(--ink-2); font-variant-numeric: tabular-nums; list-style: none; padding-left: 0 !important; }
 .pc-bed { flex-wrap: wrap; gap: .5rem; }
 .pc-bed input { width: 5rem; }
 
@@ -569,3 +586,23 @@ button.cs-shown-h:focus-visible { outline: var(--pen-2) solid var(--action); }
 .pc-stk-table .pc-select-sm { max-width: 11rem; }
 .pc-stk-rank { font-weight: 600; text-align: center; }
 .pc-stk-bar { display: inline-block; min-width: 4rem; padding: 0 .25rem; background-color: transparent; background-image: linear-gradient(color-mix(in srgb, var(--layer-violet) 30%, transparent), color-mix(in srgb, var(--layer-violet) 30%, transparent)); background-repeat: no-repeat; background-size: var(--share) 100%; font-variant-numeric: tabular-nums; }
+
+/* 0.7 WS.14 (session ws-partcraft): the layouts of Settings › Global › Layout (workspace-partcraft.js; engine assets/css/app-workspace.css) */
+.ws-status-slot .pc-status { border-top: 0; background: none; padding: 0; gap: .75rem; }
+.ws-pc-browser { display: flex; flex-direction: column; gap: .25rem; }
+.ws-pc-sec > summary { font-weight: 600; padding: .25rem; cursor: pointer; }
+.ws-pc-sec > div { padding: 0 .25rem .5rem; }
+.ws-pc-tree > .pc-sec { padding: 0; border: 0; }
+.ws-pc-config-list { list-style: none; margin: 0 0 .5rem; padding: 0; }
+.ws-pc-config-list li { display: flex; align-items: center; gap: .375rem; padding: .125rem 0; }
+.ws-pc-config-name { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
+.ws-pc-config-list li.is-active .ws-pc-config-name { font-weight: 700; }
+.tbx-ig-body .pc-chip { white-space: nowrap; }
+.ws-palettes [data-props] { padding: .25rem .5rem .5rem; }
+/* the view cube and the axes stay clear of the blocks a layout puts over the drawing */
+.ws-stage :is(.cc-vc, .cc-axes):is(.at-top-right, .at-top-left) { top: calc(var(--ws-st, 0px) + var(--ws-vt, 0px) + .5rem); }
+.ws-stage :is(.cc-vc, .cc-axes):is(.at-bottom-right, .at-bottom-left) { bottom: calc(var(--ws-sb, 0px) + var(--ws-vb, 0px) + .5rem); }
+.ws-stage :is(.cc-vc, .cc-axes):is(.at-top-right, .at-bottom-right) { right: calc(var(--ws-sr, 0px) + .5rem); }
+.ws-stage :is(.cc-vc, .cc-axes):is(.at-top-left, .at-bottom-left) { left: calc(var(--ws-sl, 0px) + .5rem); }
+/* the toolbar's menus inside the drawing area (a layout's stage-top): short enough to end above the area's bottom edge */
+.ws-region .pc-menu-list { max-height: min(calc(100vh - 9rem), calc(100vh - var(--ws-st, 0px) - 5rem)); }

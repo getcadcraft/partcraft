@@ -1,12 +1,12 @@
 ---
 title: Make toolpaths and G-code (Manufacture)
-summary: Set up stock and a work origin, choose tools, add face, pocket, contour, drill and chamfer operations by picking faces, simulate the stock for gouges and cycle time, and download G-code for Fanuc-style, GRBL or LinuxCNC controls.
+summary: Set up stock and a work origin, choose tools, add face, pocket, contour, drill and chamfer operations by picking faces, finish the whole model in 3D (parallel, scallop), simulate the stock against the model for gouges and cycle time, and download G-code from one of the three built-in posts or one you edit yourself.
 section: tasks
 order: 140
-keywords: adaptive, adaptive clearing, constant engagement, trochoidal, hsm, high speed machining, manufacture, CAM, toolpath, G-code, NC, CNC, mill, milling, pocket, contour, profile, facing, drill, peck, G83, G81, G73, chamfer, stock, work offset, G54, post processor, GRBL, LinuxCNC, Fanuc, feeds and speeds, simulation, gouge, cycle time
+keywords: parallel, scallop, 3d finishing, finishing, ball nose, tool library, edit post, custom post, post editor, adaptive, adaptive clearing, constant engagement, trochoidal, hsm, high speed machining, manufacture, CAM, toolpath, G-code, NC, CNC, mill, milling, pocket, contour, profile, facing, drill, peck, G83, G81, G73, chamfer, stock, work offset, G54, post processor, GRBL, LinuxCNC, feeds and speeds, simulation, gouge, cycle time
 ---
 
-The Manufacture workspace turns the part into toolpaths for a 3-axis milling machine and writes them as G-code. It is **2.5-axis**: the tool stays vertical, walls are cut straight down and floors flat. It works on the named faces the mesh kernel gives the part (see [The mesh kernel](topic:solid-kernels)).
+The Manufacture workspace turns the part into toolpaths for a 3-axis milling machine and writes them as G-code. Most operations are **2.5-axis**: the tool stays vertical, walls are cut straight down and floors flat. **Parallel** and **Scallop** finish curved surfaces in 3D (see [3D finishing](topic:finish-3d)); the tool still stays vertical (three axes, no tilting). It works on the named faces the mesh kernel gives the part (see [The mesh kernel](topic:solid-kernels)).
 
 Lab build: check every program in your control's own simulator, and run it in the air above the stock first.
 
@@ -23,6 +23,8 @@ Lab build: check every program in your control's own simulator, and run it in th
 
 The **Tools** tab holds the library: flat, ball and bull nose end mills, drills, chamfer mills and face mills, each with a T number, diameter, flutes and flute length (plus corner radius, point or chamfer angle where they apply).
 
+My tools can be saved in the browser and moved between computers as a file: see [The tool library](topic:tool-library).
+
 Spindle speed and feed come from the material: n = 1000 × cutting speed / (π × diameter), feed = n × flutes × chip load (drills: n × feed per rev). The numbers are conservative starting values from published ranges, not tuned for your machine; type your tool maker's cutting speed, chip load, rpm or feed to override them. When the speed passes the machine's maximum it is held there and the feed follows, keeping the chip load.
 
 ## Add operations
@@ -37,6 +39,8 @@ Each toolbar button adds an operation and, where it needs geometry, starts picki
 | {{ui:Contour}} | a flat face (its outline), a round face, or edges | Follows the outline offset by the tool radius, outside or inside, with lead-in and lead-out arcs and optional tabs |
 | {{ui:Drill}} | holes (click a hole's wall or its rim) | Drills each hole with a canned cycle: peck (G83), drill (G81) or chip break (G73); or give a diameter to drill every hole of that size |
 | {{ui:Chamfer}} | a face's outline or edges | Runs a chamfer mill along the edge so it cuts the width you set |
+| {{ui:Parallel}} | nothing (the whole model) | 3D finishing in parallel lines at any angle, following the surface with a ball, bull-nose or flat end mill. See [3D finishing](topic:finish-3d) |
+| {{ui:Scallop}} | nothing (the whole model) | 3D finishing in passes a set distance apart over the surface, so the ridge between them has the height you ask for |
 
 Select an operation in the list to change its tool, heights (clearance, retract, feed height, top, bottom), step-down, stepover, stock to leave, finishing pass, entry (helix, ramp or plunge), climb milling, tabs or cycle. {{ui:Up}} and {{ui:Down}} reorder, {{ui:Suppress}} leaves it out, {{ui:Delete}} removes it. Everything is in the undo history and saved in the part file.
 
@@ -54,6 +58,8 @@ Toolpaths are made again after every change (the part's too). {{ui:Simulate}} al
 
 The stock is a height map of the top (a Z-map), so it cannot show undercuts. Drag **Playback** to move the tool along the program. In the view, feed moves are solid and rapids dashed, one colour per operation.
 
+With **Show the simulated stock** on, the stock is coloured against the model, cell by cell: **green** where it is on the model (within 0.02 mm), **red** where the tool cut into the model, and where stock is left on the model **yellow** for a thin skin, **orange** for more, fading to the **grey** of uncut stock at 1 mm or more. The colours are made again with every change, from the same height map as the numbers in the panel, so green and red agree with the Gouges line. A chamfer cuts into the model on purpose and shows red along its edge.
+
 ## Post the G-code
 
 Choose the control under **Post** and press {{ui:Download G-code}} (or {{ui:Post}} on the toolbar):
@@ -63,11 +69,15 @@ Choose the control under **Post** and press {{ui:Download G-code}} (or {{ui:Post
 | Fanuc-style ISO | .nc | %, O number, line numbers, T M6 with G43 H, canned cycles |
 | GRBL | .nc | No tool changer or canned cycles: a tool change pauses with M0, drilling is written as plain moves |
 | LinuxCNC | .ngc | T M6 with G43 H, canned cycles, M2 |
+| Your own | any | A post you wrote or changed: {{ui:Edit post…}}, {{ui:New post…}}, {{ui:Import post file…}} |
 
 Every file starts with comments for the program, stock, work offset and tools. Coordinates are in millimetres with 3 decimals. {{ui:Toolpath CSV}} and {{ui:Toolpath JSON}} export the moves themselves.
 
+**Check the output in your machine's own simulator before cutting, and run it in the air above the stock first.** The three built-in posts are starting points that follow the controls' documented behaviour; they have not been proven on any particular machine. A post you change is yours to prove. How to write one: [Post processors](topic:post-processors).
+
 ## Limits
 
-- 2.5-axis only: no 3D roughing or finishing of curved faces (the flange's cone is left as steps), no rest machining. Adaptive clearing is 2D (flat floors).
+- Pockets, contours, drilling and chamfers are 2.5-axis. Curved faces can be finished in 3D ([parallel and scallop](topic:finish-3d)) but not roughed in 3D (a cone is left as steps until you finish it), and there is no rest machining. Adaptive clearing is 2D (flat floors).
+- Three axes only: no tilting, no turning, no inspection.
 - Holders and shanks are not checked for collisions; a warning appears when a cut is deeper than the flute length.
-- Feeds and speeds are starting values; there is no machine-specific post editor.
+- Feeds and speeds are starting values. A post is text you can edit, but it only decides how the moves are written; it cannot change the toolpath, add axes or know your machine ([Post processors](topic:post-processors) lists what it cannot do).

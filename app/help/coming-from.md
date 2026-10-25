@@ -31,7 +31,7 @@ If you design parts in SolidWorks, most of PartCraft's ideas will be familiar: s
 | Linear / circular pattern, mirror | {{ui:Linear}}, {{ui:Circular}}, {{ui:Mirror}} (features or the whole body) |
 | Fillet and chamfer on edges | {{ui:Fillet}} / {{ui:Chamfer}}: click an edge, {{key:Shift}}+click more, then the button. One radius; equal, two-distance or distance-angle chamfers. In this version only straight edges between two flat faces, and rounds that meet at a corner are mitred. Round or bevel curved edges in the sketch ({{ui:Fillet}} in a sketch, {{key:F}}) |
 | Shell | {{ui:Shell}}: click the flat faces to open, then the button. One wall thickness |
-| Open a STEP file | Not built yet in this version (it needs an exact kernel) |
+| Open a STEP file | {{ui:Open}}: read as triangles, a solid body to build on ([Open a STEP file](topic:import-step)) |
 | Edit feature, then OK | Click the feature; change numbers on the right; it rebuilds as you type. No OK, no Cancel: use {{key:Mod+Z}} |
 | Edit sketch | Double-click the sketch in the history |
 | Rebuild | Automatic after every change. There is no rebuild key |

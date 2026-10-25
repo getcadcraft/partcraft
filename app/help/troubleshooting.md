@@ -154,10 +154,9 @@ The sketch sits on a face of a feature that is not built. Fix that feature first
 
 | Message | Fix |
 |---|---|
-| 'PartCraft opens its own .partcraft.json files, exports from the CadCraft macro for SolidWorks (.cadcraft-sw.json) and STEP files. "bracket.igs" is none of these.' | Only those files are recognized, and opening STEP is not built yet in this version |
+| 'PartCraft opens its own .partcraft.json files, exports from the CadCraft macro for SolidWorks (.cadcraft-sw.json) and STEP files. "bracket.igs" is none of these.' | Only those files are recognized (and STL, OBJ and 3MF meshes and `.3dm` files) |
 | '"part.stp" is not a STEP file (it does not start with ISO-10303-21).' | The file is not STEP text |
 | "That STEP file is too big (over 60 MB) to import here." | Simplify it at the source |
-| "Opening STEP files: not built yet. It needs an exact kernel, …" | STEP import is not built yet in this version. Model the part from its drawing or dimensions; see [What is not built yet](topic:not-built-yet) |
 | "That file is too big to be a PartCraft part." on your own saved part | A large STEP solid imported in an earlier build made the part file over 50 MB. Use an earlier copy without it |
 | "That file is too big to be a PartCraft part." | The file is over 50 MB; it is not a PartCraft file |
 | "This is not a PartCraft file (it is not JSON)." / "This is not a PartCraft file." | The file is damaged or another program's |
@@ -189,7 +188,7 @@ The sketch sits on a face of a feature that is not built. Fix that feature first
 | "Pick a face on a different part." | Both faces of a joint must be on different parts |
 | "That face is curved. Pick a flat face …" | Joints start from flat faces. Then use **Centre on** for a hole or revolve axis |
 | "Bracket2 is not joined to the grounded part, so it stays where it was put." | Add a joint from it to a part that is placed |
-| "Revolute3 closes a loop and is off by 2.000 mm. Joints in a loop are not solved yet; remove one." | Remove one joint of the loop |
+| "Revolute3 closes a loop that cannot close: it is off by 2.000 mm. Check the faces, offsets and limits of the loop's joints." | The parts cannot all meet: check the lengths, the faces each joint uses, offsets (parts stacked face to face must agree in depth) and limits; or remove one joint of the loop |
 | "The face this joint uses is gone from Bracket." / "The axis this joint uses is gone from Bracket." | The part was edited. Remove the joint and make it again |
 | "The axis runs along the face, so it cannot set the joint's centre." | Choose an axis that crosses the face, or "The face's own origin" |
 | "An assembly keeps at least one part. Close it instead." | Use {{ui:Close}} |

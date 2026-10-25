@@ -163,9 +163,8 @@ export function applyParams(doc, p, adapter, { overrides = null } = {}) {
 }
 
 /** Each link's current value, its parse uses, and whether it resolves (for panels and the CLI). */
-export function describeLinks(doc, p, adapter) {
+export function describeLinks(doc, p, adapter, targets = adapter.targets(doc)) {
   const ev = evaluateVars(p);
-  const targets = adapter.targets(doc);
   return p.links.map((l) => {
     const t = targets.get(l.target);
     const r = compute(l.expr, ev.values);

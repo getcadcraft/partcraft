@@ -12,7 +12,7 @@
  *          stock {kind box|cylinder, mode offset|fixed, side, top, bottom (offsets, mm), size [x,y,z] (fixed), r (cylinder)},
  *          material (cam-tools MATERIALS key), machine {post fanuc|grbl|linuxcnc, maxRpm, rapid (mm/min), toolChange (s)},
  *          program (number), coolant flood|mist|off}
- *   op    {id, type face|pocket|adaptive|contour|drill|chamfer, name, tool (tool id), suppressed, geo {faces:[FaceRef], edges:[EdgeRef]},
+ *   op    {id, type face|pocket|adaptive|contour|drill|chamfer|parallel|scallop, name, tool (tool id), suppressed, geo {faces:[FaceRef], edges:[EdgeRef]},
  *          params {...} (OP_PARAMS)}
  *
  * Machine frame: Z = the chosen world axis, X/Y right-handed (+y → X = world X, Y = −world Z, the top plane's
@@ -23,6 +23,8 @@ import { boundaryLoops } from './faces.js';
 import { findFace, findEdge } from './brep.js';
 import * as O from './cam-offset.js';
 import { readTool, starterLibrary, MATERIALS } from './cam-tools.js';
+import { parsePost } from './cam-postdef.js';
+import { ORIGINS } from './cam-origins.js';
 import { t } from './i18n.js';
 
 export const STUDY_VERSION = 1;
@@ -36,15 +38,7 @@ export const AXES = {
   '+x': { x: [0, 0, -1], y: [0, 1, 0], z: [1, 0, 0], get label() { return t('mfg.axis.px'); } },
   '-x': { x: [0, 0, 1], y: [0, 1, 0], z: [-1, 0, 0], get label() { return t('mfg.axis.nx'); } },
 };
-// English on purpose: cam-post.js writes these into the G-code header comment; the UI shows originLabel()
-export const ORIGINS = {
-  'stock-top-min': 'Stock top, front left corner',   // i18n-ignore: G-code comment
-  'stock-top-centre': 'Stock top, centre',   // i18n-ignore: G-code comment
-  'stock-bottom-min': 'Stock bottom, front left corner',   // i18n-ignore: G-code comment
-  'stock-bottom-centre': 'Stock bottom, centre',   // i18n-ignore: G-code comment
-  'model-top-centre': 'Model top, centre',   // i18n-ignore: G-code comment
-  'model-origin': 'Model origin',   // i18n-ignore: G-code comment
-};
+export { ORIGINS };
 /** The UI label of a work origin (ORIGINS keeps the English the G-code comments carry). */
 export function originLabel(key) {
   const m = { 'stock-top-min': 'mfg.origin.top_min', 'stock-top-centre': 'mfg.origin.top_centre', 'stock-bottom-min': 'mfg.origin.bottom_min', 'stock-bottom-centre': 'mfg.origin.bottom_centre', 'model-top-centre': 'mfg.origin.model_top_centre', 'model-origin': 'mfg.origin.model_origin' }[key];
@@ -58,6 +52,7 @@ export const POSTS = {
 export const OP_TYPES = {
   get face() { return t('mfg.op.face'); }, get pocket() { return t('mfg.op.pocket'); }, get adaptive() { return t('mfg.op.adaptive'); },
   get contour() { return t('mfg.op.contour'); }, get drill() { return t('mfg.op.drill'); }, get chamfer() { return t('mfg.op.chamfer'); },
+  get parallel() { return t('mfg.op.parallel'); }, get scallop() { return t('mfg.op.scallop'); },
 };
 
 export function newSetup() {
@@ -67,12 +62,31 @@ export function newSetup() {
     material: 'aluminum', machine: { post: 'grbl', maxRpm: 24000, rapid: 5000, toolChange: 15 }, program: 1001, coolant: 'flood',
   };
 }
-export function newStudy() { return { version: STUDY_VERSION, setup: newSetup(), tools: starterLibrary(), ops: [] }; }
+export function newStudy() { return { version: STUDY_VERSION, setup: newSetup(), tools: starterLibrary(), ops: [], posts: [] }; }
+
+// ---------------------------------------------------------------- the study's own posts (cam-postdef.js text files)
+
+export const POST_LIMITS = { count: 20, text: 60000 };
+const POST_ID = /^[A-Za-z0-9_-]{1,40}$/;
+/** The study's own posts [{id, text}] from untrusted data: ids unique, every text parses. */
+export function readPosts(list) {
+  if (list === undefined || list === null) return [];
+  if (!Array.isArray(list) || list.length > POST_LIMITS.count) throw new Error(t('mfg.study.post_list'));
+  const seen = new Set();
+  return list.map((p) => {
+    if (!p || typeof p.id !== 'string' || !POST_ID.test(p.id) || seen.has(p.id)) throw new Error(t('mfg.study.post_id'));
+    seen.add(p.id);
+    if (typeof p.text !== 'string' || p.text.length > POST_LIMITS.text) throw new Error(t('mfg.study.post_text'));
+    try { parsePost(p.text); } catch (e) { throw new Error(t('mfg.study.post_bad', { id: p.id, line: e.line || 1, error: e.message })); }
+    return { id: p.id, text: p.text };
+  });
+}
 
 // ---------------------------------------------------------------- operation parameters
 
 // [min, max, default] for numbers, [values…] (first = default) for choices, true/false for flags
 const H = { clearance: [0, 500, 10], retract: [0, 500, 5], feedHeight: [0.1, 100, 1], top: [null], bottom: [null], bottomOff: [-200, 200, 0] };
+const HF = { clearance: H.clearance, retract: H.retract, bottom: H.bottom };
 export const OP_PARAMS = {
   face: { ...H, stepover: [0.05, 1, 0.75], stepdown: [0.05, 50, 2], overhang: [0, 100, 2], direction: ['x', 'y'] },
   pocket: { ...H, stepover: [0.05, 0.5, 0.4], stepdown: [0.05, 100, 2], leave: [0, 20, 0], leaveAxial: [0, 20, 0], finish: false, entry: ['helix', 'ramp', 'plunge'], rampAngle: [0.5, 45, 3], helixR: [0.05, 2, 0.4], breakthrough: [0, 20, 1] },
@@ -81,6 +95,9 @@ export const OP_PARAMS = {
   contour: { ...H, side: ['auto', 'outside', 'inside'], stepdown: [0.05, 100, 2], leave: [0, 20, 0], climb: true, lead: [0, 5, 0.5], tabs: [0, 32, 0], tabWidth: [0.5, 100, 6], tabHeight: [0.1, 100, 2], breakthrough: [0, 20, 1], holes: false, ramp: false, rampAngle: [0.5, 45, 3] },
   drill: { ...H, cycle: ['peck', 'drill', 'chipbreak'], peck: [0.05, 100, 3], rPlane: [0.1, 100, 2], breakthrough: [0, 20, 1], fullDiameter: true, diameter: [0, 250, 0] },
   chamfer: { ...H, width: [0.05, 20, 0.5], tipOffset: [0, 20, 0.5], holes: true },
+  // 0.7 LC.15, 3D finishing of the whole model (cam-finish.js): stepover × D; tolerance, leave and bottom in mm; angles in degrees
+  parallel: { ...HF, stepover: [0.005, 0.5, 0.1], tolerance: [0.001, 1, 0.01], angle: [0, 180, 0], leave: [0, 20, 0], zigzag: true, slopeFrom: [0, 90, 0], slopeTo: [0, 90, 90] },
+  scallop: { ...HF, height: [0.001, 1, 0.02], tolerance: [0.001, 1, 0.01], leave: [0, 20, 0], from: ['edge', 'top'], climb: true, slopeFrom: [0, 90, 0], slopeTo: [0, 90, 90] },
 };
 export function defaultParams(type) {
   const s = OP_PARAMS[type], out = {};
@@ -125,7 +142,7 @@ export function readSetup(j) {
     },
     material: MATERIALS[j.material] ? j.material : 'aluminum',
     machine: {
-      post: POSTS[j.machine?.post] ? j.machine.post : 'grbl',
+      post: POSTS[j.machine?.post] || /^custom:[A-Za-z0-9_-]{1,40}$/.test(j.machine?.post) ? j.machine.post : 'grbl',
       maxRpm: numIn(j.machine?.maxRpm ?? 24000, 100, 200000, t('mfg.study.w.max_rpm')),
       rapid: numIn(j.machine?.rapid ?? 5000, 10, 200000, t('mfg.study.w.rapid')),
       toolChange: numIn(j.machine?.toolChange ?? 15, 0, 3600, t('mfg.study.w.tool_change')),
@@ -174,7 +191,10 @@ export function readStudy(j) {
       params: readParams(o.type, o.params),
     };
   });
-  return { version: STUDY_VERSION, setup: readSetup(j.setup), tools, ops };
+  const posts = readPosts(j.posts);
+  const setup = readSetup(j.setup);
+  if (setup.machine.post.startsWith('custom:') && !posts.some((p) => 'custom:' + p.id === setup.machine.post)) throw new Error(t('mfg.study.post_missing'));
+  return { version: STUDY_VERSION, setup, tools, ops, posts };
 }
 
 // ---------------------------------------------------------------- the part in machine coordinates
@@ -273,6 +293,36 @@ export function machineModel(regen, setup) {
   }
   /** Top of the part at (x, y) (−Infinity where there is none). */
   function heightAt(x, y) { let m = -Infinity; for (const h of hits(x, y)) if (h.z > m) m = h.z; return m; }
+  /** Triangles whose bins touch the window [x0, x1] × [y0, y1] (each once) — the 3D finishing's edge and vertex contacts. */
+  function trianglesIn(x0, y0, x1, y1) {
+    const i0 = Math.max(0, Math.floor((x0 - bx0) / bw)), i1 = Math.min(binN - 1, Math.floor((x1 - bx0) / bw));
+    const j0 = Math.max(0, Math.floor((y0 - by0) / bh)), j1 = Math.min(binN - 1, Math.floor((y1 - by0) / bh));
+    const seen = new Set();
+    for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) for (const t of bins[j * binN + i]) seen.add(t);
+    return [...seen];
+  }
+  /** The highest triangle at (x, y) as z(X, Y) = z + gx·(X − x) + gy·(Y − y): {z, gx, gy}, null where there is none (3D finishing). */
+  function topPlane(x, y) {
+    const i = Math.floor((x - bx0) / bw), j = Math.floor((y - by0) / bh);
+    if (i < 0 || j < 0 || i >= binN || j >= binN) return null;
+    let best = null;
+    for (const t of bins[j * binN + i]) {
+      const a = I[t * 3] * 3, b = I[t * 3 + 1] * 3, c = I[t * 3 + 2] * 3;
+      const x1 = pos[a], y1 = pos[a + 1], x2 = pos[b], y2 = pos[b + 1], x3 = pos[c], y3 = pos[c + 1];
+      const den = (y2 - y3) * (x1 - x3) + (x3 - x2) * (y1 - y3);
+      if (Math.abs(den) < 1e-14) continue;
+      const l1 = ((y2 - y3) * (x - x3) + (x3 - x2) * (y - y3)) / den;
+      const l2 = ((y3 - y1) * (x - x3) + (x1 - x3) * (y - y3)) / den;
+      const l3 = 1 - l1 - l2;
+      if (l1 < -1e-12 || l2 < -1e-12 || l3 < -1e-12) continue;
+      const z = l1 * pos[a + 2] + l2 * pos[b + 2] + l3 * pos[c + 2];
+      if (best && z <= best.z) continue;
+      const d2 = (x2 - x1) * (y3 - y1) - (x3 - x1) * (y2 - y1);
+      const z1 = pos[a + 2], z2 = pos[b + 2], z3 = pos[c + 2];
+      best = { z, gx: ((z2 - z1) * (y3 - y1) - (z3 - z1) * (y2 - y1)) / d2, gy: ((z3 - z1) * (x2 - x1) - (z2 - z1) * (x3 - x1)) / d2 };
+    }
+    return best;
+  }
   /** Is there part material just below z at (x, y)? (ray parity, nudged off mesh vertices) */
   function materialBelow(x, y, z) {
     const hs = hits(x + 1.37e-7, y + 0.91e-7).filter((h) => h.z < z).sort((a, b) => b.z - a.z);
@@ -356,7 +406,7 @@ export function machineModel(regen, setup) {
 
   return {
     axis: setup.axis, frame: ax, origin: O0, toM, toWorld, stock, box, top: box.max[2], bottom: box.min[2], faces, edges, mesh, tol,
-    heightAt, materialBelow, faceLoops, cylinderInfo, holes, edgeLoop, isFloor,
+    heightAt, topPlane, trianglesIn, materialBelow, faceLoops, cylinderInfo, holes, edgeLoop, isFloor,
     faceIndex: (ref) => findFace(regen.faces, ref),   // world-space refs (FaceRef/EdgeRef) → index, −1 when gone
     edgeIndex: (ref) => findEdge(regen.edges, ref),
   };

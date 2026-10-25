@@ -22,7 +22,7 @@ This version builds every part with the mesh kernel (see [The mesh kernel](topic
 | Several bodies: {{ui:Combine}}, {{ui:Move body}}, {{ui:Scale body}}, {{ui:Path pattern}}, features that make a new body | One solid; patterns and mirror copy features |
 | Sketches, planes, axes and points on faces that only an exact kernel can find (a face made by a fillet, a hole wall, a face of an imported solid) | Sketch on base planes, reference planes and the flat faces of extrudes and revolves |
 | A generative design outcome opened as a part or added to it (it becomes an imported solid) | Download the outcome as STL or STEP |
-| Opening STEP files, exact STEP export (AP242, AP214), STEP for other part modelers, opening a part modeler's export | {{ui:Export}} › {{ui:STEP (faceted, mesh kernel)}}, STL or 3MF; the macro for another part modeler still writes |
+| Opening STEP files with their curved faces kept exact, exact STEP export (AP242, AP214), STEP for other part modelers | {{ui:Open}} reads STEP as triangles ([Open a STEP file](topic:import-step)); {{ui:Export}} › {{ui:STEP (faceted, mesh kernel)}}, STL or 3MF; the macro for another part modeler still writes |
 | True arcs in drawing views | Views and section views are drawn from the facets |
 | Exact volumes, areas and distances | {{ui:Measure}} gives the faceted solid's numbers, a little low on round parts; a finer **Curves** setting brings them closer |
 
@@ -49,7 +49,7 @@ Some rows in the tables below suggest one of these features as the way round som
 | A non-uniform scale that keeps cylinders and cones analytic; non-uniform scaling of offset surfaces | {{ui:Scale body}} makes curved faces close B-splines (within 0.0000004 mm); a uniform scale stays exact |
 | Combining surface bodies; Minkowski sums | {{ui:Stitch}} or {{ui:Thicken}} first, then {{ui:Combine}} |
 | Tolerance analysis: stack-ups that turn corners (2D and 3D vector loops), sensitivities worked out from the geometry, Monte Carlo with other distributions, size tolerances on sketch dimensions, bonus tolerance from material condition | {{ui:Stack-up}} in an assembly: one direction, worst case and RSS, tolerances typed, from the title block's general tolerance or from GD&T frames: see [Tolerance stack-ups](topic:tolerance-stackup) |
-| Nesting: cutting order and lead-ins, cutting shared edges once, keeping and reusing leftover sheet, parts that must be kept together | {{ui:Nest flat parts on sheets…}} with spacing, margins, turns and grain: see [Nest flat parts on sheets](topic:nest-flat-parts); plan the cut in your cutter's own software |
+| Nesting: cutting order and lead-ins, cutting shared edges once, parts that must be kept together; remnants of rolls, stock shared between projects | {{ui:Nest flat parts on sheets…}} with spacing, margins, turns and grain: see [Nest flat parts on sheets](topic:nest-flat-parts); leftover plates are kept and used first: see [Keep and reuse offcuts](topic:nest-offcuts); plan the cut in your cutter's own software |
 | Sheet metal: hems, jogs, miter and contour flanges; flanges on curved edges or on a bent base flange's faces; sketched bends; corner closures; forming tools; converting a solid to sheet metal; the flat of a bent base flange with cuts in it; bend tables | {{ui:Base flange}} (a plate or a bent profile), {{ui:Edge flange}} on a plate's straight edges with bend reliefs, and the flat pattern with a K-factor: see [Sheet metal](topic:sheet-metal) |
 | Draft analysis on assemblies; finding the parting line; wall-thickness analysis | {{ui:Draft analysis}} on the part in Design: see [Check draft for moulding and casting](topic:draft-analysis); open each part of an assembly to check it |
 
@@ -72,7 +72,7 @@ Some rows in the tables below suggest one of these features as the way round som
 
 | Not built yet | Instead, today |
 |---|---|
-| Building a part's saved configurations from the command line by name (with their features turned off); configurations that change materials | Export them as a CSV design table and pass it with `--table` (values only); configurations set parameters and turn features on and off: see [Configurations and design tables](topic:design-tables) |
+| Configurations that change materials; a CSV design table that turns features off | Configurations set parameters and turn features on and off: see [Configurations and design tables](topic:design-tables); `partcraft variants` builds saved configurations by name, features turned off included: see [Make a variant pack from your configurations](topic:variant-pack) |
 | Equations on the numbers of the newest features' own panels (plane, sweep, draft and similar) | Write them in a script or with `partcraft set` ([Scripts and the command line](topic:scripts-and-cli)) |
 | A part shown in inches | Sizes show in millimeters; type `2in` in a number box or an expression and it becomes 50.8 |
 
@@ -82,8 +82,8 @@ Some rows in the tables below suggest one of these features as the way round som
 |---|---|
 | Editing an imported STEP solid's own features (it arrives without history) | Add or cut material with your own features |
 | Reading colors, names, assembly structure and PMI from STEP | Not available |
-| glTF, OBJ, IGES, Parasolid, DWG export | STL or 3MF for meshes; STEP for solids; DXF for 2D |
-| Opening STL, IGES, DXF or other programs' own files | Ask for STEP |
+| glTF, OBJ, IGES, Parasolid export; DWG of a 3D part (only the variant pack writes a DWG: the drawing sheet) | STL or 3MF for meshes; STEP for solids; DXF for 2D |
+| Opening IGES, DXF or other programs' own files (`.3dm` files open as one body: [Open a .3dm model as a solid body](topic:open-3dm-files)) | Ask for STEP, or a closed STL, OBJ or 3MF mesh: [Open an STL, OBJ or 3MF](topic:open-meshes) |
 | Assembly structure (a tree with part names) in exported STEP | Assembly STEP is one compound of the placed solids |
 | Saving to a folder of your choice without the browser's download | Turn on "ask where to save" in the browser's download settings |
 
@@ -98,12 +98,12 @@ Some rows in the tables below suggest one of these features as the way round som
 | Live section view: several planes or a section box at once, an outline round the cut, saving the section in the file | One plane at a time from {{ui:Views}} › {{ui:Section view}}; see [Look inside with a section view](topic:section-view) |
 | Assembly drawings with more views, dimensions or balloons you can move | One isometric (or exploded) view with automatic balloons and the parts list |
 | Copy and paste of GD&T and finish symbols | Place each with Datum, Frame or Finish |
+| Manuals: STEP files in Illustrate's {{ui:From another file…}}, a model handed straight from ModelCraft or BimCraft, pictures at the path tracer's quality, interactive 3D inside a PDF | Open the STEP in Design and start the manual {{ui:From the open part}}; save the model as glTF (.glb); PNG pictures of the 3D view; the interactive 3D file: see [Start a manual in Illustrate](topic:illustrate) |
 
 ## Assemblies
 
 | Not built yet | Instead, today |
 |---|---|
-| Joints in a loop (more than one path to the grounded part) | Keep the joints a tree; remove one joint of the loop |
 | Gear, rack, cam and screw joints; a ball joint limited to a cone; joints on curved faces or between points | Rigid, revolute, slider, cylindrical, planar, ball and pin-in-slot joints on flat faces, each value with its own limits: see [Build an assembly](topic:build-assembly) |
 | Exploded steps that turn parts, and dragging parts that joints place | Straight explode steps; remove a joint to move a part by hand |
 | Sub-assemblies | One level of parts only |
@@ -113,10 +113,10 @@ Some rows in the tables below suggest one of these features as the way round som
 
 | Not built yet | Instead, today |
 |---|---|
-| 3D roughing and finishing of curved faces, 3D adaptive clearing, rest machining; adaptive passes written as arcs | 2.5-axis face, pocket, 2D adaptive, contour, drill and chamfer: see [Make toolpaths and G-code](topic:manufacture) |
+| 3D roughing of curved faces, 3D adaptive clearing, rest machining; waterline, pencil, radial and spiral finishing; adaptive passes written as arcs | 2.5-axis face, pocket, 2D adaptive, contour, drill and chamfer: see [Make toolpaths and G-code](topic:manufacture); Parallel and Scallop finishing of the whole model: see [3D finishing](topic:finish-3d) |
 | 4- and 5-axis toolpaths, turning, probing | Set up one side at a time with the tool axis on the Setup tab |
 | Holder and shank collision checks | Watch the flute-length warnings and check in your control's simulator |
-| Editing posts or adding other controls | Fanuc-style, GRBL or LinuxCNC; adapt the downloaded file by hand |
+| Probing, tool-life and subprogram cycles, 4th- and 5th-axis and lathe codes in a post; loading other programs' post files | Write or change a post in PartCraft's own format: see [Post processors you can edit](topic:post-processors) |
 | Inch G-code (G20) | Millimetres (G21) only |
 
 ## Simulation and generative design

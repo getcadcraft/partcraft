@@ -80,3 +80,5 @@
   </div>
   <p class="shell-hint-text"><?= Lang::e('ui.settings.bed.hint') ?></p>
 </fieldset>
+<?php /* AI assistants and scripts (0.7 AS.4, session assistants): host.js fills this with Settings › Assistants (off by default) */ ?>
+<div data-assistants-settings></div>

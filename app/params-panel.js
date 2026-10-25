@@ -6,7 +6,7 @@
  *
  *   const pp = mountParams(host)   host = { root, part(), commit(label, fn) (one undo step + rebuild + render),
  *                                          status(msg, keep?), ask({ title, text, buttons }), download(text, name, type),
- *                                          openText(text, name), mode(), fileBase() }
+ *                                          openText(text, name), mode(), fileBase(), variantPack()? (the Variant pack dialog; 0.7 W3.19) }
  *   pp.render()                     the panel (call from renderAll); also drops equations whose numbers were deleted; under
  *                                   each parameter, where it is used (params-uses.js; 0.5 WL.30): a feature's use selects it
  *                                   through host.selectFeature(id) when the host has one
@@ -429,7 +429,9 @@ export function mountParams(host) {
       crows.length ? el('ul', { className: 'pc-prows', dataset: { rows: '' } }, ...crows) : el('p', { className: 'pc-muted' }, t('configs.empty')),
       el('p', { className: 'pc-muted', dataset: { configsHint: '' } }, t('configs.features_hint')),
       el('div', { className: 'pc-config-new' }, cfgName, el('button', { type: 'button', className: 'pc-btn', onclick: saveNew, dataset: { configSave: '' } }, t('configs.save'))),
-      el('div', { className: 'pc-actions' }, el('button', { type: 'button', className: 'pc-btn', onclick: () => csvIn.click(), dataset: { tableImport: '' }, title: t('configs.import_title') }, t('configs.import')), el('button', { type: 'button', className: 'pc-btn', onclick: exportTable, dataset: { tableExport: '' } }, t('configs.export'))),
+      el('div', { className: 'pc-actions' }, el('button', { type: 'button', className: 'pc-btn', onclick: () => csvIn.click(), dataset: { tableImport: '' }, title: t('configs.import_title') }, t('configs.import')), el('button', { type: 'button', className: 'pc-btn', onclick: exportTable, dataset: { tableExport: '' } }, t('configs.export')),
+        // 0.7 W3.19: every configuration (or a chosen set) as STEP, IFC, DWG and a preview, a variants table and a library item
+        host.variantPack && crows.length ? el('button', { type: 'button', className: 'pc-btn', onclick: () => host.variantPack(), dataset: { variantPackOpen: '' }, title: t('variants.ui.open_title') }, t('variants.ui.open')) : null),
       csvIn));
 
     // script

@@ -36,7 +36,8 @@ export function exactKernelUrl() {
   } catch { return null; }
 }
 
-/** Blob URLs for build modules and everything they import relatively ('./x.js', single quotes): Map file → blob URL.
+/** Blob URLs for build modules and everything they import relatively ('./x.js' or './folder/x.js', single quotes, each
+ *  relative to the importing module's own folder): Map file (path from the build folder) → blob URL.
  *  Also used by compute-worker.js for plain compute workers. */
 export async function blobModules(files) {
   const urls = new Map();     // file → blob URL
@@ -50,10 +51,12 @@ export async function blobModules(files) {
       texts.set(file, await res.text());
     }
     let src = texts.get(file);
-    // a module never imports itself: a match on its own name is usage text in a comment (i18n.js shows `from './i18n.js'`)
-    const deps = [...new Set([...src.matchAll(/(?:from|import)\s*\(?\s*'\.\/([a-z0-9-]+\.js)'/g)].map((m) => m[1]))].filter((d) => d !== file);
+    // a module never imports itself: a match on its own name is usage text in a comment (i18n.js shows `from './i18n.js'`).
+    // Sub-folder imports ('./nest/nest-stock.js' in part.js, './nest.js' inside nest/) are keyed by their path from the build folder.
+    const dir = file.includes('/') ? file.slice(0, file.lastIndexOf('/') + 1) : '';
+    const deps = [...new Set([...src.matchAll(/(?:from|import)\s*\(?\s*'\.\/((?:[a-z0-9-]+\/)*[a-z0-9-]+\.js)'/g)].map((m) => m[1]))].filter((d) => dir + d !== file);
     for (const d of deps) {
-      const u = await visit(d, [...stack, file]);
+      const u = await visit(dir + d, [...stack, file]);
       src = src.split(`'./${d}'`).join(`'${u}'`);
     }
     const u = URL.createObjectURL(new Blob([src], { type: 'text/javascript' }));

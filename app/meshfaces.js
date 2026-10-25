@@ -18,8 +18,11 @@
  *                      every triangle between radii r0–r1 and heights t0–t1 along the axis; 0.5 WL.29)
  *                    | { name, type: 'other' }   (spline sides: named, not classified)
  *   moveSurfs(surfs, M4, suffix)          copies for a pattern or mirror: points and directions moved, names + suffix
- *   namedFaces(mesh, triTool, toolSurfs, { segments })  → { triFace, faces, edges, edgeSegs, segEdge }
+ *   namedFaces(mesh, triTool, toolSurfs, { segments, triHint })  → { triFace, faces, edges, edgeSegs, segEdge }
  *     mesh: { positions, indices } (welded); triTool[t] = index into toolSurfs (−1 = unknown); toolSurfs[i] = surface list
+ *     triHint (optional, 0.7 D7.49): Int32Array, triHint[t] = the surface index in its tool's list when known already (a body
+ *     made from a mesh carries it as manifold's faceID), −1 = on none of them, −2 = not known (matched by geometry as usual).
+ *     A surface with `noSpread` (a mesh body's flat face) never takes in an unclaimed neighbour (step 1b).
  *     faces[i]  = { name, type, n?, o?, axis?, r?, area, at }                          (brep.js faceTable rows)
  *     edges[j]  = { faces: [a, b] (sorted names), key, at, a, b, len, type: line|circle|curve, circ? { c, n, r } }
  *     edgeSegs  = Float32Array of segments (x1 y1 z1 x2 y2 z2 …), segEdge[s] = its edge index (brep.js mesh fields)
@@ -89,7 +92,7 @@ function onSurface(s, P, nt, tol, sag) {
   return false;
 }
 
-export function namedFaces(mesh, triTool, toolSurfs, { segments = 64 } = {}) {
+export function namedFaces(mesh, triTool, toolSurfs, { segments = 64, triHint = null } = {}) {
   const sag = 1.5 * (1 - Math.cos(Math.PI / Math.max(8, segments)));   // segments: the part's facets per full turn
   const P = mesh.positions, I = mesh.indices, nt = I.length / 3;
   const pt = (i) => [P[i * 3], P[i * 3 + 1], P[i * 3 + 2]];
@@ -110,6 +113,15 @@ export function namedFaces(mesh, triTool, toolSurfs, { segments = 64 } = {}) {
     const ti = triTool[t];
     const surfs = ti >= 0 ? toolSurfs[ti] : null;
     if (!surfs) continue;
+    const hint = triHint ? triHint[t] : -2;
+    if (hint === -1) continue;
+    if (hint >= 0 && hint < surfs.length) {
+      const key = ti + ':' + hint;
+      let g = keyIndex.get(key);
+      if (g === undefined) { g = surfKey.length; keyIndex.set(key, g); surfKey.push([ti, hint]); }
+      surfOf[t] = g;
+      continue;
+    }
     const longest = Math.max(Math.hypot(...sub(b, a)), Math.hypot(...sub(c, b)), Math.hypot(...sub(a, c)));
     const n = ln > 1e-6 * longest * longest ? [triN[t * 3], triN[t * 3 + 1], triN[t * 3 + 2]] : null;
     let hit = -1;
@@ -132,8 +144,8 @@ export function namedFaces(mesh, triTool, toolSurfs, { segments = 64 } = {}) {
   for (let pass = 0; pass < 4; pass++) {
     let changed = 0;
     for (let t = 0; t < nt; t++) {
-      if (surfOf[t] >= 0 || triTool[t] < 0) continue;
-      const q = nbr(t).find((x) => surfOf[x] >= 0 && surfKey[surfOf[x]][0] === triTool[t]);
+      if (surfOf[t] >= 0 || triTool[t] < 0 || (triHint && triHint[t] === -1)) continue;
+      const q = nbr(t).find((x) => surfOf[x] >= 0 && surfKey[surfOf[x]][0] === triTool[t] && !toolSurfs[surfKey[surfOf[x]][0]][surfKey[surfOf[x]][1]].noSpread);
       if (q !== undefined) { surfOf[t] = surfOf[q]; changed++; }
     }
     if (!changed) break;

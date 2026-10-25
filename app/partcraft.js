@@ -47,16 +47,20 @@ import * as V from './vec.js';
 import * as C from './clipboard.js';
 import { el, fillDl, swapChildren } from './ui-util.js';
 import { mountParams } from './params-panel.js';
+import { installAgents } from './agents.js';   // 0.7 AS.4: tools for the person's own AI assistant (off until Settings › Assistants)
 import { installDesignUI, DESIGN_TYPES, DESIGN_ICONS, EXTRUDE_END_OPTIONS, HOLE_TYPE_OPTIONS } from './design-ui.js';
 import { installSurfaceUI, SURFACE_TYPES, SURFACE_MENU, SURFACE_ICONS } from './surface-ui.js';
 import { installBodiesUI, BODY_TYPES, BODY_MENU, BODY_ICONS } from './bodies-ui.js';
 import { installSheetUI, SHEET_TYPES, SHEET_MENU, SHEET_ICONS } from './sheet-ui.js';
 import { installRibUI, RIB_TYPES, RIB_MENU, RIB_ICONS } from './rib-ui.js';
+import { installWeldUI, WELD_TYPES, WELD_ICONS } from './weld-ui.js';   // 0.7 D7.50: structural members
+import { displayName as SECTION_NAME } from './shapes/sections.js';
 import { threadNotes } from './threads.js';
 import { PARAM_FIELDS, linkOf } from './params-part.js';
 import { treeValue } from './tree-value.js';   // 0.6 PU.5: the main value in a history row
 import * as FA from './face-actions.js';   // 0.6 PU.3: Extrude from it, Cut into it, Hole here
 import * as HM from './handle-math.js';   // 0.6 PU.2: drag handles on features
+import * as MI from './meshimport.js';   // 0.7 D7.49: STL / OBJ / 3MF opened as solid bodies
 import { FeatureHandles } from './handles.js';
 import { startAddons } from './addons/partcraft-api.js';
 import { installThreadUI, THREAD_ICONS } from './thread-ui.js';
@@ -76,6 +80,7 @@ import './ws-form.js';
 import './ws-simulation.js';
 import './ws-generative.js';
 import './ws-manufacture.js';
+import './ws-illustrate.js';   // 0.7 Track TP (session illustrate)
 import { dockEditor, undockEditor } from './ws-script.js';
 import { mountViewCube, mountAxisIcon } from './viewcube.js';
 import { threeCubeOptions } from './viewcube-three.js';
@@ -85,8 +90,8 @@ import { getHost } from "./host.js";
 const root = document.querySelector('[data-partcraft]');
 if (root) init(root);
 
-const ICONS = { sketch: 'pencil-square', extrude: 'box-arrow-up', revolve: 'arrow-repeat', hole: 'record-circle', lpattern: 'grid-3x2-gap', cpattern: 'arrow-clockwise', mirror: 'symmetry-vertical', fillet: 'app', chamfer: 'hexagon', shell: 'box2', import: 'box-arrow-in-down', ...DESIGN_ICONS, ...SURFACE_ICONS, ...BODY_ICONS, ...SHEET_ICONS, ...RIB_ICONS, ...THREAD_ICONS };
-const SOLID = new Set(['extrude', 'revolve', 'hole', 'lpattern', 'cpattern', 'mirror', 'import', 'sweep', 'loft']);
+const ICONS = { sketch: 'pencil-square', extrude: 'box-arrow-up', revolve: 'arrow-repeat', hole: 'record-circle', lpattern: 'grid-3x2-gap', cpattern: 'arrow-clockwise', mirror: 'symmetry-vertical', fillet: 'app', chamfer: 'hexagon', shell: 'box2', import: 'box-arrow-in-down', ...DESIGN_ICONS, ...SURFACE_ICONS, ...BODY_ICONS, ...SHEET_ICONS, ...RIB_ICONS, ...THREAD_ICONS, ...WELD_ICONS };
+const SOLID = new Set(['extrude', 'revolve', 'hole', 'lpattern', 'cpattern', 'mirror', 'import', 'sweep', 'loft', 'member']);
 const PICKERS = new Set(['fillet', 'chamfer', 'shell', 'draft', 'thread']);
 /** Each feature's main number, typed straight after selecting it (0.5 usability pass). */
 const MAIN_NUMBER = { extrude: 'depth', revolve: 'angle', hole: 'd', lpattern: 'count', cpattern: 'count', fillet: 'r', chamfer: 'd', shell: 't', draft: 'angle', rib: 't', plane: 'd', thread: 'length' };
@@ -95,7 +100,7 @@ const FACE_PICKERS = new Set(['shell', 'draft', 'thread']);
 const PICK_ON_MESH = new Set([...MESH_BUILT, 'thread']);   // pickers whose references are faces (the others take edges)   // features whose references are picked in the view
 const DESIGN_GROUPS = ['sketch', 'features', 'drawing', 'assembly'];   // toolbar groups only the Design workspace shows
 const f3 = (v) => V.fmt(v, 3);
-const ASM_EXPORTS = ['export-print', 'export-stl', 'export-3mf', 'export-step', 'export-step214', 'export-drawing', 'export-bom', 'export-ifc', 'export-nest'];   // what an assembly exports as a whole (asm-ui.js)
+const ASM_EXPORTS = ['export-print', 'export-stl', 'export-3mf', 'export-step', 'export-step214', 'export-drawing', 'export-bom', 'export-ifc', 'export-nest', 'export-laser', 'export-usd'];   // what an assembly exports as a whole (asm-ui.js)
 
 function init(root) {
   const $ = (s) => root.querySelector(s);
@@ -770,16 +775,21 @@ function init(root) {
 
   function newFeature(type, props) {
     const label = P.FEATURE_LABELS[type];   // the feature's name (part.js), also the undo step's label
-    if ((DESIGN_TYPES.has(type) && type !== 'draft') || SURFACE_TYPES.has(type) || BODY_TYPES.has(type) || SHEET_TYPES.has(type) || RIB_TYPES.has(type)) {
+    if ((DESIGN_TYPES.has(type) && type !== 'draft') || SURFACE_TYPES.has(type) || BODY_TYPES.has(type) || SHEET_TYPES.has(type) || RIB_TYPES.has(type) || WELD_TYPES.has(type)) {
       // reference geometry, sweep, loft: made from the selection, finished in the panel (design-ui.js)
-      const dp = RIB_TYPES.has(type) ? RB.create() : SHEET_TYPES.has(type) ? SH.create(type) : BODY_TYPES.has(type) ? BUI.create(type) : SURFACE_TYPES.has(type) ? SUI.create(type) : DUI.create(type);
+      const dp = WELD_TYPES.has(type) ? WU.create() : RIB_TYPES.has(type) ? RB.create() : SHEET_TYPES.has(type) ? SH.create(type) : BODY_TYPES.has(type) ? BUI.create(type) : SURFACE_TYPES.has(type) ? SUI.create(type) : DUI.create(type);
       if (!dp) return;
       const f = commit(label, () => P.addFeature(part, type, { ...dp, ...props }));
       sel = { kind: 'feature', id: f.id }; pick = null; multi = []; view.setHighlight(null); showMarks();
       if (type === 'sheetflange' && !f.edge) { renderAll(); SH.pickEdge(f); return; }   // no edge picked yet: wait for one
       renderAll();
       if (type === 'rib') { built().then(() => RB.afterBuild(f)).then((flipped) => { if (!flipped) { const r = regen.results.get(f.id); status(r?.status === 'error' ? t('app.feature.error', { name: f.name, error: r.message }) : t('rib.ui.added', { name: f.name })); } }); return; }
-      built().then(() => { const r = regen.results.get(f.id); status(r?.status === 'error' ? t('app.feature.error', { name: f.name, error: r.message }) : t('app.feature.added_refs', { name: f.name })); });
+      built().then(() => {
+        const r = regen.results.get(f.id);
+        if (r?.status === 'error') status(t('app.feature.error', { name: f.name, error: r.message }));
+        else if (type === 'member') status(t('weld.ui.added', { name: f.name, n: f.segs.length, section: SECTION_NAME(f.section) }));   // D7.50
+        else status(t('app.feature.added_refs', { name: f.name }));
+      });
       return;
     }
     if (PICKERS.has(type)) {
@@ -999,6 +1009,7 @@ function init(root) {
     download: (text, name, type) => download(text, name, type), openText: (text, name) => openText(text, name), mode: () => mode, fileBase: () => fileBase(),
     // a parameter's "Used by" entry: select that feature and show its properties (0.5 WL.30)
     selectFeature: (id) => { if (!P.featureById(part, id)) return; selectFeature(id); paramsUI.showTab('props'); },
+    variantPack: () => openVariantPackDialog(),   // the Configurations block's Variant pack button (variants-ui.js; 0.7 W3.19)
   });
   /** A one-line text box; onchange gets the cleaned text (control characters out, trimmed, cut at max). */
   const textInput = (value, onchange, { max = 60, placeholder = '', attrs = {} } = {}) => {
@@ -1045,6 +1056,11 @@ function init(root) {
   const RB = installRibUI({
     el, field, numInput, selectInput, check, btn, msg, status, setFeature: (id, label, fn) => setFeature(id, label, fn), built: () => built(),
     get part() { return part; }, get regen() { return regen; }, get sel() { return sel; }, get useExact() { return useExact; },
+  });
+  const WU = installWeldUI({
+    el, field, numInput, selectInput, check, btn, status, setFeature: (id, label, fn) => setFeature(id, label, fn), fmt: (v) => f3(v),
+    download: (data, name, mime) => download(data, name, mime),
+    get part() { return part; }, get regen() { return regen; }, get sel() { return sel; },
   });
   const TU = installThreadUI({
     el, field, numInput, selectInput, check, setFeature: (id, label, fn) => setFeature(id, label, fn),
@@ -1291,6 +1307,8 @@ function init(root) {
       out.push(refList(f, 'faces'));
     } else if (SHEET_TYPES.has(f.type)) {
       SH.panel(f, grid, out);
+    } else if (WELD_TYPES.has(f.type)) {
+      WU.panel(f, grid, out);
     } else if (RIB_TYPES.has(f.type)) {
       RB.panel(f, grid, out);
     } else if (f.type === 'thread') {
@@ -1302,6 +1320,16 @@ function init(root) {
       SUI.panel(f, grid, out);
     } else if (DESIGN_TYPES.has(f.type)) {
       DUI.panel(f, grid, out);
+    } else if (f.type === 'import' && f.mesh) {
+      // a body from a mesh (D7.49): what it was made from, what the import repaired; units, up axis and operation stay editable
+      const dl = el('dl', { className: 'pc-dl' });
+      const fmt = (/\.(stl|obj|3mf|step|stp|3dm)$/i.exec(f.file || '')?.[1] || 'stl').toUpperCase().replace('STP', 'STEP');   // a STEP read as triangles (D7.26) is a mesh body too
+      const fixed = f.report ? MI.reportLines(f.report).filter((l) => !(fmt === 'STEP' && l.key === 'mesh.rep.welded')).map((l) => t(l.key, l.vars)) : [];
+      fillDl(dl, [[t('app.import.file'), f.file || fmt], [t('app.import.made_from'), t('app.import.mesh_value', { fmt, n: f.mesh.nt })], [t('app.import.repaired'), fixed.length ? fixed.join(' ') : t('app.import.repaired_none')]]);
+      out.push(dl);
+      grid.push(...field(t('app.mesh.units'), selectInput(Object.keys(MI.UNITS).map((u) => [u, t('app.mesh.unit.' + u)]), f.units, (v) => set(t('app.mesh.units'), (g) => { g.units = v; }))));
+      grid.push(...field(t('app.import.up_in_file'), selectInput([['z', t('app.import.z_up')], ['y', t('app.import.y_up')]], f.up, (v) => set(t('app.import.up_axis'), (g) => { g.up = v; }))));
+      grid.push(...field(t('app.mesh.op'), selectInput(['add', 'cut', 'intersect'].map((o) => [o, t('app.mesh.op.' + o)]), f.op || 'add', (v) => set(t('app.mesh.op'), (g) => { g.op = v; }))));
     } else if (f.type === 'import') {
       const dl = el('dl', { className: 'pc-dl' });
       fillDl(dl, [[t('app.import.file'), f.file || 'STEP'], [t('app.import.size'), t('app.import.size_value', { kb: (f.step.length / 1024).toFixed(0) })], [t('app.import.up_axis'), f.up === 'y' ? t('app.import.up_y') : t('app.import.up_z')]]);
@@ -1569,7 +1597,7 @@ function init(root) {
     modeNotes().tree.hidden = mode === 'assembly';
     modeNotes().asm.hidden = mode !== 'assembly';
     modeNotes().factsH.textContent = mode === 'assembly' ? t('app.facts.h_assembly') : t('app.props.part');
-    if (mode === 'assembly') { renderAsmTree(); renderAsmProps(); renderAsmFacts(); updateTools(); ui.hint.hidden = true; return; }
+    if (mode === 'assembly') { renderAsmTree(); renderProps(); renderAsmFacts(); updateTools(); ui.hint.hidden = true; return; }   // renderProps: the assembly's panel in Design, an assemblies:true workspace's own otherwise (illustrate)
     paramsUI.render();   // first: it drops equations whose numbers were deleted
     syncPlanes(); syncHandles();
     renderTree(); renderProps(); renderFacts(); updateTools(); show3DSketches(); ui.hint.hidden = ws !== WS.DESIGN || mode === 'sketch' || mode === 'drawing' || part.features.length > 0;
@@ -1603,9 +1631,12 @@ function init(root) {
     for (const b of ui.tools.querySelectorAll('[data-cmd="view-section"]')) b.setAttribute('aria-checked', String(!!section?.active));
     for (const b of ui.tools.querySelectorAll('[data-cmd="view-planes"]')) b.setAttribute('aria-checked', String(settings.planes));
     for (const [c, m] of [['view-draft', 'draft'], ['view-zebra', 'zebra'], ['view-curvature', 'curvature']]) for (const b of ui.tools.querySelectorAll(`[data-cmd="${c}"]`)) b.setAttribute('aria-checked', String(!!draft?.active && draft.mode === m));
+    // a workspace with its own history (Illustrate's manual) says when Undo / Redo can act (0.7, asked by illustrate)
+    const wsUndo = ws !== WS.DESIGN && typeof ws.undoState === 'function' ? wsCall('undoState', host) : null;
     for (const b of ui.tools.querySelectorAll('[data-cmd]')) {
       const c = b.dataset.cmd;
       if (b.closest('[data-workspace-group]')) { wsToolState(b); continue; }
+      if (wsUndo && (c === 'undo' || c === 'redo')) { b.disabled = !wsUndo[c]; continue; }
       let dis = !M && !['new', 'open'].includes(c);
       if (inAsm) {
         if (c === 'asm-insert-copy') dis = dis || !asm?.instances.length;
@@ -1724,17 +1755,19 @@ function init(root) {
     if (cmd === 'view-mass') { if (mode === 'sketch' || mode === 'drawing') { status(t('app.measure.mass_model_only')); return; } measure.mass(); updateTools(); return; }
     if (cmd === 'export-print') return checkPrint();
     if (cmd === 'export-nest') return openNest();
+    if (cmd === 'export-laser') return openLaser();
     if (mode === 'assembly' && ASM_EXPORTS.includes(cmd)) return asmTools.exportCmd(cmd);
     if (SKETCH_TOOLS[cmd]) { if (mode === 'sketch') editor.setTool(editor.tool === SKETCH_TOOLS[cmd] ? 'select' : SKETCH_TOOLS[cmd]); focusStage(); return; }
     if (exactOff() && P.EXACT_ONLY.has(cmd) && !MESH_BUILT.has(cmd)) { status(t('kernel.not_built', { what: P.FEATURE_LABELS[cmd] }), true); return; }
     switch (cmd) {
       case 'new': return newPart();
       case 'std-part': return openStandardPart();
-      case 'open': if (await confirmDiscard()) { const [hf] = await fileHost.openFile({ types: [{ description: 'PartCraft, STEP', extensions: ['.json', '.step', '.stp'] }] }); await openFromHost(hf); } return;   // i18n-ignore: a file type label the OS shows
+      case 'open': if (await confirmDiscard()) { const [hf] = await fileHost.openFile({ types: [{ description: 'PartCraft, STEP, STL, OBJ, 3MF, 3DM', extensions: ['.json', '.step', '.stp', '.stl', '.obj', '.3mf', '.3dm'] }] }); await openFromHost(hf); } return;   // i18n-ignore: a file type label the OS shows
       case 'save': return savePart();
       case 'export-stl': return exportMesh('stl');
       case 'export-3mf': return exportMesh('3mf');
       case 'export-ifc': return exportIfc();
+      case 'export-usd': return exportUsd();   // 0.7 XF.8 (session usd)
       case 'export-step': return exportStep('AP242');
       case 'export-step214': return exportStep('AP214');
       case 'export-step-faceted': return exportMesh('step');
@@ -1747,7 +1780,7 @@ function init(root) {
       case 'plane': case 'axis': case 'point': case 'sweep': case 'loft': case 'draft': return newFeature(cmd, {});
       case 'patch': case 'surfloft': case 'stitch': case 'thicken': case 'offsetsurf': case 'extendsurf': case 'trimsurf': case 'gordon': return newFeature(cmd, {});
       case 'combine': case 'movebody': case 'scalebody': case 'pathpattern': return newFeature(cmd, {});
-      case 'sheetbase': case 'sheetflange': case 'rib': return newFeature(cmd, {});
+      case 'sheetbase': case 'sheetflange': case 'rib': case 'member': return newFeature(cmd, {});
       case 'thread': return newFeature('thread', {});
       case 'pick-done': return endPick();
       case 'drawing': return enterDrawing();
@@ -1797,6 +1830,8 @@ function init(root) {
   }
 
   function undoRedo(isUndo) {
+    // a workspace with its own history (Illustrate's manual) takes the keys as it takes the buttons (asked by illustrate, 0.7)
+    if (ws !== WS.DESIGN && wsCall('command', isUndo ? 'undo' : 'redo', host) === true) return;
     queueMicrotask(() => noteChange());   // autosave: an undo or redo is an edit too
     if (mode === 'assembly') {
       const r = isUndo ? asmHist.undo(asm) : asmHist.redo(asm);
@@ -1970,7 +2005,19 @@ function init(root) {
   }
 
   /** One part built by whichever kernel is in use (a promise either way). */
-  const buildPart = (p) => (useExact ? exact.call('regen', { part: p }) : Promise.resolve(regenerate(p, M)));
+  const buildPart = (p) => (useExact ? exact.call('regen', { part: p }) : Promise.resolve(regenerate(p, M, { checkpoints: false })));   // an assembly rebuilds many parts in turn: no checkpoints (kernel.js, 0.7 D7.51) to throw away each time
+  /** Variant pack (variants.js): every chosen configuration built with the kernel in use, as one zip. */
+  async function openVariantPackDialog() {
+    if (mode === 'sketch') exitSketch();
+    if (!M && !useExact) { status(t('app.export.no_solid')); return; }
+    await built();
+    const { openVariantPack } = await import('./variants-ui.js');
+    await openVariantPack({
+      ask, status, download: (data, name, mime) => download(data, name, mime), part: () => part, fileBase: () => fileBase(),
+      buildPart: (p) => buildPart(p),
+      stepFor: useExact ? (p) => exact.call('step', { part: p, schema: 'AP242' }).then((r) => r.text) : null,
+    });
+  }
   let asmSeq = 0;
   async function rebuildAsm() {
     if ((!M && !useExact) || !asm) return;
@@ -1992,7 +2039,7 @@ function init(root) {
     const bad = asmPlace.problems.filter((x) => !x.free).length;
     ui.build.textContent = bad ? t('app.asm.joint_problems', { n: bad }) : t('app.asm.placed', { ms: Math.round(performance.now() - t0) });
     ui.build.className = 'pc-chip ' + (bad ? 'is-error' : 'is-ok');
-    if (mode === 'assembly') { renderAsmTree(); renderAsmFacts(); keepFocus(() => renderAsmProps()); }
+    if (mode === 'assembly') { renderAsmTree(); renderAsmFacts(); keepFocus(() => renderProps()); }
     for (const w of asmWaiters.splice(0)) w();
   }
   const asmWaiters = [];
@@ -2003,6 +2050,7 @@ function init(root) {
     view.setInstances(asm.instances.filter((i) => asmBuilds.get(i.part)?.mesh).map((i) => ({ id: i.id, data: asmBuilds.get(i.part).mesh, matrix: shown.get(i.id) })));
     highlightAsm();
     asmTools?.afterShow(); measure?.refresh(); section?.refresh(); draft?.refresh(); stackup?.refresh();
+    if (ws !== WS.DESIGN) wsCall('rebuilt', host);   // a workspace that owns the screen in an assembly hides them again (illustrate)
   }
 
   function highlightAsm() {
@@ -2253,8 +2301,9 @@ function init(root) {
     items.push(el('li', { role: 'none', className: 'pc-props-sub' }, t('app.asm.tree_joints')));
     for (const j of asm.joints) {
       const pr = problem('joint', j.id);
+      const ls = asmPlace?.loops?.joints.get(j.id);   // on a loop (0.7 D7.40): under (can still move) / full / over (does not close)
       items.push(el('li', { role: 'none' }, el('button', {
-        type: 'button', role: 'treeitem', className: 'pc-node' + (pr ? ' is-error' : ''), dataset: { joint: j.id }, 'aria-selected': String(asmSel?.kind === 'joint' && asmSel.id === j.id), title: pr ? pr.message : t('asm.joint.type.' + j.type),
+        type: 'button', role: 'treeitem', className: 'pc-node' + (pr ? ' is-error' : ''), dataset: { joint: j.id, ...(ls ? { loopState: ls } : {}) }, 'aria-selected': String(asmSel?.kind === 'joint' && asmSel.id === j.id), title: pr ? pr.message : ls ? t('asm.joint.type.' + j.type) + ' — ' + t('asm.loop.' + ls) : t('asm.joint.type.' + j.type),
         onclick: () => { asmSel = { kind: 'joint', id: j.id }; jointPick = null; renderAll(); highlightAsm(); },
       }, el('i', { className: 'bi bi-' + (pr ? 'exclamation-triangle-fill' : 'link-45deg'), 'aria-hidden': 'true' }), el('span', { className: 'pc-node-name' }, j.name), el('span', { className: 'pc-node-flag' }, pr ? '⚠' : t('asm.joint.type.' + j.type).toLowerCase()))));   // i18n-ignore: icon class names
     }
@@ -2264,7 +2313,9 @@ function init(root) {
 
   function renderAsmFacts() {
     const free = asmPlace ? asmPlace.problems.filter((x) => x.free).length : 0;
-    fillDl(ui.facts, [[t('app.asm.tree_parts'), Object.keys(asm.parts).length], [t('app.asm.facts_instances'), asm.instances.length], [t('app.asm.tree_joints'), asm.joints.length], [t('app.asm.facts_not_joined'), free || ''],
+    const L = asmPlace?.loops, nLoops = L ? L.equations / 6 : 0;
+    const loops = !L || L.status === 'none' ? '' : L.status === 'over' ? t('app.asm.loops_over', { loops: nLoops, n: L.conflicts.length }) : L.status === 'under' ? t('app.asm.loops_under', { loops: nLoops, n: L.mobility }) : t('app.asm.loops_full', { loops: nLoops });
+    fillDl(ui.facts, [[t('app.asm.tree_parts'), Object.keys(asm.parts).length], [t('app.asm.facts_instances'), asm.instances.length], [t('app.asm.tree_joints'), asm.joints.length], [t('app.asm.facts_not_joined'), free || ''], [t('app.asm.facts_loops'), loops],
       [t('app.asm.facts_interference'), clashes === null ? t('app.asm.not_checked') : ((n) => (n ? t('asm.clash.facts', { n }) : t('app.asm.none')))(A.filterClashes(asm, clashes).shown.length)]]);
   }
 
@@ -2286,15 +2337,20 @@ function init(root) {
       head = j.name;
       const pr = asmPlace?.problems.find((x) => x.joint === j.id);
       if (pr) out.push(msg(pr.message, 'is-error'));
+      const ls = asmPlace?.loops?.joints.get(j.id);
+      if (ls && ls !== 'over') out.push(el('p', { className: 'pc-note', dataset: { loopNote: ls } }, t('asm.loop.' + ls)));
       const setJ = (label, fn) => { commitAsm(label, () => fn(jointById(j.id))); };
+      // a value that moves (0.7 D7.40): held while the loop it is on follows, and the loop's answer kept in the same undo step
+      const hold = (key) => new Set([j.id + '.' + key]);
+      const setValue = (label, key, v) => setJ(label, (x) => { x[key] = v; A.applySolved(asm, A.placeAll(asm, asmBuilds, { hold: hold(key) }).loops); });
       const grid = [];
       grid.push(...field(t('asm.joint.type'), selectInput(Object.keys(A.JOINT_TYPES).map((k) => [k, t('asm.joint.type.' + k)]), j.type, (v) => setJ(t('asm.joint.undo.type'), (x) => { x.type = v; if (x.limits && !A.readLimitsSafe(x.limits, v)) delete x.limits; }))));
       const rangeRow = (label, key, min, max, step) => {
         const start = j[key] || 0;
-        const n = numInput(j[key] || 0, (v) => setJ(label, (x) => { x[key] = v; }));
+        const n = numInput(j[key] || 0, (v) => setValue(label, key, v));
         const r = el('input', { type: 'range', className: 'span pc-range', min: String(min), max: String(max), step: String(step), value: String(j[key] || 0), 'aria-label': t('asm.joint.drag', { label }), dataset: { jointRange: key } });
-        r.addEventListener('input', () => { const x = jointById(j.id); x[key] = Number(r.value); asmPlace = A.placeAll(asm, asmBuilds); showInstances(); n.value = r.value; });
-        r.addEventListener('change', () => { const v = Number(r.value); jointById(j.id)[key] = start; setJ(label, (y) => { y[key] = v; }); });
+        r.addEventListener('input', () => { const x = jointById(j.id); x[key] = Number(r.value); asmPlace = A.placeAll(asm, asmBuilds, { hold: hold(key), start: asmPlace?.loops?.values }); showInstances(); n.value = r.value; });
+        r.addEventListener('change', () => { const v = Number(r.value); jointById(j.id)[key] = start; setValue(label, key, v); });
         n.dataset.jointValue = key;
         return [...field(label, n), r];
       };
@@ -2327,7 +2383,9 @@ function init(root) {
         const [from, to] = span(key);
         const res = A.motionCheck(asm, asmBuilds, M, j.id, from, to, 24, key).map((x) => ({ ...x, pairs: A.filterClashes(asm, x.pairs).shown }));   // the filters apply (0.5 WL.33)
         const bad = res.filter((x) => x.pairs.length);
-        status(bad.length ? t('asm.joint.check_bad', { n: bad.length, of: res.length, value: valueLabel(key), at: f3(bad[0].value), vol: f3(bad[0].pairs[0].volume) }) : t('asm.joint.check_ok', { value: valueLabel(key), from: f3(from), to: f3(to), n: res.length }), true);
+        const open = res.filter((x) => x.closed === false);   // a loop that cannot follow there (0.7 D7.40)
+        status((bad.length ? t('asm.joint.check_bad', { n: bad.length, of: res.length, value: valueLabel(key), at: f3(bad[0].value), vol: f3(bad[0].pairs[0].volume) }) : t('asm.joint.check_ok', { value: valueLabel(key), from: f3(from), to: f3(to), n: res.length }))
+          + (open.length ? ' ' + t('asm.joint.check_open', { n: open.length, of: res.length, at: f3(open[0].value) }) : ''), true);
       }, 'pc-btn', { disabled: !dof.length, dataset: { jointCheck: '' } });
       if (sweepSel) out.push(el('div', { className: 'pc-props' }, ...field(t('asm.joint.sweep'), sweepSel)));
       out.push(el('div', { className: 'pc-block pc-actions' }, motion, btn(t('app.undo.remove_joint'), () => asmDelete(), 'pc-btn is-danger')));
@@ -2721,6 +2779,17 @@ function init(root) {
     status(t('app.export.ifc', { file: name + '.ifc', psets: r.counts.psets, n: r.counts.properties }));
   }
 
+  /** USD package (.usdz) of the part (usd-partcraft.js on cc-usd, ./usd/; 0.7 XF.8). */
+  async function exportUsd() {
+    if (mode === 'sketch') exitSketch();
+    if (!regen?.mesh) { status(t('app.export.no_solid')); return; }
+    const name = fileBase();
+    const { partUsd } = await import('./usd-partcraft.js');
+    const r = partUsd(part, regen, { format: 'usdz', name: name + '.usdz' });
+    download(new Blob([r.data], { type: 'model/vnd.usdz+zip' }), name + '.usdz', 'model/vnd.usdz+zip');
+    status(t('usd.done', { name: name + '.usdz', n: 1 }));
+  }
+
   async function exportDrawing() {
     if (mode === 'sketch') exitSketch();
     if (mode === 'pick') endPick();
@@ -2893,6 +2962,8 @@ function init(root) {
   async function openFile(f) {
     try { if (await addons?.openFromAddon(f)) return; } catch (e) { status(t('app.file.addon_failed', { name: f.name, error: e && e.message ? e.message : String(e) })); return; }   // an add-on's importer
     if (/\.(step|stp)$/i.test(f.name)) { await importStep(f); return; }
+    if (/\.(stl|obj|3mf)$/i.test(f.name)) { await importMesh(f); return; }
+    if (/\.3dm$/i.test(f.name)) { await importMesh(f, { threedm: true }); return; }   // 0.7 SU.810: a .3dm's meshes and surfaces as one body (mesh3dm.js)
     if (f.size > 50 * 1024 * 1024) { status(t('app.file.too_big')); return; }
     if (!/\.json$/i.test(f.name)) { status(t('app.file.unknown_kind', { name: f.name })); return; }
     await openText(await f.text(), f.name);
@@ -2903,10 +2974,10 @@ function init(root) {
     if (f.size > 60 * 1024 * 1024) { status(t('app.step.too_big')); return; }
     const text = await f.text();
     if (!/^\s*ISO-10303-21;/.test(text)) { status(t('app.step.not_step', { name: f.name })); return; }
-    if (exactOff()) { status(t('kernel.not_built', { what: t('kernel.what.step_open') }), true); return; }
+    if (exactOff()) { await importMesh(f, { step: true }); return; }   // no exact kernel in this build: read as triangles (D7.26)
     if (exact.state !== 'ready') {
       ui.busy.hidden = false; ui.busyText.textContent = t('app.step.loading_exact');
-      try { await exact.start(); } catch (err) { ui.busy.hidden = true; status(t('app.step.needs_exact', { error: err.message })); return; } finally { ui.busy.hidden = true; }
+      try { await exact.start(); } catch { ui.busy.hidden = true; await importMesh(f, { step: true }); return; } finally { ui.busy.hidden = true; }
     }
     let info;
     try { info = await exact.call('stepInfo', { text }); } catch (err) { await ask({ title: t('app.step.cannot_import', { name: f.name }), text: err.message, buttons: [['cancel', t('app.btn.ok'), 'pc-btn is-primary']] }); return; }
@@ -2930,6 +3001,80 @@ function init(root) {
     renderAll(); view.view('iso');
     const r = regen.results.get(g.id);
     status(r?.status === 'ok' ? t('app.step.imported', { name: f.name, n: info.solids, faces: info.faces, vol: f3(info.volume) }) : t('app.feature.error', { name: g.name, error: r?.message || t('app.step.not_built') }), true);
+  }
+
+  /** An STL / OBJ / 3MF mesh becomes a solid body (D7.49): read, repaired (meshimport.js), shown with what was repaired and what
+   *  stays open, then the first feature of a new part or a body added to (cut from, intersected with) this one. `step`: a STEP
+   *  file read as triangles by cc-step (step/read.js, D7.26) when there is no exact kernel; its solids become one mesh in mm. */
+  async function importMesh(f, { step = false, threedm = false } = {}) {
+    if (!step && f.size > MI.MAX_BYTES) { status(t('mesh.err.too_big', { mb: Math.round(MI.MAX_BYTES / 1048576) }), true); return; }
+    ui.busy.hidden = false; ui.busyText.textContent = t(step ? 'app.step.reading' : threedm ? 'ccdm.part.reading' : 'app.mesh.reading', { name: f.name });
+    let read, fixed;
+    try {
+      await new Promise((r) => setTimeout(r, 30));   // let the busy note paint
+      const bytes = f.bytes ? await f.bytes() : new Uint8Array(await f.arrayBuffer());   // a host file (host.js) or a File
+      read = step ? MI.meshFromStep((await import('./step/read.js')).readStep(bytes)) : threedm ? (await import('./mesh3dm.js')).meshFrom3dm(bytes) : await MI.readMeshFile(bytes, f.name);
+      fixed = MI.repairMesh(read);
+    } catch (err) {
+      ui.busy.hidden = true;
+      const why = err && err.code ? t(err.code, err.vars) : String(err && err.message ? err.message : err);
+      await ask({ title: t('app.mesh.cannot_open', { name: f.name }), text: why, buttons: [['cancel', t('app.btn.ok'), 'pc-btn is-primary']] });
+      return;
+    } finally { ui.busy.hidden = true; }
+    const rep = fixed.report, fmt = read.format.toUpperCase();
+    const lines = MI.reportLines(rep, read.notes).filter((l) => !(step && l.key === 'mesh.rep.welded')).map((l) => t(l.key, l.vars));   // a STEP's faces always share their edge points: joining them is no repair
+    // the size here, with the units and up axis picked below
+    let lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
+    for (let i = 0; i < fixed.positions.length; i += 3) for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], fixed.positions[i + k]); hi[k] = Math.max(hi[k], fixed.positions[i + k]); }
+    const choice = { units: read.unit || 'mm', up: 'z', op: 'add' };
+    const sizeLine = el('li', { dataset: { meshSize: '' } });
+    const showSize = () => {
+      const s = MI.UNITS[choice.units], d = [0, 1, 2].map((k) => (hi[k] - lo[k]) * s);
+      const [x, y, z] = choice.up === 'z' ? [d[0], d[2], d[1]] : d;
+      sizeLine.textContent = t('app.mesh.size', { x: f3(x), y: f3(y), z: f3(z) });
+    };
+    showSize();
+    const pickRow = (label, options, key, extra) => {
+      const sel = el('select', { className: 'pc-input', 'aria-label': label, dataset: { meshPick: key } }, ...options.map(([v, l]) => el('option', { value: v, selected: v === choice[key] }, l)));
+      sel.addEventListener('change', () => { choice[key] = sel.value; showSize(); });
+      return el('label', { className: 'pc-mesh-row' }, el('span', {}, label), sel, extra || null);
+    };
+    const adding = part.features.length > 0;
+    const st = read.step;
+    const body = el('div', { className: 'pc-mesh', dataset: { meshImport: '' } },
+      st ? el('p', { dataset: { stepFacts: '' } }, t('app.step.read_facts', { n: st.counts.solids, solids: st.counts.solids, faces: st.counts.faces, schema: st.schema === 'other' ? 'STEP' : st.schema })) : null,
+      read.threedm ? el('p', { dataset: { threedmFacts: '' } }, t('ccdm.part.facts', { n: read.threedm.objects, cached: read.threedm.cached, ours: read.threedm.ours })) : null,
+      st && st.counts.instances > st.counts.solids ? el('p', {}, t('app.step.read_placed', { n: st.counts.instances })) : null,
+      el('p', {}, t('app.mesh.facts', { n: rep.triangles, pts: rep.vertices, fmt })),
+      el('ul', { className: 'pc-mesh-report', dataset: { meshReport: '' } }, ...(lines.length ? lines : [t('app.mesh.nothing_fixed')]).map((s) => el('li', {}, s))),
+      el('p', { className: 'pc-mesh-verdict', dataset: { meshClosed: rep.closed ? '1' : '0' } }, t(rep.closed ? 'app.mesh.closed' : 'app.mesh.not_closed')),
+      rep.closed ? el('div', { className: 'pc-mesh-picks' },
+        pickRow(t('app.mesh.units'), Object.keys(MI.UNITS).map((u) => [u, t('app.mesh.unit.' + u)]), 'units', read.unit ? el('small', {}, t('app.mesh.units_from_file')) : null),
+        pickRow(t('app.import.up_in_file'), [['z', t('app.import.z_up')], ['y', t('app.import.y_up')]], 'up'),
+        adding ? pickRow(t('app.mesh.op'), ['add', 'cut', 'intersect'].map((o) => [o, t('app.mesh.op.' + o)]), 'op') : null,
+        el('ul', { className: 'pc-mesh-size' }, sizeLine)) : null);
+    if (!rep.closed) { await ask({ title: t('app.mesh.title', { name: f.name }), body, buttons: [['cancel', t('app.btn.close'), 'pc-btn is-primary']] }); return; }
+    const into = await ask({ title: t('app.mesh.title', { name: f.name }), body, buttons: adding
+      ? [['cancel', t('app.btn.cancel'), 'pc-btn'], ['new', t('app.step.new_part'), 'pc-btn'], ['add', t('app.step.add_to_part'), 'pc-btn is-primary']]
+      : [['cancel', t('app.btn.cancel'), 'pc-btn'], ['new', t('app.mesh.open'), 'pc-btn is-primary']] });
+    if (into === 'cancel') return;
+    if (into === 'new' && adding && !(await confirmDiscard())) return;
+    if (mode === 'sketch') exitSketch();
+    if (mode === 'pick') endPick();
+    if (mode === 'drawing') leaveDrawing();
+    if (into === 'new') {
+      part = P.newPart(f.name.replace(/\.(stl|obj|3mf|step|stp|3dm)$/i, '').replace(/[\u0000-\u001f]/g, '').slice(0, 120) || 'Imported');   // i18n-ignore: a default part name saved in the file (data)
+      hist.clear(); dirty = false; sel = null; pick = null;
+      choice.op = 'add';
+    }
+    const g = commit(t('app.undo.import_mesh'), () => P.addFeature(part, 'import', { file: f.name.slice(0, 200), mesh: MI.encodeMesh(fixed), units: choice.units, up: choice.up, op: choice.op, report: rep }));
+    sel = { kind: 'feature', id: g.id };
+    view.setPlanesVisible(false);
+    await built();
+    renderAll(); view.view('iso');
+    const r = regen.results.get(g.id);
+    const flats = regen.faces ? new Set(regen.faces.filter((x) => (x.name || '').startsWith(g.id + '.flat:')).map((x) => x.name)).size : 0;
+    status(r?.status === 'ok' ? t('app.mesh.done', { name: f.name, vol: f3(regen.stats?.volume || 0), n: flats }) : t('app.feature.error', { name: g.name, error: r?.message || t('app.step.not_built') }), true);
   }
 
   const stage = $('[data-stage]');
@@ -3017,7 +3162,31 @@ function init(root) {
       status('');
     } else if (isSheet(part)) await unfold(part, part.name || fileBase(), 1);
     if (why.length) status(why.join(' '), true);
-    await NU.openNest({ ask, el, btn, status, download: (text, name, type) => download(text, name, type), fileBase: () => fileBase() }, parts);
+    // the offcut stock lives in the open assembly's or part's file (0.7 SU.755); changing it is a change to the file
+    const holder = () => (mode === 'assembly' && asm ? asm : part);
+    await NU.openNest({ ask, el, btn, status, download: (text, name, type) => download(text, name, type), fileBase: () => fileBase(),
+      getStock: () => holder()?.stock || null,
+      setStock: (stock) => { const h = holder(); if (!h) return; h.stock = stock; if (h === asm) asmDirty = true; else dirty = true; } }, parts);
+  }
+
+  /** Laser program (0.7 SU.772, laser-ui.js on make-07's panel): the flat patterns of this part's or the assembly's sheet metal
+   *  parts (the exact kernel unfolds them) and/or outlines from a DXF; the settings are saved in the file (`laser`). */
+  async function openLaser() {
+    const LU = await import('./laser-ui.js');
+    const flats = [], why = [];
+    const isSheet = (pt) => (pt?.features || []).some((f) => SHEET_TYPES.has(f.type));
+    const unfold = async (pt, name) => {
+      if (!useExact) { why.push(t('nest.from.needs_exact', { name })); return; }
+      try { flats.push(await exact.call('sheetFlat', { part: pt })); } catch (e) { why.push(name + ': ' + e.message); }
+    };
+    if (mode === 'assembly' && asm) { for (const [pid, entry] of Object.entries(asm.parts)) if (asm.instances.some((i) => i.part === pid) && isSheet(entry.part)) await unfold(entry.part, entry.name || pid); }
+    else if (isSheet(part)) await unfold(part, part.name || fileBase());
+    if (why.length) status(why.join(' '), true);
+    const holder = () => (mode === 'assembly' && asm ? asm : part);
+    await LU.openLaser({ ask, el, btn, status, download: (text, name, type) => download(text, name, type), fileBase: () => fileBase(),
+      getJob: () => holder()?.laser || null,
+      setJob: (label, next) => { const h = holder(); if (!h) return; (h === asm ? asmHist : hist).push(h, label); h.laser = next; if (h === asm) asmDirty = true; else dirty = true; },
+      confirm: async (text) => (await ask({ title: t('pclaser.title'), text, buttons: [['ok', t('app.btn.ok'), 'pc-btn is-primary'], ['cancel', t('app.btn.cancel'), 'pc-btn']] })) === 'ok' }, flats);
   }
 
   /** A small in-page dialog; resolves with the chosen button's key ('cancel' on Esc). */
@@ -3132,6 +3301,8 @@ function init(root) {
       return { call: (op, args, o) => w.call(op, args && typeof args === 'object' && !Array.isArray(args) ? { ...args, threads: n() } : args, o), terminate: () => w.terminate(), get busy() { return w.busy; } };
     },
     focusStage: () => focusStage(), tokens: () => tokens(),
+    /** The open assembly, read-only (0.7, for Illustrate): its instances' builds and world placements, or null. */
+    assembly: () => (mode === 'assembly' && asm ? { asm, builds: asmBuilds, world: asmPlace?.world || null } : null),
   };
   /** Call a hook of the active workspace; a throw becomes a status message (never a console error). */
   function wsCall(name, ...args) {
@@ -3144,13 +3315,17 @@ function init(root) {
     status(t('app.ws.design_only', { ws: ws.label }));
     return true;
   }
-  /** Why the other workspaces are off just now ('' = they are not). */
-  function wsBlocked() { return mode === 'assembly' ? t('app.ws.blocked_asm') : editPartOf ? t('app.ws.blocked_asm_part') : ''; }
+  /** Why the other workspaces are off just now ('' = they are not). A workspace that says `assemblies: true` (Illustrate) also
+   *  opens while an assembly is open. */
+  function wsBlocked(target = null) {
+    if (mode === 'assembly') return target && target.assemblies ? '' : t('app.ws.blocked_asm');
+    return editPartOf ? t('app.ws.blocked_asm_part') : '';
+  }
   function syncWsSwitcher() {
     if (!ui.ws) return;
     const why = wsBlocked();
     if (ui.ws.dataset.baseTitle === undefined) ui.ws.dataset.baseTitle = ui.ws.getAttribute('title') || '';
-    for (const o of ui.ws.options) { const off = !!why && o.value !== 'design'; o.disabled = off; if (off) o.title = why; else o.removeAttribute('title'); }
+    for (const o of ui.ws.options) { const off = !!why && o.value !== 'design' && !!wsBlocked(WS.getWorkspace(o.value)); o.disabled = off; if (off) o.title = why; else o.removeAttribute('title'); }
     ui.ws.title = ui.ws.dataset.baseTitle + (why ? ' — ' + why : '');
     if (ui.ws.value !== ws.id) ui.ws.value = ws.id;
   }
@@ -3175,7 +3350,7 @@ function init(root) {
   function setWorkspace(id) {
     const next = WS.getWorkspace(id);
     if (!next || next === ws) { syncWsSwitcher(); return false; }
-    const why = next === WS.DESIGN ? '' : wsBlocked();
+    const why = next === WS.DESIGN ? '' : wsBlocked(next);
     if (why) { status(why); syncWsSwitcher(); return false; }
     if (mode === 'sketch') exitSketch();
     if (mode === 'pick') endPick();
@@ -3263,7 +3438,7 @@ function init(root) {
     if ((e.ctrlKey || e.metaKey) && !e.altKey) {
       if (k === 'z' && !e.shiftKey) { if (typing && tgt !== ui.dimInput) return; e.preventDefault(); undoRedo(true); return; }
       if (k === 'y' || (k === 'z' && e.shiftKey)) { if (typing && tgt !== ui.dimInput) return; e.preventDefault(); undoRedo(false); return; }
-      if (k === 's') { e.preventDefault(); savePart(); return; }
+      if (k === 's') { e.preventDefault(); if (ws !== WS.DESIGN && wsCall('command', 'save', host) === true) return; savePart(); return; }
       if (k === 'o') { e.preventDefault(); run('open'); return; }
       const EDIT_KEYS = { c: 'copy', x: 'cut', v: e.shiftKey ? 'paste-in-place' : 'paste', d: 'duplicate', a: 'select-all' };
       if (EDIT_KEYS[k]) {
@@ -3349,6 +3524,11 @@ function init(root) {
   });
 
 
+  // ---- AI assistants and scripts (0.7 AS.4, session assistants; agents.js on host.js's control channel): tools only, off until Settings › Assistants ----
+  installAgents({ part: () => part, regen: () => regen, mode: () => mode, commit: (label, fn) => commit(label, fn), built: async () => { await ready; await built(); },
+    savePart: () => savePart(), download: (bytes, name, mime) => download(bytes, name, mime), computeWorker: (modules, opts) => host.computeWorker(modules, opts),
+    fileBase: () => fileBase(), undo: () => undoRedo(true), lastUndo: () => (hist.undoStack.length ? hist.undoStack[hist.undoStack.length - 1].label : null) });
+
   window.partcraft = {
     ready, built, asmBuilt, exact, get useExact() { return useExact; }, get multi() { return multi; }, get drawing() { return drawingState; }, startPick, endPick, enterDrawing, leaveDrawing, drawingClick, G,
     exactReady: () => (exactOff() ? built() : exact.start().then(() => built())),   // no exact kernel (0.4): the mesh kernel's build
@@ -3357,6 +3537,10 @@ function init(root) {
     get lastSolve() { return lastSolve; }, get sel() { return sel; }, get pick() { return pick; },
     get asm() { return asm; }, get asmPlace() { return asmPlace; }, get clashes() { return clashes; }, get asmSel() { return asmSel; }, A,
     get workspace() { return ws.id; }, setWorkspace, host, WS,
+    // 0.7 WS.14 (session ws-partcraft, workspace-partcraft.js): unsaved changes, the running tool, the part panel's list of bodies
+    get dirty() { return dirty; },
+    get tool() { return mode === 'sketch' ? 'sketch' : mode === 'pick' ? 'pick' : mode === 'drawing' && drawingState?.tool ? 'drawing' : pendingSketch ? 'sketch-plane' : measure?.active ? 'measure' : section?.active ? 'section' : draft?.active ? 'draft' : 'select'; },
+    bodiesBlock: () => BUI.bodiesBlock(),
     view, editor, S, P, V, C, run, rebuild, editSketch, exitSketch, selectFeature, openText, commit, undoRedo, hist, asmHist, settings, editState, editAct, paramsUI,
     clip: () => clip, DUI, get section() { return section; }, get handles() { return handles; },
     exportBytes: (kind) => (kind === 'stl' ? X.stlBinary(regen.mesh) : kind === '3mf' ? X.threeMf(regen.mesh) : kind === 'step' ? X.stepFaceted(regen.mesh, part.name).text : null),
@@ -3388,5 +3572,11 @@ function init(root) {
   startAddons({ host, selection: () => sel, select: (id) => selectFeature(id), find: (q) => root.querySelector(q), showTab: (k) => paramsUI.showTab(k || 'props') })
     .then((a) => { addons = a; a.onChange(() => { syncAddonExports(); renderProps(); }); syncAddonExports(); renderProps(); })
     .catch((e) => console.warn('add-ons did not start:', e));   // i18n-ignore: a developer message
+  // the layouts of Settings › Global › Layout (0.7 WS.14): the shell's engine builds a layout file's blocks, workspace-partcraft.js
+  // fills them; only builds whose manifest lists layouts carry the engine (#cc-workspace)
+  if (document.getElementById('cc-workspace')) {
+    import('./workspace-partcraft.js').then((m) => m.mountPartcraftWorkspace(root))
+      .catch((e) => { document.documentElement.removeAttribute('data-cc-ws-boot'); console.warn('layouts did not start:', e); });   // i18n-ignore: a developer message
+  }
   renderAll();
 }

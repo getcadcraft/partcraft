@@ -23,10 +23,13 @@
  *   cylindrical turns by `angle` and slides by `offset`                 planar       slides by `dx`, `dy` in the face, turns by `angle`
  *   ball       spins by `angle` about z, then tilts by `tiltY` about y and `tiltX` about x (the frame's origin is the ball's centre)
  *   pinslot    slides by `slide` along the slot (the direction `slotDir`° from A's x, in the face) and turns by `angle` Placement walks from the grounded instance through the joints
- * (a tree); an instance no joint reaches stays at its `place`. A joint that closes a loop is not
- * solved — it is checked and reported with how far off it is.
+ * (a tree); an instance no joint reaches stays at its `place`. Joints on a loop are solved first so every loop closes (0.7
+ * D7.40, solveLoops: their free values move as little as possible; a loop that cannot close is a conflict, reported with how far
+ * off it is).
  *
- *   placeAll(asm, builds)  builds: Map(pid → kernel regenerate() result) → { world: Map(inst → mat4), problems: [...] }
+ *   placeAll(asm, builds, { solve, hold, start })  builds: Map(pid → kernel regenerate() result) → { world: Map(inst → mat4),
+ *              problems: [...], loops (solveLoops' answer: status, mobility, joints' states, values) }
+ *   applySolved(asm, loops)  writes the solved values into the joints;  loopJoints(asm) → { onLoop, group }
  *   interference(asm, builds, world, M, { touch }) → [{ a, b, volume, kind }]   per pair (manifold-3d), kind (0.5 WL.33):
  *              'overlap' (a real clash) · 'thread' (all of it inside both parts' cosmetic thread zones: a bolt in a tapped hole)
  *              · 'thread-depth' (inside one part's thread zone only: one thread runs deeper than the other) · 'touch'
@@ -44,6 +47,8 @@ import { readPart, readPlane, toJSON as partJSON } from './part.js';
 import { planeFrame } from './kernel.js';
 import { readPartProps } from './bom.js';
 import { readViews } from './explode.js';
+import { cleanStock } from './nest/nest-stock.js';
+import { cleanJob } from './laser/laser-model.js';
 import { readStackups } from './stackup.js';
 import { t } from './i18n.js';
 
@@ -157,55 +162,339 @@ export function jointMotion(j) {
   }
 }
 
-/** World transforms for every instance. → { world: Map, problems: [{ joint?, inst?, message }] } */
-export function placeAll(asm, builds) {
+/**
+ * World transforms for every instance. → { world: Map, problems: [{ joint?, inst?, message }], loops }
+ * Placement walks from the grounded instance through the joints (a tree). With `solve` (the default, 0.7 D7.40) the free values
+ * of every joint on a loop are first solved so each loop closes (solveLoops); `hold` (Set of '<joint id>.<value>') keeps values
+ * the person is setting, `start` (Map joint id → { value: number }) is where the solve starts (a drag's last answer). The joints
+ * themselves are not changed: applySolved(asm, loops) writes the answer into them. `solve: false` = the old walk (a joint that
+ * closes a loop only checked).
+ */
+export function placeAll(asm, builds, { solve = true, hold = null, start = null } = {}) {
   const world = new Map();
   const problems = [];
-  if (!asm.instances.length) return { world, problems };
-  const partOf = (inst) => asm.parts[asm.instances.find((i) => i.id === inst)?.part];
-  const frameOf = (end) => {
-    const p = partOf(end.inst);
-    if (!p) throw new Error(t('model.assembly.joint_part_gone'));
-    return mateFrame(end, builds.get(asm.instances.find((i) => i.id === end.inst).part), p.part);
-  };
+  if (!asm.instances.length) return { world, problems, loops: null };
+  const frames = new Map();   // joint id → [FA, FB] (part coordinates); a joint whose faces are gone is left out
+  for (const j of asm.joints) {
+    try { const FA = endFrame(asm, builds, j.a), FB = endFrame(asm, builds, j.b); frames.set(j.id, [FA, FB, V.matMul(FLIP, rigidInverse(FB))]); }
+    catch (e) { problems.push({ joint: j.id, message: t('model.assembly.joint_problem', { name: j.name, message: e.message }) }); }
+  }
+  const live = asm.joints.filter((j) => frames.has(j.id));
+  const loops = solve ? solveLoops(asm, builds, live, frames, { hold, start }) : null;
+  const w = walk(asm, live, frames, loops?.values || null, true);
+  for (const [k, v] of w.world) world.set(k, v);
+  for (const c of w.closing) {
+    if (c.off > 1e-6) problems.push({ joint: c.joint.id, message: t('model.assembly.loop_off', { name: c.joint.name, off: c.off.toFixed(3) }) });
+  }
+  const ground = asm.instances[0];
+  for (const i of asm.instances) {
+    if (!world.has(i.id)) { world.set(i.id, i.place); if (i !== ground) problems.push({ inst: i.id, message: t('model.assembly.not_joined', { name: i.name }), free: true }); }
+  }
+  return { world, problems, loops };
+}
+
+function endFrame(asm, builds, end) {
+  const inst = asm.instances.find((i) => i.id === end.inst);
+  const p = inst && asm.parts[inst.part];
+  if (!p) throw new Error(t('model.assembly.joint_part_gone'));
+  return mateFrame(end, builds.get(inst.part), p.part);
+}
+
+/** B's world transform from A's through a joint (values from `over` when given); K = FLIP · FB⁻¹ (the same every time). */
+const chainOf = (j, FA, K, over) => V.matMul(FA, V.matMul(jointMotion(over ? { ...j, ...over } : j), K));
+
+/** The tree walk: every joint in order places the end not yet placed from the one that is; a joint whose ends are both placed
+ *  closes a loop (measured when `measure`). → { world, closing: [{ joint, want, have, off? }] } */
+function walk(asm, joints, frames, vals, measure = false) {
+  const world = new Map(), up = new Map();   // up: instance → { joint, parent } (the tree the walk made)
   const ground = asm.instances[0];
   world.set(ground.id, ground.place);
-  const pending = asm.joints;
-  const done = new Set();
+  const done = new Set(), closing = [];
   let grew = true;
   while (grew) {
     grew = false;
-    for (const j of pending) {
+    for (const j of joints) {
       if (done.has(j.id)) continue;
       const ha = world.has(j.a.inst), hb = world.has(j.b.inst);
       if (!ha && !hb) continue;
       done.add(j.id);
-      try {
-        const FA = frameOf(j.a), FB = frameOf(j.b);
-        const M = jointMotion(j);
-        if (ha && !hb) {
-          world.set(j.b.inst, V.matMul(world.get(j.a.inst), V.matMul(FA, V.matMul(M, V.matMul(FLIP, rigidInverse(FB))))));
-          grew = true;
-        } else if (hb && !ha) {
-          // A from B: invert the chain
-          const chain = V.matMul(FA, V.matMul(M, V.matMul(FLIP, rigidInverse(FB))));
-          world.set(j.a.inst, V.matMul(world.get(j.b.inst), rigidInverse(chain)));
-          grew = true;
-        } else {
-          const want = V.matMul(world.get(j.a.inst), V.matMul(FA, V.matMul(M, V.matMul(FLIP, rigidInverse(FB)))));
-          const have = world.get(j.b.inst);
-          const off = Math.max(...[12, 13, 14].map((k) => Math.abs(want[k] - have[k])), ...[0, 1, 2, 4, 5, 6, 8, 9, 10].map((k) => Math.abs(want[k] - have[k]) * 100));
-          if (off > 1e-6) problems.push({ joint: j.id, message: t('model.assembly.loop_off', { name: j.name, off: off.toFixed(3) }) });
-        }
-      } catch (e) {
-        problems.push({ joint: j.id, message: t('model.assembly.joint_problem', { name: j.name, message: e.message }) });
+      const [FA, , K] = frames.get(j.id);
+      const chain = chainOf(j, FA, K, vals?.get(j.id));
+      if (ha && !hb) { world.set(j.b.inst, V.matMul(world.get(j.a.inst), chain)); up.set(j.b.inst, { joint: j.id, parent: j.a.inst }); grew = true; }
+      else if (hb && !ha) { world.set(j.a.inst, V.matMul(world.get(j.b.inst), rigidInverse(chain))); up.set(j.a.inst, { joint: j.id, parent: j.b.inst }); grew = true; }
+      else {
+        const want = V.matMul(world.get(j.a.inst), chain), have = world.get(j.b.inst);
+        let off;
+        if (measure) { off = 0; for (let k = 0; k < 15; k++) if (k % 4 !== 3) off = Math.max(off, Math.abs(want[k] - have[k]) * (k >= 12 ? 1 : 100)); }
+        closing.push({ joint: j, want, have, off });
       }
     }
   }
-  for (const i of asm.instances) {
-    if (!world.has(i.id)) { world.set(i.id, i.place); if (i !== ground) problems.push({ inst: i.id, message: t('model.assembly.not_joined', { name: i.name }), free: true }); }
+  return { world, closing, up };
+}
+
+/** The joints of the loop a closing joint closes: the tree path between its two parts, and itself. */
+function loopPath(c, up) {
+  const anc = new Map();
+  for (let i = c.joint.a.inst, guard = 0; i !== undefined && guard < 100000; guard++) { anc.set(i, true); i = up.get(i)?.parent; }
+  const path = new Set([c.joint.id]);
+  let meet = c.joint.b.inst;
+  for (let guard = 0; meet !== undefined && !anc.has(meet) && guard < 100000; guard++) { path.add(up.get(meet).joint); meet = up.get(meet).parent; }
+  for (let i = c.joint.a.inst, guard = 0; i !== undefined && i !== meet && guard < 100000; guard++) { path.add(up.get(i).joint); i = up.get(i).parent; }
+  return path;
+}
+
+// ---------------------------------------------------------------- closed loops (0.7 D7.40)
+
+/** Joints that lie on a loop of the instance graph (the joints that are not bridges), and the loop groups (2-edge-connected
+ *  pieces) each belongs to. → { onLoop: Set(joint id), group: Map(joint id → group number) } */
+export function loopJoints(asm, joints = asm.joints) {
+  const adj = new Map();
+  for (const i of asm.instances) adj.set(i.id, []);
+  for (const j of joints) { if (!adj.has(j.a.inst) || !adj.has(j.b.inst)) continue; adj.get(j.a.inst).push([j.b.inst, j.id]); adj.get(j.b.inst).push([j.a.inst, j.id]); }
+  const disc = new Map(), low = new Map(), bridges = new Set();
+  let time = 0;
+  for (const root of adj.keys()) {
+    if (disc.has(root)) continue;
+    // iterative DFS (the parent's edge by id, so two joints between the same two parts are a loop)
+    const stack = [[root, null, 0]];
+    disc.set(root, time); low.set(root, time); time++;
+    while (stack.length) {
+      const top = stack[stack.length - 1];
+      const [u, pe] = top;
+      const nb = adj.get(u);
+      if (top[2] < nb.length) {
+        const [v, e] = nb[top[2]++];
+        if (e === pe) continue;
+        if (!disc.has(v)) { disc.set(v, time); low.set(v, time); time++; stack.push([v, e, 0]); }
+        else low.set(u, Math.min(low.get(u), disc.get(v)));
+      } else {
+        stack.pop();
+        if (stack.length) {
+          const p = stack[stack.length - 1][0];
+          low.set(p, Math.min(low.get(p), low.get(u)));
+          if (low.get(u) > disc.get(p)) bridges.add(pe);
+        }
+      }
+    }
   }
-  return { world, problems };
+  const onLoop = new Set(joints.filter((j) => adj.has(j.a.inst) && adj.has(j.b.inst) && j.a.inst !== j.b.inst && !bridges.has(j.id)).map((j) => j.id));
+  // groups: instances joined by loop joints
+  const parent = new Map([...adj.keys()].map((k) => [k, k]));
+  const find = (x) => { while (parent.get(x) !== x) { parent.set(x, parent.get(parent.get(x))); x = parent.get(x); } return x; };
+  for (const j of joints) if (onLoop.has(j.id)) parent.set(find(j.a.inst), find(j.b.inst));
+  const roots = new Map(), group = new Map();
+  for (const j of joints) if (onLoop.has(j.id)) { const r = find(j.a.inst); if (!roots.has(r)) roots.set(r, roots.size); group.set(j.id, roots.get(r)); }
+  return { onLoop, group };
+}
+
+/** The rotation of a 3 × 3 (in a column-major 4 × 4) as a rotation vector (axis × angle in radians). */
+function rotVec(m) {
+  const c = Math.max(-1, Math.min(1, (m[0] + m[5] + m[10] - 1) / 2)), th = Math.acos(c);
+  const w = [m[6] - m[9], m[8] - m[2], m[1] - m[4]];   // 2 sin θ · axis
+  if (th < 1e-6) return w.map((x) => x / 2);
+  if (Math.PI - th < 1e-6) {   // half a turn: the axis from the symmetric part
+    const d = [m[0], m[5], m[10]].map((x) => Math.sqrt(Math.max(0, (x + 1) / 2)));
+    const k = d.indexOf(Math.max(...d));
+    const ax = [0, 0, 0]; ax[k] = d[k];
+    const off = [[0, m[4], m[8]], [m[1], 0, m[9]], [m[2], m[6], 0]];
+    for (let q = 0; q < 3; q++) if (q !== k) ax[q] = off[k][q] / (2 * d[k]);
+    return ax.map((x) => x * th);
+  }
+  return w.map((x) => (x * th) / (2 * Math.sin(th)));
+}
+
+export const LOOP_MAX_ITER = 60;
+export const LOOP_FIRST_TRY = 12;
+
+/**
+ * Close every loop: the free values (JOINT_DOF) of the joints on loops are the unknowns (less those in `hold`), each loop-closing
+ * joint gives six equations (where its B end is against where the loop puts it: three of position in mm, three of rotation as a
+ * rotation vector × a length the size of the assembly, so turning and moving weigh alike). Damped Newton with the least-norm
+ * step, as the sketch solver (solver.js): the assembly moves as little as possible from where it was. Values stay inside their
+ * limits. Analysis at the answer (Gram–Schmidt over the equations' rows): rank, mobility (unknowns − rank: how many more values
+ * could be held), each unknown determined or free; a loop that does not close is a conflict. Conditions met twice over (a flat
+ * linkage's out-of-plane equations) are counted, not flagged: they are normal for parallel hinges.
+ * → { status 'none'|'under'|'full'|'over', closed, mobility, redundant, conflicts: [joint id], joints: Map(id → 'under'|'full'|
+ *     'over'), values: Map(id → { value: number }), unknowns, equations, iterations, ms }
+ */
+export function solveLoops(asm, builds, joints, frames, { hold = null, start = null } = {}) {
+  const t0 = typeof performance !== 'undefined' ? performance.now() : Date.now();
+  const { onLoop, group } = loopJoints(asm, joints);
+  const empty = { status: 'none', closed: true, mobility: 0, redundant: 0, conflicts: [], joints: new Map(), values: new Map(), unknowns: 0, equations: 0, iterations: 0, ms: 0 };
+  if (!onLoop.size) return empty;
+  // a length the size of the assembly: radians × L weigh like millimetres
+  let size = 10;
+  for (const i of asm.instances) { const b = builds.get(i.part)?.stats?.bbox; if (b) size = Math.max(size, ...b.max.map((v, k) => v - b.min[k])); }
+  const L = size / 2;
+  const vars = [];   // { j, k, sc (internal = value × sc), lo, hi }
+  const fixed = new Map();   // joint id → { value } for held values (and the loop joints' other values)
+  for (const j of joints) {
+    if (!onLoop.has(j.id)) continue;
+    const base = {};
+    // a held value is the joint's own (the person is setting it); the others start where the last answer left them
+    for (const k of JOINT_DOF[j.type]) base[k] = hold?.has(j.id + '.' + k) ? jointValue(j, k) : start?.get(j.id)?.[k] ?? jointValue(j, k);
+    fixed.set(j.id, base);
+    for (const k of JOINT_DOF[j.type]) {
+      if (hold && hold.has(j.id + '.' + k)) continue;
+      const lim = limitOf(j, k);
+      const sc = VALUE_UNIT[k] === 'deg' ? (Math.PI / 180) * L : 1;
+      vars.push({ j, k, sc, lo: lim ? lim.min : -Infinity, hi: lim ? lim.max : Infinity });
+    }
+  }
+  const x = vars.map((v) => fixed.get(v.j.id)[v.k] * v.sc);
+  const valsOf = (xx) => {
+    const m = new Map([...fixed].map(([id, o]) => [id, { ...o }]));
+    vars.forEach((v, i) => { m.get(v.j.id)[v.k] = xx[i] / v.sc; });
+    return m;
+  };
+  // the residuals of the first `k` loop-closing joints (all of them by default)
+  const resid = (xx, k = Infinity) => {
+    const { closing } = walk(asm, joints, frames, valsOf(xx));
+    const r = [];
+    for (const c of closing.slice(0, k)) {
+      const D = V.matMul(rigidInverse(c.have), c.want);
+      const w = rotVec(D);
+      r.push(D[12], D[13], D[14], w[0] * L, w[1] * L, w[2] * L);
+    }
+    return { r, closing };
+  };
+  const clamp = (xx) => { vars.forEach((v, i) => { xx[i] = Math.max(v.lo * v.sc, Math.min(v.hi * v.sc, xx[i])); }); return xx; };
+  const norm2 = (r) => r.reduce((s, v) => s + v * v, 0);
+  const worst = (r) => r.reduce((s, v) => Math.max(s, Math.abs(v)), 0);
+  const tol = 1e-9 * Math.max(1, L);
+  const n = vars.length;
+  const ALL = vars.map((_, i) => i);
+  /** Central differences over the unknowns `cols` (J has one column per entry of cols). */
+  const jac = (xx, r0, k = Infinity, cols = ALL) => {
+    const h = 1e-6 * Math.max(1, L);
+    const J = r0.map(() => new Float64Array(cols.length));
+    cols.forEach((i, c) => {
+      const xp = xx.slice(), xm = xx.slice();
+      xp[i] += h; xm[i] -= h;
+      const rp = resid(xp, k).r, rm = resid(xm, k).r;
+      for (let q = 0; q < r0.length; q++) J[q][c] = (rp[q] - rm[q]) / (2 * h);
+    });
+    return J;
+  };
+  /** Damped Newton from x0 on the first k loops, moving only the unknowns `cols`, at most `cap` steps → { x, cur, it }. */
+  const newton = (x0, k = Infinity, cap = LOOP_MAX_ITER, cols = ALL) => {
+    const xs = x0.slice();
+    let cur = resid(xs, k), it = 0, mu = 1e-9;
+    const n = cols.length;
+    while (it < cap && n && worst(cur.r) > tol) {
+      it++;
+      const J = jac(xs, cur.r, k, cols), m = cur.r.length;
+      // the least-norm step dx = Jᵀ (J Jᵀ + μI)⁻¹ (−r) = (JᵀJ + μI)⁻¹ Jᵀ (−r): through whichever square is smaller (many loops
+      // give more equations than unknowns, most of them met twice over)
+      const wide = m > n, sz = wide ? n : m;
+      const A = Array.from({ length: sz }, () => new Float64Array(sz));
+      for (let a = 0; a < sz; a++) for (let b = 0; b <= a; b++) {
+        let s2 = 0;
+        if (wide) for (let q = 0; q < m; q++) s2 += J[q][a] * J[q][b];
+        else for (let c = 0; c < n; c++) s2 += J[a][c] * J[b][c];
+        A[a][b] = s2; A[b][a] = s2;
+      }
+      const g = wide ? Array.from({ length: n }, (_, c) => { let s2 = 0; for (let q = 0; q < m; q++) s2 -= J[q][c] * cur.r[q]; return s2; }) : cur.r.map((v) => -v);
+      let peak = 0;
+      for (let a = 0; a < sz; a++) peak = Math.max(peak, A[a][a]);
+      let improved = false;
+      for (let tries = 0; tries < 12 && !improved; tries++) {
+        const Am = Array.from({ length: sz }, (_, a) => Array.from(A[a], (v, b) => v + (a === b ? mu * (A[a][a] + 1e-9 * peak) + 1e-15 : 0)));
+        const y = V.solveDense(Am, g);
+        if (!y || !y.every(Number.isFinite)) { mu = Math.max(mu * 100, 1e-9); continue; }
+        let dx = y;
+        if (!wide) { dx = new Array(n).fill(0); for (let c = 0; c < n; c++) { let s2 = 0; for (let a = 0; a < m; a++) s2 += J[a][c] * y[a]; dx[c] = s2; } }
+        for (let alpha = 1, ls = 0; ls < 16; ls++, alpha /= 2) {
+          const xn = xs.slice();
+          cols.forEach((i, c) => { xn[i] += alpha * dx[c]; });
+          clamp(xn);
+          const rn = resid(xn, k);
+          if (norm2(rn.r) < norm2(cur.r)) { for (const i of cols) xs[i] = xn[i]; cur = rn; improved = true; break; }
+        }
+        if (improved) mu = Math.max(mu / 10, 1e-12); else mu = Math.max(mu * 100, 1e-9);
+      }
+      if (!improved) break;
+    }
+    return { x: xs, cur, it };
+  };
+  // a good start (an edit, a drag) closes in a few steps; one that has not closed in LOOP_FIRST_TRY is likely in a dip
+  let best = newton(x, Infinity, LOOP_FIRST_TRY);
+  // far from the answer the equations of every loop at once can hold the solve in a dip that is not a closed position: close
+  // the loops one at a time (each starting from the last answer), then all together, and keep whichever is closer
+  if (worst(best.cur.r) > tol && best.cur.closing.length > 1) {
+    // each loop in turn closed with only the unknowns no earlier loop uses (the earlier loops stay closed), then all together
+    const { closing, up } = walk(asm, joints, frames, valsOf(x));
+    const seen = new Set();
+    let xi = x, its = best.it;
+    closing.forEach((c, q) => {
+      const path = loopPath(c, up);
+      const cols = ALL.filter((i) => path.has(vars[i].j.id) && !seen.has(vars[i].j.id));
+      for (const id of path) seen.add(id);
+      if (!cols.length) return;
+      const s1 = newton(xi, q + 1, LOOP_MAX_ITER, cols);
+      xi = s1.x; its += s1.it;
+    });
+    const again = newton(xi);
+    again.it += its;
+    if (norm2(again.cur.r) < norm2(best.cur.r)) best = again;
+  }
+  // an angle comes back on the turn nearest where it started (the equations do not tell 50° from 410°), inside its limits
+  vars.forEach((v, c) => {
+    let a = best.x[c];
+    if (VALUE_UNIT[v.k] === 'deg') {
+      const s0 = x[c] / v.sc, val = a / v.sc;
+      let w = s0 + ((((val - s0 + 180) % 360) + 360) % 360) - 180;
+      if (w < v.lo || w > v.hi) { const up = w + 360, dn = w - 360; w = up >= v.lo && up <= v.hi ? up : dn >= v.lo && dn <= v.hi ? dn : val; }
+      a = w * v.sc;
+    }
+    x[c] = a;
+  });
+  const cur = best.cur, it = best.it;
+  // analysis at the answer
+  const r = cur.r, m = r.length;
+  const J = n ? jac(x, r) : [];
+  const Q = [];
+  let redundant = 0;
+  for (let a = 0; a < m; a++) {
+    const v = Float64Array.from(J[a] || []);
+    const vn = Math.hypot(...v);
+    if (!(vn > 1e-9)) { redundant++; continue; }
+    for (let k = 0; k < n; k++) v[k] /= vn;
+    for (let pass = 0; pass < 2; pass++) for (const b of Q) { let d = 0; for (let k = 0; k < n; k++) d += b[k] * v[k]; if (d) for (let k = 0; k < n; k++) v[k] -= d * b[k]; }
+    const wn = Math.hypot(...v);
+    if (wn < 1e-6) { redundant++; continue; }
+    for (let k = 0; k < n; k++) v[k] /= wn;
+    Q.push(v);
+  }
+  const det = new Float64Array(n);
+  for (const b of Q) for (let k = 0; k < n; k++) det[k] += b[k] * b[k];
+  const conflicts = [];
+  cur.closing.forEach((c, i) => { if (Math.max(...r.slice(i * 6, i * 6 + 6).map(Math.abs)) > Math.max(tol * 1e3, 1e-6)) conflicts.push(c.joint.id); });
+  const badGroups = new Set(conflicts.map((id) => group.get(id)));
+  const states = new Map();
+  for (const j of joints) {
+    if (!onLoop.has(j.id)) continue;
+    if (badGroups.has(group.get(j.id))) { states.set(j.id, 'over'); continue; }
+    const free = vars.some((v, i) => v.j === j && det[i] < 1 - 1e-6);
+    states.set(j.id, free ? 'under' : 'full');
+  }
+  const mobility = n - Q.length;
+  const t1 = typeof performance !== 'undefined' ? performance.now() : Date.now();
+  return {
+    status: conflicts.length ? 'over' : mobility > 0 ? 'under' : 'full', closed: !conflicts.length, mobility, redundant,
+    conflicts, joints: states, values: valsOf(x), unknowns: n, equations: m, iterations: it, ms: t1 - t0,
+  };
+}
+
+/** Write a solve's values into the joints (the loop closed as shown). Values are rounded to 1e-9. */
+export function applySolved(asm, loops) {
+  if (!loops || !loops.values) return;
+  for (const [id, o] of loops.values) {
+    const j = asm.joints.find((x) => x.id === id);
+    if (!j) continue;
+    for (const [k, v] of Object.entries(o)) j[k] = Math.round(v * 1e9) / 1e9;
+  }
 }
 
 /** The joints placement walks from the grounded part (parents first), with the parent's mate normal in world axes. */
@@ -385,11 +674,15 @@ export function motionCheck(asm, builds, M, jointId, from, to, steps = 12, key =
   const L = limitOf(j, key);
   if (L) { from = Math.max(L.min, Math.min(L.max, from)); to = Math.max(L.min, Math.min(L.max, to)); }
   const out = [];
+  const hold = new Set([j.id + '.' + key]);
+  let start = null;
   try {
     for (let s = 0; s <= steps; s++) {
       j[key] = from + (to - from) * s / steps;
-      const { world } = placeAll(asm, builds);
-      out.push({ value: j[key], pairs: interference(asm, builds, world, M) });
+      // the swept value is held and a loop follows it, each step starting from the last (0.7 D7.40)
+      const { world, loops } = placeAll(asm, builds, { hold, start });
+      start = loops?.values?.size ? loops.values : null;
+      out.push({ value: j[key], pairs: interference(asm, builds, world, M), closed: loops ? loops.closed : true });
     }
   } finally { j[key] = keep; }
   return out;
@@ -456,6 +749,8 @@ export function readAssembly(raw) {
   if (cf) asm.clashFilter = cf;
   const su = readStackups(j.stackups, asm.instances.map((i) => i.id));
   if (su.length) asm.stackups = su;
+  if (j.stock !== undefined && j.stock !== null) { const st = cleanStock(j.stock); if (st.items.length) asm.stock = st; }
+  if (j.laser !== undefined && j.laser !== null) { const lj = cleanJob(j.laser); if (lj.layers.length) asm.laser = lj; }   // 0.7 SU.772: the Laser program's settings   // 0.7 SU.755: offcut stock
   asm.seq = maxN + 1;
   asm.version = fileVersion(asm);   // what its contents need (and what it is written as)
   return asm;

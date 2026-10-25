@@ -15,7 +15,7 @@ Two checks run on the parts as they are placed: **Clash** looks for overlapping 
 
 The status bar reports the result:
 
-- "No interference between 3 parts (40 ms)." Nothing overlaps.
+- "No interference between 3 parts (… ms)." Nothing overlaps.
 - "Interference: Flange1 and Flange2: Overlap, 2.5 mm³." Each pair, what kind of result it is and the volume they share.
 
 The **Assembly** box on the left shows **Interference**: "None", "2 results" (the ones shown), or "Not checked". With nothing selected, the right panel lists each result under **Interference**.
@@ -46,6 +46,9 @@ The filters are saved with the assembly, and each change is one {{key:Mod+Z}} st
 3. Let go. The new position is kept and can be undone with {{key:Mod+Z}}.
 
 You can also type an angle or offset in the box and press {{key:Enter}}.
+
+A joint on a closed loop (a linkage) moves the whole loop: the value you drag is kept and the other joints of the loop follow
+(see [Closed loops](topic:build-assembly#closed-loops-linkages)).
 
 ## Sweep a joint for clashes
 

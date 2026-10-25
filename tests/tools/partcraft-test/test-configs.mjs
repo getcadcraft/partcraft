@@ -149,7 +149,8 @@ export async function runConfigTests({ ok, section }) {
     // the file: version 4 only with features off; read back; tampered ids
     part.configs = cfg;
     const json = P.toJSON(part), back = P.readPart(json);
-    ok(JSON.parse(json).version === 4 && P.VERSION === 4 && same(back.configs, cfg), 'saved and read back: version 4 (a 0.5 PartCraft refuses it by its version), the rows\' features intact');
+    ok(JSON.parse(json).version === 4 && P.VERSION >= 4 && same(back.configs, cfg),   // 0.7 D7.49 made 5 a real version (mesh bodies)
+       'saved and read back: version 4 (a 0.5 PartCraft refuses it by its version), the rows\' features intact');
     part.configs = CF.saveRow(null, withBoss);
     ok(JSON.parse(P.toJSON(part)).version === 3, 'configurations without features off stay version 3');
     const j = JSON.parse(json);

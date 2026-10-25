@@ -87,6 +87,7 @@ The tool runs on a computer with Node.js 24, from a copy of the CadCraft source:
 | `drive <part> Base.depth=12` | Backward: solve the parameter behind a driven number (`--prefer width` picks one) |
 | `build <part> --out x.step` | Writes `.step`, `.stl`, `.3mf`, `.json`, `.pcscript` or a macro (`.swb`) |
 | `build <part> --table sizes.csv --out-dir sizes` | One file per design table row |
+| `variants <part> --out-dir d` or `--zip f.zip` | Every configuration as STEP, IFC, DWG and a preview, a variants table and a library item (`--only "A,B"`, `--formats step,ifc,dwg,preview`, `--no-item`); see [Make a variant pack](topic:variant-pack) |
 | `script <in.pcscript> -o part.json` | Script to part |
 | `to-script <part> -o part.pcscript` | Part to script |
 | `rollback <part> [<feature>]`, `forward <part> [--end]` | Move the rollback bar in the file |

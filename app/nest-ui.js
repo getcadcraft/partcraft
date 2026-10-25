@@ -15,11 +15,12 @@
  * asked for (a flat pattern laid mirrored bends the other way).
  */
 import { nest, nestDxf, readOutlines, loopsFromSegs, partsFromLoops, regionArea, flatten } from './nest/nest.js';
+import { nestWithStock, applyJob, stockCsv, newStock, jobReport } from './nest/nest-stock.js';
 import { t } from './i18n.js';
 
 export const GRAINS = { '': null, along: 0, across: Math.PI / 2 };
 export const TURNS = [0, 180, 90, 45, 15];
-export const DEFAULTS = { kind: 'plate', w: 2500, h: 1250, count: 0, margin: 10, spacing: 5, step: 90, mirror: false };
+export const DEFAULTS = { kind: 'plate', w: 2500, h: 1250, count: 0, margin: 10, spacing: 5, step: 90, mirror: false, material: '', thickness: 0, useStock: true, saveRemnants: true };
 const clamp = (v, lo, hi, d) => { const n = Number(v); return Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : d; };
 
 export function readSettings(raw = {}) {
@@ -30,6 +31,8 @@ export function readSettings(raw = {}) {
     count: Math.floor(clamp(s.count, 0, 9999, 0)),
     margin: clamp(s.margin, 0, 1e4, DEFAULTS.margin), spacing: clamp(s.spacing, 0, 1e4, DEFAULTS.spacing),
     step: TURNS.includes(Number(s.step)) ? Number(s.step) : DEFAULTS.step, mirror: !!s.mirror,
+    material: String(s.material ?? '').replace(/[\u0000-\u001f\u007f]/g, ' ').trim().slice(0, 80), thickness: clamp(s.thickness, 0, 1e4, 0),
+    useStock: s.useStock !== false, saveRemnants: s.saveRemnants !== false,   // 0.7 SU.755: the offcut stock (nest/nest-stock.js)
   };
 }
 
@@ -62,6 +65,11 @@ export function runNest(parts, settings, opts = {}) {
   const s = readSettings(settings);
   const sheet = s.kind === 'roll' ? { h: s.h, margin: s.margin } : { w: s.w, h: s.h, margin: s.margin, count: s.count > 0 ? s.count : Infinity };
   const list = parts.filter((p) => p.qty > 0).map((p, i) => ({ id: 'n' + i, name: p.name, loops: p.loops, qty: p.qty, grain: GRAINS[p.grain || ''] ?? null, turn: true, mirror: s.mirror }));
+  // with a stock list (plates only; a roll leaves no remnant): remnants first, then new plates; the job is a nest() result
+  if (opts.stock && s.kind === 'plate' && (s.useStock || s.saveRemnants)) {
+    const result = nestWithStock(list, opts.stock, sheet, { spacing: s.spacing, step: s.step, timeLimit: opts.timeLimit ?? 4000, tries: opts.tries, material: s.material, thickness: s.thickness, useStock: s.useStock });
+    return { result, sheet, settings: s, stocked: true };
+  }
   const result = nest(list, sheet, { spacing: s.spacing, step: s.step, timeLimit: opts.timeLimit ?? 4000, tries: opts.tries });
   return { result, sheet, settings: s };
 }
@@ -85,16 +93,23 @@ const SVG = 'http://www.w3.org/2000/svg';
 const svgEl = (tag, attrs = {}) => { const n = document.createElementNS(SVG, tag); for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, String(v)); return n; };
 
 function preview({ result, sheet, settings }) {
-  const H = sheet.h, W = settings.kind === 'roll' ? Math.max(result.length, 1) : sheet.w, gap = H * 0.08;
+  const shapes = result.sheetShapes || null;
   const n = Math.max(1, result.sheets.length);
-  const svg = svgEl('svg', { viewBox: `${-gap / 2} ${-gap / 2} ${W + gap} ${n * (H + gap)}`, class: 'pc-flat-svg pc-nest-svg', role: 'img', 'data-nest-svg': '1' });
+  const dims = Array.from({ length: n }, (_, s) => ({ w: shapes?.[s]?.w ?? (settings.kind === 'roll' ? Math.max(result.length, 1) : sheet.w), h: shapes?.[s]?.h ?? sheet.h }));
+  const W = Math.max(...dims.map((d) => d.w)), H = Math.max(...dims.map((d) => d.h)), gap = H * 0.08;
+  const total = dims.reduce((a, d) => a + d.h + gap, 0);
+  const svg = svgEl('svg', { viewBox: `${-gap / 2} ${-gap / 2} ${W + gap} ${total}`, class: 'pc-flat-svg pc-nest-svg', role: 'img', 'data-nest-svg': '1' });
   svg.setAttribute('aria-label', t('nest.preview_label', { n, w: fmt(W, 0), h: fmt(H, 0) }));
+  let top = 0;
   for (let s = 0; s < n; s++) {
-    const oy = s * (H + gap) + H;   // sheet s, y up
-    svg.append(svgEl('rect', { x: 0, y: oy - H, width: W, height: H, class: 'pc-nest-sheet' }));
+    const { w, h } = dims[s], oy = top + h;   // sheet s, y up
+    const outline = shapes?.[s]?.loops;
+    if (outline) svg.append(svgEl('path', { d: outline.map((l) => 'M' + flatten(l, H / 2000).map((q) => fmt(q.x, 3) + ' ' + fmt(oy - q.y, 3)).join('L') + 'Z').join(''), class: 'pc-nest-sheet', 'fill-rule': 'evenodd' }));
+    else svg.append(svgEl('rect', { x: 0, y: top, width: w, height: h, class: 'pc-nest-sheet' }));
     const d = [];
     for (const p of result.placed) if (p.sheet === s) for (const l of p.loops) { const f = flatten(l, H / 2000); d.push('M' + f.map((q) => fmt(q.x, 3) + ' ' + fmt(oy - q.y, 3)).join('L') + 'Z'); }
     if (d.length) svg.append(svgEl('path', { d: d.join(''), class: 'pc-flat-cut pc-nest-part', 'fill-rule': 'evenodd' }));
+    top += h + gap;
   }
   return svg;
 }
@@ -104,6 +119,8 @@ export async function openNest(ctx, parts0 = []) {
   const parts = parts0.map((p) => ({ ...p }));
   let settings = readSettings();
   let last = null;
+  let stock = ctx.getStock?.() || newStock();   // 0.7 SU.755: the offcut stock, saved with the part or assembly file
+  let committed = false;
   const body = el('div', { className: 'pc-nest', dataset: { nest: '1' } });
   const listBox = el('div', { className: 'pc-nest-parts' });
   const notesBox = el('div', { className: 'pc-nest-notes', 'aria-live': 'polite' });
@@ -152,7 +169,47 @@ export async function openNest(ctx, parts0 = []) {
       labelled(t('nest.sheet.margin'), num(s.margin, set('margin'), { min: 0 })),
       labelled(t('nest.sheet.spacing'), num(s.spacing, set('spacing'), { min: 0, dataset: { nestSpacing: '1' } })),
       labelled(t('nest.sheet.turns'), select(TURNS.map((d) => [d, d ? t('nest.turns.step', { d }) : t('nest.turns.none')]), s.step, set('step'))),
-      el('label', { className: 'pc-check' }, (() => { const i = el('input', { type: 'checkbox', checked: s.mirror }); i.addEventListener('change', () => { settings = readSettings({ ...settings, mirror: i.checked }); }); return i; })(), t('nest.sheet.mirror')));
+      el('label', { className: 'pc-check' }, (() => { const i = el('input', { type: 'checkbox', checked: s.mirror }); i.addEventListener('change', () => { settings = readSettings({ ...settings, mirror: i.checked }); }); return i; })(), t('nest.sheet.mirror')),
+      ...(s.kind === 'plate' ? [stockFields()] : [el('p', { className: 'pc-props-sub', dataset: { nestStockRoll: '1' } }, t('nest.stock.roll'))]));
+  }
+
+  const check = (label, key) => el('label', { className: 'pc-check' }, (() => { const i = el('input', { type: 'checkbox', checked: settings[key], dataset: { nestStock: key } }); i.addEventListener('change', () => { settings = readSettings({ ...settings, [key]: i.checked }); }); return i; })(), label);
+  function stockFields() {
+    const text = el('input', { type: 'text', className: 'pc-input', value: settings.material, maxLength: 80, id: id(), dataset: { nestStock: 'material' } });
+    text.addEventListener('change', () => { settings = readSettings({ ...settings, material: text.value }); });
+    return el('fieldset', { className: 'pc-nest-stock' }, el('legend', {}, t('nest.stock.h')),
+      labelled(t('nest.stock.material'), text),
+      labelled(t('nest.stock.thickness'), num(settings.thickness, (v) => { settings = readSettings({ ...settings, thickness: v }); renderSheet(); }, { min: 0, step: 'any', dataset: { nestStock: 'thickness' } })),
+      check(t('nest.stock.use'), 'useStock'), check(t('nest.stock.save'), 'saveRemnants'));
+  }
+
+  const today = () => new Date().toISOString().slice(0, 10);
+  function commit() {
+    if (!last?.stocked || committed) return;
+    const done = applyJob(stock, last.result, { name: ctx.fileBase() + ' ' + today(), date: today(), material: settings.material, thickness: settings.thickness, saveRemnants: settings.saveRemnants });
+    stock = done.stock; committed = true;
+    ctx.setStock?.(stock);
+    ctx.status(t('nest.stock.committed', { used: done.used.length, added: done.added.length }));
+    renderOut(); renderStock();
+  }
+
+  const stockBox = el('div', { className: 'pc-nest-stocklist', dataset: { nestStockList: '1' } });
+  function renderStock() {
+    stockBox.replaceChildren();
+    if (!stock.items.length) { stockBox.append(el('p', { className: 'pc-props-sub' }, t('nest.stock.list')), el('p', { className: 'pc-muted' }, t('nest.stock.empty'))); return; }
+    const rows = stock.items.map((it) => {
+      const sel = select([['available', t('nest.stock.status-available')], ['used', t('nest.stock.status-used')], ['scrap', t('nest.stock.status-scrap')]], it.status, (v) => { it.status = v; if (v !== 'used') it.usedIn = ''; ctx.setStock?.(stock); });
+      sel.setAttribute('aria-label', t('nest.stock.status-of', { id: it.id }));
+      return el('tr', { dataset: { stockItem: it.id } }, el('td', {}, it.id), el('td', {}, sel),
+        el('td', {}, [it.material, it.thickness ? fmt(it.thickness, 2) + ' mm' : ''].filter(Boolean).join(' ')),
+        el('td', {}, t('nest.stock.size', { w: fmt(it.w, 0), h: fmt(it.h, 0) })), el('td', {}, fmt(it.area / 100, 0) + ' cm²'),
+        el('td', {}, it.source?.job || ''), el('td', {}, it.usedIn || ''));
+    });
+    stockBox.append(el('p', { className: 'pc-props-sub' }, t('nest.stock.list')),
+      el('table', { className: 'pc-bom pc-nest-table' },
+        el('thead', {}, el('tr', {}, ...['number', 'status', 'material', 'size', 'area', 'job', 'used'].map((k) => el('th', {}, k === 'material' ? t('nest.stock.material') : t('nest.stock.col-' + k))))),
+        el('tbody', {}, ...rows)),
+      el('div', { className: 'pc-actions' }, btn(t('nest.stock.csv'), () => ctx.download(stockCsv(stock), t('nest.stock.csv_file', { name: ctx.fileBase() }), 'text/csv'), 'pc-btn', { dataset: { nestStockCsv: '1' } })));
   }
 
   function renderOut() {
@@ -160,16 +217,25 @@ export async function openNest(ctx, parts0 = []) {
     if (!last) return;
     const dl = el('dl', { className: 'pc-dl', dataset: { nestFacts: '1' } });
     for (const [k, v] of summary(last)) dl.append(el('dt', {}, k), el('dd', {}, v));
-    outBox.append(preview(last), dl, el('div', { className: 'pc-actions' }, btn(t('nest.dxf.save'), () => {
+    const rep = last.stocked ? stockReport() : [];
+    outBox.append(preview(last), dl, ...rep, el('div', { className: 'pc-actions' }, ...(last.stocked && !committed ? [btn(t('nest.stock.commit'), commit, 'pc-btn is-primary', { dataset: { nestStockCommit: '1' } })] : []), btn(t('nest.dxf.save'), () => {
       const text = nestDxf(last.result, last.sheet, { units: 'mm' });
       ctx.download(text, t('nest.dxf.file', { name: ctx.fileBase() }), 'application/dxf');
     }, 'pc-btn', { dataset: { nestDxf: '1' }, title: t('nest.dxf.save_title') })));
   }
 
+  function stockReport() {
+    const rows = jobReport(last.result), used = rows.filter((r) => r.kind === 'used').map((r) => r.id), left = rows.filter((r) => r.kind === 'left');
+    const list = (a) => a.join(', ');
+    return [el('p', { dataset: { nestStockUsed: '1' } }, used.length ? t('nest.stock.used', { list: list(used) }) : t('nest.stock.none-used')),
+      ...(left.length ? [el('p', { dataset: { nestStockLeft: '1' } }, t('nest.stock.left', { n: left.length, list: list(left.map((r) => (r.id || t('nest.stock.size', { w: fmt(r.w, 0), h: fmt(r.h, 0) })))) }))] : [])];
+  }
+
   const go = () => {
     if (!parts.some((p) => p.qty > 0)) { notesBox.replaceChildren(el('p', {}, t('nest.parts.none'))); return; }
     ctx.status(t('nest.busy'), true);
-    try { last = runNest(parts, settings); } catch (e) { last = null; notesBox.replaceChildren(el('p', {}, e.message)); }
+    committed = false;
+    try { last = runNest(parts, settings, { stock }); } catch (e) { last = null; notesBox.replaceChildren(el('p', {}, e.message)); }
     ctx.status(last ? t('nest.done', { n: last.result.placed.length, pct: fmt(last.result.efficiency * 100) }) : '');
     renderOut();
   };
@@ -182,7 +248,8 @@ export async function openNest(ctx, parts0 = []) {
     el('p', { className: 'pc-props-sub' }, t('nest.sheet.title')),
     sheetBox,
     el('div', { className: 'pc-actions' }, btn(t('nest.run'), go, 'pc-btn is-primary', { dataset: { nestRun: '1' } })),
-    outBox);
-  renderParts(); renderSheet();
+    outBox,
+    stockBox);
+  renderParts(); renderSheet(); renderStock();
   await ask({ title: t('nest.title'), body, buttons: [['cancel', t('app.btn.close'), 'pc-btn']] });
 }

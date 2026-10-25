@@ -886,10 +886,12 @@ g = GProp_GProps(); BRepGProp.VolumeProperties_s(s, g); print(g.Mass(), BRepChec
   // per-area checks (each also runs alone: node tools/partcraft-test/browser-<area>.mjs; docs/apps/partcraft-workspaces.md)
   const areaHelpers = { page, ctx, browser, BASE, OUT, F, ok, near, nearRel, problems, pc, open, built, tool, shot, statusText };
   await (await import('./browser-workspaces.mjs')).run(areaHelpers);
+  await (await import('./browser-illustrate.mjs')).run(areaHelpers);   // 0.7 Track TP (session illustrate)
   await (await import('./browser-sketch-tools.mjs')).run(areaHelpers);
   await (await import('./browser-design-features.mjs')).run(areaHelpers);
   await (await import('./browser-assembly-tools.mjs')).run(areaHelpers);
   await (await import('./browser-manufacture.mjs')).run(areaHelpers);
+  await (await import('./browser-cam-07.mjs')).run(areaHelpers);   // 0.7 LC.15 (session cam-07)
   await (await import('./browser-form.mjs')).run(areaHelpers);
   await (await import('./browser-simulation.mjs')).run(areaHelpers);
   await (await import('./browser-tet.mjs')).run(areaHelpers);

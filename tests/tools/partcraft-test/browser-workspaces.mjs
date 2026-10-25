@@ -32,7 +32,8 @@ export async function run(h) {
     return { first: first.dataset.group, label: document.querySelector(`label[for="${s.id}"]`)?.textContent.trim(), opts: [...s.options].map((o) => o.value + ':' + o.textContent), tag: s.tagName };
   });
   ok(sw.first === 'workspace' && sw.tag === 'SELECT' && sw.label === 'Workspace', 'the toolbar starts with the workspace switcher: a labelled <select>');
-  ok(sw.opts.join() === 'design:Design,form:Form,simulation:Simulation,generative:Generative,manufacture:Manufacture,script:Script', `its options: ${sw.opts.map((o) => o.split(':')[1]).join(', ')}`);
+  // 0.7: Illustrate (session illustrate) registers after these; its own browser test covers it
+  ok(sw.opts.filter((o) => o !== 'illustrate:Illustrate').join() === 'design:Design,form:Form,simulation:Simulation,generative:Generative,manufacture:Manufacture,script:Script' && sw.opts.includes('illustrate:Illustrate'), `its options: ${sw.opts.map((o) => o.split(':')[1]).join(', ')}`);
   ok((await rows()) === 1 && (await visibleGroups()).join() === 'workspace,file,sketch,features,drawing,assembly,edit,view', 'Design: the toolbar is one row at 1440 px with every Design group');
   for (const id of IDS.slice(1)) {
     await choose(id);
@@ -79,7 +80,9 @@ export async function run(h) {
   await page.waitForFunction(() => window.partcraft.mode === 'assembly');
   await pc(() => window.partcraft.asmBuilt());
   const asm = await page.evaluate(() => { const s = document.querySelector('[data-workspace]'); return { opts: [...s.options].map((o) => [o.value, o.disabled, o.title]), title: s.title }; });
-  ok(asm.opts.filter((o) => o[0] !== 'design').every((o) => o[1] && /close the assembly first/.test(o[2])) && !asm.opts[0][1] && /close the assembly first/.test(asm.title), 'in an assembly the other workspaces are disabled, the reason in their title and the switcher\'s');
+  // a workspace that says `assemblies: true` (Illustrate, 0.7) stays open in an assembly
+  ok(asm.opts.filter((o) => o[0] !== 'design' && o[0] !== 'illustrate').every((o) => o[1] && /close the assembly first/.test(o[2])) && !asm.opts[0][1] && /close the assembly first/.test(asm.title)
+    && asm.opts.filter((o) => o[0] === 'illustrate').every((o) => !o[1]), 'in an assembly the other workspaces are disabled, the reason in their title and the switcher\'s (Illustrate, which takes assemblies, stays open)');
   ok((await pc(() => window.partcraft.setWorkspace('form'))) === false && (await pc(() => window.partcraft.workspace)) === 'design' && (await rows()) === 1, 'asking for Form anyway is refused; still Design, one toolbar row');
   await tool('asm-close');
   if (await page.$('dialog[open]')) await page.click('dialog[open] button[data-key="discard"]');

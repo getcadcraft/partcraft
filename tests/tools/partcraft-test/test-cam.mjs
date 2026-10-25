@@ -255,6 +255,40 @@ export async function runCamTests({ ok, section, near, oc = null, skip = (m) => 
     ok(g.gouges > 1000 && g.at.every((a) => Math.abs(a[2] - 1) < 0.03), `a pocket taken 1 mm below its floor: ${g.gouges} gouge cells found, each ≈ 1 mm deep`);
   }
 
+  // known answers for path length and depth (LC.15 item 3)
+  {
+    const topFace = rg.faces.find((f) => f.type === 'plane' && f.n[1] > 0.9 && Math.abs(f.o[1] - 20) < 1e-6);
+    const st3 = JSON.parse(JSON.stringify(study));
+    st3.ops = [
+      C.newOp('contour', { id: 'k1', tool: 'em6', geo: { faces: [B.faceRef(topFace)] }, params: { stepdown: 50, lead: 0, tabs: 0 } }),
+      C.newOp('pocket', { id: 'k2', tool: 'em6', geo: { faces: [B.faceRef(rectFace)] }, params: { stepdown: 9, stepover: 0.5, entry: 'plunge' } }),
+    ];
+    const pg3 = CP.generateProgram(st3, rg, { sim: new CS.Sim(model, { cell: 0.25 }), model });
+    const horizLen = (ph) => CP.segments([ph]).filter((g) => g.k !== 'rapid' && Math.hypot(g.b[0] - g.a[0], g.b[1] - g.a[1]) > 1e-9).reduce((a, g) => a + CP.segLength(g), 0);
+    const zmin = (ph) => Math.min(...CP.segments([ph]).filter((g) => g.k !== 'rapid').flatMap((g) => [g.a[2], g.b[2]]));
+    ok(pg3.paths.every((p) => !p.error), 'known-answer programs build: ' + pg3.paths.map((p) => p.error || p.op.id).join(', '));
+    const per = 2 * (100 + 60) + 2 * Math.PI * 3;
+    ok(Math.abs(horizLen(pg3.paths[0]) - per) < 1e-6, `contour round the 100 × 60 outline, one depth, no lead-in: the cut is the rounded rectangle exactly, 2·(100 + 60) + 2π·3 = ${per.toFixed(4)} mm (got ${horizLen(pg3.paths[0]).toFixed(4)})`);
+    ok(near(zmin(pg3.paths[0]), -21 - 1, 1e-9), 'contour depth: the model bottom −21 less the 1 mm breakthrough');
+    const lh = horizLen(pg3.paths[1]);
+    ok(pg3.paths[1].info.loops === 3 && lh >= 240 - 1e-6 && lh <= 240 + 12, `pocket 40 × 24, tool Ø6, stepover 3: three loops of 34 × 18, 28 × 12 and 22 × 6 = 104 + 80 + 56 = 240 mm, plus the short links (cut ${lh.toFixed(2)} mm)`);
+    ok(near(zmin(pg3.paths[1]), -9, 1e-9), 'pocket depth: the floor, −9');
+    ok(pg3.paths.every((p) => p.sim.gouges === 0), 'both known-answer programs cut without a gouge in the stock simulation');
+    // chamfer: a 90° chamfer mill, 0.5 wide, tip 0.5 above the cone's point → cuts 0.5 down at the edge, the path is the outline grown by the tip offset
+    const st4 = JSON.parse(JSON.stringify(study));
+    st4.ops = [C.newOp('chamfer', { id: 'k3', tool: 'ch90', geo: { faces: [B.faceRef(topFace)] }, params: { width: 0.5, tipOffset: 0.5, holes: false } })];
+    const sim4 = new CS.Sim(model, { cell: 0.1 });
+    const pg4 = CP.generateProgram(st4, rg, { sim: sim4, model });
+    const ch = pg4.paths[0];
+    ok(!ch.error, 'chamfer builds' + (ch.error ? ': ' + ch.error : ''));
+    const per4 = 2 * (100 + 60) + 2 * Math.PI * 0.5;
+    ok(Math.abs(horizLen(ch) - per4) < 1e-6 && near(zmin(ch), -1 - 0.5 - 0.5, 1e-9) && near(ch.info.depth, 0.5, 1e-12), `chamfer: the path is the outline grown by 0.5 (2·(100 + 60) + 2π·0.5 = ${per4.toFixed(4)} mm), at the model top − depth 0.5 − tip offset 0.5 = −2`);
+    // the cut profile across the straight edge at y = 2: z = −1.5 + (y − 2), 45°, from 0.5 below the top at the edge to the top 0.5 in
+    let dz = 0;
+    for (const y of [2.05, 2.15, 2.3, 2.45]) dz = Math.max(dz, Math.abs(sim4.at(52, y) - (-1.5 + (y - 2))));
+    ok(dz < 0.08, `the simulated cut across the straight edge follows the 45° chamfer: −1.5 at the edge rising to −1 half a millimetre in (worst error ${dz.toFixed(3)} mm, cell 0.1)`);
+  }
+
   // ===================================================================================
   section('CAM: flange (face, pocket, drill, contour, bore)');
   const fl = F.flange();
@@ -288,6 +322,13 @@ export async function runCamTests({ ok, section, near, oc = null, skip = (m) => 
     const tip = 7 / Math.tan((59 * Math.PI) / 180);
     ok(cyc.holes.every((h) => near(h.z, -81 - 1 - tip, 1e-9) && near(h.top, -51, 1e-9)), 'through holes: drilled to the bottom − 1 breakthrough − the 118° tip (full diameter through)');
     ok(cyc.holes.every((h) => near(h.r, -51 + 2, 1e-6)) && cyc.kind === 'peck', 'R plane 2 above the disc top (the pocket cleared the stock there), G83 pecks');
+    {
+      let prev = null, feedZ = 0;
+      for (const e of CP.expandCycle(cyc)) { if (e.k === 'feed' && prev) feedZ += Math.abs(e.p[2] - prev[2]); prev = e.p; }
+      // each hole: the depth below the R plane, plus the 0.254 mm back-off every later peck re-enters through
+      const want = cyc.holes.reduce((a, h) => a + (h.r - h.z) + CP.PECK_BACKOFF * (Math.ceil((h.r - h.z) / h.q - 1e-9) - 1), 0);
+      ok(near(feedZ, want, 1e-9), `drill: the feed travel of the 8 peck cycles = Σ [depth + 0.254 × (pecks − 1)] = ${want.toFixed(3)} mm`);
+    }
     let through = 0;
     for (const h of cyc.holes) if (fsim.at(h.at[0], h.at[1]) < -81) through++;
     ok(through === 8, 'the simulated stock is drilled through at every hole');
@@ -343,6 +384,12 @@ export async function runCamTests({ ok, section, near, oc = null, skip = (m) => 
     ok(/^%\n/.test(tl) && /G53 G0 Z0/.test(tl) && /T5 M6/.test(tl) && /G83 X/.test(tl) && /M2\n%\n$/.test(tl) && !/^N\d/m.test(tl), 'linuxcnc: % wrapper, G53 G0 Z0, T M6, G83, M2');
     ok([tf, tg, tl].every((t) => /\(Generated by PartCraft, lab build - verify before running\)/.test(t) && /G54/.test(t) && /G21/.test(t) && /G90/.test(t) && /\(Stock: box 204 x 204 x 81 mm\)/.test(t) && /M8/.test(t) && /S\d+ M3/.test(t) && /^[\x0a\x20-\x7e]*$/.test(t)), 'every post: header comments, G54 G21 G90, M3 S, coolant, ASCII only');
   }
+  // the post files (cam-postdef.js): the three built-ins as text = the code above, byte for byte, on these two real programs too
+  await (await import('./test-cam-post.mjs')).runCamPostTests({ ok, section, near, extra: [{ program: prog, name: 'block', label: 'the block program' }, { program: fprog, name: 'flange', label: 'the flange program, canned cycles' }] });
+  // 3D finishing (cam-finish.js): synthetic plane and dome meshes, closed forms and a brute-force oracle
+  await (await import('./test-cam-finish.mjs')).runCamFinishTests({ ok, section, near });
+  // tool libraries and the stock-versus-model colour
+  await (await import('./test-cam-library.mjs')).runCamLibraryTests({ ok, section, near });
   // second reader: gcode-toolpath (cncjs) on the GRBL text
   {
     const require = createRequire(path.join(HERE, 'package.json'));

@@ -8,11 +8,15 @@
  */
 import { registerWorkspace } from './workspaces.js';
 import { registerStudyReader } from './part.js';
-import { readStudy, newStudy, newOp, OP_TYPES, OP_PARAMS, AXES, ORIGINS, POSTS, originLabel } from './cam.js';
+import { readStudy, newStudy, newOp, OP_TYPES, OP_PARAMS, AXES, ORIGINS, POSTS, POST_LIMITS, originLabel } from './cam.js';
+import { parsePost } from './cam-postdef.js';
 import { t } from './i18n.js';
-import { newTool, KINDS, MATERIALS, speeds, describeTool, validateTool, speedsSource } from './cam-tools.js';
+import { newTool, KINDS, MATERIALS, speeds, describeTool, validateTool, speedsSource, exportLibrary, readLibrary, mergeTools, savedLibrary, saveToLibrary, removeFromLibrary } from './cam-tools.js';
 import { segments, segPoints } from './cam-paths.js';
 import { post, toolpathCsv, toolpathJson } from './cam-post.js';
+import { openPostEditor, readPostFile } from './cam-post-editor.js';
+import { postCopy, blankPost } from './cam-posts-builtin.js';
+import { GOUGE_RGB, ON_RGB, THIN_RGB, MID_RGB, STOCK_RGB } from './cam-sim.js';
 import { faceRef, edgeRef } from './brep.js';
 import { exactWhy } from './exact-client.js';
 
@@ -33,12 +37,14 @@ const LABEL_KEYS = {
   ramp: 'mfg.param.ramp', cycle: 'mfg.param.cycle', peck: 'mfg.param.peck', rPlane: 'mfg.param.r_plane',
   fullDiameter: 'mfg.param.full_diameter', diameter: 'mfg.param.diameter', width: 'mfg.param.width', tipOffset: 'mfg.param.tip_offset',
   engagement: 'cam.adaptive.engagement',   // 0.4 P24
+  tolerance: 'mfg.param.tolerance', angle: 'mfg.param.angle', zigzag: 'mfg.param.zigzag', slopeFrom: 'mfg.param.slope_from', slopeTo: 'mfg.param.slope_to',   // 0.7 LC.15
+  height: 'mfg.param.cusp', from: 'mfg.param.from',
 };
 const label = (k) => (LABEL_KEYS[k] ? t(LABEL_KEYS[k]) : k);
-const CHOICES = { direction: ['x', 'y'], entry: ['helix', 'ramp', 'plunge'], side: ['auto', 'outside', 'inside'], cycle: ['peck', 'drill', 'chipbreak'] };
+const CHOICES = { direction: ['x', 'y'], entry: ['helix', 'ramp', 'plunge'], side: ['auto', 'outside', 'inside'], cycle: ['peck', 'drill', 'chipbreak'], from: ['edge', 'top'] };
 const choice = (k, v) => ((CHOICES[k] || []).includes(v) ? t(`mfg.choice.${k}.${v}`) : v);
-const NEEDS_GEO = { pocket: true, adaptive: true, contour: true, drill: true, chamfer: true };
-const TOOL_FOR = { face: ['face', 'flat'], pocket: ['flat', 'bull', 'ball'], adaptive: ['flat', 'bull'], contour: ['flat', 'bull'], drill: ['drill'], chamfer: ['chamfer'] };
+const NEEDS_GEO = { pocket: true, adaptive: true, contour: true, drill: true, chamfer: true };   // parallel and scallop take the whole model: nothing to pick
+const TOOL_FOR = { face: ['face', 'flat'], pocket: ['flat', 'bull', 'ball'], adaptive: ['flat', 'bull'], contour: ['flat', 'bull'], drill: ['drill'], chamfer: ['chamfer'], parallel: ['ball', 'bull', 'flat'], scallop: ['ball', 'bull'] };
 
 const study = (host) => host.study(KEY);
 function edit(host, label, fn) {
@@ -135,7 +141,10 @@ function draw(host) {
     geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
     geo.setIndex(new THREE.BufferAttribute(r.zmap.indices, 1));
     geo.computeVertexNormals();
-    const m = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ color: '#c9a46a', transparent: true, opacity: 0.85, side: THREE.DoubleSide }));
+    // 0.7 LC.15: stock against the model in colour (green on the model, red cut into it, yellow → orange → stock grey left on it)
+    const colored = !!(r.zmap.colors && r.zmap.colors.length === P.length);
+    if (colored) geo.setAttribute('color', new THREE.BufferAttribute(r.zmap.colors, 3));
+    const m = new THREE.Mesh(geo, new THREE.MeshLambertMaterial(colored ? { vertexColors: true, transparent: true, opacity: 0.92, side: THREE.DoubleSide } : { color: '#c9a46a', transparent: true, opacity: 0.85, side: THREE.DoubleSide }));
     view.setOverlay('manufacture-stock', m);
   }
   if (r.gouges.length) {
@@ -336,7 +345,7 @@ function renderSetup(host, box, st, K) {
   g.append(
     el('p', { className: 'pc-props-sub' }, t('mfg.setup.material_machine')),
     ...K.field(t('mfg.setup.material'), K.sel(Object.entries(MATERIALS).map(([k, v]) => [k, v.label]), s.material, (v) => set(t('mfg.setup.material'), (x) => { x.material = v; }))),
-    ...K.field(t('mfg.post'), K.sel(Object.keys(POSTS).map((k) => [k, POSTS[k]]), s.machine.post, (v) => set(t('mfg.post'), (x) => { x.machine.post = v; }))),
+    ...K.field(t('mfg.post'), K.sel(postOptions(st), s.machine.post, (v) => set(t('mfg.post'), (x) => { x.machine.post = v; }))),
     ...K.field(t('mfg.setup.max_rpm'), K.num(s.machine.maxRpm, (v) => set(t('mfg.undo.spindle'), (x) => { x.machine.maxRpm = v; }), { min: 100, max: 200000 })),
     ...K.field(t('mfg.setup.rapid'), K.num(s.machine.rapid, (v) => set(t('mfg.undo.rapid'), (x) => { x.machine.rapid = v; }), { min: 10, max: 200000 })),
     ...K.field(t('mfg.setup.tool_change'), K.num(s.machine.toolChange, (v) => set(t('mfg.undo.tool_change'), (x) => { x.machine.toolChange = v; }), { min: 0, max: 3600 })),
@@ -367,6 +376,7 @@ function renderTools(host, box, st, K) {
       edit(host, t('mfg.tools.add'), (s) => { const n = Math.max(0, ...s.tools.map((x) => x.number)) + 1; s.tools.push(newTool(kind, { id, number: Math.min(999, n) })); });
       S.tool = id; host.renderPanel();
     }, 'pc-btn', { dataset: { maddtool: '1' } }))));
+  renderLibrary(host, box, st, K);
   const tl = st.tools.find((x) => x.id === S.tool);
   if (!tl) { box.append(el('div', { className: 'pc-block' }, el('p', { className: 'pc-note' }, t('mfg.tools.choose', { source: speedsSource() })))); return; }
   const set = (label, fn) => edit(host, label, (s) => {
@@ -436,7 +446,8 @@ function renderOpEditor(host, box, st, op, p, K) {
     ...K.field(t('mfg.op.name'), (() => { const n = el('input', { type: 'text', className: 'pc-input', id: 'pc-mname', value: op.name, maxLength: 80 }); n.addEventListener('change', () => set(t('mfg.undo.rename_op'), (o) => { o.name = n.value.trim() || OP_TYPES[op.type]; })); return n; })()),
     ...K.field(t('mfg.op.tool'), K.sel([['', t('mfg.op.choose_a_tool')], ...st.tools.map((t) => [t.id, `T${t.number} ${t.name || describeTool(t)}`])], op.tool || '', (v) => set(t('mfg.undo.op_tool'), (o) => { o.tool = v || null; }))),
   );
-  if (op.type !== 'face') g.append(el('span', { className: 'k' }, t('mfg.op.geometry')), el('span', { className: 'v' }, geoWords(host, op)));
+  if (NEEDS_GEO[op.type]) g.append(el('span', { className: 'k' }, t('mfg.op.geometry')), el('span', { className: 'v' }, geoWords(host, op)));
+  else if (op.type === 'parallel' || op.type === 'scallop') g.append(el('span', { className: 'k' }, t('mfg.op.geometry')), el('span', { className: 'v' }, t('mfg.op.whole_model')));
   const spec = OP_PARAMS[op.type];
   for (const [k, v] of Object.entries(spec)) {
     if (typeof v === 'boolean') { g.append(K.check(label(k), op.params[k], (x) => set(label(k), (o) => { o.params[k] = x; }), { dataset: { mparam: k } })); continue; }
@@ -500,11 +511,18 @@ function renderProgram(host, box, st, r, K) {
     b.append(el('div', { className: 'pc-props' }, ...K.field(t('mfg.sim.playback'), slider)), where,
       el('div', { className: 'pc-checks' },
         K.check(t('mfg.sim.show_paths'), S.showPaths, (v) => { S.showPaths = v; draw(host); }, { dataset: { mshowpaths: '1' } }),
-        K.check(t('mfg.sim.show_stock'), S.showStock, (v) => { S.showStock = v; draw(host); }, { dataset: { mshowstock: '1' } })));
+        K.check(t('mfg.sim.show_stock'), S.showStock, (v) => { S.showStock = v; draw(host); host.renderPanel(); }, { dataset: { mshowstock: '1' } })),
+      ...(S.showStock ? [legend(el)] : []));
   } else if (!S.busy && !S.error) b.append(el('p', { className: 'pc-note' }, st.ops.length ? t('mfg.sim.appear') : t('mfg.sim.add_op')));
   box.append(b);
   const pb = el('div', { className: 'pc-block' }, el('p', { className: 'pc-props-sub' }, t('mfg.post')),
-    el('div', { className: 'pc-props' }, ...K.field(t('mfg.control'), K.sel(Object.keys(POSTS).map((k) => [k, POSTS[k]]), st.setup.machine.post, (v) => edit(host, t('mfg.post'), (s) => { s.setup.machine.post = v; })))),
+    el('div', { className: 'pc-props' }, ...K.field(t('mfg.control'), K.sel(postOptions(st), st.setup.machine.post, (v) => edit(host, t('mfg.post'), (s) => { s.setup.machine.post = v; })))),
+    el('div', { className: 'pc-actions' },
+      K.btn(t('mfg.post.edit'), () => editSelectedPost(host, st), 'pc-btn', { dataset: { mpostedit: '1' } }),
+      K.btn(t('mfg.post.new'), () => runPostEditor(host, st, { text: blankPost(freshPostId(st, 'my-post'), t('mfg.post.new_name')), isNew: true }), 'pc-btn', { dataset: { mpostnew: '1' } }),
+      K.btn(t('mfg.post.import'), () => pickFile(host, '.cpost,.txt,text/plain', async (f) => {
+        try { runPostEditor(host, st, { text: await readPostFile(f), isNew: true }); } catch (e) { host.status(e.message, true); }
+      }), 'pc-btn', { dataset: { mpostimport: '1' } })),
     el('div', { className: 'pc-actions' },
       K.btn(t('mfg.download_gcode'), () => doPost(host), 'pc-btn is-primary', { disabled: !r, dataset: { mpost: '1' } }),
       K.btn(t('mfg.toolpath_csv'), () => { const pg = program(host); if (pg) host.downloadBlob(baseName(host) + '-toolpath.csv', new Blob([toolpathCsv(pg)], { type: 'text/csv' }), 'text/csv'); }, 'pc-btn', { disabled: !r }),
@@ -512,21 +530,114 @@ function renderProgram(host, box, st, r, K) {
     el('p', { className: 'pc-note' }, t('mfg.lab_note')));
   box.append(pb);
 }
+/** The key to the stock colours (cam-sim.js colorAt): the same five colours the view uses. */
+function legend(el) {
+  const rgb = (c) => `rgb(${c.map((v) => Math.round(v * 255)).join(',')})`;
+  const css = (n, o) => { for (const [k, v] of Object.entries(o)) n.style.setProperty(k, v); return n; };
+  const row = (c, text) => css(el('li', {}, swatch(el, rgb(c)), el('span', {}, text)), { display: 'flex', gap: '.4rem', 'align-items': 'center' });
+  return css(el('ul', { className: 'pc-note', dataset: { mlegend: '1' } },
+    row(ON_RGB, t('mfg.legend.on')), row(GOUGE_RGB, t('mfg.legend.cut')), row(THIN_RGB, t('mfg.legend.thin')), row(MID_RGB, t('mfg.legend.more')), row(STOCK_RGB, t('mfg.legend.stock'))), { 'list-style': 'none', margin: '.25rem 0 0', padding: '0' });
+}
 function swatch(el, c) {
   const sw = el('span', { 'aria-hidden': 'true' });
   for (const [k, v] of [['display', 'inline-block'], ['width', '.7rem'], ['height', '.7rem'], ['border-radius', '2px'], ['flex', 'none'], ['background', c]]) sw.style.setProperty(k, v);
   return sw;
 }
+// ---------------------------------------------------------------- posts of one's own (cam-postdef.js)
+
+const postTitle = (p) => { try { return parsePost(p.text).name; } catch { return p.id; } };
+/** The Control list: the three built-in posts, then the study's own. */
+const postOptions = (st) => [...Object.keys(POSTS).map((k) => [k, POSTS[k]]), ...(st.posts || []).map((p) => ['custom:' + p.id, postTitle(p)])];
+const postName = (st, key) => { const o = postOptions(st).find(([k]) => k === key); return o ? o[1] : key; };
+function freshPostId(st, base) {
+  const used = new Set((st.posts || []).map((p) => p.id));
+  let id = base, n = 2;
+  while (used.has(id)) id = base + '-' + n++;
+  return id;
+}
+function pickFile(host, accept, onFile) {
+  const input = host.el('input', { type: 'file', accept });
+  input.hidden = true;
+  input.addEventListener('change', () => { const f = input.files && input.files[0]; input.remove(); if (f) onFile(f); });
+  document.body.append(input);
+  input.click();
+}
+async function runPostEditor(host, st, { text, isNew, oldId = null }) {
+  await openPostEditor(host, {
+    text, isNew, program: program(host),
+    exists: (id) => (st.posts || []).some((p) => p.id === id),
+    onSave: (txt) => {
+      const def = parsePost(txt);
+      if (!oldId && (st.posts || []).length >= POST_LIMITS.count) { host.status(t('mfg.post.too_many', { n: POST_LIMITS.count }), true); return false; }
+      edit(host, t('mfg.undo.post_save'), (s) => {
+        s.posts = s.posts || [];
+        const k = oldId ? s.posts.findIndex((p) => p.id === oldId) : -1, rec = { id: def.id, text: txt };
+        if (k >= 0) s.posts[k] = rec; else s.posts.push(rec);
+        if (!oldId || s.setup.machine.post === 'custom:' + oldId) s.setup.machine.post = 'custom:' + def.id;
+      });
+      host.status(t('mfg.post.saved', { name: def.name }));
+      return true;
+    },
+    onDelete: oldId ? () => {
+      edit(host, t('mfg.undo.post_delete'), (s) => { s.posts = (s.posts || []).filter((p) => p.id !== oldId); if (s.setup.machine.post === 'custom:' + oldId) s.setup.machine.post = 'grbl'; });
+      return true;
+    } : null,
+  });
+  host.renderPanel();
+}
+function editSelectedPost(host, st) {
+  const key = st.setup.machine.post;
+  const own = key.startsWith('custom:') ? (st.posts || []).find((p) => 'custom:' + p.id === key) : null;
+  if (own) runPostEditor(host, st, { text: own.text, isNew: false, oldId: own.id });
+  else runPostEditor(host, st, { text: postCopy(key, freshPostId(st, 'my-' + key), t('mfg.post.copy_name', { name: POSTS[key] })), isNew: true });
+}
+
+// ---------------------------------------------------------------- tool library: mine (in the browser) and files
+
+function renderLibrary(host, box, st, K) {
+  const { el } = host;
+  const saved = savedLibrary();
+  const tl = st.tools.find((x) => x.id === S.tool);
+  let pick = saved.length ? '0' : '';
+  const say = (m) => host.status(t('mfg.lib.merged', { added: m.added.length, skipped: m.skipped.length }) + (m.renumbered.length ? ' ' + t('mfg.lib.renumbered', { list: m.renumbered.map((r) => `${r.name}: T${r.from} → T${r.to}`).join(', ') }) : ''));
+  const bring = (incoming, label) => {
+    let m;
+    try { m = mergeTools(st.tools, incoming); } catch (e) { host.status(e.message, true); return; }
+    if (m.added.length) edit(host, label, (s) => { s.tools = mergeTools(s.tools, incoming).tools; });
+    say(m);
+    host.renderPanel();
+  };
+  const list = K.sel(saved.length ? saved.map((x, i) => [String(i), `T${x.number} ${x.name || describeTool(x)}`]) : [['', t('mfg.lib.empty')]], pick, (v) => { pick = v; });
+  list.dataset.mlibList = '1';
+  box.append(el('div', { className: 'pc-block', dataset: { mlibrary: '1' } },
+    el('p', { className: 'pc-props-sub' }, t('mfg.lib.title')),
+    el('p', { className: 'pc-note' }, t('mfg.lib.note')),
+    el('div', { className: 'pc-props' }, ...K.field(t('mfg.lib.mine'), list)),
+    el('div', { className: 'pc-actions' },
+      K.btn(t('mfg.lib.add_to_part'), () => { const x = saved[Number(pick)]; if (x) bring([x], t('mfg.lib.add_to_part')); }, 'pc-btn', { disabled: !saved.length, dataset: { mlibadd: '1' } }),
+      K.btn(t('mfg.lib.remove'), () => { if (pick !== '' && removeFromLibrary(Number(pick))) { host.status(t('mfg.lib.removed')); host.renderPanel(); } }, 'pc-btn', { disabled: !saved.length, dataset: { mlibremove: '1' } })),
+    el('div', { className: 'pc-actions' },
+      K.btn(t('mfg.lib.save_tool'), () => { if (!tl) return; const r = saveToLibrary([tl]); host.status(r.ok ? t('mfg.lib.saved', { added: r.added.length, skipped: r.skipped.length }) : t('mfg.lib.no_storage'), !r.ok); host.renderPanel(); }, 'pc-btn', { disabled: !tl, dataset: { mlibsave: '1' } }),
+      K.btn(t('mfg.lib.save_all'), () => { const r = saveToLibrary(st.tools); host.status(r.ok ? t('mfg.lib.saved', { added: r.added.length, skipped: r.skipped.length }) : t('mfg.lib.no_storage'), !r.ok); host.renderPanel(); }, 'pc-btn', { dataset: { mlibsaveall: '1' } })),
+    el('div', { className: 'pc-actions' },
+      K.btn(t('mfg.lib.export'), () => host.downloadBlob(baseName(host) + '-tools.json', new Blob([exportLibrary(st.tools, baseName(host))], { type: 'application/json' }), 'application/json'), 'pc-btn', { dataset: { mlibexport: '1' } }),
+      K.btn(t('mfg.lib.import'), () => pickFile(host, '.json,application/json', async (f) => {
+        try { bring(readLibrary(await f.text()), t('mfg.lib.import')); } catch (e) { host.status(e.message, true); }
+      }), 'pc-btn', { dataset: { mlibimport: '1' } }))));
+}
+
 const baseName = (host) => String(host.part.name || 'Part').replace(/[^A-Za-z0-9 _-]/g, '').trim().replace(/\s+/g, '-') || 'Part';   // i18n-ignore: file name
 function doPost(host) {
   const pg = program(host);
   if (!pg) { host.status(t('mfg.make_first')); return; }
   const bad = pg.paths.filter((p) => p.error);
   if (bad.length) host.status(t('mfg.post.left_out', { n: bad.length, names: bad.map((p) => p.op.name).join(', ') }), true);
-  const kind = S.resultFor.setup.machine.post;
-  const out = post(pg, { post: kind, name: host.part.name || 'Part' });   // i18n-ignore: program name in the G-code
+  // the control and the study's own posts are read now, not from the study the toolpaths were last made from: they do not change the toolpaths
+  const cur = study(host) || S.resultFor;
+  const kind = cur.setup.machine.post;
+  const out = post(pg, { post: kind, name: host.part.name || 'Part', posts: cur.posts || [] });   // i18n-ignore: program name in the G-code
   host.downloadBlob(`${baseName(host)}.${out.ext}`, new Blob([out.text], { type: 'text/plain' }), 'text/plain');
-  if (!bad.length) host.status(t('mfg.post.done', { post: POSTS[kind] }));
+  if (!bad.length) host.status(t('mfg.post.done', { post: postName(cur, kind) }));
 }
 
 // ---------------------------------------------------------------- registration
@@ -553,6 +664,8 @@ lazyLabels(registerWorkspace({
       { cmd: 'manufacture-contour', icon: 'bezier2', label: 'mfg.tb.contour', title: 'mfg.tb.contour.title' },
       { cmd: 'manufacture-drill', icon: 'record-circle', label: 'mfg.tb.drill', title: 'mfg.tb.drill.title' },
       { cmd: 'manufacture-chamfer', icon: 'triangle', label: 'mfg.tb.chamfer', title: 'mfg.tb.chamfer.title' },
+      { cmd: 'manufacture-parallel', icon: 'list-nested', label: 'mfg.tb.parallel', title: 'mfg.tb.parallel.title' },
+      { cmd: 'manufacture-scallop', icon: 'water', label: 'mfg.tb.scallop', title: 'mfg.tb.scallop.title' },
     ] },
     { label: 'mfg.tb.program', items: [
       { cmd: 'manufacture-simulate', icon: 'play-circle', label: 'mfg.tb.simulate', title: 'mfg.tb.simulate.title' },
@@ -567,7 +680,7 @@ lazyLabels(registerWorkspace({
     host.view.setMarks(null);
   },
   command(cmd, host) {
-    const m = /^manufacture-(face|pocket|adaptive|contour|drill|chamfer)$/.exec(cmd);
+    const m = /^manufacture-(face|pocket|adaptive|contour|drill|chamfer|parallel|scallop)$/.exec(cmd);
     if (m) { addOp(host, m[1]); return true; }
     if (cmd === 'manufacture-simulate') { S.showStock = true; S.tab = 'ops'; generate(host); return true; }
     if (cmd === 'manufacture-post') { doPost(host); return true; }
@@ -594,7 +707,7 @@ lazyLabels(registerWorkspace({
     return false;
   },
   toolState(cmd, host) {
-    if (/^manufacture-(face|pocket|contour|drill|chamfer)$/.test(cmd) && !(host.regen?.exact || host.regen?.named)) return { ok: false, why: exactWhy(t('kernel.what.manufacture'), t('mfg.need.exact')) };
+    if (/^manufacture-(face|pocket|contour|drill|chamfer|parallel|scallop)$/.test(cmd) && !(host.regen?.exact || host.regen?.named)) return { ok: false, why: exactWhy(t('kernel.what.manufacture'), t('mfg.need.exact')) };
     const st = study(host);
     if (cmd === 'manufacture-simulate' && !(st && st.ops.length)) return { ok: false, why: t('mfg.add_op_first') };
     if (cmd === 'manufacture-post' && !S.result) return { ok: false, why: t('mfg.make_first') };

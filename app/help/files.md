@@ -14,9 +14,9 @@ PartCraft works on files on your computer. It never uploads a part, and there is
 |---|---|---|
 | A PartCraft part | `.partcraft.json` | {{ui:Open}}, {{key:Mod+O}}, or drop it on the 3D view |
 | A PartCraft assembly | `.partcraft-asm.json` | The same: PartCraft sees which kind it is |
-| A STEP solid | `.step`, `.stp` | Not built yet in this version: it needs an exact kernel, and the status bar says "Opening STEP files: not built yet…" |
+| A STEP solid | `.step`, `.stp` | A solid body read as triangles: [Open a STEP file and build on it](topic:import-step) |
 
-STL, DXF, IGES and other programs' own part files cannot be opened (see [What is not built yet](topic:not-built-yet)). How STEP import worked in builds with an exact kernel: [Open a STEP file and build on it](topic:import-step).
+STL, OBJ and 3MF meshes open as solid bodies too ([Open an STL, OBJ or 3MF](topic:open-meshes)), and so do `.3dm` files ([Open a .3dm model](topic:open-3dm-files)). DXF, IGES and other programs' own part files cannot be opened (see [What is not built yet](topic:not-built-yet)).
 
 Rules when opening:
 

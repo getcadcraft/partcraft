@@ -11,6 +11,9 @@
  *   partcraft drive     <part> <target|var>=<value>    backward: solve the variable behind a driven number [--prefer v]
  *   partcraft build     <part> --out <file>            .step .stl .3mf .json .pcscript .swb
  *                       [--set k=v …] [--upto <feature>] [--table t.csv --out-dir <dir> [--format step]]
+ *   partcraft variants  <part> --out-dir <dir> | --zip <f.zip>   the variant pack: every configuration (or --only "A,B") as
+ *                       STEP, IFC, DWG and a preview, a variants table (CSV + JSON) and a LibraryCraft item with the variants
+ *                       [--formats step,ifc,dwg,preview] [--no-item] [--kernel mesh]
  *   partcraft script    <in.pcscript> -o <part.json>   script → part
  *   partcraft to-script <part> -o <x.pcscript>         part → script (STEP of imports written beside it) [--exact]
  *   partcraft rollback  <part> [<feature> | --steps n] move the rollback bar back (default one feature)
@@ -51,7 +54,7 @@ class Usage extends Error {}
 const fmt = (v) => (typeof v === 'number' ? formatNumber(v) : String(v));
 
 // ---------------------------------------------------------------- arguments
-const VALUE_OPTS = new Set(['out', 'o', 'out-dir', 'set', 'upto', 'table', 'prefer', 'steps', 'kernel', 'format', 'part', 'load', 'save-ws', 'budget', 'lib']);
+const VALUE_OPTS = new Set(['only', 'formats', 'zip', 'out', 'o', 'out-dir', 'set', 'upto', 'table', 'prefer', 'steps', 'kernel', 'format', 'part', 'load', 'save-ws', 'budget', 'lib']);
 function parseArgs(argv) {
   const pos = [], opt = { set: [], load: [] };
   for (let i = 0; i < argv.length; i++) {
@@ -64,7 +67,7 @@ function parseArgs(argv) {
       const v = m[2] ?? argv[++i];
       if (v === undefined) throw new Usage(`--${k} needs a value.`);
       if (k === 'set' || k === 'load') opt[k].push(v); else opt[k === 'o' ? 'out' : k] = v;
-    } else if (['json', 'strict', 'end', 'exact', 'no-build', 'help', 'h', 'quiet'].includes(k)) opt[k === 'h' ? 'help' : k] = true;
+    } else if (['json', 'strict', 'end', 'exact', 'no-build', 'no-item', 'help', 'h', 'quiet'].includes(k)) opt[k === 'h' ? 'help' : k] = true;
     else throw new Usage(`Unknown option --${k}. Try partcraft --help.`);
   }
   return { pos, opt };
@@ -330,6 +333,35 @@ const commands = {
     }
     for (const w of L.warnings) say('warning: ' + w);
     finish(bad ? 1 : 0, { results, warnings: L.warnings });
+  },
+
+  async variants(pos, opt) {
+    if (!opt['out-dir'] && !opt.zip) throw new Usage('variants needs --out-dir <dir> (one file each) or --zip <file.zip>.');
+    const L = readInput(pos[0]);
+    const V = await import(DEV + 'variants.js');
+    const formats = opt.formats ? String(opt.formats).split(',').map((x) => x.trim().toLowerCase()).filter(Boolean) : V.PACK_FORMATS;
+    const bad = formats.filter((f) => !V.PACK_FORMATS.includes(f));
+    if (bad.length) throw new Usage(`--formats takes ${V.PACK_FORMATS.join(', ')} (not ${bad.join(', ')}).`);
+    const names = opt.only ? String(opt.only).split(',').map((x) => x.trim()).filter(Boolean) : null;
+    const k = await kernel(opt.kernel);
+    const res = await V.buildPack(L.part, {
+      names, formats, item: !opt['no-item'],
+      build: async (p) => (k.kind === 'exact' ? k.B.regenerateBrep(p, k.oc, {}) : k.K.regenerate(p, k.M, {})),
+      step: k.kind === 'exact' ? async (p) => k.B.exportStep(p, k.oc, { schema: opt.format === 'ap214' ? 'AP214' : 'AP242' }).text : null,
+    });
+    if (k.note) res.notes.unshift(k.note);
+    for (const w of L.warnings) say('warning: ' + w);
+    for (const p of res.problems) say(`${p.name ? p.name + ': ' : ''}error: ${p.error}`);
+    if (res.files.length) {
+      if (opt['out-dir']) {
+        fs.mkdirSync(opt['out-dir'], { recursive: true });
+        for (const f of res.files) fs.writeFileSync(path.join(opt['out-dir'], f.name), f.data);
+        say(`Wrote ${res.files.length} files for ${res.variants.length} variants to ${opt['out-dir']}.`);
+      }
+      if (opt.zip) { fs.writeFileSync(opt.zip, V.packZip(res)); say(`Wrote ${opt.zip}: ${res.files.length} files for ${res.variants.length} variants.`); }
+    }
+    for (const n of res.notes) say('note: ' + n);
+    finish(res.problems.length || !res.variants.length ? 1 : 0, { variants: res.variants, problems: res.problems, notes: res.notes, files: res.files.map((f) => f.name) });
   },
 
   async script(pos, opt) {

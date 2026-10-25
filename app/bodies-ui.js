@@ -21,7 +21,7 @@ import { exactWhy } from './exact-client.js';
 export const BODY_TYPES = new Set(Object.keys(BODY_LABELS));
 export const BODY_ICONS = { combine: 'union', movebody: 'arrows-move', scalebody: 'aspect-ratio', pathpattern: 'bezier' };
 export const BODY_MENU = ['combine', 'movebody', 'scalebody', 'pathpattern'];
-const SOLID = new Set(['extrude', 'revolve', 'hole', 'lpattern', 'cpattern', 'mirror', 'import', 'sweep', 'loft']);
+const SOLID = new Set(['extrude', 'revolve', 'hole', 'lpattern', 'cpattern', 'mirror', 'import', 'sweep', 'loft', 'member']);
 const combineOptions = () => [['join', t('ui.bodies.combine.join')], ['cut', t('ui.bodies.combine.cut')], ['intersect', t('ui.bodies.combine.intersect')]];
 const moveOptions = () => [['translate', t('ui.bodies.move.translate')], ['points', t('ui.bodies.move.points')], ['rotate', t('ui.bodies.move.rotate')], ['align', t('ui.bodies.move.align')]];
 /** The status line that asks for a click into a slot of kind `kind` (body, point, axis, plane, pathEdge). */

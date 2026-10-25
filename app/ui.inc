@@ -146,7 +146,7 @@ $__tools = [
                   <?php if (is_string($__m)): ?><hr><div class="pc-menu-h" role="presentation"><?= Lang::e($__m) ?></div><?php continue; endif; ?>
                   <button type="button" role="menuitem" data-cmd="<?= e($__m[0]) ?>" title="<?= e($__m[3]) ?>"><i class="bi bi-<?= e($__m[1]) ?>" aria-hidden="true"></i> <?= e($__m[2]) ?></button><?php /* i18n-ignore: $__m holds Lang::t() texts */ ?>
                 <?php endforeach; ?>
-                <?php foreach (['ui.tb.fmore.h.details', ['rib', 'triangle', 'rib.menu'], ['thread', 'nut', 'thread.menu'], 'ui.tb.fmore.h.sheet', ['sheetbase', 'file-earmark', 'sheet.menu.base'], ['sheetflange', 'arrow-90deg-up', 'sheet.menu.flange']] as $__m): ?>
+                <?php foreach (['ui.tb.fmore.h.details', ['rib', 'triangle', 'rib.menu'], ['thread', 'nut', 'thread.menu'], ['member', 'bounding-box', 'weld.menu'], 'ui.tb.fmore.h.sheet', ['sheetbase', 'file-earmark', 'sheet.menu.base'], ['sheetflange', 'arrow-90deg-up', 'sheet.menu.flange']] as $__m): ?>
                   <?php if (is_string($__m)): ?><hr><div class="pc-menu-h" role="presentation"><?= Lang::e($__m) ?></div><?php continue; endif; ?>
                   <button type="button" role="menuitem" data-cmd="<?= e($__m[0]) ?>" title="<?= Lang::e($__m[2] . '.title') ?>"><i class="bi bi-<?= e($__m[1]) ?>" aria-hidden="true"></i> <?= Lang::e($__m[2]) ?></button>
                 <?php endforeach; ?>
@@ -214,11 +214,13 @@ $__tools = [
                 <button type="button" role="menuitem" data-cmd="export-step-faceted"><?= Lang::e('ui.tb.export.step_faceted') ?></button>
                 <button type="button" role="menuitem" data-cmd="export-step214-faceted"><?= Lang::e('ui.tb.export.step214_faceted') ?></button>
                 <button type="button" role="menuitem" data-cmd="export-ifc" title="<?= Lang::e('ui.tb.export.ifc.title') ?>"><?= Lang::e('ui.tb.export.ifc') ?></button>
+                <button type="button" role="menuitem" data-cmd="export-usd" title="<?= Lang::e('usd.export.title') ?>"><?= Lang::e('usd.menu.usdz') ?></button><?php /* 0.7 XF.8 (session usd): usd-partcraft.js */ ?>
                 <button type="button" role="menuitem" data-cmd="export-sw-step" title="<?= Lang::e('ui.tb.export.sw_step.title') ?>"><?= Lang::e('ui.tb.export.sw_step') ?></button>
                 <button type="button" role="menuitem" data-cmd="export-sw-macro" title="<?= Lang::e('ui.tb.export.sw_macro.title') ?>"><?= Lang::e('ui.tb.export.sw_macro') ?></button>
                 <a role="menuitem" class="pc-menu-link" data-sw-back href="<?= e($__build['url']) ?>CadCraftExport.swb" download="CadCraftExport.swb" title="<?= Lang::e('ui.tb.export.sw_back.title') ?>"><?= Lang::e('ui.tb.export.sw_back') ?></a>
                 <button type="button" role="menuitem" data-cmd="export-dxf"><?= Lang::e('ui.tb.export.dxf') ?></button>
                 <button type="button" role="menuitem" data-cmd="export-nest" title="<?= Lang::e('ui.tb.export.nest.title') ?>"><?= Lang::e('ui.tb.export.nest') ?></button>
+                <button type="button" role="menuitem" data-cmd="export-laser" title="<?= Lang::e('ui.tb.export.laser.title') ?>"><?= Lang::e('ui.tb.export.laser') ?></button>
                 <button type="button" role="menuitem" data-cmd="export-drawing"><?= Lang::e('ui.tb.export.drawing') ?></button>
                 <button type="button" role="menuitem" data-cmd="export-bom" hidden><?= Lang::e('ui.tb.export.bom') ?></button>
               </div>
@@ -227,7 +229,7 @@ $__tools = [
         </div>
       </div>
     <?php endforeach; ?>
-    <input type="file" class="visually-hidden" accept=".json,application/json,.step,.stp" tabindex="-1" aria-hidden="true" data-file>
+    <input type="file" class="visually-hidden" accept=".json,application/json,.step,.stp,.stl,.obj,.3mf,.3dm" tabindex="-1" aria-hidden="true" data-file>
     <input type="file" class="visually-hidden" accept=".json,application/json" tabindex="-1" aria-hidden="true" data-insert-file>
   </div>
 

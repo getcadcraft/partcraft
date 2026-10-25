@@ -657,8 +657,11 @@ const FEATURES = {
     return { replace: { shape: result, names } };
   },
 
+  member() { fail(tr('weld.err.exact')); },   // structural members (D7.50) are built by the mesh kernel only
+
   import(f, ctx) {
     const { T, H } = ctx;
+    if (f.mesh) fail(tr('kernel.mesh.import_exact'));   // a body from a mesh (D7.49) is built by the mesh kernel only
     const base = ctx.importShape(f);
     // place: the file's Z up becomes PartCraft's Y up unless the file is already Y up
     const shape = f.up === 'y' ? base : T(new ctx.oc.BRepBuilderAPI_Transform(base, H.trsf(Z_TO_Y), true)).Shape();

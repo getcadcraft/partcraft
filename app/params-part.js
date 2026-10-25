@@ -224,10 +224,10 @@ export function resolveTarget(part, text) {
 }
 
 /** A human name for a key ("Extrude1.depth" style, usable with resolveTarget). */
-export function targetName(part, key) {
-  const t = targets(part).get(key);
+export function targetName(part, key, all = targets(part), byId = null) {
+  const t = all.get(key);
   if (!t) return key;
-  const f = part.features.find((g) => g.id === t.feature);
+  const f = byId ? byId.get(t.feature) : part.features.find((g) => g.id === t.feature);
   return `${f.name}.${t.field || t.dim}`;
 }
 
@@ -247,7 +247,8 @@ export function paramsReport(part) {
   const p = part.params || emptyParams();
   const ev = evaluateVars(p);
   const vars = p.vars.map((v) => ({ name: v.name, expr: v.expr, note: v.note || '', value: ev.values.has(v.name) ? ev.values.get(v.name) : null, error: ev.errors.get(v.name) || null }));
-  const links = describeLinks(part, p, partAdapter).map((l) => ({ ...l, name: targetName(part, l.target) }));
+  const all = targets(part), byId = new Map(part.features.map((f) => [f.id, f]));   // once, not once per equation (0.7 D7.51: 558 equations took 370 ms)
+  const links = describeLinks(part, p, partAdapter, all).map((l) => ({ ...l, name: targetName(part, l.target, all, byId) }));
   return { vars, links };
 }
 

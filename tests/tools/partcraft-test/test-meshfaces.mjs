@@ -169,14 +169,17 @@ export async function runMeshFacesTests({ ok, section, near, oc = null, M = null
     const inner = a.r.faces.filter((x) => /~f3$/.test(x.name));
     ok(a.res.status === 'ok' && near(a.r.stats.volume, 100000 - 96 * 46 * 18, 1e-3), `a 100 × 50 × 20 block shelled 2 mm, top open: to 1e-3 mm³ of 100000 − 96·46·18 = 20512 (${a.r.stats.volume.toFixed(6)}, ${a.ms.toFixed(0)} ms)`);
     ok(inner.length === 5 && inner.every((x) => x.type === 'plane') && [...a.r.mesh.triFace].every((v) => v >= 0), `its 5 inner faces are planes named after the faces they offset (${inner.map((x) => x.name).join(', ')})`);
-    const h = shell(block(true), { t: 2, outward: false });
-    const tube = h.r.faces.find((x) => x.name === 'f2.side:c13~f3' || (/~f3$/.test(x.name) && x.type === 'cylinder'));
-    ok(h.res.status === 'ok' && tube && near(tube.r, 7, 1e-9), `with a Ø10 hole through it: the hole gets a 2 mm tube round it, a cylinder r 7 (${tube && tube.name})`);
-    if (oc) {
-      const bp = block(true); const r0 = K.regenerate(bp, M); const top = r0.faces.find((x) => x.name === 'f2.end');
-      P.addFeature(bp, 'shell', { faces: [{ name: top.name, at: top.at }], t: 2, outward: false });
-      const xr = B.regenerateBrep(bp, oc);
-      ok(Math.abs(h.r.stats.volume - xr.stats.volume) / xr.stats.volume < 2e-3, `… the exact kernel's shell of the same part: ${xr.stats.volume.toFixed(3)} vs ${h.r.stats.volume.toFixed(3)} mm³ (faceting)`);
+    if (process.env.PC_QUICK) skip('shell of a holed block (minkowski, minutes under load): PC_QUICK=1');
+    else {
+      const h = shell(block(true), { t: 2, outward: false });
+      const tube = h.r.faces.find((x) => x.name === 'f2.side:c13~f3' || (/~f3$/.test(x.name) && x.type === 'cylinder'));
+      ok(h.res.status === 'ok' && tube && near(tube.r, 7, 1e-9), `with a Ø10 hole through it: the hole gets a 2 mm tube round it, a cylinder r 7 (${tube && tube.name})`);
+      if (oc) {
+        const bp = block(true); const r0 = K.regenerate(bp, M); const top = r0.faces.find((x) => x.name === 'f2.end');
+        P.addFeature(bp, 'shell', { faces: [{ name: top.name, at: top.at }], t: 2, outward: false });
+        const xr = B.regenerateBrep(bp, oc);
+        ok(Math.abs(h.r.stats.volume - xr.stats.volume) / xr.stats.volume < 2e-3, `… the exact kernel's shell of the same part: ${xr.stats.volume.toFixed(3)} vs ${h.r.stats.volume.toFixed(3)} mm³ (faceting)`);
+      }
     }
     const o = shell(block(false), { t: 2, outward: true });
     ok(o.res.status === 'ok' && o.r.stats.volume > 104 * 54 * 22 - 100 * 50 * 22 - 2000 && o.r.stats.volume < 104 * 54 * 24 - 100 * 50 * 22, `outward 2 mm: walls outside the block, the old volume hollow, open at the top (${o.r.stats.volume.toFixed(1)} mm³; edges rounded by the offset)`);

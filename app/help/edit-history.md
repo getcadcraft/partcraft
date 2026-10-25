@@ -3,7 +3,7 @@ title: Change a part through its history
 summary: Edit features and sketches after the fact, suppress, roll back, insert features earlier, reorder, rename and delete, and undo any of it.
 section: tasks
 order: 90
-keywords: history, feature tree, design tree, edit feature, edit sketch, suppress, unsuppress, rollback, roll back, roll forward, reorder, move feature, delete, rename, undo, redo, rebuild, regenerate, parent child
+keywords: history, feature tree, design tree, edit feature, edit sketch, suppress, unsuppress, rollback, roll back, roll forward, reorder, move feature, delete, rename, undo, redo, rebuild, regenerate, parent child, large part, many features, slow rebuild, 750 features
 ---
 
 A PartCraft part is its history: the list of planes, sketches and features on the left. PartCraft rebuilds the solid from the top of that list every time something changes. Changing a number early in the list changes everything built on it.
@@ -76,11 +76,15 @@ Deleting a feature does not delete its sketch: the sketch reappears in the view 
 
 Select the feature and type a new **Name** at the bottom of the right panel (up to 60 characters). The part's own name is in the right panel when nothing is selected.
 
+## Parts with hundreds of features
+
+A part with hundreds of features is tested at 750. PartCraft keeps the solid it had part-way through the history, so a change late in the history rebuilds only the features after it; a change near the top rebuilds everything built on it, which takes longest. Undo and redo rebuild only from where the two states differ. To work faster on a big part, roll back to where you are working (see Roll back above) or suppress what you do not need for now. Several cuts and bosses that do not touch each other are applied together, so a part made of many separate holes and bosses builds quicker than the number of features suggests.
+
 ## Undo and redo
 
 - {{key:Mod+Z}} or {{ui:Undo}} undoes the last change: a feature, a setting, a sketch edit, a drag. The status bar says what, for example "Undid change dimension."
 - {{key:Mod+Y}}, {{key:Mod+Shift+Z}} or {{ui:Redo}} redoes it.
-- PartCraft keeps the last 200 steps. Changes on the drawing sheet (a section, a moved GD&T symbol) are in the same list. Opening a file or starting a new part clears it.
+- PartCraft keeps the last 200 steps (a part so big that 200 copies would use a lot of memory keeps fewer, never fewer than the newest 20). Changes on the drawing sheet (a section, a moved GD&T symbol) are in the same list. Opening a file or starting a new part clears it.
 
 :::mac
 On a Mac, use ⇧⌘Z to redo. In Safari, ⌘Y may open the browser's history instead.

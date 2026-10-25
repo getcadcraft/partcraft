@@ -67,4 +67,4 @@ The PDF drawing has its own walkthrough: [Make a drawing sheet](topic:drawing-pd
 
 ## Formats not available
 
-glTF, OBJ, IGES, Parasolid and DWG are not exported in this build. See [File formats](topic:file-formats).
+glTF, OBJ, IGES and Parasolid are not exported in this build. DWG is written only by the variant pack, as a drawing sheet: see [Make a variant pack from your configurations](topic:variant-pack). See [File formats](topic:file-formats).

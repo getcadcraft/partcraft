@@ -16,6 +16,7 @@
  * Labels are text keys `input.cmd.<id>` in lang/en.json.
  *
  * STYLES: PartCraft (today's toolbar) and Feature tree (a ribbon of feature-based mechanical CAD programs: tabs per task,
+ * an Illustrate tab since 0.7 WS.14,
  * the feature commands first, view keys as two-letter sequences, the middle button orbits and Shift + middle pans).
  * Named for a way of working, never for a product.
  */
@@ -33,6 +34,7 @@ export const COMMANDS = [
   C('ws.generative', 'workspace', 'bi-tree', '[data-input-ws="generative"]', { wsSwitch: 'generative' }),
   C('ws.manufacture', 'workspace', 'bi-gear-wide-connected', '[data-input-ws="manufacture"]', { wsSwitch: 'manufacture' }),
   C('ws.script', 'workspace', 'bi-code-slash', '[data-input-ws="script"]', { wsSwitch: 'script' }),
+  C('ws.illustrate', 'workspace', 'bi-easel', '[data-input-ws="illustrate"]', { wsSwitch: 'illustrate' }),   // 0.7 WS.14 (session ws-partcraft)
 
   C('file.new', 'file', 'bi-file-earmark-plus', 'new'),
   C('file.open', 'file', 'bi-folder2-open', 'open', { defKeys: ['Ctrl+O'] }),
@@ -46,11 +48,13 @@ export const COMMANDS = [
   C('export.step-faceted', 'export', 'bi-box-arrow-up-right', 'export-step-faceted'),
   C('export.step214-faceted', 'export', 'bi-box-arrow-up-right', 'export-step214-faceted'),
   C('export.ifc', 'export', 'bi-building', 'export-ifc'),
+  C('export.usd', 'export', 'bi-box-arrow-up-right', 'export-usd'),   // 0.7 XF.8 (session usd)
   C('export.sw-step', 'export', 'bi-box-arrow-up-right', 'export-sw-step'),
   C('export.sw-macro', 'export', 'bi-file-earmark-code', 'export-sw-macro'),
   C('export.sw-back', 'export', 'bi-file-earmark-arrow-down', '[data-sw-back]'),
   C('export.dxf', 'export', 'bi-file-earmark', 'export-dxf'),
-  C('export.nest', 'export', 'bi-grid-3x3', 'export-nest'),   // 0.6 LC.17 (closing: registry gap)
+  C('export.nest', 'export', 'bi-grid-3x3', 'export-nest'),
+  C('export.laser', 'export', 'bi-lightning-charge', 'export-laser'),   // 0.7 SU.772   // 0.6 LC.17 (closing: registry gap)
   C('export.drawing', 'export', 'bi-file-earmark-pdf', 'export-drawing'),
   C('export.bom', 'export', 'bi-list-ol', 'export-bom', { mode: 'assembly' }),
 
@@ -109,6 +113,7 @@ export const COMMANDS = [
   C('feature.trimsurf', 'features', 'bi-scissors', 'trimsurf', D),
   C('feature.rib', 'features', 'bi-triangle', 'rib', D),
   C('feature.thread', 'features', 'bi-nut', 'thread', D),
+  C('feature.member', 'features', 'bi-bounding-box', 'member', { ...D, label: 'weld.menu' }),   // 0.7 D7.50 (session part-08): Structural member
   C('feature.sheetbase', 'features', 'bi-file-earmark', 'sheetbase', D),
   C('feature.sheetflange', 'features', 'bi-arrow-90deg-up', 'sheetflange', D),
 
@@ -157,6 +162,8 @@ export const COMMANDS = [
   C('cam.contour', 'manufacture', 'bi-bezier2', 'manufacture-contour', { ws: 'manufacture' }),
   C('cam.drill', 'manufacture', 'bi-record-circle', 'manufacture-drill', { ws: 'manufacture' }),
   C('cam.chamfer', 'manufacture', 'bi-triangle', 'manufacture-chamfer', { ws: 'manufacture' }),
+  C('cam.parallel', 'manufacture', 'bi-list-nested', 'manufacture-parallel', { ws: 'manufacture' }),
+  C('cam.scallop', 'manufacture', 'bi-water', 'manufacture-scallop', { ws: 'manufacture' }),
   C('cam.simulate', 'manufacture', 'bi-play-circle', 'manufacture-simulate', { ws: 'manufacture' }),
   C('cam.post', 'manufacture', 'bi-file-earmark-code', 'manufacture-post', { ws: 'manufacture' }),
 
@@ -166,6 +173,18 @@ export const COMMANDS = [
   C('script.run', 'script', 'bi-play-fill', 'script-run', { ws: 'script' }),
   C('script.run-sel', 'script', 'bi-play', 'script-run-sel', { ws: 'script' }),
   C('script.stop', 'script', 'bi-stop-fill', 'script-stop', { ws: 'script' }),
+
+  // 0.7 WS.14 (session ws-partcraft): the Illustrate workspace's own toolbar (ws-illustrate.js), so a ribbon tab can carry it
+  C('illustrate.new', 'illustrate', 'bi-file-earmark-plus', 'illustrate-new', { ws: 'illustrate' }),
+  C('illustrate.open', 'illustrate', 'bi-folder2-open', 'illustrate-open', { ws: 'illustrate' }),
+  C('illustrate.save', 'illustrate', 'bi-save', 'illustrate-save', { ws: 'illustrate' }),
+  C('illustrate.view-add', 'illustrate', 'bi-camera', 'illustrate-view-add', { ws: 'illustrate' }),
+  C('illustrate.view-update', 'illustrate', 'bi-camera-reels', 'illustrate-view-update', { ws: 'illustrate' }),
+  C('illustrate.hide', 'illustrate', 'bi-eye-slash', 'illustrate-hide', { ws: 'illustrate' }),
+  C('illustrate.ghost', 'illustrate', 'bi-transparency', 'illustrate-ghost', { ws: 'illustrate' }),
+  C('illustrate.isolate', 'illustrate', 'bi-bullseye', 'illustrate-isolate', { ws: 'illustrate' }),
+  C('illustrate.show-all', 'illustrate', 'bi-eye', 'illustrate-show-all', { ws: 'illustrate' }),
+  C('illustrate.export', 'illustrate', 'bi-box-arrow-up-right', 'illustrate-export', { ws: 'illustrate' }),
 
   C('edit.undo', 'edit', 'bi-arrow-counterclockwise', 'undo', { defKeys: ['Ctrl+Z'] }),
   C('edit.redo', 'edit', 'bi-arrow-clockwise', 'redo', { defKeys: ['Ctrl+Y', 'Ctrl+Shift+Z'] }),
@@ -199,8 +218,8 @@ export const COMMANDS = [
   C('app.palette', 'app', 'bi-search', '[data-palette-open]', { defKeys: ['Ctrl+K'], keyOnly: true }),
   C('app.help', 'app', 'bi-question-circle', '[data-help-open]', { defKeys: ['F1'], keyOnly: true }),
 ];
-export const GROUPS = ['workspace', 'file', 'export', 'sketch', 'features', 'drawing', 'assembly', 'form', 'simulation', 'generative', 'manufacture', 'script', 'edit', 'view', 'app'];
-export const WORKSPACES = ['design', 'form', 'simulation', 'generative', 'manufacture', 'script'];
+export const GROUPS = ['workspace', 'file', 'export', 'sketch', 'features', 'drawing', 'assembly', 'form', 'simulation', 'generative', 'manufacture', 'script', 'illustrate', 'edit', 'view', 'app'];
+export const WORKSPACES = ['design', 'form', 'simulation', 'generative', 'manufacture', 'script', 'illustrate'];
 
 // PartCraft's own keys = the registry's (what the app does with no profile at all)
 const DEFAULT_KEYS = Object.fromEntries(COMMANDS.filter((c) => c.defKeys.length && !c.fixed).map((c) => [c.id, c.defKeys.slice()]));
@@ -223,7 +242,8 @@ export const STYLES = {
     quick: ['file.new', 'file.open', 'file.save', 'edit.undo', 'edit.redo'],
     tabs: [
       rtab('features', [
-        ['boss', ['feature.extrude', 'feature.revolve', 'feature.sweep', 'feature.loft', 'feature.rib', 'feature.thread']],
+        ['sketch', ['sketch.new']],   // 0.7 WS.14: a part starts from a sketch, so the first tab starts one too
+        ['boss', ['feature.extrude', 'feature.revolve', 'feature.sweep', 'feature.loft', 'feature.rib', 'feature.thread', 'feature.member']],
         ['cutting', ['feature.cut', 'feature.revolve-cut', 'feature.hole']],
         ['dress', ['feature.fillet', 'feature.chamfer', 'feature.shell', 'feature.draft', 'feature.pick-done']],
         ['pattern', ['feature.lpattern', 'feature.cpattern', 'feature.mirror', 'feature.pathpattern']],
@@ -240,6 +260,9 @@ export const STYLES = {
       rtab('drawing', [['drawing', ['drawing.open', 'drawing.back', 'drawing.pdf']], ['annotation', ['drawing.datum', 'drawing.fcf', 'drawing.finish', 'drawing.detail']]]),
       rtab('assembly', [['assembly', ['asm.new', 'asm.back', 'asm.close']], ['components', ['asm.insert-copy', 'asm.insert-file', 'asm.edit']], ['mates', ['asm.joint', 'asm.check', 'asm.stackup']]]),
       rtab('studies', [['workspaces', ids('ws.')], ['simulation', ids('sim.')], ['generative', ids('gen.')], ['manufacture', ids('cam.')], ['form', ids('form.')], ['script', ids('script.')]]),
+      // 0.7 WS.14: the Illustrate workspace as a tab of its own (its tools switch to Illustrate first; the layouts open this tab there)
+      rtab('illustrate', [['manual', ['illustrate.new', 'illustrate.open', 'illustrate.save']], ['ilviews', ['illustrate.view-add', 'illustrate.view-update']],
+        ['ilshow', ['illustrate.hide', 'illustrate.ghost', 'illustrate.isolate', 'illustrate.show-all']], ['ilout', ['illustrate.export']], ['workspaces', ['ws.design']]]),
       rtab('view', [['orient', ['view.fit', 'view.normal', 'view.iso', 'view.front', 'view.back', 'view.top', 'view.bottom', 'view.right', 'view.left']], ['clipboard', ['edit.cut', 'edit.copy', 'edit.paste', 'edit.paste-in-place', 'edit.duplicate', 'edit.delete', 'edit.select-all', 'edit.select-none']]]),
     ],
     keys: {

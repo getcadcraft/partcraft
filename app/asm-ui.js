@@ -320,6 +320,14 @@ export function createAsmTools(ctx) {
       ctx.status(t('ui.asm.export.bom', { file: name + ' - BOM.csv', n: Object.keys(a.parts).length }));
       return;
     }
+    if (cmd === 'export-usd') {
+      // 0.7 XF.8 (session usd): a prototype per part, an instance per placement (usd-partcraft.js on cc-usd, ./usd/)
+      const { assemblyUsd } = await import('./usd-partcraft.js');
+      const r = assemblyUsd(a, ctx.builds, world, { format: 'usdz', name: name + '.usdz' });
+      ctx.download(new Blob([r.data], { type: 'model/vnd.usdz+zip' }), name + '.usdz', 'model/vnd.usdz+zip');
+      ctx.status(t('usd.done', { name: name + '.usdz', n: r.report.instances }));
+      return;
+    }
     if (cmd === 'export-ifc') {
       // IFC4 with every property: a type per part (its properties), an occurrence per instance (its values; 0.5 WL.32)
       const r = assemblyIfc(a, ctx.builds, world, { evaluate: evaluateVars, readPart, bom: BOM.bomRows(a, ctx.builds), fileName: name + '.ifc' });

@@ -26,14 +26,17 @@
  *           without them); the R plane clears the part and the stock left by earlier operations.
  *   chamfer chamfer mill along an outline, offset so the cone cuts the asked width.
  *   face    zig-zag over the stock, overhanging its edges, down to the model top.
+ *   parallel, scallop   3D finishing of the whole model (cam-finish.js).
  */
 import * as O from './cam-offset.js';
 import { speeds, profile, KINDS } from './cam-tools.js';
 import { stockLoop, machineModel } from './cam.js';
 import { adaptivePasses } from './cam-adaptive.js';
+import { opParallel, opScallop } from './cam-finish.js';
 import { t } from './i18n.js';
 
-export const PECK_BACKOFF = 0.254;   // mm: G83/G73 back-off as LinuxCNC documents it (Fanuc: a machine parameter)
+import { PECK_BACKOFF, expandCycle } from './cam-cycle.js';
+export { PECK_BACKOFF, expandCycle };
 const fmt = (v) => String(+Number(v).toFixed(3));
 
 class Path {
@@ -628,7 +631,7 @@ function opAdaptive(op, ctx, P) {
   if (P.pos) P.rapidZ(model.stock.max[2] + p.clearance);
 }
 
-const OPS = { face: opFace, pocket: opPocket, adaptive: opAdaptive, contour: opContour, drill: opDrill, chamfer: opChamfer };
+const OPS = { face: opFace, pocket: opPocket, adaptive: opAdaptive, contour: opContour, drill: opDrill, chamfer: opChamfer, parallel: opParallel, scallop: opScallop };
 
 // ---------------------------------------------------------------- program
 
@@ -665,34 +668,6 @@ export function generateProgram(study, regen, { sim = null, model = null, only =
     }
   }
   return { model, paths, setup: study.setup, tools: study.tools };
-}
-
-/** A canned cycle as plain rapid/feed moves (what the control does), starting at z = init over the first hole. */
-export function expandCycle(m) {
-  const out = [];
-  let z = m.init;
-  for (const hl of m.holes) {
-    const [x, y] = hl.at;
-    out.push({ k: 'rapid', p: [x, y, z] });
-    out.push({ k: 'rapid', p: [x, y, hl.r] });
-    if (m.kind === 'drill' || !(hl.q > 0)) out.push({ k: 'feed', p: [x, y, hl.z], f: m.f });
-    else {
-      let cur = hl.r;
-      while (cur > hl.z + 1e-9) {
-        const next = Math.max(hl.z, cur - hl.q);
-        if (m.kind === 'peck' && cur < hl.r) out.push({ k: 'rapid', p: [x, y, cur + PECK_BACKOFF] });
-        out.push({ k: 'feed', p: [x, y, next], f: m.f });
-        if (next > hl.z + 1e-9) {
-          if (m.kind === 'peck') out.push({ k: 'rapid', p: [x, y, hl.r] });
-          else out.push({ k: 'rapid', p: [x, y, next + PECK_BACKOFF] });
-        }
-        cur = next;
-      }
-    }
-    z = hl.ret === 'r' ? hl.r : m.init;
-    out.push({ k: 'rapid', p: [x, y, z] });
-  }
-  return out;
 }
 
 /**

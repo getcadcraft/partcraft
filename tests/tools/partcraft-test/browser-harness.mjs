@@ -44,6 +44,9 @@ export async function startHarness({ state = DEFAULT_STATE, out = path.join(REPO
   const ctx = await browser.newContext({ viewport: { width, height }, acceptDownloads: true, ...(fs.existsSync(state) ? { storageState: state } : {}) });
   if (exact) await exactInit(ctx);
   else await ctx.addInitScript(() => { try { localStorage.removeItem('partcraft.exactKernel'); } catch { /* no storage */ } });
+  // 0.7 WS.14: PC_WORKSPACE=docked|toolbox runs the checks with that layout on (Settings › Global › Layout); unset = classic
+  const layout = process.env.PC_WORKSPACE || 'standard';
+  await ctx.addInitScript((v) => { try { if (v === 'standard') localStorage.removeItem('cc-workspace'); else localStorage.setItem('cc-workspace', v); } catch { /* no storage */ } }, layout);
   const page = await ctx.newPage();
   const problems = [];
   page.on('console', (m) => { if (m.type() === 'error') problems.push('console: ' + m.text()); });

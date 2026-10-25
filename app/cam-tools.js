@@ -169,3 +169,79 @@ export function starterLibrary() {
     newTool('face', { id: 'fm50', number: 7, d: 50, flutes: 5, fluteLen: 6 }),
   ];
 }
+
+// ---------------------------------------------------------------- tool libraries (0.7 LC.15)
+
+export const LIBRARY_FORMAT = 'partcraft-tool-library';
+export const LIBRARY_VERSION = 1;
+export const LIBRARY_MAX = 500;
+export const LIBRARY_BYTES = 2e6;
+/** Where a person's own tools are kept between parts (browser storage; a file via exportLibrary is the way to move them). */
+export const LIBRARY_KEY = 'partcraft.toollib';
+
+/** The tools as a library file (JSON text). Ids are left out: the file's tools get new ones where they land. */
+export function exportLibrary(tools, name = '') {
+  return JSON.stringify({ format: LIBRARY_FORMAT, version: LIBRARY_VERSION, name: String(name || '').replace(/[\u0000-\u001f\u007f]/g, '').slice(0, 80), speedsNote: SPEEDS_SOURCE, tools: tools.map(({ id, ...rest }) => rest) }, null, 1) + '\n';
+}
+/** A library file (JSON text or an object) → tools with ids of their own; every tool range-checked like a study's. */
+export function readLibrary(src) {
+  let j = src;
+  if (typeof src === 'string') {
+    if (src.length > LIBRARY_BYTES) throw new Error(t('mfg.lib.err.big'));
+    try { j = JSON.parse(src); } catch { throw new Error(t('mfg.lib.err.json')); }
+  }
+  if (!j || typeof j !== 'object' || j.format !== LIBRARY_FORMAT) throw new Error(t('mfg.lib.err.format'));
+  if (j.version !== LIBRARY_VERSION) throw new Error(j.version > LIBRARY_VERSION ? t('mfg.lib.err.newer') : t('mfg.lib.err.version'));
+  if (!Array.isArray(j.tools) || j.tools.length > LIBRARY_MAX) throw new Error(t('mfg.lib.err.list'));
+  return j.tools.map((x, k) => readTool({ ...x, id: 'lib' + k }));
+}
+const sameTool = (a, b) => ['kind', 'd', 'flutes', 'fluteLen', 'cornerR', 'angle', 'tipD', 'material', 'vc', 'fz', 'rpm', 'feed'].every((k) => a[k] === b[k]);
+/**
+ * Put tools into a list: a tool that is already there (same kind, size, flutes and overrides) is skipped; one whose T number is
+ * taken gets the next free number; ids are made new. → {tools (the whole list), added, skipped, renumbered [{name, from, to}]}
+ */
+export function mergeTools(existing, incoming) {
+  const out = existing.slice(), added = [], skipped = [], renumbered = [];
+  const ids = new Set(out.map((x) => x.id)), nums = new Set(out.map((x) => x.number));
+  let seq = 1;
+  for (const tl of incoming) {
+    if (out.some((x) => sameTool(x, tl))) { skipped.push(tl); continue; }
+    let id;
+    do { id = 'tl' + (seq++).toString(36) + Math.random().toString(36).slice(2, 5); } while (ids.has(id));
+    let number = tl.number;
+    if (nums.has(number)) {
+      let n = 1;
+      while (nums.has(n) && n <= 999) n++;
+      if (n > 999) throw new Error(t('mfg.lib.err.numbers'));
+      renumbered.push({ name: tl.name, from: number, to: n });
+      number = n;
+    }
+    const copy = { ...tl, id, number };
+    ids.add(id); nums.add(number); out.push(copy); added.push(copy);
+  }
+  return { tools: out, added, skipped, renumbered };
+}
+const store = () => { try { return globalThis.localStorage || null; } catch { return null; } };
+/** My saved tools (empty where the browser keeps nothing; never throws). */
+export function savedLibrary(storage = store()) {
+  try {
+    const raw = storage && storage.getItem(LIBRARY_KEY);
+    return raw ? readLibrary(raw) : [];
+  } catch { return []; }
+}
+/** Add tools to my saved library (the same rules as mergeTools). → {ok, added, skipped, renumbered} */
+export function saveToLibrary(tools, storage = store()) {
+  const m = mergeTools(savedLibrary(storage), tools);
+  try {
+    if (!storage) return { ok: false, added: [], skipped: [], renumbered: [] };
+    storage.setItem(LIBRARY_KEY, exportLibrary(m.tools));
+    return { ok: true, added: m.added, skipped: m.skipped, renumbered: m.renumbered };
+  } catch { return { ok: false, added: [], skipped: [], renumbered: [] }; }
+}
+/** Take the tool at `index` out of my saved library. */
+export function removeFromLibrary(index, storage = store()) {
+  const list = savedLibrary(storage);
+  if (!(index >= 0 && index < list.length)) return false;
+  list.splice(index, 1);
+  try { storage.setItem(LIBRARY_KEY, exportLibrary(list)); return true; } catch { return false; }
+}

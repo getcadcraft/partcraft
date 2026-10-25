@@ -14,6 +14,11 @@
  * occurrence per instance, each an IfcBuildingElementProxy placed where the assembly puts it, typed by one
  * IfcBuildingElementProxyType per part (its geometry once, as a representation map; its properties once).
  *
+ * itemIfc(item, { now, fileName, variant, library }) → { text, counts }   0.7 W3.19: a LibraryCraft item (format 1, Z up, one
+ *   variant already chosen by libitem.js itemAsVariant) as IFC4: one IfcBuildingElementProxy with the item's body, in
+ *   CadCraft_LibraryItem (name, kind, category, uuid, version, hash, license, maker, model, variant), CadCraft_Variant (the
+ *   variant's parameter values) and CadCraft_Ports (one property per port); quantities from the body.
+ *
  * Properties ("every property"): on the part (on the type in an assembly)
  *   PartCraft_Part        Name, PartNumber, Description (assembly part props), Material, Density (kg/m³), Configuration
  *                         (the active one), Bodies (count)
@@ -92,7 +97,7 @@ class Step {
 const toZ = (p) => [p[0], -p[2], p[1]];
 
 /** The header, project, units and spatial structure every file has. */
-function begin(name, seed, now) {
+function begin(name, seed, now, storeyName = 'PartCraft') {
   const w = new Step();
   const O = w.pt([0, 0, 0]);
   const WCS = w.add('IFCAXIS2PLACEMENT3D(' + O + ',$,$)');
@@ -112,7 +117,7 @@ function begin(name, seed, now) {
   const bldLP = w.add('IFCLOCALPLACEMENT(' + siteLP + ',' + WCS + ')');
   const bld = w.add('IFCBUILDING(' + S(seed('building')) + ",$,'Building',$,$," + bldLP + ',$,$,.ELEMENT.,$,$,$)');
   const stLP = w.add('IFCLOCALPLACEMENT(' + bldLP + ',' + WCS + ')');
-  const storey = w.add('IFCBUILDINGSTOREY(' + S(seed('storey')) + ",$,'PartCraft',$,$," + stLP + ',$,$,.ELEMENT.,0.)');
+  const storey = w.add('IFCBUILDINGSTOREY(' + S(seed('storey')) + ',$,' + S(storeyName) + ',$,$,' + stLP + ',$,$,.ELEMENT.,0.)');
   w.add('IFCRELAGGREGATES(' + S(seed('rel-site')) + ',$,$,$,' + project + ',(' + site + '))');
   w.add('IFCRELAGGREGATES(' + S(seed('rel-bld')) + ',$,$,$,' + site + ',(' + bld + '))');
   w.add('IFCRELAGGREGATES(' + S(seed('rel-storey')) + ',$,$,$,' + bld + ',(' + storey + '))');
@@ -120,12 +125,12 @@ function begin(name, seed, now) {
   return { w, WCS, body, storey, stLP, seed, name, now, counts };
 }
 
-function finish(F, fileName) {
+function finish(F, fileName, system = 'PartCraft') {
   const ts = F.now.toISOString().slice(0, 19);
   const head = [
     'ISO-10303-21;', 'HEADER;',
     "FILE_DESCRIPTION(('ViewDefinition [ReferenceView_V1.2]'),'2;1');",
-    'FILE_NAME(' + S(fileName) + ',' + S(ts) + ",(''),(''),'PartCraft','PartCraft','');",
+    'FILE_NAME(' + S(fileName) + ',' + S(ts) + ",(''),(''),'" + system + "','" + system + "','');",
     "FILE_SCHEMA(('IFC4'));", 'ENDSEC;', 'DATA;',
   ];
   return { text: [...head, ...F.w.lines, 'ENDSEC;', 'END-ISO-10303-21;', ''].join('\n'), counts: F.counts };
@@ -235,6 +240,65 @@ export function partIfc(part, regen, { now = new Date(), evaluate, fileName = (p
   quantities(F, 'part', regen.stats, part.material).forEach((s, i) => relProps(F, 'partq|' + i, [el], s));
   material(F, new Map(), part.material, [el], 'part');
   return finish(F, fileName);
+}
+
+/** A library item's body (box or mesh, Z up, mm) as a PartCraft-style mesh (Y up) for faceSet(): (x, y, z) → (x, z, −y). */
+export function bodyMeshYUp(body) {
+  let P, I;
+  if (body.type === 'box') {
+    const { x, y, z, w, d, h } = body;
+    P = []; for (const dz of [0, h]) for (const [dx, dy] of [[0, 0], [w, 0], [w, d], [0, d]]) P.push(x + dx, y + dy, z + dz);
+    I = [0, 2, 1, 0, 3, 2, 4, 5, 6, 4, 6, 7, 0, 1, 5, 0, 5, 4, 1, 2, 6, 1, 6, 5, 2, 3, 7, 2, 7, 6, 3, 0, 4, 3, 4, 7];
+  } else { P = body.positions; I = body.indices; }
+  const out = new Array(P.length);
+  for (let i = 0; i < P.length; i += 3) { out[i] = P[i]; out[i + 1] = P[i + 2]; out[i + 2] = -P[i + 1]; }
+  return { positions: out, indices: I };
+}
+
+/** Volume, area and box of a mesh (any axes) for the quantities. */
+function meshStats(mesh) {
+  const P = mesh.positions, I = mesh.indices;
+  let vol = 0, area = 0;
+  const min = [Infinity, Infinity, Infinity], max = [-Infinity, -Infinity, -Infinity];
+  for (let i = 0; i < P.length; i += 3) for (let k = 0; k < 3; k++) { min[k] = Math.min(min[k], P[i + k]); max[k] = Math.max(max[k], P[i + k]); }
+  for (let t = 0; t < I.length; t += 3) {
+    const a = I[t] * 3, b = I[t + 1] * 3, c = I[t + 2] * 3;
+    const ux = P[b] - P[a], uy = P[b + 1] - P[a + 1], uz = P[b + 2] - P[a + 2], vx = P[c] - P[a], vy = P[c + 1] - P[a + 1], vz = P[c + 2] - P[a + 2];
+    const nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
+    area += Math.hypot(nx, ny, nz) / 2;
+    vol += (P[a] * (P[b + 1] * P[c + 2] - P[b + 2] * P[c + 1]) - P[a + 1] * (P[b] * P[c + 2] - P[b + 2] * P[c]) + P[a + 2] * (P[b] * P[c + 1] - P[b + 1] * P[c])) / 6;
+  }
+  return { volume: Math.abs(vol), area, bbox: { min, max } };
+}
+
+/** A library item as IFC4 (0.7 W3.19). `item` is format 1 with a body, one variant already chosen (libitem.js itemAsVariant);
+ * `variant` = { id, name, values } of that choice (omit for an item without variants); `library` = { uuid, version, sha256, license,
+ * holder, url } for the file's credit. */
+export function itemIfc(item, { now = new Date(), fileName = (item.name || 'Item') + '.ifc', variant = null, library = {} } = {}) {
+  if (!item?.body) throw new Error('itemIfc: the item has no body');   // i18n-ignore: the caller checks first
+  const name = variant ? `${item.name} — ${variant.name}` : String(item.name || 'Item');
+  const F = begin(name, (k) => guidFor('librarycraft|' + (item.uuid || item.name) + '|' + (variant?.id || '') + '|' + k), now, 'Library');
+  const { w } = F;
+  const mesh = bodyMeshYUp(item.body);
+  const rep = shapeRep(F, [faceSet(F, mesh)], 'Tessellation');
+  const pds = w.add('IFCPRODUCTDEFINITIONSHAPE($,$,(' + rep + '))');
+  const lp = w.add('IFCLOCALPLACEMENT(' + F.stLP + ',' + F.WCS + ')');
+  const el = w.add('IFCBUILDINGELEMENTPROXY(' + S(F.seed('item')) + ',$,' + S(name) + ',$,' + S(item.category || 'Item') + ',' + lp + ',' + pds + ',$,.USERDEFINED.)');
+  F.counts.elements++;
+  w.add('IFCRELCONTAINEDINSPATIALSTRUCTURE(' + S(F.seed('contained')) + ',$,$,$,(' + el + '),' + F.storey + ')');
+  const sets = [pset(F, 'item', 'CadCraft_LibraryItem', [
+    ['Name', item.name], ['Kind', item.kind], ['Category', item.category], ['Description', item.description || null], ['Maker', item.maker || null], ['Model', item.model || null],
+    ['ItemUuid', library.uuid || item.uuid || null], ['ItemVersion', library.version ?? item.version ?? null], ['ItemSha256', library.sha256 || null],
+    ['Variant', variant?.id || null], ['VariantName', variant?.name || null],
+    ['License', library.license || item.license?.id || null], ['LicenseHolder', library.holder || item.license?.holder || null], ['Source', library.url || null],
+    ['IfcClass', item.ifc?.class || null],
+  ])];
+  if (variant) sets.push(pset(F, 'variant', 'CadCraft_Variant', Object.entries(variant.values || {}).map(([k, v]) => [k, typeof v === 'number' || typeof v === 'string' ? v : null])));
+  sets.push(pset(F, 'ports', 'CadCraft_Ports', (item.ports || []).map((p) => [p.name, `${p.system}, ${p.direction}, ${p.shape} ${p.size}${p.h ? ' × ' + p.h : ''} mm${p.nominal ? ', nominal ' + p.nominal : ''}; at ${p.x}, ${p.y}, ${p.z} mm`])));
+  sets.filter(Boolean).forEach((s, i) => relProps(F, 'item|' + i, [el], s));
+  const st = meshStats(mesh);
+  quantities(F, 'item', st, null).forEach((s, i) => relProps(F, 'itemq|' + i, [el], s));
+  return finish(F, fileName, 'CadCraft LibraryCraft');
 }
 
 /** 4×4 column-major rigid matrix (Y up) → IFC axis placement (Z up): location, Axis (local z), RefDirection (local x). */

@@ -5,6 +5,7 @@
  * compared with the part's own heightfield.
  *
  *   new Sim(model, {cell, tolV, tolLat}) · sim.run(opPath) → {removed, gouges, rapidCuts} · sim.report()
+ *   sim.deviation() · sim.colorAt(dev) · sim.toMesh(step, {colors}) — stock against the model, in colour (0.7 LC.15)
  *   cycleTime(program, setup) → {seconds, feed, rapid, toolChanges, perOp}
  *
  * Method and limits (3-axis, tool axis vertical): each cell keeps one height (the top of the stock there),
@@ -171,8 +172,31 @@ export class Sim {
     if (i < 0 || j < 0 || i >= this.nx || j >= this.ny) return -Infinity;
     return this.z[j * this.nx + i];
   }
-  /** The Z-map as a triangle mesh (work coordinates): tops of the cells joined, for the 3D view. */
-  toMesh(step = 1) {
+  /** Stock against the model at every cell: z − the model's top there (or the stock bottom where there is no model). > 0 stock left, < 0 cut into the model. */
+  deviation() {
+    const hp = this.partHeights(), d = new Float32Array(this.nx * this.ny);
+    for (let k = 0; k < d.length; k++) {
+      if (!this.inStock[k]) { d[k] = NaN; continue; }
+      const floor = hp[k] > -Infinity ? Math.max(hp[k], this.bottom) : this.bottom;
+      d[k] = this.z[k] - floor;
+    }
+    return d;
+  }
+  /**
+   * The colour of a cell for the stock-versus-model view: [r, g, b] 0–1. Cut into the model (below −tolV): red; on the model
+   * (within ±tolV): green; stock left on it: yellow (a thin skin) through orange to the colour of uncut stock at `scale` mm
+   * or more (default 1 mm).
+   */
+  colorAt(dev, scale = 1) {
+    if (!(dev === dev)) return STOCK_RGB;
+    if (dev < -this.tolV) return GOUGE_RGB;
+    if (dev <= this.tolV) return ON_RGB;
+    const u = Math.min(1, (dev - this.tolV) / scale);
+    if (u >= 1) return STOCK_RGB;
+    return u < 0.5 ? mix(THIN_RGB, MID_RGB, u * 2) : mix(MID_RGB, STOCK_RGB, (u - 0.5) * 2);
+  }
+  /** The Z-map as a triangle mesh (work coordinates): tops of the cells joined, for the 3D view. `colors` adds one RGB per vertex (stock against the model). */
+  toMesh(step = 1, { colors = false, scale = 1 } = {}) {
     const nx = Math.ceil(this.nx / step) + 1, ny = Math.ceil(this.ny / step) + 1;
     const pos = new Float32Array(nx * ny * 3), idx = [];
     for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
@@ -186,9 +210,22 @@ export class Sim {
       const cell = this.inStock[Math.min(this.ny - 1, j * step) * this.nx + Math.min(this.nx - 1, i * step)];
       if (cell) idx.push(a, b, d, a, d, c);
     }
-    return { positions: pos, indices: new Uint32Array(idx) };
+    const out = { positions: pos, indices: new Uint32Array(idx) };
+    if (colors) {
+      const dev = this.deviation(), col = new Float32Array(nx * ny * 3);
+      for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
+        const ci = Math.min(this.nx - 1, i * step), cj = Math.min(this.ny - 1, j * step);
+        const c = this.colorAt(dev[cj * this.nx + ci], scale), k = (j * nx + i) * 3;
+        col[k] = c[0]; col[k + 1] = c[1]; col[k + 2] = c[2];
+      }
+      out.colors = col;
+    }
+    return out;
   }
 }
+const mix = (a, b, u) => [a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u, a[2] + (b[2] - a[2]) * u];
+/** The colours of the stock-versus-model view (the legend in the panel uses the same). */
+export const GOUGE_RGB = [0.88, 0.19, 0.16], ON_RGB = [0.2, 0.7, 0.35], THIN_RGB = [0.96, 0.85, 0.25], MID_RGB = [0.92, 0.5, 0.15], STOCK_RGB = [0.62, 0.66, 0.74];
 
 /** Machining time of a program: feed moves at their feed, rapids at the setup's rapid rate, tool changes. */
 export function cycleTime(program, setup) {

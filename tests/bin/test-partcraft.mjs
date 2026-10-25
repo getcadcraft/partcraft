@@ -1239,14 +1239,18 @@ await (await import(path.join(REPO, 'tools/partcraft-test/test-gdt.mjs'))).runGd
 await (await import(path.join(REPO, 'tools/partcraft-test/test-sketch-tools.mjs'))).runSketchToolTests({ ok, section, near, oc, skip });
 await (await import(path.join(REPO, 'tools/partcraft-test/test-assembly-tools.mjs'))).runAssemblyToolsTests({ ok, section, oc, skip });
 await (await import(path.join(REPO, 'tools/partcraft-test/test-workspaces.mjs'))).runWorkspaceTests({ ok, section, near });
+await (await import(path.join(REPO, 'tools/partcraft-test/test-illustrate.mjs'))).runIllustrateTests({ ok, section, near, M });   // 0.7 Track TP (session illustrate; after the workspaces test, which lists the switcher)
 await (await import(path.join(REPO, 'tools/partcraft-test/test-design-features.mjs'))).runDesignFeatureTests({ ok, section, oc, skip, M });
 await (await import(path.join(REPO, 'tools/partcraft-test/test-sheetmetal.mjs'))).runSheetMetalTests({ ok, section, oc, skip });   // 0.4 P15–P17
 await (await import(path.join(REPO, 'tools/partcraft-test/test-nest.mjs'))).runNestTests({ ok, section, oc, skip });   // 0.6 LC.17 (session lc-make)
+await (await import(path.join(REPO, 'tools/partcraft-test/test-offcuts.mjs'))).runOffcutTests({ ok, section });   // 0.7 SU.755 (offcut stock)
 await (await import(path.join(REPO, 'tools/partcraft-test/test-stackup.mjs'))).runStackupTests({ ok, section });   // 0.6 LC.18 (session lc-make)
 await (await import(path.join(REPO, 'tools/partcraft-test/test-configs.mjs'))).runConfigTests({ ok, section });   // 0.4 P18
 await (await import(path.join(REPO, 'tools/partcraft-test/test-stdparts.mjs'))).runStdPartsTests({ ok, section, M });   // 0.5 MQ.4
 await (await import(path.join(REPO, 'tools/partcraft-test/test-joints.mjs'))).runJointTests({ ok, section, M });   // 0.4 P19
+await (await import(path.join(REPO, 'tools/partcraft-test/test-asm-loops.mjs'))).runAsmLoopTests({ ok, section, M });   // 0.7 D7.40 (session part-08)
 await (await import(path.join(REPO, 'tools/partcraft-test/test-rib.mjs'))).runRibTests({ ok, section, oc });   // 0.4 P20
+await (await import(path.join(REPO, 'tools/partcraft-test/test-weldment.mjs'))).runWeldmentTests({ ok, section, M });   // 0.7 D7.50 (session part-08)
 await (await import(path.join(REPO, 'tools/partcraft-test/test-screw-threads.mjs'))).runScrewThreadTests({ ok, section, oc, M, skip });   // 0.5 WL.29
 await (await import(path.join(REPO, 'tools/partcraft-test/test-param-uses.mjs'))).runParamUsesTests({ ok, section });   // 0.5 WL.30
 await (await import(path.join(REPO, 'tools/partcraft-test/test-ifc-export.mjs'))).runIfcExportTests({ ok, section, skip, keep: KEEP });   // 0.5 WL.32
@@ -1257,6 +1261,13 @@ await (await import(path.join(REPO, 'tools/partcraft-test/test-holetable.mjs')))
 await (await import(path.join(REPO, 'tools/partcraft-test/test-adaptive.mjs'))).runAdaptiveTests({ ok, section, oc });   // 0.4 P24
 await (await import(path.join(REPO, 'tools/partcraft-test/test-bodies.mjs'))).runBodiesTests({ ok, section, oc, skip, M });
 await (await import(path.join(REPO, 'tools/partcraft-test/test-meshfaces.mjs'))).runMeshFacesTests({ ok, section, near, oc, M, skip });   // 0.4 K.2b
+await (await import(path.join(REPO, 'tools/partcraft-test/test-mesh-import.mjs'))).runMeshImportTests({ ok, section, M });   // 0.7 D7.49 (session part-08)
+{ // 0.7 D7.26 (session part-08): STEP without the exact kernel — cc-step's own test (fixtures, faceted round trip, truncation fuzz, copies)
+  section('STEP read as triangles (tools/step-test/test.mjs)');
+  const r = spawnSync(process.execPath, [path.join(REPO, 'tools/step-test/test.mjs')], { encoding: 'utf8' });
+  const last = (r.stdout || '').trim().split('\n').pop();
+  ok(r.status === 0, 'cc-step: ' + last + (r.status ? '\n' + r.stdout.split('\n').filter((l) => /FAIL|unexpected/.test(l)).join('\n') : ''));
+}
 await (await import(path.join(REPO, 'tools/partcraft-test/test-form.mjs'))).runFormTests({ ok, section, oc, skip });
 await (await import(path.join(REPO, 'tools/partcraft-test/test-gordon.mjs'))).runGordonTests({ ok, section, oc });
 await (await import(path.join(REPO, 'tools/partcraft-test/test-cam.mjs'))).runCamTests({ ok, section, near, oc, skip, keep: KEEP });
@@ -1270,6 +1281,7 @@ await (await import(path.join(REPO, 'tools/partcraft-test/test-flow-turb.mjs')))
 await (await import(path.join(REPO, 'tools/partcraft-test/test-threads.mjs'))).runThreadTests({ ok, section });
 await (await import(path.join(REPO, 'tools/partcraft-test/test-script.mjs'))).runScriptTests({ ok, section });
 await (await import(path.join(REPO, 'tools/partcraft-test/test-pu.mjs'))).runPuTests({ ok, section, M });   // 0.6 PU.1–PU.6
+await (await import(path.join(REPO, 'tools/partcraft-test/test-large.mjs'))).runLargeTests({ ok, section, M });   // 0.7 D7.51 (750 features, batched build, checkpoints)
 
 section('exact kernel: hygiene');
 {

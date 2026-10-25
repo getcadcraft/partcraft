@@ -1,7 +1,8 @@
 {
   "app": "partcraft",
   "css": [
-    "partcraft.css"
+    "partcraft.css",
+    "laser/laser-panel.css"
   ],
   "module": "partcraft.js",
   "imports": {
@@ -22,5 +23,13 @@
   "accepts": [
     "live"
   ],
-  "input": "input-partcraft.js"
+  "input": "input-partcraft.js",
+  "workspaces": {
+    "layouts": [
+      "docked",
+      "toolbox"
+    ],
+    "adapter": "workspace-partcraft.js"
+  },
+  "hardware": true
 }

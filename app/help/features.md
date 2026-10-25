@@ -118,7 +118,7 @@ The mesh kernel builds it. Only flat faces can be opened ("Shell: in this versio
 
 ## Imported solid
 
-Made by opening a STEP file in an earlier build: opening STEP files is not built yet in this version, and an imported solid in an older part stays in the history marked as not built. It shows the file name and the size of the STEP text kept in the part file.
+Made by opening a STEP, STL, OBJ or 3MF file: a solid body of triangles with no history of its own ([Open a STEP file](topic:import-step), [Open an STL, OBJ or 3MF](topic:open-meshes)). It shows the file it came from and what the import repaired; **Units in the file**, **Up in the file** and **Use it to** stay editable. A STEP solid imported by an older build that had the exact kernel stays in the history marked as not built; open the STEP file again to bring it in as triangles.
 
 | Setting | Choices | Default |
 |---|---|---|
@@ -173,4 +173,4 @@ Finer curves give smoother exports and views, and slower rebuilds. The setting i
 
 ## Not built yet
 
-Variable-radius fillets, fillets and chamfers on round edges, shells opening curved faces, draft on curved faces, sweep, loft, rib, imported STEP solids, new bodies, tapers, "up to" a face or vertex, and references on the solid's faces and edges need an exact kernel, which this version does not have. Also not built: tapped and countersunk holes. See [What is not built yet](topic:not-built-yet).
+Variable-radius fillets, fillets and chamfers on round edges, shells opening curved faces, draft on curved faces, sweep, loft, rib, STEP solids with exact curved faces, new bodies, tapers, "up to" a face or vertex, and references on the solid's faces and edges need an exact kernel, which this version does not have. Also not built: tapped and countersunk holes. See [What is not built yet](topic:not-built-yet).

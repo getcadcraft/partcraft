@@ -84,7 +84,7 @@ The base planes are drawn in full while the part is empty. Once it has a solid t
 - The view cube at the top right turns with the part: click a face, edge or corner to look from there, drag it to turn, the house button goes back to the start. See [The view cube](topic:view-cube).
 - A selected Extrude shows an orange arrow on its end face, a Revolve a curved arrow at the end of its turn: drag it to change the depth or the angle, or type in the box beside it. See [Change sizes](topic:change-sizes#drag-it-in-the-view).
 - When a part is empty, a box headed **Start a part** lists the first steps.
-- Drop a `.partcraft.json` or `.partcraft-asm.json` file anywhere on the view to open it. Opening `.step` and `.stp` files is not built yet in this version.
+- Drop a `.partcraft.json` or `.partcraft-asm.json` file anywhere on the view to open it. A `.step`, `.stp`, `.stl`, `.obj`, `.3mf` or `.3dm` file dropped there opens as a solid body.
 
 ### While you pick edges or faces
 
@@ -119,7 +119,9 @@ Every number box takes effect when you press {{key:Enter}} or {{key:Tab}}, or cl
 - On the left, the pointer's coordinates in the sketch (only while a sketch is open).
 - In the middle, messages: what to do next, and why something was refused. Read it when nothing seems to happen.
 - Near the right, the kernel chip: always "Mesh kernel" in this version. Hover it for what that means. See [The mesh kernel](topic:solid-kernels).
-- On the right, a chip: "Rebuilding…" while the part rebuilds, then "Rebuilt in 120 ms" when all is well, or "1 feature failing". In an assembly it says "Placed in … ms" or counts joint problems.
+- On the right, a chip: "Rebuilding…" while the part rebuilds, then "Rebuilt in … ms" when all is well, or "1 feature failing". In an assembly it says "Placed in … ms" or counts joint problems.
+
+See also [Start a manual in Illustrate](topic:illustrate): the workspace that makes assembly manuals from your parts and assemblies.
 
 ## On a narrow screen
 
