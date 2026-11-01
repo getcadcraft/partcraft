@@ -657,6 +657,8 @@ const FEATURES = {
     return { replace: { shape: result, names } };
   },
 
+  generated() { fail(tr('kernel.mesh.import_exact')); },   // a Generated feature (CE.3) keeps a mesh body: built by the mesh kernel only
+
   member() { fail(tr('weld.err.exact')); },   // structural members (D7.50) are built by the mesh kernel only
 
   import(f, ctx) {

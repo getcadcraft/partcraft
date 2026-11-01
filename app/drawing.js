@@ -418,12 +418,29 @@ export function holeTableRows(holes, view, box) {
   return { rows, skipped };
 }
 
+/** The scale composeSheet gives the three main views on a paper (the same rule it uses). */
+export function sheetScale(views, key, revH = 0) {
+  const [W, H] = PAPERS[key], gap = 18, tbH = 40;
+  const bw = (v) => v.box.u1 - v.box.u0, bh = (v) => v.box.v1 - v.box.v0;
+  const areaW = W - 2 * margin0 - 2 * gap, areaH = H - 2 * margin0 - tbH - 2 * gap - revH;
+  const needW = bw(views.front) + bw(views.right), needH = bh(views.front) + bh(views.top);
+  return SCALES.find((s) => needW * s <= areaW * 0.82 && needH * s <= areaH * 0.82) || SCALES[SCALES.length - 1];
+}
+export const AUTO_PAPERS = ['a4', 'a3', 'a2', 'a1', 'a0'];
+/** 0.8 EG.56: the paper an automatic sheet takes — the largest standard scale up to 1:1 that A0 allows, on the smallest sheet giving it. */
+export function autoPaper(views, revH = 0) {
+  const target = Math.min(1, sheetScale(views, 'a0', revH));
+  return AUTO_PAPERS.find((k) => sheetScale(views, k, revH) >= target - 1e-12) || 'a0';
+}
+
 export function composeSheet(data, { name = t('model.drawing.default_name'), date = new Date(), paper = null, drawing = {}, annotate = null, material = '', holes = null } = {}) {
-  const sheetKey = PAPERS[drawing.sheet] ? drawing.sheet : PAPERS[paper] ? paper : 'a3';
-  const [W, H] = PAPERS[sheetKey];
-  const revs = (drawing.revisions || []).slice(-MAX_REVISIONS), revH = revs.length ? 7 + 5 * revs.length : 0, revW = Math.min(150, W - 2 * margin0 - 40);
+  const revs = (drawing.revisions || []).slice(-MAX_REVISIONS), revH = revs.length ? 7 + 5 * revs.length : 0;
   const views = data.views;
   const bw = (v) => v.box.u1 - v.box.u0, bh = (v) => v.box.v1 - v.box.v0;
+  // 0.8 EG.56 (part_PART_3): an automatic sheet — the largest standard scale up to 1:1, on the smallest ISO sheet that holds the views at it
+  const sheetKey = drawing.sheet === 'auto' ? autoPaper(views, revH) : PAPERS[drawing.sheet] ? drawing.sheet : PAPERS[paper] ? paper : 'a3';
+  const [W, H] = PAPERS[sheetKey];
+  const revW = Math.min(150, W - 2 * margin0 - 40);
   const margin = margin0, gap = 18, tbH = 40, tbW = 180;
   const areaW = W - 2 * margin - 2 * gap, areaH = H - 2 * margin - tbH - 2 * gap - revH;
   const needW = bw(views.front) + bw(views.right), needH = bh(views.front) + bh(views.top);
@@ -594,6 +611,36 @@ export function composeSheet(data, { name = t('model.drawing.default_name'), dat
     });
     holeTable = { view: k, rows: HT.rows.map(({ tag, x, y, size, dia, depth }) => ({ tag, x, y, size, dia, depth })), skipped: HT.skipped };
   } else if (drawing.holeTable && !holes) omitted.push('holes');
+  // 0.8 EG.20 (part_PART_3): hole dimensions — on the main view that sees the most holes end-on: a centre mark on each, one callout per size
+  // ("n× ⌀ …" with a leader to the first), and ordinate positions from the view's lower-left corner (X below the view, Y to its left)
+  let holeDims = null;
+  if (drawing.holeDims && holes && holes.length) {
+    const cand = ['front', 'top', 'right'].map((k) => ({ k, rows: holeTableRows(holes, k, views[k].box).rows })).sort((a, b) => b.rows.length - a.rows.length)[0];
+    if (cand && cand.rows.length && place[cand.k]) {
+      const k = cand.k, b = views[k].box, s = place[k].s, o = toSheet(k, b.u0, b.v0), x1 = toSheet(k, b.u1, b.v0)[0], y1 = toSheet(k, b.u0, b.v1)[1];
+      const groups = new Map();
+      for (const r of cand.rows) { const key = r.dia.toFixed(6) + '|' + r.size; (groups.get(key) || groups.set(key, []).get(key)).push(r); }
+      for (const r of cand.rows) { const c = toSheet(k, r.u, r.v), m = Math.max(1.5, r.dia / 2 * s + 1.5); strokes.chain.segs.push([c[0] - m, c[1], c[0] + m, c[1]], [c[0], c[1] - m, c[0], c[1] + m]); }
+      let gi = 0;
+      for (const rows of groups.values()) {
+        const r = rows[0], c = toSheet(k, r.u, r.v), rr = r.dia / 2 * s, dir = [Math.SQRT1_2, Math.SQRT1_2], start = [c[0] + dir[0] * rr, c[1] + dir[1] * rr];
+        const end = [start[0] + 8 + 3 * gi, start[1] + 8 + 3 * gi], label = (rows.length > 1 ? rows.length + '× ' : '') + r.size;
+        strokes.thin.segs.push([start[0], start[1], end[0], end[1]], [end[0], end[1], end[0] + textWidth(label, 3) + 2, end[1]]);
+        arrow(fills, start, [-dir[0], -dir[1]]);
+        texts.push({ x: end[0] + 1, y: end[1] + 1, size: 3, text: label, anchor: 'start' });
+        gi++;
+      }
+      const xs = [...new Set(cand.rows.map((r) => +r.x.toFixed(2)))].sort((a, b) => a - b), ys = [...new Set(cand.rows.map((r) => +r.y.toFixed(2)))].sort((a, b) => a - b);
+      const yb = o[1] - (k === 'front' ? 24 : 10), xl = o[0] - (k === 'front' || k === 'top' ? 18 : 8);
+      strokes.thin.segs.push([o[0], o[1] - 1, o[0], yb + 2]);
+      texts.push({ x: o[0], y: yb - 3.5, size: 2.5, text: '0', anchor: 'middle', rot: 90 });
+      for (const x of xs) { const sx = o[0] + x * s; strokes.thin.segs.push([sx, o[1] - 1, sx, yb + 2]); texts.push({ x: sx, y: yb - 3.5, size: 2.5, text: fmtLen(x), anchor: 'middle', rot: 90 }); }
+      strokes.thin.segs.push([o[0] - 1, o[1], xl + 2, o[1]]);
+      texts.push({ x: xl - 1, y: o[1] - 1, size: 2.5, text: '0', anchor: 'end' });
+      for (const y of ys) { const sy = o[1] + y * s; strokes.thin.segs.push([o[0] - 1, sy, xl + 2, sy]); texts.push({ x: xl - 1, y: sy - 1, size: 2.5, text: fmtLen(y), anchor: 'end' }); }
+      holeDims = { view: k, holes: cand.rows.length, sizes: groups.size, xs, ys, box: [o[0], o[1], x1, y1] };
+    }
+  } else if (drawing.holeDims && !holes) omitted.push('holes');
   // border, title block (ISO 7200-style cells) and the revision block (top right)
   const rect = (x, y, w, h, layer) => strokes[layer].segs.push([x, y, x + w, y], [x + w, y, x + w, y + h], [x + w, y + h, x, y + h], [x, y + h, x, y]);
   rect(margin, margin, W - 2 * margin, H - 2 * margin, 'border');
@@ -657,7 +704,7 @@ export function composeSheet(data, { name = t('model.drawing.default_name'), dat
   }
   return {
     w: W, h: H, paper: sheetKey, name, scale, titleCells: cells, revisions: revs.length, isoScale: place.iso ? place.iso.s : null, strokes: [...Object.values(strokes), ...extra], fills, texts,
-    views: viewsOut, place, notes, omitted, exact: !!data.exact, holeTable,
+    views: viewsOut, place, notes, omitted, exact: !!data.exact, holeTable, holeDims,
   };
 }
 

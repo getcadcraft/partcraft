@@ -20,6 +20,7 @@
  * Limits: linear elastic, small displacement, isotropic; stresses at re-entrant corners and constrained edges are
  * singular (they grow with refinement); where tetmesh chamfered a sharp edge the local stress is approximate.
  */
+import { applyEnv } from './env/env.js';
 import { readMaterial, tonnesPerMm3, G_MM } from './materials.js';
 import { t } from './i18n.js';
 import { elasticD, vonMises, symEig, makeConstraints, solveSmall, typeWord } from './fea.js';
@@ -155,10 +156,12 @@ export function rcm(n, ptr, adj) {
 }
 
 /** Node adjacency (sorted, including self) of a T10 mesh → { ptr, adj }. */
-function adjacency(n, tets10) {
+function adjacency(n, tets10, extra = null) {
   const sets = Array.from({ length: n }, () => []);
   const m = tets10.length / 10;
   for (let e = 0; e < m; e++) for (let a = 0; a < 10; a++) { const i = tets10[10 * e + a], l = sets[i]; for (let b = 0; b < 10; b++) l.push(tets10[10 * e + b]); }
+  // extra node pairs (contact: a slave node and the nodes of its candidate master faces) join the pattern, both ways
+  if (extra) for (let k = 0; k < extra.length; k += 2) { sets[extra[k]].push(extra[k + 1]); sets[extra[k + 1]].push(extra[k]); }
   const ptr = new Int32Array(n + 1), tmp = [];
   for (let i = 0; i < n; i++) { const u = Int32Array.from(new Set(sets[i])).sort(); sets[i] = u; ptr[i + 1] = ptr[i] + u.length; }
   const adj = new Int32Array(ptr[n]);
@@ -171,14 +174,14 @@ function adjacency(n, tets10) {
  * The model of a T10 mesh: renumbered (RCM), scalar lower CSR pattern of K (3 dofs per node).
  * → { X, tets10, n (nodes), perm (old → new), ptr/col (CSR rows 0…3n), nodePtr/nodeAdj (lower node graph) }
  */
-export function makeTetModel(t10) {
+export function makeTetModel(t10, { extraPairs = null } = {}) {
   const n = t10.nodes.length / 3;
-  let { ptr, adj } = adjacency(n, t10.tets10);
+  let { ptr, adj } = adjacency(n, t10.tets10, extraPairs);
   const perm = rcm(n, ptr, adj);
   const X = new Float64Array(3 * n);
   for (let i = 0; i < n; i++) { X[3 * perm[i]] = t10.nodes[3 * i]; X[3 * perm[i] + 1] = t10.nodes[3 * i + 1]; X[3 * perm[i] + 2] = t10.nodes[3 * i + 2]; }
   const tets10 = Int32Array.from(t10.tets10, (v) => perm[v]);
-  ({ ptr, adj } = adjacency(n, tets10));
+  ({ ptr, adj } = adjacency(n, tets10, extraPairs && Int32Array.from(extraPairs, (v) => perm[v])));
   // lower node graph (neighbours ≤ self, sorted)
   const nodePtr = new Int32Array(n + 1);
   for (let i = 0; i < n; i++) { let c = 0; for (let k = ptr[i]; k < ptr[i + 1]; k++) if (adj[k] <= i) c++; nodePtr[i + 1] = nodePtr[i] + c; }
@@ -198,7 +201,7 @@ export function makeTetModel(t10) {
 }
 
 /** Position of entry (row r = 3a+i, column c = 3b+j, b ≤ a) in the CSR values. */
-function entry(model, a, i, b, j) {
+export function entry(model, a, i, b, j) {
   const { nodePtr, nodeAdj, rp } = model;
   if (b === a) return rp[3 * a + i] + 3 * (nodePtr[a + 1] - nodePtr[a] - 1) + j;
   let lo = nodePtr[a], hi = nodePtr[a + 1] - 2;
@@ -234,6 +237,17 @@ export function assemble(model, E, nu, { rho = 0, mass = false, onProgress = nul
   }
   void pos;
   return { K, vol, M: Mv, nodeVolN };
+}
+/** Add a 30×30 element matrix Ke (dofs node·3 + axis of the 10 nodes `el`) into the lower CSR values K. */
+export function scatterKe(model, K, el, Ke) {
+  for (let a = 0; a < 10; a++) for (let b = 0; b < 10; b++) {
+    const A = el[a], B = el[b];
+    if (B > A) continue;
+    for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+      if (B === A && j > i) continue;
+      K[entry(model, A, i, B, j)] += Ke[(3 * a + i) * 30 + 3 * b + j];
+    }
+  }
 }
 export function nodeEntry(model, a, b) {
   const { nodePtr, nodeAdj } = model;
@@ -485,7 +499,7 @@ export function tetBoundaryConditions(model, bcs, { density = 0, exactArea = nul
   const total = [0, 0, 0];
   for (const l of bcs.loads || []) {
     if (l.type === 'gravity') {
-      const d = l.dir || [0, -1, 0], dl = Math.hypot(...d) || 1, g = l.g || G_MM;
+      const d = l.dir || [0, -1, 0], dl = Math.hypot(...d) || 1, g = l.g ?? G_MM;
       for (let a = 0; a < model.n; a++) for (let c = 0; c < 3; c++) { const v = density * g * nodeVolN[a] * d[c] / dl; f[3 * a + c] += v; total[c] += v; }
       groups.loads.push({ type: 'gravity', nodes: new Int32Array(0) });
       continue;
@@ -715,12 +729,14 @@ export function meshSummary(tm, t10, model, rho) {
  * geometry (type, n/o, axis/r, area) and mesh.edgeSegs. → { kind, summary, model, results … }
  */
 export function solveTetStudy(job, onProgress = () => {}, cancelled = null) {
+  job = applyEnv(job);   // EG.32: the environment fills gravity, gauge pressure and ambient temperature (env/env.js)
   const t0 = Date.now();
   onProgress(0, 'Meshing');
   return solveTetOnMesh(job, meshJob(job, onProgress), onProgress, cancelled, t0);
 }
 /** The static or modal solve of a job on a mesh already made (meshJob's { tm, t10, model }); progress from 0.3. */
 export function solveTetOnMesh(job, { tm, t10, model }, onProgress = () => {}, cancelled = null, t0 = Date.now()) {
+  job = applyEnv(job);   // EG.32: the environment fills gravity, gauge pressure and ambient temperature (env/env.js)
   const mat = readMaterial(job.material), rho = tonnesPerMm3(mat.density);
   onProgress(0.3, 'Assembling');
   const asm = assemble(model, mat.E, mat.nu, { rho, mass: job.kind === 'modal', onProgress: (f) => onProgress(0.3 + 0.1 * f, 'Assembling') });

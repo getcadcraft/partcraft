@@ -1,0 +1,10 @@
+{
+  "name": "cc-live-crdt-spike",
+  "private": true,
+  "description": "LV.29 spike only (test-only dependency, never shipped): Automerge holding a CadCraft drawing.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "dependencies": {
+    "@automerge/automerge": "3.1.2"
+  }
+}

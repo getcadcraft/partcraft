@@ -8,6 +8,8 @@
  *
  *   node bin/test-partcraft.mjs [--verbose] [--keep] [--browser]
  *
+ * --physics: also physics_PART_3's long runs (tools/live-test/run.mjs, tools/breakit-test/part.mjs, tools/nl-test/ops.mjs; minutes each).
+ * --browser-round3: also round 3's page tests (browser-nl-mount, browser-shell, browser-surfaces, browser-live, browser-breakit).
  * Second readers (each check is skipped with a note when its tool is missing):
  *   trimesh + ezdxf    tools/partcraft-test/venv  (python3 -m venv tools/partcraft-test/venv &&
  *                      tools/partcraft-test/venv/bin/pip install trimesh numpy lxml networkx ezdxf)
@@ -1245,6 +1247,11 @@ await (await import(path.join(REPO, 'tools/partcraft-test/test-sheetmetal.mjs'))
 await (await import(path.join(REPO, 'tools/partcraft-test/test-nest.mjs'))).runNestTests({ ok, section, oc, skip });   // 0.6 LC.17 (session lc-make)
 await (await import(path.join(REPO, 'tools/partcraft-test/test-offcuts.mjs'))).runOffcutTests({ ok, section });   // 0.7 SU.755 (offcut stock)
 await (await import(path.join(REPO, 'tools/partcraft-test/test-stackup.mjs'))).runStackupTests({ ok, section });   // 0.6 LC.18 (session lc-make)
+await (await import(path.join(REPO, 'tools/partcraft-test/test-stackdir.mjs'))).runStackDirTests({ ok, section });   // 0.8 STACK-DIR (session part_PART_2)
+await (await import(path.join(REPO, 'tools/partcraft-test/test-motion.mjs'))).runMotionTests({ ok, section, M });   // 0.8 EG.7 (session part_PART_2)
+await (await import(path.join(REPO, 'tools/partcraft-test/test-cost.mjs'))).runCostTests({ ok, section, M });   // 0.8 EG.76 (session part_PART_2)
+await (await import(path.join(REPO, 'tools/partcraft-test/test-photo-sketch.mjs'))).runPhotoSketchTests({ ok, section, M });   // 0.8 EG.38 (session part_PART_2)
+await (await import(path.join(REPO, 'tools/partcraft-test/test-hydrostatics.mjs'))).runHydrostaticsTests({ ok, section });   // 0.8 EG.26 (session part_PART_2)
 await (await import(path.join(REPO, 'tools/partcraft-test/test-configs.mjs'))).runConfigTests({ ok, section });   // 0.4 P18
 await (await import(path.join(REPO, 'tools/partcraft-test/test-stdparts.mjs'))).runStdPartsTests({ ok, section, M });   // 0.5 MQ.4
 await (await import(path.join(REPO, 'tools/partcraft-test/test-joints.mjs'))).runJointTests({ ok, section, M });   // 0.4 P19
@@ -1271,9 +1278,27 @@ await (await import(path.join(REPO, 'tools/partcraft-test/test-mesh-import.mjs')
 await (await import(path.join(REPO, 'tools/partcraft-test/test-form.mjs'))).runFormTests({ ok, section, oc, skip });
 await (await import(path.join(REPO, 'tools/partcraft-test/test-gordon.mjs'))).runGordonTests({ ok, section, oc });
 await (await import(path.join(REPO, 'tools/partcraft-test/test-cam.mjs'))).runCamTests({ ok, section, near, oc, skip, keep: KEEP });
+{ // 0.8 SU.1035 4b (fab-08's files, mounted by part_PART_3): nested sheets to G-code — its own stand-alone test
+  section('Nested sheets to G-code (tools/partcraft-test/test-cam-sheets.mjs)');
+  const r = spawnSync(process.execPath, [path.join(REPO, 'tools/partcraft-test/test-cam-sheets.mjs')], { encoding: 'utf8' });
+  const last = (r.stdout || '').trim().split('\n').pop();
+  ok(r.status === 0, 'cam-sheets: ' + last + (r.status ? '\n' + r.stdout.split('\n').filter((l) => /FAIL/.test(l)).join('\n') : ''));
+}
 await (await import(path.join(REPO, 'tools/partcraft-test/test-simulation.mjs'))).runSimulationTests({ ok, section, near, oc });
 await (await import(path.join(REPO, 'tools/partcraft-test/test-thermal.mjs'))).runThermalTests({ ok, section, near, oc });
 await (await import(path.join(REPO, 'tools/partcraft-test/test-tet.mjs'))).runTetTests({ ok, section, near, oc });
+await (await import(path.join(REPO, 'tools/partcraft-test/test-sim08.mjs'))).runSim08Tests({ ok, section, near, log: () => {} });   // 0.8 SU.891 nonlinear, contact, CalculiX, magnets (part-sim-08's solvers; ~26 s)
+await (await import(path.join(REPO, 'tools/partcraft-test/test-nl-mount.mjs'))).runNlMountTests({ ok, section, M });   // 0.8 SU.891 mounted (part_PART_3): study kinds, worker ops, CalculiX, Problems
+await (await import(path.join(REPO, 'tools/partcraft-test/test-asm-contact.mjs'))).runAsmContactTests({ ok, section, M });   // 0.8 SU.891 assembly contact study (dec-su_PART_3)
+await (await import(path.join(REPO, 'tools/partcraft-test/test-magnet-study.mjs'))).runMagnetStudyTests({ ok, section });   // 0.8 SG.7+: the Magnet study of a sketch (oltl-su_PART_3)
+await (await import(path.join(REPO, 'tools/partcraft-test/test-live-where.mjs'))).runLiveWhereTests({ ok, section, skip });   // 0.8 EG.41 PartCraft live adapter (part_PART_3)
+await (await import(path.join(REPO, 'tools/partcraft-test/test-print-export.mjs'))).runPrintExportTests({ ok, section, M });   // 0.8 SU.934 + SU.929 step 5 as exports (part_PART_3)
+await (await import(path.join(REPO, 'tools/partcraft-test/test-drawing-auto.mjs'))).runDrawingAutoTests({ ok, section, M });   // 0.8 EG.20 / EG.56 PartCraft half (part_PART_3)
+{ // 0.8 EG.26 (part_PART_3): cc-hull fairness — its own stand-alone test
+  section('Hull lines fairness (tools/hull/test.mjs)');
+  const r = spawnSync(process.execPath, [path.join(REPO, 'tools/hull/test.mjs')], { encoding: 'utf8' });
+  ok(r.status === 0, 'cc-hull: ' + (r.stdout || '').trim().split('\n').pop());
+}
 await (await import(path.join(REPO, 'tools/partcraft-test/test-tet-exact.mjs'))).runTetExactTests({ ok, section, near, oc });
 await (await import(path.join(REPO, 'tools/partcraft-test/test-tet-adaptive.mjs'))).runTetAdaptiveTests({ ok, section, near, oc });
 await (await import(path.join(REPO, 'tools/partcraft-test/test-flow.mjs'))).runFlowTests({ ok, section, near, oc });
@@ -1357,6 +1382,16 @@ if (process.argv.includes('--browser')) {
   const m = /(\d+) passed, (\d+) failed/.exec(b.stdout);
   if (m) { pass += +m[1]; fail += +m[2]; } else fail++;
 }
+
+// 0.8 round 3: the long physics runs (physics_PART_3: minutes each, so only on request) and the stand-alone page tests of round 3
+const runFile = (rel, why) => {
+  section(why + ' (' + rel + ')');
+  const b = spawnSync(process.execPath, [path.join(REPO, rel)], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'inherit'] });
+  const m = /(\d+) passed, (\d+) failed/.exec(b.stdout || '');
+  if (m) { pass += +m[1]; fail += +m[2]; } else { fail++; console.log((b.stdout || '').split('\n').slice(-5).join('\n')); }
+};
+if (process.argv.includes('--physics')) for (const f of ['tools/live-test/run.mjs', 'tools/breakit-test/part.mjs', 'tools/nl-test/ops.mjs']) runFile(f, 'physics (EG.29, EG.31, SU.891 / SG.7+ ops)');
+if (process.argv.includes('--browser-round3')) for (const f of ['browser-nl-mount', 'browser-asm-contact', 'browser-shell', 'browser-surfaces', 'browser-live', 'browser-breakit']) runFile('tools/partcraft-test/' + f + '.mjs', 'page (round 3)');
 
 if (!KEEP) for (const f of fs.readdirSync(TMP)) fs.rmSync(path.join(TMP, f), { force: true });
 console.log(`\n${pass} passed, ${fail} failed${skipped ? `, ${skipped} skipped` : ''}`);

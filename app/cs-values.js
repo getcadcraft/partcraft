@@ -262,6 +262,7 @@ export function readValue(raw, depth = 0) {
     case 'func':
       if (typeof raw.name !== 'string' || raw.name.length > 200) throw new CsError(t('script.val.read.func_name'));
       return func(String(raw.lang || 'craft').slice(0, 20), raw.name);
+    case 'sdf': return readSdf(raw);
     case 'mesh': case 'field': case 'model': {
       // Builder B's types: keep known typed arrays and plain fields; deep-check typed arrays only.
       const o = {};
@@ -279,6 +280,29 @@ export function readValue(raw, depth = 0) {
     default:
       throw new CsError(t('script.val.read.unknown_type', { type: String(raw.t).slice(0, 20) }));
   }
+}
+
+/**
+ * A field value (0.8 CE.2, cs-lib-field.js): { t:'sdf', kind, spec, scalar? }. The spec is a tree of plain objects, numbers, strings,
+ * arrays and typed arrays (a baked grid's bricks); checked here for shape and size only: the field builtins compile it and say
+ * what is wrong with it in words.
+ */
+function readSdf(raw) {
+  const keyOk = /^[A-Za-z_][A-Za-z0-9_]{0,30}$/;
+  const clean = (x, depth) => {
+    if (depth > 40) throw new CsError(t('script.val.too_deep'));
+    if (x === null || typeof x === 'boolean') return x;
+    if (typeof x === 'number') return x;
+    if (typeof x === 'string') { if (x.length > 200) throw new CsError(t('script.val.text_long')); return x; }
+    if (isTyped(x)) { checkSize(x.length); return x.slice(); }
+    if (Array.isArray(x)) { if (x.length > CAPS.tensor) throw new CsError(t('script.val.read.too_many', { what: 'field' })); return x.map((y) => clean(y, depth + 1)); }
+    if (typeof x === 'object') { const o = {}; for (const k of Object.keys(x)) { if (!keyOk.test(k)) throw new CsError(t('script.val.not_value')); o[k] = clean(x[k], depth + 1); } return o; }
+    throw new CsError(t('script.val.not_value'));
+  };
+  if (!raw.spec || typeof raw.spec !== 'object' || typeof raw.spec.t !== 'string') throw new CsError(t('script.val.not_value'));
+  const v = { t: 'sdf', kind: String(raw.kind || raw.spec.t).slice(0, 30), spec: clean(raw.spec, 0) };
+  if (raw.scalar) v.scalar = true;
+  return v;
 }
 
 /** A workspace read from untrusted data ({name: value}) → Map; bad names/values are dropped and listed. */
@@ -341,7 +365,7 @@ export function valueText(v, depth = 0) {
     for (let i = 0; i < Math.min(r, 20); i++) { const row = []; for (let j = 0; j < c; j++) row.push(oneLine(v.items[i + j * r])); rows.push('   {' + row.join('   ') + '}'); }
     return rows.join('\n');
   }
-  return `   [${ty}${v && v.kind ? ' ' + v.kind : ''}]`;
+  return `   [${ty}${v && v.kind ? ' ' + v.kind : ''}]`;   // fields too: [sdf union]
 }
 function oneLine(v) {
   const t = typeOf(v);

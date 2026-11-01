@@ -40,7 +40,10 @@ export const COMMANDS = [
   C('file.open', 'file', 'bi-folder2-open', 'open', { defKeys: ['Ctrl+O'] }),
   C('file.save', 'file', 'bi-download', 'save', { defKeys: ['Ctrl+S'] }),
   C('file.std-part', 'file', 'bi-nut', 'std-part'),
+  C('file.documents', 'file', 'bi-folder2-open', 'documents'),   // 0.8 SU.1058: the Documents panel (check out / in, revisions, release states)
   C('export.print', 'export', 'bi-printer', 'export-print'),
+  C('export.scaled', 'export', 'bi-arrows-angle-expand', 'export-scaled'),   // 0.8 SU.934: scaled for printing (shrinkage)
+  C('export.split', 'export', 'bi-scissors', 'export-split'),   // 0.8 SU.929 step 5: split for printing (a zip of pieces)
   C('export.stl', 'export', 'bi-box-arrow-up-right', 'export-stl'),
   C('export.3mf', 'export', 'bi-box-arrow-up-right', 'export-3mf'),
   C('export.step', 'export', 'bi-box-arrow-up-right', 'export-step'),
@@ -54,11 +57,16 @@ export const COMMANDS = [
   C('export.sw-back', 'export', 'bi-file-earmark-arrow-down', '[data-sw-back]'),
   C('export.dxf', 'export', 'bi-file-earmark', 'export-dxf'),
   C('export.nest', 'export', 'bi-grid-3x3', 'export-nest'),
+  C('export.sheets', 'export', 'bi-grid-3x3-gap', 'export-sheets'),   // 0.8 SU.1035 4b
   C('export.laser', 'export', 'bi-lightning-charge', 'export-laser'),   // 0.7 SU.772   // 0.6 LC.17 (closing: registry gap)
+  C('export.ccx', 'export', 'bi-file-earmark-code', 'export-ccx'),   // 0.8 SU.891: a CalculiX deck of the simulation study
+  C('export.frd', 'export', 'bi-file-earmark-arrow-down', 'import-frd'),   // 0.8 SU.891: CalculiX's results back
   C('export.drawing', 'export', 'bi-file-earmark-pdf', 'export-drawing'),
   C('export.bom', 'export', 'bi-list-ol', 'export-bom', { mode: 'assembly' }),
 
   C('sketch.new', 'sketch', 'bi-pencil-square', 'sketch', { ...D, defKeys: ['S'] }),
+  C('sketch.photo', 'sketch', 'bi-image', 'sketch-photo'),   // 0.8 EG.38: Sketch › From a photo…
+  C('sketch.magnet', 'sketch', 'bi-magnet', 'sketch-magnet'),   // 0.8 SG.7+: a magnet study of the sketches
   C('sketch.exit', 'sketch', 'bi-box-arrow-right', 'exit-sketch', SK),
   C('sketch.line', 'sketch', 'bi-slash-lg', 'tool-line', SK),
   C('sketch.rect', 'sketch', 'bi-square', 'tool-rect', SK),
@@ -114,6 +122,7 @@ export const COMMANDS = [
   C('feature.rib', 'features', 'bi-triangle', 'rib', D),
   C('feature.thread', 'features', 'bi-nut', 'thread', D),
   C('feature.member', 'features', 'bi-bounding-box', 'member', { ...D, label: 'weld.menu' }),   // 0.7 D7.50 (session part-08): Structural member
+  C('feature.generated', 'features', 'bi-cpu', 'generated', { ...D, label: 'gb.menu' }),   // 0.8 CE.3 (session engineer): Generated body
   C('feature.sheetbase', 'features', 'bi-file-earmark', 'sheetbase', D),
   C('feature.sheetflange', 'features', 'bi-arrow-90deg-up', 'sheetflange', D),
 
@@ -132,6 +141,8 @@ export const COMMANDS = [
   C('asm.joint', 'assembly', 'bi-link-45deg', 'asm-joint', { ws: 'design', mode: 'assembly' }),
   C('asm.check', 'assembly', 'bi-exclamation-diamond', 'asm-check', { ws: 'design', mode: 'assembly' }),
   C('asm.stackup', 'assembly', 'bi-rulers', 'asm-stackup', { ws: 'design', mode: 'assembly' }),   // 0.6 LC.18
+  C('asm.motion', 'assembly', 'bi-speedometer2', 'asm-motion', { ws: 'design', mode: 'assembly' }),   // 0.8 EG.7
+  C('asm.contact', 'assembly', 'bi-layers-half', 'asm-contact', { ws: 'design', mode: 'assembly' }),   // 0.8 SU.891
   C('asm.edit', 'assembly', 'bi-pencil', 'asm-edit', { ws: 'design', mode: 'assembly' }),
   C('asm.close', 'assembly', 'bi-x-square', 'asm-close', { ws: 'design', mode: 'assembly' }),
 
@@ -199,6 +210,7 @@ export const COMMANDS = [
 
   C('view.fit', 'view', 'bi-arrows-fullscreen', 'view-fit', { defKeys: ['F'] }),
   C('view.normal', 'view', 'bi-bullseye', 'view-normal'),
+  C('view.problems', 'view', 'bi-exclamation-triangle', '[data-problems-open]', { defKeys: ['Ctrl+Shift+M'], keyOnly: true, optional: true }),   // 0.8 CE.6: the shell's Problems panel (rebindable)
   C('view.measure', 'view', 'bi-rulers', 'view-measure', { defKeys: ['M'] }),
   C('view.mass', 'view', 'bi-speedometer2', 'view-mass'),
   C('view.section', 'view', 'bi-scissors', 'view-section', { defKeys: ['X'] }),
@@ -225,10 +237,12 @@ export const WORKSPACES = ['design', 'form', 'simulation', 'generative', 'manufa
 const DEFAULT_KEYS = Object.fromEntries(COMMANDS.filter((c) => c.defKeys.length && !c.fixed).map((c) => [c.id, c.defKeys.slice()]));
 
 const m = (label, items) => ({ label: 'input.m.' + label, items });
-const rtab = (label, panels) => ({ label: 'input.m.' + label, panels: panels.map(([l, items]) => ({ label: 'input.m.' + l, items })) });
+// a panel is [label, items, extra?]: extra = the 0.7 RIBBON-COMPACT fields (mixed, more) of app-input.js
+const rtab = (label, panels) => ({ label: 'input.m.' + label, panels: panels.map(([l, items, extra]) => ({ label: 'input.m.' + l, items, ...extra })) });
+const LG = (id) => ({ id, size: 'lg' }), SM = (...ids) => ids.map((id) => ({ id, size: 'sm' }));   // 0.8 RIBBON-COMPACT (shell-08)
 const ids = (pre) => COMMANDS.filter((c) => c.id.startsWith(pre)).map((c) => c.id);
 
-const FILE_MENU = ['file.new', 'file.open', 'file.save', 'file.std-part', '-', ...ids('export.'), '-', 'app.settings', 'app.palette', 'app.help'];
+const FILE_MENU = ['file.new', 'file.open', 'file.save', 'file.std-part', 'file.documents', '-', ...ids('export.'), '-', 'app.settings', 'app.palette', 'app.help'];
 
 export const STYLES = {
   partcraft: {
@@ -242,28 +256,28 @@ export const STYLES = {
     quick: ['file.new', 'file.open', 'file.save', 'edit.undo', 'edit.redo'],
     tabs: [
       rtab('features', [
-        ['sketch', ['sketch.new']],   // 0.7 WS.14: a part starts from a sketch, so the first tab starts one too
-        ['boss', ['feature.extrude', 'feature.revolve', 'feature.sweep', 'feature.loft', 'feature.rib', 'feature.thread', 'feature.member']],
-        ['cutting', ['feature.cut', 'feature.revolve-cut', 'feature.hole']],
-        ['dress', ['feature.fillet', 'feature.chamfer', 'feature.shell', 'feature.draft', 'feature.pick-done']],
+        ['sketch', ['sketch.new', 'sketch.photo', 'sketch.magnet']],   // 0.7 WS.14: a part starts from a sketch, so the first tab starts one too (0.8 EG.38: or from a photo)
+        ['boss', [LG('feature.extrude'), ...SM('feature.revolve', 'feature.sweep', 'feature.loft')], { more: ['feature.rib', 'feature.thread', 'feature.member', 'feature.generated'] }],   // generated: 0.8 CE.3 (round 3: reachable in the ribbon)
+        ['cutting', [LG('feature.cut'), ...SM('feature.revolve-cut', 'feature.hole')]],
+        ['dress', [LG('feature.fillet'), ...SM('feature.chamfer', 'feature.shell', 'feature.draft')], { more: ['feature.pick-done'] }],
         ['pattern', ['feature.lpattern', 'feature.cpattern', 'feature.mirror', 'feature.pathpattern']],
         ['reference', ['feature.plane', 'feature.axis', 'feature.point']],
         ['bodies', ['feature.combine', 'feature.movebody', 'feature.scalebody']],
       ]),
       rtab('sketch', [
         ['sketch', ['sketch.new', 'sketch.exit', 'sketch.dimension', 'sketch.construction']],
-        ['entities', ['sketch.line', 'sketch.centerline', 'sketch.rect', 'sketch.circle', 'sketch.arc', 'sketch.polygon', 'sketch.slot', 'sketch.point', 'sketch.spline', 'sketch.cspline']],
+        ['entities', [LG('sketch.line'), ...SM('sketch.rect', 'sketch.circle', 'sketch.arc')], { more: ['sketch.centerline', 'sketch.polygon', 'sketch.slot', 'sketch.point', 'sketch.spline', 'sketch.cspline'] }],
         ['sketchedit', ['sketch.trim', 'sketch.extend', 'sketch.offset', 'sketch.fillet', 'sketch.mirror', 'sketch.lpattern', 'sketch.cpattern', 'sketch.project']],
       ]),
       rtab('surfaces', [['surfaces', ['feature.patch', 'feature.surfloft', 'feature.gordon', 'feature.stitch', 'feature.thicken', 'feature.offsetsurf', 'feature.extendsurf', 'feature.trimsurf']], ['sheetmetal', ['feature.sheetbase', 'feature.sheetflange']]]),
       rtab('evaluate', [['measure', ['view.measure', 'view.mass']], ['inspect', ['view.section', 'view.draft', 'view.zebra', 'view.curvature', 'view.planes']]]),
       rtab('drawing', [['drawing', ['drawing.open', 'drawing.back', 'drawing.pdf']], ['annotation', ['drawing.datum', 'drawing.fcf', 'drawing.finish', 'drawing.detail']]]),
-      rtab('assembly', [['assembly', ['asm.new', 'asm.back', 'asm.close']], ['components', ['asm.insert-copy', 'asm.insert-file', 'asm.edit']], ['mates', ['asm.joint', 'asm.check', 'asm.stackup']]]),
+      rtab('assembly', [['assembly', ['asm.new', 'asm.back', 'asm.close']], ['components', ['asm.insert-copy', 'asm.insert-file', 'asm.edit']], ['mates', ['asm.joint', 'asm.check', 'asm.stackup', 'asm.motion', 'asm.contact']]]),
       rtab('studies', [['workspaces', ids('ws.')], ['simulation', ids('sim.')], ['generative', ids('gen.')], ['manufacture', ids('cam.')], ['form', ids('form.')], ['script', ids('script.')]]),
       // 0.7 WS.14: the Illustrate workspace as a tab of its own (its tools switch to Illustrate first; the layouts open this tab there)
       rtab('illustrate', [['manual', ['illustrate.new', 'illustrate.open', 'illustrate.save']], ['ilviews', ['illustrate.view-add', 'illustrate.view-update']],
         ['ilshow', ['illustrate.hide', 'illustrate.ghost', 'illustrate.isolate', 'illustrate.show-all']], ['ilout', ['illustrate.export']], ['workspaces', ['ws.design']]]),
-      rtab('view', [['orient', ['view.fit', 'view.normal', 'view.iso', 'view.front', 'view.back', 'view.top', 'view.bottom', 'view.right', 'view.left']], ['clipboard', ['edit.cut', 'edit.copy', 'edit.paste', 'edit.paste-in-place', 'edit.duplicate', 'edit.delete', 'edit.select-all', 'edit.select-none']]]),
+      rtab('view', [['orient', ['view.fit', 'view.normal', 'view.iso', 'view.front', 'view.back', 'view.top', 'view.bottom', 'view.right', 'view.left']], ['clipboard', [LG('edit.paste'), ...SM('edit.cut', 'edit.copy', 'edit.delete')], { more: ['edit.paste-in-place', 'edit.duplicate', 'edit.select-all', 'edit.select-none'] }]]),
     ],
     keys: {
       ...DEFAULT_KEYS,

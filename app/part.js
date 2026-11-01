@@ -22,6 +22,8 @@
  *            { file, mesh, units, up, op, report }   (0.7 D7.49, version 5; the mesh kernel) a body from an STL / OBJ / 3MF mesh:
  *            mesh = meshimport.js encodeMesh (repaired, in the file's units and axes), units = UNITS key, op 'add'|'cut'|'intersect',
  *            report = what the import repaired and what stayed open (meshimport.js readReport)
+ *   generated { script: { lang, text }, inputs, op, up, gen, mesh, report, ran, sheet, log }   (0.8 CE.3, version 6; generated.js) a body a
+ *            script made, kept like a body from a mesh; the file never needs the script to run to open, rebuild or print
  *   EdgeRef:  { faces: [faceName, faceName], at: [x,y,z] }   the edge between two named faces (brep.js), nearest `at`
  *   FaceRef:  { name: faceName, at: [x,y,z] }
  *
@@ -61,6 +63,9 @@
  *   extrude / revolve op intersect | new; body ids follow brep-bodies.js trackBodies. Also version 3.
  *   bodyInfo (optional, version 3; 0.4): { <body id>: { name?, hidden? } } — bodies renamed or hidden in the view
  *            (bodies.js readBodyInfo; display only).
+ *   addonBodies (optional, 0.8 DC.117; no version bump — an older PartCraft opens the part without them): { <add-on id>: { <group>: { name,
+ *            bodies: [{ name, color, box | mesh, opacity?, at?, rotY? }] } } } — display bodies an add-on placed in the viewport
+ *            (addons/addon-bodies.js readAddonBodies; never part of the solid).
  */
 import { cleanStock } from './nest/nest-stock.js';
 import { cleanJob } from './laser/laser-model.js';
@@ -77,10 +82,12 @@ import { THREAD_LABELS, THREAD_BASE, THREAD_DEFAULTS, readThread, readHoleThread
 import { readMaterial } from './bom.js';
 import { decodeMesh, readReport, UNITS } from './meshimport.js';
 import { WELD_LABELS, WELD_BASE, WELD_DEFAULTS, readMember, usesMember, memberDeps } from './weldment.js';
+import { GEN_LABELS, GEN_BASE, GEN_DEFAULTS, readGenerated, usesGenerated } from './generated.js';   // 0.8 CE.3: a script that adds a body
+import { readAddonBodies } from './addons/addon-bodies.js';   // 0.8 DC.117: display bodies an add-on placed (API 1.1)
 import { t } from './i18n.js';
 
 export const FORMAT = 'partcraft';
-export const VERSION = 5;   // 2 added fillet, chamfer, shell, import, named face references and drawing notes; 3 added studies; 4 configurations that turn features off (0.6 LC.14); 5 bodies from meshes (0.7 D7.49); 1–4 open unchanged
+export const VERSION = 6;   // 2 added fillet, chamfer, shell, import, named face references and drawing notes; 3 added studies; 4 configurations that turn features off (0.6 LC.14); 5 bodies from meshes (0.7 D7.49); 6 Generated features (0.8 CE.3); 1–5 open unchanged
 
 // Each type's name for people. Getters, read when shown: workers and Node import this before the language catalog. The
 // other modules' tables are getters too and are copied as getters (a spread would read them now).
@@ -96,7 +103,7 @@ export const FEATURE_LABELS = Object.defineProperties({
   get chamfer() { return t('model.feature.chamfer'); },
   get shell() { return t('model.feature.shell'); },
   get import() { return t('model.feature.import'); },
-}, Object.assign({}, ...[DESIGN_LABELS, SURFACE_LABELS, BODY_LABELS, SHEET_LABELS, RIB_LABELS, THREAD_LABELS, WELD_LABELS].map((L) => Object.getOwnPropertyDescriptors(L))));
+}, Object.assign({}, ...[DESIGN_LABELS, SURFACE_LABELS, BODY_LABELS, SHEET_LABELS, RIB_LABELS, THREAD_LABELS, WELD_LABELS, GEN_LABELS].map((L) => Object.getOwnPropertyDescriptors(L))));
 /** Features only the exact (OpenCascade) kernel builds. */
 export const EXACT_ONLY = new Set(['fillet', 'chamfer', 'shell', 'import', ...DESIGN_EXACT_ONLY, ...SURFACE_EXACT_ONLY, ...BODY_EXACT_ONLY, ...SHEET_EXACT_ONLY, ...RIB_EXACT_ONLY]);
 
@@ -110,7 +117,7 @@ export const indexOf = (part, id) => part.features.findIndex((f) => f.id === id)
 export const builtCount = (part) => (part.rollback === null ? part.features.length : Math.min(part.rollback, part.features.length));
 
 function nextName(part, type) {
-  const base = { sketch: 'Sketch', extrude: 'Extrude', revolve: 'Revolve', hole: 'Hole', lpattern: 'LPattern', cpattern: 'CirPattern', mirror: 'Mirror', fillet: 'Fillet', chamfer: 'Chamfer', shell: 'Shell', import: 'Imported', ...DESIGN_BASE, ...SURFACE_BASE, ...BODY_BASE, ...SHEET_BASE, ...RIB_BASE, ...THREAD_BASE, ...WELD_BASE }[type];
+  const base = { sketch: 'Sketch', extrude: 'Extrude', revolve: 'Revolve', hole: 'Hole', lpattern: 'LPattern', cpattern: 'CirPattern', mirror: 'Mirror', fillet: 'Fillet', chamfer: 'Chamfer', shell: 'Shell', import: 'Imported', ...DESIGN_BASE, ...SURFACE_BASE, ...BODY_BASE, ...SHEET_BASE, ...RIB_BASE, ...THREAD_BASE, ...WELD_BASE, ...GEN_BASE }[type];
   let n = 1;
   const names = new Set(part.features.map((f) => f.name));
   while (names.has(base + n)) n++;
@@ -135,6 +142,7 @@ const DEFAULTS = {
   ...SHEET_DEFAULTS,
   ...RIB_DEFAULTS,
   ...WELD_DEFAULTS,
+  ...GEN_DEFAULTS,
   ...THREAD_DEFAULTS,
 };
 
@@ -233,13 +241,13 @@ export function deleteFeatures(part, ids) {
 
 /** The version a file of this part needs: 4 when a configuration turns features off, 3 with studies (a version-2 reader
  *  would drop them silently), else 2. */
-export const fileVersion = (part) => (usesMeshImport(part) || usesMember(part) ? 5 : configsOff(part) ? 4 : ((part.studies && Object.keys(part.studies).length) || usesDesign(part) || usesSurface(part) || usesBodies(part) || hasParamsKey(part) || usesSheet(part) || usesSheetMetal(part) || hasConfigs(part) || usesRib(part) || usesThread(part) ? 3 : 2));
+export const fileVersion = (part) => (usesGenerated(part) ? 6 : usesMeshImport(part) || usesMember(part) ? 5 : configsOff(part) ? 4 : ((part.studies && Object.keys(part.studies).length) || usesDesign(part) || usesSurface(part) || usesBodies(part) || hasParamsKey(part) || usesSheet(part) || usesSheetMetal(part) || hasConfigs(part) || usesRib(part) || usesThread(part) ? 3 : 2));
 /** 0.7 D7.49: a body from a mesh (a 0.6 reader would refuse its import feature with a misleading "STEP data is bad"). */
 export const usesMeshImport = (part) => part.features.some((f) => f.type === 'import' && f.mesh);
 const configsOff = (part) => !!(part.configs && part.configs.rows && part.configs.rows.some((r) => r.off && r.off.length));
 const hasConfigs = (part) => !!(part.configs && part.configs.rows && part.configs.rows.length);
 /** 0.4 P14: a material, or a drawing's sheet size, title block or revisions — a version-2 reader would drop them silently. */
-const usesSheet = (part) => !!(part.material || (part.drawing && ((part.drawing.sheet && part.drawing.sheet !== 'a3') || part.drawing.title || (part.drawing.revisions && part.drawing.revisions.length) || part.drawing.holeTable)));
+const usesSheet = (part) => !!(part.material || (part.drawing && ((part.drawing.sheet && part.drawing.sheet !== 'a3') || part.drawing.title || (part.drawing.revisions && part.drawing.revisions.length) || part.drawing.holeTable || part.drawing.holeDims)));
 /** params (params-part.js) is written only when it holds a variable or an equation. */
 const hasParamsKey = (part) => !!(part.params && ((part.params.vars && part.params.vars.length) || (part.params.links && part.params.links.length)));
 export const toJSON = (part) => { const { params, configs, ...rest } = part; return JSON.stringify({ ...rest, ...(hasParamsKey(part) ? { params } : {}), ...(hasConfigs(part) ? { configs } : {}), version: fileVersion(part) }, null, 1); };
@@ -376,6 +384,8 @@ export function readPart(raw) {
         readSheet(f, g, dc, makeReaders(dc)); break;
       case 'member':
         readMember(f, g, dc); break;
+      case 'generated':
+        readGenerated(f, g, dc); break;
       case 'rib':
         readRib(f, g, dc); break;
       case 'thread':
@@ -413,6 +423,7 @@ export function readPart(raw) {
   if (j.drawing !== undefined && j.drawing !== null) part.drawing = readDrawing(j.drawing);
   if (j.studies !== undefined && j.studies !== null) readStudies(j.studies, part, ids);
   if (j.material !== undefined && j.material !== null) part.material = readMaterial(j.material);   // 0.4 P14: { name, density g/cm³ } (bom.js)
+  if (j.addonBodies !== undefined && j.addonBodies !== null) { const ab = readAddonBodies(j.addonBodies); if (ab) part.addonBodies = ab; }
   if (j.bodyInfo !== undefined && j.bodyInfo !== null) { const bi = readBodyInfo(j.bodyInfo, ids); if (bi) part.bodyInfo = bi; }
   // params after the features: every equation must drive a number this file has (params-part.js targets)
   if (j.params !== undefined && j.params !== null) { const pp = readPartParams(j.params, part); if (pp) part.params = pp; }
@@ -427,6 +438,7 @@ export function readPart(raw) {
 
 export const DRAWING_VIEWS = ['front', 'top', 'right'];
 export const SHEET_KEYS = ['a4', 'a3', 'a2', 'a1', 'a0', 'ansi-a', 'ansi-b', 'ansi-c', 'ansi-d', 'ansi-e'];   // drawing.js PAPERS
+export const SHEET_AUTO = 'auto';   // 0.8 EG.56: the sheet picks its own paper (drawing.js autoPaper)
 /** Title block fields (part.drawing.title) and their longest text; date is Y-m-d. */
 export const TITLE_FIELDS = { title: 60, number: 40, rev: 8, company: 60, drawnBy: 40, checkedBy: 40, approvedBy: 40, date: 10, finish: 40, tolerance: 40 };
 export const MAX_REVISIONS = 20;
@@ -447,7 +459,7 @@ export function readDrawing(d) {
   }
   if (d.notes !== undefined) out.notes = readNotes(d.notes);
   // 0.4 P14: sheet size, title block, revisions (each written only when used)
-  if (d.sheet !== undefined && d.sheet !== null) { if (!SHEET_KEYS.includes(d.sheet)) throw new Error(t('file.drawing.sheet_bad')); if (d.sheet !== 'a3') out.sheet = d.sheet; }
+  if (d.sheet !== undefined && d.sheet !== null) { if (!SHEET_KEYS.includes(d.sheet) && d.sheet !== SHEET_AUTO) throw new Error(t('file.drawing.sheet_bad')); if (d.sheet !== 'a3') out.sheet = d.sheet; }
   if (d.title !== undefined && d.title !== null) {
     if (typeof d.title !== 'object' || Array.isArray(d.title)) throw new Error(t('file.drawing.title_bad'));
     const tt = {};
@@ -462,6 +474,7 @@ export function readDrawing(d) {
     if (Object.keys(tt).length) out.title = tt;
   }
   // 0.4 P23: the hole table's view
+  if (d.holeDims !== undefined && d.holeDims !== null) { if (typeof d.holeDims !== 'boolean') throw new Error(t('file.drawing.holes_bad')); if (d.holeDims) out.holeDims = true; }   // 0.8 EG.20: dimension the holes
   if (d.holeTable !== undefined && d.holeTable !== null) { if (typeof d.holeTable !== 'object' || !['front', 'top', 'right'].includes(d.holeTable.view)) throw new Error(t('file.drawing.holes_bad')); out.holeTable = { view: d.holeTable.view }; }
   if (d.revisions !== undefined && d.revisions !== null) {
     if (!Array.isArray(d.revisions) || d.revisions.length > MAX_REVISIONS) throw new Error(t('file.drawing.revisions_bad'));

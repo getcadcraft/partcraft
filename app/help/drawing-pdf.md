@@ -128,3 +128,9 @@ Print it at "Actual size" on paper of the sheet's size to keep the scale true.
 | Drawings of assemblies | Not available |
 
 Characters outside the Western European set print as "?" (the PDF uses the reader's built-in Helvetica). The GD&T symbols are drawn as lines, so they print in any reader.
+
+## Let the sheet do it
+
+- **Sheet › Automatic** picks the paper for you: the largest standard scale up to 1:1, on the smallest A-size sheet that holds the views at that scale (the list shows which one it took).
+- **Dimension the holes** dimensions the holes on the view that sees most of them end-on: a centre mark on each, one callout per size ("2× Ø6 THRU" with a leader), and their positions measured from the view's lower-left corner. The overall width, height and depth are always there.
+

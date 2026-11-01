@@ -54,10 +54,12 @@ export async function blobModules(files) {
     // a module never imports itself: a match on its own name is usage text in a comment (i18n.js shows `from './i18n.js'`).
     // Sub-folder imports ('./nest/nest-stock.js' in part.js, './nest.js' inside nest/) are keyed by their path from the build folder.
     const dir = file.includes('/') ? file.slice(0, file.lastIndexOf('/') + 1) : '';
-    const deps = [...new Set([...src.matchAll(/(?:from|import)\s*\(?\s*'\.\/((?:[a-z0-9-]+\/)*[a-z0-9-]+\.js)'/g)].map((m) => m[1]))].filter((d) => dir + d !== file);
+    // './x.js' and '../x.js' (a sub-folder file reaching a sibling folder: nodes/ → ../nurbs/, 0.8); each spelling keeps its literal for the swap
+    const norm = (spec) => new URL(spec, 'http://b/' + dir).pathname.slice(1);
+    const deps = [...new Set([...src.matchAll(/(?:from|import)\s*\(?\s*'(\.\.?\/(?:(?:\.\.\/)*(?:[a-z0-9-]+\/)*)[a-z0-9-]+\.js)'/g)].map((m) => m[1]))].filter((d) => norm(d) !== file);
     for (const d of deps) {
-      const u = await visit(dir + d, [...stack, file]);
-      src = src.split(`'./${d}'`).join(`'${u}'`);
+      const u = await visit(norm(d), [...stack, file]);
+      src = src.split(`'${d}'`).join(`'${u}'`);
     }
     const u = URL.createObjectURL(new Blob([src], { type: 'text/javascript' }));
     urls.set(file, u);

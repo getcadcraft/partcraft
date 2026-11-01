@@ -14,6 +14,7 @@
  * Studies: solveTetThermal, solveTetThermoStatic, solveTetBuckling mirror thermal.js solveThermalStudy and buckling.js
  * solveThermoStatic / solveBuckling with the tet mesh and the tetfea.js solver (AMG / IC(0) preconditioned CG).
  */
+import { applyEnv } from './env/env.js';
 import { ELEMENTS, heatOnMesh, solveHeat, heatBCs, heatFlux, heatSummary, thermalMaterial, thermalLoadVector, SI } from './thermal.js';
 import { stressAtPoints, geometricOperator, bucklingEigen, stepAt } from './buckling.js';
 import { elasticD } from './fea.js';
@@ -188,12 +189,14 @@ const GA = 0.5854101966249685, GB = 0.1381966011250105, EDGES10 = [[0, 1], [1, 2
 
 /** A thermal study on tets (job: simJob with kind 'thermal', mesher 'tet'). */
 export function solveTetThermal(job, onProgress = () => {}, cancelled = null) {
+  job = applyEnv(job);   // EG.32: the environment fills gravity, gauge pressure and ambient temperature (env/env.js)
   const t0 = Date.now();
   onProgress(0, 'Meshing');
   return solveTetThermalOnMesh(job, meshJob(job, onProgress), onProgress, cancelled, t0);
 }
 /** The thermal solve of a job on a mesh already made (meshJob's { tm, t10, model }); steady runs carry the ZZ estimate. */
 export function solveTetThermalOnMesh(job, { tm, t10, model }, onProgress = () => {}, cancelled = null, t0 = Date.now()) {
+  job = applyEnv(job);   // EG.32: the environment fills gravity, gauge pressure and ambient temperature (env/env.js)
   const h = heatOnTets(job, model, (f, t) => onProgress(0.3 + 0.7 * f, t), cancelled);
   const summary = meshSummary(tm, t10, model, tonnesPerMm3(h.mat.density));
   summary.dofs = h.res.nfree;
@@ -247,6 +250,7 @@ const tempInfo = (s) => {
 
 /** A static study with a thermal load on tets (σ = D(ε − αΔT)). */
 export function solveTetThermoStatic(job, onProgress = () => {}, cancelled = null) {
+  job = applyEnv(job);   // EG.32: the environment fills gravity, gauge pressure and ambient temperature (env/env.js)
   const t0 = Date.now(), s = setupTet(job, onProgress, cancelled);
   const sol = tetPCG(s.model, s.sys, s.bc.f, { tol: job.tol || 1e-8, onProgress: (f, t) => onProgress(0.45 + 0.5 * f, t), cancelled });
   if (!sol.converged) throw new Error(t('study.fea.no_converge', { res: sol.residual.toExponential(1), n: sol.iterations }));
@@ -256,6 +260,7 @@ export function solveTetThermoStatic(job, onProgress = () => {}, cancelled = nul
 
 /** Linear buckling on tets: pre-stress, Kσ from the T10 Gauss-point stresses, buckling.js bucklingEigen. */
 export function solveTetBuckling(job, onProgress = () => {}, cancelled = null, given = null) {
+  job = applyEnv(job);   // EG.32: the environment fills gravity, gauge pressure and ambient temperature (env/env.js)
   const t0 = Date.now(), s = setupTet(job, onProgress, cancelled, given);
   const { model, bc, mesh, mat, sys } = s;
   onProgress(0.45, 'Pre-stress');

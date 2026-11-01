@@ -14,6 +14,7 @@
  * until each wanted λ changes < 1e-6 (relative). Kσ uses the compatible (trilinear) displacements; the h8i bubble modes stiffen K
  * only. Limits: linear (no imperfections, no pre-buckling deflection, elastic): real structures usually buckle BELOW these loads.
  */
+import { applyEnv } from './env/env.js';
 import * as VX from './voxel.js';
 import { t } from './i18n.js';
 import * as FE from './fea.js';
@@ -165,6 +166,7 @@ const tempInfo = (s) => {
 
 /** A static study with a thermal load (uniform ΔT or the study's temperature field) — fea.js solveStudy plus thermal strain. */
 export function solveThermoStatic(job, onProgress = () => {}, cancelled = null) {
+  job = applyEnv(job);   // EG.32: the environment fills gravity, gauge pressure and ambient temperature (env/env.js)
   const t0 = Date.now(), s = setup(job, onProgress, cancelled);
   onProgress(0, 'Preparing the solver');   // i18n-ignore: progress label, never shown
   const sol = FE.pcg(s.model, s.bc.cons, s.bc.f, { tol: job.tol || 1e-8, onProgress, cancelled, ...FE.preconditioner(s.model, s.bc.cons) });
@@ -176,6 +178,7 @@ export function solveThermoStatic(job, onProgress = () => {}, cancelled = null) 
 
 /** A linear buckling study: pre-stress under the study's loads, then the lowest `modes` load factors and their shapes. */
 export function solveBuckling(job, onProgress = () => {}, cancelled = null) {
+  job = applyEnv(job);   // EG.32: the environment fills gravity, gauge pressure and ambient temperature (env/env.js)
   const t0 = Date.now(), s = setup(job, onProgress, cancelled);
   const { model, bc, mesh, mat } = s;
   const prec = FE.preconditioner(model, bc.cons);

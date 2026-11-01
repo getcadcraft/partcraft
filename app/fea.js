@@ -22,6 +22,7 @@
  * staircase (curved faces lose up to about h/2), stress concentrations at re-entrant corners and at
  * constrained edges are mesh dependent (singular), every material isotropic.
  */
+import { applyEnv } from './env/env.js';
 import * as VX from './voxel.js';
 import { t, has } from './i18n.js';
 import { readMaterial, tonnesPerMm3, G_MM } from './materials.js';
@@ -356,7 +357,7 @@ export function boundaryConditions(model, mesh, bcs, { density = 0, surfaceOnly 
   for (const l of bcs.loads || []) {
     const nodes = [];
     if (l.type === 'gravity') {
-      const d = l.dir || [0, -1, 0], dl = Math.hypot(...d) || 1, w = density * (l.g || G_MM) * g.h ** 3 / 8;
+      const d = l.dir || [0, -1, 0], dl = Math.hypot(...d) || 1, w = density * (l.g ?? G_MM) * g.h ** 3 / 8;
       for (let m = 0; m < model.node0.length; m++) {
         const s = scale ? scale[m] : 1;
         for (let c = 0; c < 8; c++) { const n = model.node0[m] + model.off[c]; for (let a = 0; a < 3; a++) { f[3 * n + a] += s * w * d[a] / dl; total[a] += s * w * d[a] / dl; } }
@@ -577,6 +578,7 @@ export function modal(model, cons, density, { modes = 4, maxIter = 40, onProgres
  * → { grid summary, stats, results (static) | freqs (modal), field arrays for plotting }.
  */
 export function solveStudy(job, onProgress = () => {}, cancelled = null) {
+  job = applyEnv(job);   // EG.32: the environment fills gravity, gauge pressure and ambient temperature (env/env.js)
   const t0 = Date.now(), mat = readMaterial(job.material), rho = tonnesPerMm3(mat.density);
   onProgress(0, 'Building the voxel mesh');   // i18n-ignore: progress label, never shown
   const grid = VX.voxelize(job.mesh, { h: job.h });

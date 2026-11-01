@@ -13,6 +13,7 @@ import { registerBuiltin } from './cs-runtime.js';
 import { CsError, tensor, empty, isTensor, typeOf, describe, sizeOf, numelOf, prodOf, num, asTensor, displayText, valueText, fmtNum, cell, struct, func, CALL, NAME_RE } from './cs-values.js';
 import * as K from './cs-tensor.js';
 import { t } from './i18n.js';
+import { dsin, dcos, dtan, dexp, dlog, dlog2, dlog10, dpow, datan, dasin, dacos, dsinh, dcosh, dtanh, dcbrt } from './field/detmath.js';   // 0.8 CE.4 (rule D2): the same bits in every engine
 
 const def = (name, fn, args) => registerBuiltin(name, fn, { args, module: 'core' });   // doc: the language file's script.doc.<name> (cs-runtime.js docKey)
 const err = (m) => new CsError(m);
@@ -264,11 +265,14 @@ def('ind2sub', (a, ctx) => { const s = Array.from(T(a[0], 'ind2sub').data); cons
 /* ------------------------------------------------------------------ elementwise maths */
 
 const MATH1 = {
-  abs: Math.abs, sqrt: Math.sqrt, exp: Math.exp, log: Math.log, log2: Math.log2, log10: Math.log10, log1p: Math.log1p, expm1: Math.expm1,
-  sin: Math.sin, cos: Math.cos, tan: Math.tan, asin: Math.asin, acos: Math.acos, atan: Math.atan, sinh: Math.sinh, cosh: Math.cosh, tanh: Math.tanh,
-  asinh: Math.asinh, acosh: Math.acosh, atanh: Math.atanh, floor: Math.floor, ceil: Math.ceil, fix: Math.trunc,
-  round: (x) => (x < 0 ? -Math.round(-x) : Math.round(x)), sign: Math.sign, cbrt: Math.cbrt,
-  sind: (x) => Math.sin(x * Math.PI / 180), cosd: (x) => Math.cos(x * Math.PI / 180), tand: (x) => Math.tan(x * Math.PI / 180),
+  // the transcendental ones are field/detmath.js's (+ − × ÷ and sqrt only), so a script gives the same bits in Node, Chrome, Firefox and Safari
+  abs: Math.abs, sqrt: Math.sqrt, exp: dexp, log: dlog, log2: dlog2, log10: dlog10,
+  log1p: (x) => (Math.abs(x) < 1e-4 ? x - x * x / 2 + x * x * x / 3 : dlog(1 + x)), expm1: (x) => (Math.abs(x) < 1e-4 ? x + x * x / 2 + x * x * x / 6 : dexp(x) - 1),
+  sin: dsin, cos: dcos, tan: dtan, asin: dasin, acos: dacos, atan: datan, sinh: dsinh, cosh: dcosh, tanh: dtanh,
+  asinh: (x) => (x < 0 ? -1 : 1) * dlog(Math.abs(x) + Math.sqrt(x * x + 1)), acosh: (x) => (x < 1 ? NaN : dlog(x + Math.sqrt(x * x - 1))), atanh: (x) => (x > 1 || x < -1 ? NaN : 0.5 * dlog((1 + x) / (1 - x))),
+  floor: Math.floor, ceil: Math.ceil, fix: Math.trunc,
+  round: (x) => (x < 0 ? -Math.round(-x) : Math.round(x)), sign: Math.sign, cbrt: dcbrt,
+  sind: (x) => dsin(x * Math.PI / 180), cosd: (x) => dcos(x * Math.PI / 180), tand: (x) => dtan(x * Math.PI / 180),
   deg2rad: (x) => x * Math.PI / 180, rad2deg: (x) => x * 180 / Math.PI, gamma, factorial: (x) => (x < 0 || !Number.isInteger(x) ? NaN : gamma(x + 1)),
   real: (x) => x, conj: (x) => x, imag: () => 0,
 };
@@ -279,11 +283,11 @@ for (const [name, f] of Object.entries(MATH1)) def(name, (a) => {
 }, `${name}(x)`);
 function gamma(x) {
   if (Number.isInteger(x)) { if (x <= 0) return Infinity; if (x < 171) { let r = 1; for (let i = 2; i < x; i++) r *= i; return r; } return Infinity; }
-  if (x < 0.5) return Math.PI / (Math.sin(Math.PI * x) * gamma(1 - x));
+  if (x < 0.5) return Math.PI / (dsin(Math.PI * x) * gamma(1 - x));
   const g = 7, c = [0.99999999999980993, 676.5203681218851, -1259.1392167224028, 771.32342877765313, -176.61502916214059, 12.507343278686905, -0.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7];
   x -= 1; let s = c[0]; for (let i = 1; i < g + 2; i++) s += c[i] / (x + i);
   const t = x + g + 0.5;
-  return Math.sqrt(2 * Math.PI) * t ** (x + 0.5) * Math.exp(-t) * s;
+  return Math.sqrt(2 * Math.PI) * dpow(t, x + 0.5) * dexp(-t) * s;
 }
 def('isnan', (a) => { const v = dense(a[0]); if (typeof v === 'number') return v !== v; const t = T(v, 'isnan'); const o = new Uint8Array(t.data.length); for (let i = 0; i < o.length; i++) o[i] = t.data[i] !== t.data[i] ? 1 : 0; return bool(t.shape, o); }, 'isnan(x)');
 def('isinf', (a) => { const v = dense(a[0]); if (typeof v === 'number') return v === Infinity || v === -Infinity; const t = T(v, 'isinf'); const o = new Uint8Array(t.data.length); for (let i = 0; i < o.length; i++) o[i] = t.data[i] === Infinity || t.data[i] === -Infinity ? 1 : 0; return bool(t.shape, o); }, 'isinf(x)');
@@ -297,7 +301,7 @@ def('xor', (a) => { const x = K.binop('~=', K.unop('not', K.unop('not', dense(a[
 def('uminus', (a) => K.unop('neg', dense(a[0])), 'uminus(a)');
 def('transpose', (a) => K.transpose(dense(a[0])), 'transpose(A)');
 def('ctranspose', (a) => K.transpose(dense(a[0])), 'ctranspose(A)');
-def('nthroot', (a) => elem2(a, (x, n) => (x < 0 && n % 2 === 1 ? -Math.pow(-x, 1 / n) : Math.pow(x, 1 / n)), 'nthroot'), 'nthroot(x, n)');
+def('nthroot', (a) => elem2(a, (x, n) => (x < 0 && n % 2 === 1 ? -dpow(-x, 1 / n) : dpow(x, 1 / n)), 'nthroot'), 'nthroot(x, n)');
 def('nchoosek', (a) => { const n = I(a[0], 'nchoosek: n'), k = I(a[1], 'nchoosek: k'); if (k < 0 || k > n) return 0; let r = 1; for (let i = 1; i <= Math.min(k, n - k); i++) r = r * (n - Math.min(k, n - k) + i) / i; return Math.round(r); }, 'nchoosek(n, k)');
 def('gcd', (a) => elem2(a, (x, y) => { x = Math.abs(x); y = Math.abs(y); while (y) [x, y] = [y, x % y]; return x; }, 'gcd'), 'gcd(a, b)');
 def('lcm', (a) => elem2(a, (x, y) => { let p = Math.abs(x), q = Math.abs(y), g = p, h = q; while (h) [g, h] = [h, g % h]; return g ? p * q / g : 0; }, 'lcm'), 'lcm(a, b)');

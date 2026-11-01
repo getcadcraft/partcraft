@@ -17,6 +17,7 @@
  * job: sim.js simJob for a static study (+ mesher 'tet' fields), with thermalLoad { mode 'transient', at, time, solves, Tref }
  * and transient { T0, t, steps, theta }.
  */
+import { applyEnv } from './env/env.js';
 import * as FE from './fea.js';
 import * as TH from './thermal.js';
 import { setup as voxelSetup, stepAt } from './buckling.js';
@@ -67,6 +68,7 @@ function voxSetup(job, onProgress, cancelled) {
 
 /** The stress history (or one step) of a transient thermal load. */
 export function solveThermoHistory(job, onProgress = () => {}, cancelled = null, { onFrame = null } = {}) {
+  job = applyEnv(job);   // EG.32: the environment fills gravity, gauge pressure and ambient temperature (env/env.js)
   const t0 = Date.now(), tl = job.thermalLoad, tr = job.transient;
   if (!tl || tl.mode !== 'transient' || !tr) throw new Error(t('study.thermal.history.needs_transient'));
   const tet = job.mesher === 'tet';

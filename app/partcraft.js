@@ -31,6 +31,7 @@ import { SketchEditor } from './sketchview.js';
 import * as S from './sketch.js';
 import { solveSketch } from './solver.js';
 import * as P from './part.js';
+import { mountUndoHook } from './undo-hook.js';   // 0.8 EG.77
 import { regenerate, faceRefAt, planeFrame, MESH_BUILT } from './kernel.js';
 import * as X from './export.js';
 import { partIfc } from './ifc-export.js';
@@ -54,6 +55,10 @@ import { installBodiesUI, BODY_TYPES, BODY_MENU, BODY_ICONS } from './bodies-ui.
 import { installSheetUI, SHEET_TYPES, SHEET_MENU, SHEET_ICONS } from './sheet-ui.js';
 import { installRibUI, RIB_TYPES, RIB_MENU, RIB_ICONS } from './rib-ui.js';
 import { installWeldUI, WELD_TYPES, WELD_ICONS } from './weld-ui.js';   // 0.7 D7.50: structural members
+import { simEnvProblems } from './sim.js';
+import { studyProblemsNow } from './study-ui.js';
+import { pcProblems, SRC_ID as PROBLEMS_SRC } from './problems-partcraft.js';   // 0.8 CE.6: the shell's Problems
+import { installGenUI, GEN_TYPES, GEN_ICONS } from './gen-ui.js';   // 0.8 CE.3: a script that adds a body (Generated)
 import { displayName as SECTION_NAME } from './shapes/sections.js';
 import { threadNotes } from './threads.js';
 import { PARAM_FIELDS, linkOf } from './params-part.js';
@@ -63,6 +68,7 @@ import * as HM from './handle-math.js';   // 0.6 PU.2: drag handles on features
 import * as MI from './meshimport.js';   // 0.7 D7.49: STL / OBJ / 3MF opened as solid bodies
 import { FeatureHandles } from './handles.js';
 import { startAddons } from './addons/partcraft-api.js';
+import * as AB from './addons/addon-bodies.js';   // 0.8 DC.117: display bodies an add-on placed (add-on API 1.1)
 import { installThreadUI, THREAD_ICONS } from './thread-ui.js';
 import { hiddenGeometry } from './bodies.js';
 import * as WS from './workspaces.js';
@@ -70,6 +76,8 @@ import { computeWorker } from './compute-worker.js';
 import { AUTO_THREADS, MAX_THREADS, isolated as threadsIsolated } from './pool.js';
 import { createMeasure } from './measure-ui.js';
 import { createStackup } from './stackup-ui.js';
+import { createContact, contactProblemsNow } from './asm-contact-ui.js';   // 0.8 SU.891: Assembly › Contact
+import { createMotion } from './motion-ui.js';   // 0.8 EG.7: Assembly › Motion
 import { createSection } from './section-ui.js';
 import { createDraft } from './draft-ui.js';
 import { faceSection } from './section.js';
@@ -77,10 +85,18 @@ import { t, has, locale } from './i18n.js';
 import { createAsmTools } from './asm-ui.js';
 // Workspaces (docs/apps/partcraft-workspaces.md): one import line per ws-<id>.js; each registers itself.
 import './ws-form.js';
-import './ws-simulation.js';
+import { simProblemsNow } from './ws-simulation.js';
+import { magnetProblemsNow } from './magnet-study-ui.js';   // 0.8 SG.7+: the Magnet study's findings in the shared Problems
+import { breakProblemsNow } from './break-part.js';   // 0.8 EG.31 (physics_PART_3): Break it's findings in the shared Problems
+import { mountPartShell } from './shell-mount.js';
+import { mountPartAccess } from './access-mount.js';   // 0.8 round 3 (access_PART_3): EG.52, the feature tree without sight
+import { partChanged as nodesChanged } from './nodes-pc.js';   // 0.8 DC.54 (nodes_PART_3): the Nodes workspace (cc-nodes)
+import { partChanged as surfacesChanged } from './surfaces-pc.js';   // 0.8 SU.747b (part_PART_3): the Surfaces workspace (cc-nurbs + cc-nurbs-ui)   // 0.8 round 3 (part_PART_3): the shell's calc sheets, reasons, totals, lessons, Suggest, activity, Ask box
+import { exportDeck as ccxExport, importResults as ccxImport } from './nlstudy-ui.js';   // 0.8 SU.891: File › Export CalculiX (.inp) / its results (.frd)
 import './ws-generative.js';
 import './ws-manufacture.js';
 import './ws-illustrate.js';   // 0.7 Track TP (session illustrate)
+import './ws-engineer.js';   // 0.8 Track CE (session engineer): generators, inputs, data sheet, checks
 import { dockEditor, undockEditor } from './ws-script.js';
 import { mountViewCube, mountAxisIcon } from './viewcube.js';
 import { threeCubeOptions } from './viewcube-three.js';
@@ -90,8 +106,8 @@ import { getHost } from "./host.js";
 const root = document.querySelector('[data-partcraft]');
 if (root) init(root);
 
-const ICONS = { sketch: 'pencil-square', extrude: 'box-arrow-up', revolve: 'arrow-repeat', hole: 'record-circle', lpattern: 'grid-3x2-gap', cpattern: 'arrow-clockwise', mirror: 'symmetry-vertical', fillet: 'app', chamfer: 'hexagon', shell: 'box2', import: 'box-arrow-in-down', ...DESIGN_ICONS, ...SURFACE_ICONS, ...BODY_ICONS, ...SHEET_ICONS, ...RIB_ICONS, ...THREAD_ICONS, ...WELD_ICONS };
-const SOLID = new Set(['extrude', 'revolve', 'hole', 'lpattern', 'cpattern', 'mirror', 'import', 'sweep', 'loft', 'member']);
+const ICONS = { sketch: 'pencil-square', extrude: 'box-arrow-up', revolve: 'arrow-repeat', hole: 'record-circle', lpattern: 'grid-3x2-gap', cpattern: 'arrow-clockwise', mirror: 'symmetry-vertical', fillet: 'app', chamfer: 'hexagon', shell: 'box2', import: 'box-arrow-in-down', ...DESIGN_ICONS, ...SURFACE_ICONS, ...BODY_ICONS, ...SHEET_ICONS, ...RIB_ICONS, ...THREAD_ICONS, ...WELD_ICONS, ...GEN_ICONS };
+const SOLID = new Set(['extrude', 'revolve', 'hole', 'lpattern', 'cpattern', 'mirror', 'import', 'sweep', 'loft', 'member', 'generated']);
 const PICKERS = new Set(['fillet', 'chamfer', 'shell', 'draft', 'thread']);
 /** Each feature's main number, typed straight after selecting it (0.5 usability pass). */
 const MAIN_NUMBER = { extrude: 'depth', revolve: 'angle', hole: 'd', lpattern: 'count', cpattern: 'count', fillet: 'r', chamfer: 'd', shell: 't', draft: 'angle', rib: 't', plane: 'd', thread: 'length' };
@@ -116,7 +132,10 @@ function init(root) {
   let M = null;
   let part = P.newPart();
   let regen = null;
+  let shellKit = null;   // shell-mount.js: the shell's seven modules, once mounted (after the assistants' control channel)
+  let problemsSync = null;   // the shell's Problems (manifest "problems"): what a Generated feature's checks found, handed over after every rebuild
   const hist = new P.History();
+  mountUndoHook({ hist, undoOne: () => undoRedo(true) });   // 0.8 EG.77: tells Studio each finished step
   let dirty = false;
   let sel = null;             // { kind:'feature', id } | { kind:'plane', name }
   let pick = null;            // picked geometry in the 3D view (face / edge)
@@ -134,7 +153,7 @@ function init(root) {
   let editPartOf = null;      // { pid, stash: { part, dirty, undo, redo }, before } while a part of the assembly is open
   // measure-ui.js (Measure, every workspace), asm-ui.js (assembly tools), section-ui.js (Section view, every workspace) and
   // draft-ui.js (Draft analysis, Design; 0.4 P21), made next to `host`
-  let measure = null, asmTools = null, section = null, draft = null, stackup = null;
+  let measure = null, asmTools = null, section = null, draft = null, stackup = null, motion = null, contactStudy = null;
   let clip = readStoredClip(); // the clipboard (clipboard.js): this tab's copy, or the one another tab stored
   let ws = WS.DESIGN;          // the active workspace (workspaces.js); Design = everything else in this file
 
@@ -360,10 +379,28 @@ function init(root) {
   }
   const built = () => new Promise((res) => { if (!inflight && !again) res(); else waiters.push(res); });
 
+  /** 0.8 DC.117: the display bodies add-ons placed (part.addonBodies) drawn as scene overlays; called after every rebuild, undo, open and workspace change. */
+  const bodyOverlays = new Set();
+  function syncAddonBodies() {
+    const want = new Map();
+    for (const [a, groups] of Object.entries(part.addonBodies || {})) for (const [g, def] of Object.entries(groups)) want.set('addon-bodies:' + a + ':' + g, def);
+    for (const key of [...bodyOverlays]) if (!want.has(key)) { view.setOverlay(key, null); bodyOverlays.delete(key); }
+    for (const [key, def] of want) {
+      const old = view.overlays.get(key);
+      if (old && old.userData.def === def) continue;   // the same data: already drawn
+      const obj = AB.groupObject(THREE, def);
+      obj.userData.def = def;
+      view.setOverlay(key, obj); bodyOverlays.add(key);
+    }
+    view.setExtraBounds(AB.boundsOf(part));
+  }
   function applyRegen(r, ms) {
     regen = r;
+    problemsSync?.();
+    shellKit?.changed();
     view.setMesh(regen.mesh);
     view.setHidden(hiddenGeometry(part, regen));
+    syncAddonBodies();
     syncPlanes();   // the first solid makes the base planes step back (0.6 PU.4), also when the exact kernel answers later
     syncHandles();  // the handle follows the rebuilt feature (0.6 PU.2)
     SUI.showSheets(regen);
@@ -508,6 +545,8 @@ function init(root) {
     if (section?.picking && section.pick(h)) return;
     if (draft?.picking && draft.pick(h)) return;
     if (stackup?.picking) { stackup.pick(h, e); return; }
+    if (motion?.picking) { motion.pick(h, e); return; }
+    if (contactStudy?.picking) { contactStudy.pick(h, e); return; }
     if (measure?.active) { measure.pick(h, e); return; }
     if (mode === 'assembly' && asmTools?.pick(h)) return;
     if (ws !== WS.DESIGN) { wsCall('onPick', h, host, e); return; }
@@ -775,14 +814,15 @@ function init(root) {
 
   function newFeature(type, props) {
     const label = P.FEATURE_LABELS[type];   // the feature's name (part.js), also the undo step's label
-    if ((DESIGN_TYPES.has(type) && type !== 'draft') || SURFACE_TYPES.has(type) || BODY_TYPES.has(type) || SHEET_TYPES.has(type) || RIB_TYPES.has(type) || WELD_TYPES.has(type)) {
+    if ((DESIGN_TYPES.has(type) && type !== 'draft') || SURFACE_TYPES.has(type) || BODY_TYPES.has(type) || SHEET_TYPES.has(type) || RIB_TYPES.has(type) || WELD_TYPES.has(type) || GEN_TYPES.has(type)) {
       // reference geometry, sweep, loft: made from the selection, finished in the panel (design-ui.js)
-      const dp = WELD_TYPES.has(type) ? WU.create() : RIB_TYPES.has(type) ? RB.create() : SHEET_TYPES.has(type) ? SH.create(type) : BODY_TYPES.has(type) ? BUI.create(type) : SURFACE_TYPES.has(type) ? SUI.create(type) : DUI.create(type);
+      const dp = GEN_TYPES.has(type) ? GU.create() : WELD_TYPES.has(type) ? WU.create() : RIB_TYPES.has(type) ? RB.create() : SHEET_TYPES.has(type) ? SH.create(type) : BODY_TYPES.has(type) ? BUI.create(type) : SURFACE_TYPES.has(type) ? SUI.create(type) : DUI.create(type);
       if (!dp) return;
       const f = commit(label, () => P.addFeature(part, type, { ...dp, ...props }));
       sel = { kind: 'feature', id: f.id }; pick = null; multi = []; view.setHighlight(null); showMarks();
       if (type === 'sheetflange' && !f.edge) { renderAll(); SH.pickEdge(f); return; }   // no edge picked yet: wait for one
       renderAll();
+      if (type === 'generated') { built().then(() => GU.run(f)); return; }   // 0.8 CE.3: a new Generated body runs its script at once
       if (type === 'rib') { built().then(() => RB.afterBuild(f)).then((flipped) => { if (!flipped) { const r = regen.results.get(f.id); status(r?.status === 'error' ? t('app.feature.error', { name: f.name, error: r.message }) : t('rib.ui.added', { name: f.name })); } }); return; }
       built().then(() => {
         const r = regen.results.get(f.id);
@@ -929,7 +969,18 @@ function init(root) {
     sel = { kind: 'feature', id };
     view.setPlaneState(null, null);
     renderAll();
+    announcePick();
   }
+  // 0.8 SC.5 (part-model_PART_4): the picked feature is announced to the page (SuperCad Studio hears `cc-pick`); a pick from another panel
+  // comes back through window.ccPickApply(refs). Both are inert outside Super.
+  function announcePick() {
+    try { window.dispatchEvent(new CustomEvent('cc-pick', { detail: { app: 'partcraft', ids: sel && sel.kind === 'feature' ? [String(sel.id)] : [] } })); } catch { /* no window */ }
+  }
+  window.ccPickApply = (refs) => {
+    const r = (refs || []).find((x) => P.featureById(part, x.id) || P.featureById(part, Number(x.id)));
+    if (!r) return false;
+    selectFeature(P.featureById(part, r.id) ? r.id : Number(r.id)); return true;
+  };
 
   /** Edit a feature's main value in its history row (0.6 PU.5): a box over the row's value; Enter (or leaving it) hands the
    *  text to the feature's main box in the properties panel — the same limits, =expressions and one undo step — Esc keeps
@@ -1027,6 +1078,45 @@ function init(root) {
     i.addEventListener('change', () => onchange(i.checked));
     return el('label', { className: 'pc-check span' }, i, label);
   };
+  /** 0.8 PANEL-COMPACT: label + control pairs (what field() / check() make) as the shared property grid (window.ccPropGrid); any other node, and a
+   *  field driven by an equation (its ƒ button needs the label), is kept as DOM in a block under it. The grid's box stands in for the old control: a
+   *  change is written to that control and its own change handler runs (the same setFeature / paramsUI code path, the same undo step), and the box
+   *  carries the control's data-* (data-param-key: the digit-typing and tree-editing shortcuts find it) so nothing else changes. Without the grid the
+   *  old block is returned. */
+  function propGridBlock(items, key, category) {
+    const flat = items.filter(Boolean);
+    if (!window.ccPropGrid) return [el('div', { className: 'pc-props' }, ...flat)];
+    const rows = [], bind = new Map(), rest = [];
+    const ctl = (x) => x && ((x.tagName === 'INPUT' && (x.type === 'text' || x.type === 'number')) || x.tagName === 'SELECT');
+    for (let i = 0; i < flat.length; i++) {
+      const a = flat[i], b = flat[i + 1], id = 'r' + rows.length;
+      if (a.tagName === 'LABEL' && !a.classList.contains('pc-check') && ctl(b) && !b.classList.contains('is-driven')) {
+        const label = a.textContent.trim() || '?';
+        if (b.tagName === 'SELECT') rows.push({ id, category, label, type: 'select', value: b.value, readonly: b.disabled, options: [...b.options].map((o) => ({ value: o.value, label: o.textContent })) });
+        else rows.push({ id, category, label, type: 'text', value: b.value, readonly: b.disabled || b.readOnly });
+        bind.set(id, { el: b, orig: b.value, kind: 'value' });
+        i++;
+      } else if (a.tagName === 'LABEL' && a.classList.contains('pc-check') && a.querySelector('input[type="checkbox"]')) {
+        const cb = a.querySelector('input[type="checkbox"]');
+        rows.push({ id, category, label: a.textContent.trim() || '?', type: 'checkbox', value: cb.checked, readonly: cb.disabled });
+        bind.set(id, { el: cb, orig: cb.checked, kind: 'check' });
+      } else if (a.tagName === 'SPAN' && a.classList.contains('k') && b && b.tagName === 'SPAN' && b.classList.contains('v')) {
+        rows.push({ id, category, label: a.textContent.trim() || '?', type: 'readonly', value: b.textContent });
+        i++;
+      } else rest.push(a);
+    }
+    if (!rows.length) return [el('div', { className: 'pc-props' }, ...flat)];
+    const host = el('div', { className: 'pc-grid' });
+    const g = ccPropGrid.create(host, { label: t('app.grid.label'), key, rows, onChange: (id, v) => {
+      const b = bind.get(id); if (!b) return;
+      if (b.kind === 'check') b.el.checked = !!v; else b.el.value = String(v);
+      b.el.dispatchEvent(new Event('change', { bubbles: true }));
+      // refused (out of range, an unknown name): the panel does not rebuild, so the box goes back to what the model holds
+      setTimeout(() => { if (host.isConnected && b.kind === 'value') g.setValue(id, b.orig); }, 400);
+    } });
+    for (const [id, b] of bind) { const n = host.querySelector('[data-pg-row="' + id + '"]'); if (n) for (const k of Object.keys(b.el.dataset)) n.dataset[k] = b.el.dataset[k]; }
+    return [host, ...(rest.length ? [el('div', { className: 'pc-props' }, ...rest)] : [])];
+  }
   const btn = (label, onclick, cls = 'pc-btn', extra = {}) => el('button', { type: 'button', className: cls, onclick, ...extra }, label);
   const msg = (text, kind = '') => el('div', { className: 'pc-msg ' + kind }, el('p', {}, text));
   // the Design features' panels and reference picking (design-ui.js): it reads this page's state through getters
@@ -1062,6 +1152,29 @@ function init(root) {
     download: (data, name, mime) => download(data, name, mime),
     get part() { return part; }, get regen() { return regen; }, get sel() { return sel; },
   });
+  const GU = installGenUI({
+    el, field, numInput, selectInput, check, btn, textInput, status, setFeature: (id, label, fn) => setFeature(id, label, fn), renderProps: () => renderProps(), built: () => built(),
+    computeWorker: (modules, opts) => host.computeWorker(modules, opts), download: (data, name, mime) => download(data, name, mime),
+    get part() { return part; }, get regen() { return regen; },
+  });
+  // ---- Problems (0.8 CE.6; docs/0.8-PROBLEMS-SPEC.md): what a Generated feature's manufacturing checks found, in the shell's ⚠ panel.
+  // Accepting a problem lasts for the session: the part file does not keep accepted problems yet.
+  if (document.getElementById('cc-problems')) {
+    const go = () => {
+      const CP = window.ccProblems;
+      if (!CP) return;
+      const src = CP.source({ id: PROBLEMS_SRC, kind: 'check', label: t('problems.src.partcraft') });
+      problemsSync = () => src.set([...pcProblems(part, regen, { labelOf: (f) => f.name }), ...simEnvProblems(part.studies), ...studyProblemsNow(), ...simProblemsNow(), ...breakProblemsNow(), ...magnetProblemsNow(), ...contactProblemsNow()]);
+      CP.adapter({
+        t, file: () => part.name,
+        select: (p) => { const a = p.about.find((x) => x.kind === 'feature' && P.featureById(part, x.id)); if (a) selectFeature(a.id); },
+        focus: () => {},
+        saveAccepted: () => {},
+      });
+      problemsSync();
+    };
+    if (window.ccProblems) go(); else document.addEventListener('cc-problems-ready', go, { once: true });
+  }
   const TU = installThreadUI({
     el, field, numInput, selectInput, check, setFeature: (id, label, fn) => setFeature(id, label, fn),
     get regen() { return regen; },
@@ -1139,7 +1252,7 @@ function init(root) {
     matSel.dataset.partMaterial = '1';
     const res = selectInput([['32', t('app.part.res_coarse')], ['64', t('app.part.res_normal')], ['128', t('app.part.res_fine')], ['256', t('app.part.res_very_fine')]], String(part.resolution), (v) => commit(t('app.undo.resolution'), () => { part.resolution = Number(v); }));
     return [
-      el('div', { className: 'pc-props' }, ...field(t('app.props.name'), name), ...field(t('part.material'), matSel), ...field(t('app.part.curves'), res)),
+      ...propGridBlock([...field(t('app.props.name'), name), ...field(t('part.material'), matSel), ...field(t('app.part.curves'), res)], 'part', t('app.grid.part')),
       el('p', { className: 'pc-note' }, useExact ? t('app.part.note_exact') : exactOff() ? t('kernel.part.note') : exact.state === 'loading' ? t('app.part.note_mesh_loading') : t('app.part.note_mesh_off')),
       el('p', { className: 'pc-note' }, t('app.part.start_note')),
       BUI.bodiesBlock(),
@@ -1227,6 +1340,7 @@ function init(root) {
     return el('div', { className: 'pc-block' }, el('p', { className: 'pc-props-sub', style: 'margin-top:0' }, t('app.dims.title', { title, name: sf.name })), el('div', { className: 'pc-checks' }, ...rows));
   }
 
+  const GRID_FEATURES = new Set(['extrude', 'revolve', 'hole', 'fillet', 'chamfer', 'shell']);
   function featureProps(f) {
     const out = [];
     const r = regen?.results.get(f.id) || { status: 'ok' };
@@ -1238,6 +1352,11 @@ function init(root) {
     if (r.warning) out.push(msg(r.warning));
     const grid = [];
     const set = (label, fn) => setFeature(f.id, label, fn);
+    const core = !!window.ccPropGrid && GRID_FEATURES.has(f.type);   // 0.8 PANEL-COMPACT: these features' numbers and choices (and the name) are one property grid
+    const nameIn = el('input', { type: 'text', className: 'pc-input', id: 'pc-feat-name', value: f.name, maxLength: 60 });
+    nameIn.addEventListener('change', () => { const v = nameIn.value.replace(/[\u0000-\u001f]/g, '').trim().slice(0, 60); if (v) setFeature(f.id, t('app.undo.rename'), (g) => { g.name = v; }); });
+    if (core) grid.push(...field(t('app.props.name'), nameIn));
+    const gridOut = (key) => (core ? propGridBlock(grid, key, t('app.grid.parameters')) : [el('div', { className: 'pc-props' }, ...grid)]);
     const sketchRow = (id) => { const s = P.featureById(part, id); return [el('span', { className: 'k' }, t('app.props.sketch_row')), el('span', { className: 'v' }, s ? s.name : t('app.props.gone'))]; };
     if (f.type === 'sketch') {
       const dl = el('dl', { className: 'pc-dl' });
@@ -1295,18 +1414,20 @@ function init(root) {
       const key = f.type === 'fillet' ? 'r' : 'd';
       grid.push(...field(f.type === 'fillet' ? t('app.fillet.radius_mm') : t('app.chamfer.distance_mm'), numInput(f[key], (v) => set(f.type === 'fillet' ? t('app.props.radius') : t('app.undo.distance'), (g) => { g[key] = v; }), { min: 0.000001, key: f.id + '.' + key })));
       grid.push(el('span', { className: 'k' }, t('app.fillet.edges')), el('span', { className: 'v' }, String(f.edges.length)));
-      out.push(el('div', { className: 'pc-props' }, ...grid));
+      out.push(...gridOut('feature'));
       grid.length = 0;
       out.push(refList(f, 'edges'));
     } else if (f.type === 'shell') {
       grid.push(...field(t('app.shell.wall_mm'), numInput(f.t, (v) => set(t('app.undo.wall'), (g) => { g.t = v; }), { min: 0.000001, key: f.id + '.t' })));
       grid.push(check(t('app.shell.outward'), f.outward, (v) => set(t('app.undo.shell_direction'), (g) => { g.outward = v; })));
       grid.push(el('span', { className: 'k' }, t('app.shell.open_faces')), el('span', { className: 'v' }, String(f.faces.length)));
-      out.push(el('div', { className: 'pc-props' }, ...grid));
+      out.push(...gridOut('feature'));
       grid.length = 0;
       out.push(refList(f, 'faces'));
     } else if (SHEET_TYPES.has(f.type)) {
       SH.panel(f, grid, out);
+    } else if (GEN_TYPES.has(f.type)) {
+      GU.panel(f, grid, out);
     } else if (WELD_TYPES.has(f.type)) {
       WU.panel(f, grid, out);
     } else if (RIB_TYPES.has(f.type)) {
@@ -1339,7 +1460,7 @@ function init(root) {
     if (!DESIGN_TYPES.has(f.type)) DUI.extra(f, grid);
     TU.holeExtra(f, grid);   // a tapped hole's modelled thread (thread-ui.js)
     BUI.extra(f, grid);   // linear / circular patterns: copy bodies (bodies-ui.js)
-    if (grid.length) out.push(el('div', { className: 'pc-props' }, ...grid));
+    if (grid.length) out.push(...gridOut('feature'));
     if (typeof f.sketch === 'string') { const sf = P.featureById(part, f.sketch); const d = sf && sketchDimsBlock(sf, t('app.dims.sketch')); if (d) out.push(d); }
     // history actions
     const i = P.indexOf(part, f.id);
@@ -1350,9 +1471,7 @@ function init(root) {
       btn(t('app.history.move_down'), () => moveSelected(1), 'pc-btn', { disabled: !P.canMove(part, f.id, i + 1).ok, title: P.canMove(part, f.id, i + 1).reason || t('app.history.move_down_title') }),
       btn(t('app.btn.delete'), () => deleteSelected(), 'pc-btn is-danger'),
     )));
-    const nameIn = el('input', { type: 'text', className: 'pc-input', id: 'pc-feat-name', value: f.name, maxLength: 60 });
-    nameIn.addEventListener('change', () => { const v = nameIn.value.replace(/[\u0000-\u001f]/g, '').trim().slice(0, 60); if (v) setFeature(f.id, t('app.undo.rename'), (g) => { g.name = v; }); });
-    out.push(el('div', { className: 'pc-block pc-props' }, ...field(t('app.props.name'), nameIn)));
+    if (!core) out.push(el('div', { className: 'pc-block pc-props' }, ...field(t('app.props.name'), nameIn)));
     return out;
   }
 
@@ -1600,6 +1719,7 @@ function init(root) {
     if (mode === 'assembly') { renderAsmTree(); renderProps(); renderAsmFacts(); updateTools(); ui.hint.hidden = true; return; }   // renderProps: the assembly's panel in Design, an assemblies:true workspace's own otherwise (illustrate)
     paramsUI.render();   // first: it drops equations whose numbers were deleted
     syncPlanes(); syncHandles();
+    shellKit?.selChanged();
     renderTree(); renderProps(); renderFacts(); updateTools(); show3DSketches(); ui.hint.hidden = ws !== WS.DESIGN || mode === 'sketch' || mode === 'drawing' || part.features.length > 0;
   }
 
@@ -1643,6 +1763,8 @@ function init(root) {
         if (c === 'asm-edit') dis = dis || asmSel?.kind !== 'inst';
         if (c === 'asm-joint') { dis = dis || (asm?.instances.length || 0) < 2; b.setAttribute('aria-pressed', String(!!jointPick)); }
         if (c === 'asm-stackup') b.setAttribute('aria-pressed', String(!!stackup?.active));
+        if (c === 'asm-contact') { dis = dis || (asm?.instances.length || 0) < 2; b.setAttribute('aria-pressed', String(!!contactStudy?.active)); }
+        if (c === 'asm-motion') { dis = dis || !asm?.joints.some((j) => (A.JOINT_DOF[j.type] || []).length); b.setAttribute('aria-pressed', String(!!motion?.active)); }
         if ((/^export-/.test(c) && !ASM_EXPORTS.includes(c)) || c === 'view-normal') dis = true;
         if (['export-step', 'export-step214', 'export-drawing'].includes(c)) { dis = dis || !useExact; if (exactOff()) b.title = (b.title.replace(/ — .*$/, '') || b.textContent.trim()) + ' — ' + t('kernel.not_built.short'); }
         if (c === 'undo') dis = !asmHist.undoStack.length;
@@ -1740,6 +1862,7 @@ function init(root) {
   }
 
   async function run(cmd) {
+    shellKit?.tool(cmd);   // lessons: where a command runs
     if (addons?.runCommand(cmd)) return;   // an add-on's command ('<add-on id>:<name>')
     for (const d of ui.tools.querySelectorAll('details[open]')) d.open = false;
     // the active workspace sees every command first; its own (<id>-…) never reach Design
@@ -1755,6 +1878,22 @@ function init(root) {
     if (cmd === 'view-mass') { if (mode === 'sketch' || mode === 'drawing') { status(t('app.measure.mass_model_only')); return; } measure.mass(); updateTools(); return; }
     if (cmd === 'export-print') return checkPrint();
     if (cmd === 'export-nest') return openNest();
+    if (cmd === 'export-sheets') return openSheets();
+    if (cmd === 'export-ccx') return ccxExport(host);
+    if (cmd === 'export-scaled' || cmd === 'export-split') return printExport(cmd);
+    if (cmd === 'sketch-magnet') {   // 0.8 SG.7+: Sketch › Magnet study… (magnet-study-ui.js on physics_PART_3's magnetSolve)
+      if (mode === 'assembly') { status(t('study.mag.ui.no_sketch'), true); return; }
+      if (mode === 'sketch') exitSketch();
+      const MU = await import('./magnet-study-ui.js');
+      return MU.openMagnetDialog({ ask, el, status, part: () => part, computeWorker: (mods, o) => host.computeWorker(mods, o), refreshProblems: () => problemsSync?.(), download: (bytes, name, mime) => download(bytes, name, mime) });
+    }
+    if (cmd === 'sketch-photo') {   // 0.8 EG.38: Sketch › From a photo… (photo-sketch-ui.js on part_PART_2's photo-sketch.js)
+      if (mode === 'assembly') { status(t('pexp.part_only'), true); return; }
+      if (mode === 'sketch') exitSketch();
+      const PU = await import('./photo-sketch-ui.js');
+      return PU.openPhotoDialog({ ask, el, status, commit: (label, fn) => commit(label, fn), part: () => part, addFeature: (p, type, props) => P.addFeature(p, type, props), built: () => built() });
+    }
+    if (cmd === 'import-frd') { if (ws.id !== 'simulation' && !setWorkspace('simulation')) return; return ccxImport(host); }
     if (cmd === 'export-laser') return openLaser();
     if (mode === 'assembly' && ASM_EXPORTS.includes(cmd)) return asmTools.exportCmd(cmd);
     if (SKETCH_TOOLS[cmd]) { if (mode === 'sketch') editor.setTool(editor.tool === SKETCH_TOOLS[cmd] ? 'select' : SKETCH_TOOLS[cmd]); focusStage(); return; }
@@ -1762,6 +1901,7 @@ function init(root) {
     switch (cmd) {
       case 'new': return newPart();
       case 'std-part': return openStandardPart();
+      case 'documents': return openVault();   // 0.8 SU.1058 (vault-08)
       case 'open': if (await confirmDiscard()) { const [hf] = await fileHost.openFile({ types: [{ description: 'PartCraft, STEP, STL, OBJ, 3MF, 3DM', extensions: ['.json', '.step', '.stp', '.stl', '.obj', '.3mf', '.3dm'] }] }); await openFromHost(hf); } return;   // i18n-ignore: a file type label the OS shows
       case 'save': return savePart();
       case 'export-stl': return exportMesh('stl');
@@ -1780,7 +1920,7 @@ function init(root) {
       case 'plane': case 'axis': case 'point': case 'sweep': case 'loft': case 'draft': return newFeature(cmd, {});
       case 'patch': case 'surfloft': case 'stitch': case 'thicken': case 'offsetsurf': case 'extendsurf': case 'trimsurf': case 'gordon': return newFeature(cmd, {});
       case 'combine': case 'movebody': case 'scalebody': case 'pathpattern': return newFeature(cmd, {});
-      case 'sheetbase': case 'sheetflange': case 'rib': case 'member': return newFeature(cmd, {});
+      case 'sheetbase': case 'sheetflange': case 'rib': case 'member': case 'generated': return newFeature(cmd, {});
       case 'thread': return newFeature('thread', {});
       case 'pick-done': return endPick();
       case 'drawing': return enterDrawing();
@@ -1811,6 +1951,8 @@ function init(root) {
       case 'asm-joint': return asmStartJoint();
       case 'asm-check': return asmCheck();
       case 'asm-stackup': stackup.toggle(); updateTools(); return;
+      case 'asm-motion': motion.toggle(); updateTools(); return;
+      case 'asm-contact': contactStudy.toggle(); updateTools(); return;
       case 'asm-edit': return asmEditPart();
       case 'asm-close': return closeAssembly();
       case 'view-fit': if (mode === 'sketch') editor.fit(); else view.fit(); return;
@@ -2049,7 +2191,7 @@ function init(root) {
     const shown = asmTools ? asmTools.displayWorld(asmPlace.world) : asmPlace.world;   // an exploded view moves what is drawn only
     view.setInstances(asm.instances.filter((i) => asmBuilds.get(i.part)?.mesh).map((i) => ({ id: i.id, data: asmBuilds.get(i.part).mesh, matrix: shown.get(i.id) })));
     highlightAsm();
-    asmTools?.afterShow(); measure?.refresh(); section?.refresh(); draft?.refresh(); stackup?.refresh();
+    asmTools?.afterShow(); measure?.refresh(); section?.refresh(); draft?.refresh(); stackup?.refresh(); motion?.refresh();
     if (ws !== WS.DESIGN) wsCall('rebuilt', host);   // a workspace that owns the screen in an assembly hides them again (illustrate)
   }
 
@@ -2221,7 +2363,7 @@ function init(root) {
   function asmEditPart() {
     if (asmSel?.kind !== 'inst') { status(t('app.asm.select_to_edit')); return; }
     const inst = instById(asmSel.id);
-    asmTools.reset(); measure.stop(); stackup?.stop();
+    asmTools.reset(); measure.stop(); stackup?.stop(); motion?.stop();
     editPartOf = { pid: inst.part, stash: { part, dirty, undo: hist.undoStack, redo: hist.redoStack }, before: JSON.stringify(asm.parts[inst.part].part) };
     part = JSON.parse(JSON.stringify(asm.parts[inst.part].part));
     hist.undoStack = []; hist.redoStack = []; dirty = false;
@@ -2257,7 +2399,7 @@ function init(root) {
       if (ch === 'cancel') return false;
       if (ch === 'save') saveAssembly();
     }
-    asmTools.reset(); measure.stop(); stackup?.stop();
+    asmTools.reset(); measure.stop(); stackup?.stop(); motion?.stop();
     asm = null; asmBuilds = new Map(); asmSel = null; jointPick = null; asmDirty = false; clashes = null; asmHist.clear();
     mode = 'model';
     rebuild(); renderAll(); view.view('iso');
@@ -2277,7 +2419,7 @@ function init(root) {
     try { a = A.readAssembly(text); } catch (err) { status(err.message); await ask({ title: t('app.file.cannot_open', { name }), text: err.message, buttons: [['cancel', t('app.btn.ok'), 'pc-btn is-primary']] }); return; }
     if (mode === 'sketch') exitSketch();
     if (editPartOf) backToAssembly();
-    asmTools.reset(); measure.stop(); stackup?.stop();
+    asmTools.reset(); measure.stop(); stackup?.stop(); motion?.stop();
     asm = a; asmBuilds = new Map(); asmHist.clear(); asmDirty = false; asmSel = null; jointPick = null; clashes = null;
     mode = 'assembly';
     view.setPlanesVisible(false);
@@ -2424,7 +2566,44 @@ function init(root) {
   // The views come from OpenCascade's hidden-line removal (exact kernel) or from the mesh (fallback);
   // the sheet is composed here (drawing.js) with the part's notes (gdt.js) and shown as SVG (sheetview.js).
   let sheetView = null;
-  const drawingOf = (p = part) => p.drawing || { section: null, detail: null, notes: [] };
+  // 0.8 Track ID: hand the view to the input-device layer (assets/js/app-devices-ui.js)
+  // three views, each moved the way its own wheel and drags move it: the sketch canvas (SketchEditor.zoomAt / setView / fit), the drawing sheet
+  // (SheetView.zoomAt / panBy / fit; its host is in the page from the start, hidden until a drawing opens; nothing moves before the sheet is made) and the 3D view (OrbitControls' own steps, so zoom-to-cursor and the
+  // 'change' → render path are the wheel's and the drag's). The sketch canvas and the sheet lie over the 3D canvas, so a move that lands on the
+  // 3D view while one of them is open goes to it (the 3D camera is locked to the sketch then anyway).
+  const skDev = {
+    el: ui.sk, kind: '2d',
+    pan(dx, dy) { if (!editor.active) return; const v = editor.view; editor.setView({ s: v.s, cx: v.cx - dx / v.s, cy: v.cy + dy / v.s }); },
+    zoom(f, x, y) { if (!editor.active || !(f > 0)) return; const r = ui.sk.getBoundingClientRect(); editor.zoomAt(x ?? r.width / 2, y ?? r.height / 2, f); },
+    fit() { if (editor.active) editor.fit(); },
+  };
+  const sheetDev = {
+    el: ui.sheet, kind: '2d',
+    pan(dx, dy) { sheetView?.panBy(dx, dy); },
+    zoom(f, x, y) { if (!sheetView || !(f > 0)) return; const r = ui.sheet.getBoundingClientRect(); sheetView.zoomAt(f, r.left + (x ?? r.width / 2), r.top + (y ?? r.height / 2)); },
+    fit() { sheetView?.fit(); },
+  };
+  const over3d = () => (mode === 'sketch' && editor.active ? skDev : mode === 'drawing' && sheetView && !ui.sheet.hidden ? sheetDev : null);
+  (window.ccViews ||= []).push(skDev, sheetDev, {
+    el: ui.gl, kind: '3d',
+    pan(dx, dy) { const o = over3d(); if (o) { o.pan(dx, dy); return; } const c = view.controls; if (!c.enabled || view.sketchFrame) return; c._pan(dx, dy); c.update(); },
+    orbit(dx, dy) {
+      if (over3d() || view.sketchFrame) return;
+      const c = view.controls, h = Math.max(ui.gl.clientHeight, 1);
+      if (!c.enabled) return;
+      c._rotateLeft(2 * Math.PI * dx * c.rotateSpeed / h); c._rotateUp(2 * Math.PI * dy * c.rotateSpeed / h);   // as _handleMouseMoveRotate
+      c.update();
+    },
+    zoom(f, x, y) {
+      const o = over3d(); if (o) { o.zoom(f, x, y); return; }
+      const c = view.controls; if (!c.enabled || view.sketchFrame || !(f > 0)) return;
+      const r = ui.gl.getBoundingClientRect();
+      c._updateZoomParameters(r.left + (x ?? r.width / 2), r.top + (y ?? r.height / 2));   // zoomToCursor, as the wheel
+      c._dollyIn(1 / f); c.update();
+    },
+    fit() { const o = over3d(); if (o) o.fit(); else view.fit(); },
+  });
+  const drawingOf =(p = part) => p.drawing || { section: null, detail: null, notes: [] };
 
   /** The part's holes for the drawing's hole table (drawing.js partHoles; 0.4 P23); null with the mesh kernel. */
   const drawingHoles = () => partHoles(part, regen);
@@ -2443,6 +2622,7 @@ function init(root) {
     drawingState = { data: null, key: null, sheet: null, tool: null, sel: null, drag: null };
     pick = null; multi = []; view.setHighlight(null); view.setMarks(null);
     if (!sheetView) sheetView = new SheetView(ui.sheet, {
+      isPad: (e) => looksLikePad(e),   // 0.8 D7.56: a trackpad swipe pans the sheet
       onClick: (x, y) => drawingClick(x, y),
       onNoteDown: (id) => { drawingState.sel = id; drawingState.tool = null; composeShow(); renderAll(); },
       onNoteDrag: (id, dx, dy) => { drawingState.drag = { id, dx, dy }; composeShow(); },
@@ -2612,7 +2792,7 @@ function init(root) {
       out.push(el('div', { className: 'pc-block pc-actions' }, btn(t('app.btn.delete'), () => deleteNote(), 'pc-btn is-danger'), btn(t('app.btn.done'), () => { drawingState.sel = null; composeShow(); renderProps(); })));
     } else {
       const grid = [];
-      grid.push(...field(t('drawing.panel.sheet'), selectInput(P.SHEET_KEYS.map((k) => [k, sheetLabel(k)]), d.sheet || 'a3', (v) => commitDrawing(t('drawing.undo.sheet'), (dd) => { if (v === 'a3') delete dd.sheet; else dd.sheet = v; }))));
+      grid.push(...field(t('drawing.panel.sheet'), selectInput([P.SHEET_AUTO, ...P.SHEET_KEYS].map((k) => [k, k === 'auto' ? t('drawing.sheet.auto', { size: drawingState?.sheet && d.sheet === 'auto' ? sheetLabel(drawingState.sheet.paper) : '' }) : sheetLabel(k)]), d.sheet || 'a3', (v) => commitDrawing(t('drawing.undo.sheet'), (dd) => { if (v === 'a3') delete dd.sheet; else dd.sheet = v; }))));
       grid.push(...field(t('app.drawing.section_aa'), selectInput([['', t('app.drawing.none')], ['front', t('app.drawing.of_front')], ['top', t('app.drawing.of_top')], ['right', t('app.drawing.of_right')]], d.section ? d.section.of : '', (v) => {
         commitDrawing(t('app.undo.section_view'), (dd) => { dd.section = v ? { of: v } : null; if (!v && dd.detail?.of === 'section') dd.detail = null; }, { refetch: true });
       })));
@@ -2625,6 +2805,8 @@ function init(root) {
         grid.push(...field(t('app.drawing.detail_radius'), numInput(d.detail.r, (v) => commitDrawing(t('app.undo.detail_size'), (dd) => { dd.detail.r = v; }), { min: 0.001 })));
         grid.push(...field(t('app.drawing.detail_scale'), selectInput(P.DETAIL_SCALES.map((k) => [String(k), t('app.drawing.times_sheet', { k })]), String(d.detail.scale), (v) => commitDrawing(t('app.drawing.detail_scale'), (dd) => { dd.detail.scale = Number(v); }))));
       }
+      { const cb = check(t('drawing.holedims.panel'), !!d.holeDims, (v) => commitDrawing(t('drawing.holedims.undo'), (dd) => { if (v) dd.holeDims = true; else delete dd.holeDims; })); cb.dataset.holeDims = '1'; grid.push(cb); }   // 0.8 EG.20
+      if (d.holeDims && drawingState?.sheet?.holeDims) { const hd = drawingState.sheet.holeDims; grid.push(el('span', { className: 'k' }, ''), el('span', { className: 'v pc-muted', dataset: { holeDimsCount: String(hd.holes) } }, t('drawing.holedims.count', { n: hd.holes, sizes: hd.sizes, view: t('drawing.view.' + hd.view) }))); }
       grid.push(...field(t('drawing.holes.panel'), selectInput([['', t('drawing.holes.none')], ...['front', 'top', 'right'].map((k) => [k, t('drawing.holes.of', { view: t('drawing.view.' + k) })])], d.holeTable ? d.holeTable.view : '', (v) => commitDrawing(t('drawing.holes.undo'), (dd) => { if (v) dd.holeTable = { view: v }; else delete dd.holeTable; }))));
       if (d.holeTable && drawingState?.sheet?.holeTable) { const ht = drawingState.sheet.holeTable; grid.push(el('span', { className: 'k' }, ''), el('span', { className: 'v pc-muted', dataset: { holeCount: String(ht.rows.length) } }, t('drawing.holes.count', { n: ht.rows.length }) + (ht.skipped ? ' ' + t('drawing.holes.skipped', { n: ht.skipped }) : ''))); }
       else if (d.holeTable && !named()) grid.push(el('span', { className: 'k' }, ''), el('span', { className: 'v pc-muted' }, t('drawing.holes.exact')));
@@ -2712,7 +2894,30 @@ function init(root) {
   ready.then(async () => { const [first] = await fileHost.launchFiles(); if (first) await openFromHost(first); });   // desktop: the file it was started with
   // Studio Live from a link (#live=<code> on a host's LAN page, ?live=<ROOM>#<secret> from an invite): join; the part comes from the host
   if (/[#&]live=|[?&]live=/.test(location.hash + location.search)) ready.then(() => import('./live.js')).then((m) => m.joinFromPage(window.partcraft, fileHost), (err) => status(err.message));
+  // ---- the Documents panel (0.8 SU.1058, session vault-08; mounted by engineer): vault/vault-app.js, loaded on first use. A file opened from a
+  // project folder is saved over only while it is checked out to you (the panel's saveBlocked), and check-in writes the open part's bytes.
+  let vaultUi = null, vaultRef = null;
+  async function openVault() {
+    if (!vaultUi) {
+      const { installVaultPanel } = await import('./vault/vault-app.js');
+      vaultUi = installVaultPanel({
+        stage: ui.gl.parentElement, el, t, print: (m) => status(m), focusCommandLine: () => {}, fileHost, kinds: ['part', 'assembly'],
+        openFile: (f) => openFile(f),
+        currentFile: (rec) => {
+          if (mode === 'sketch') exitSketch();
+          const asmOpen = mode === 'assembly';
+          if ((rec.kind === 'assembly') !== asmOpen) return { wrong: true };
+          return { bytes: new TextEncoder().encode(asmOpen ? A.toJSON(asm) : P.toJSON(part)) };
+        },
+        getRef: () => vaultRef, setRef: (r) => { vaultRef = r; }, afterCheckin: () => { dirty = false; },
+        saveBlob: (name, text, mime) => download(text, name, mime),
+      });
+    }
+    await vaultUi.open();
+  }
+
   async function savePart() {
+    if (vaultUi && vaultRef) { const ro = await vaultUi.saveBlocked(); if (ro) { status(ro); return; } }   // a vault file: only while checked out to you
     if (mode === 'assembly') { saveAssembly(); return; }
     if (mode === 'sketch') exitSketch();
     const name = fileBase() + '.partcraft.json';
@@ -2888,6 +3093,7 @@ function init(root) {
     hist.clear(); dirty = false; sel = null; pick = null; pendingSketch = false;
     view.setHighlight(null);
     rebuild(); renderAll(); view.view('iso');
+    shellKit?.opened(); surfacesChanged(host); nodesChanged(host);
     status(t('app.file.new_part'));
   }
 
@@ -2940,6 +3146,7 @@ function init(root) {
   }
 
   async function openText(text, name) {
+    vaultRef = null;   // the vault sets its own mark after it opens a file (vault-app.js)
     if (mode === 'pick') endPick();
     if (mode === 'drawing') leaveDrawing();
     if (/"format"\s*:\s*"partcraft-assembly"/.test(text.slice(0, 400))) { await openAssemblyText(text, name); return; }
@@ -2954,6 +3161,7 @@ function init(root) {
     rebuild(); renderAll();
     await built();
     syncPlanes(); view.view('iso');
+    shellKit?.opened(); surfacesChanged(host); nodesChanged(host);
     const errs = [...regen.results.values()].filter((r) => r.status === 'error').length;
     status(errs ? t('app.file.opened_failing', { name, n: part.features.length, errs }) : t('app.file.opened', { name, n: part.features.length }));
   }
@@ -2963,6 +3171,7 @@ function init(root) {
     try { if (await addons?.openFromAddon(f)) return; } catch (e) { status(t('app.file.addon_failed', { name: f.name, error: e && e.message ? e.message : String(e) })); return; }   // an add-on's importer
     if (/\.(step|stp)$/i.test(f.name)) { await importStep(f); return; }
     if (/\.(stl|obj|3mf)$/i.test(f.name)) { await importMesh(f); return; }
+    if (/\.kicad_pcb$/i.test(f.name)) { await importKicadBoard(f); return; }   // 0.8 SU.897: a KiCad board, parts as boxes (kicad.js)
     if (/\.3dm$/i.test(f.name)) { await importMesh(f, { threedm: true }); return; }   // 0.7 SU.810: a .3dm's meshes and surfaces as one body (mesh3dm.js)
     if (f.size > 50 * 1024 * 1024) { status(t('app.file.too_big')); return; }
     if (!/\.json$/i.test(f.name)) { status(t('app.file.unknown_kind', { name: f.name })); return; }
@@ -3006,6 +3215,22 @@ function init(root) {
   /** An STL / OBJ / 3MF mesh becomes a solid body (D7.49): read, repaired (meshimport.js), shown with what was repaired and what
    *  stays open, then the first feature of a new part or a body added to (cut from, intersected with) this one. `step`: a STEP
    *  file read as triangles by cc-step (step/read.js, D7.26) when there is no exact kernel; its solids become one mesh in mm. */
+  /** File › Open a .kicad_pcb (0.8 SU.897): the board and its parts as boxes with a height each (Parameters › h_<reference>). */
+  async function importKicadBoard(f) {
+    let made;
+    try {
+      const text = f.text ? await f.text() : await f.arrayBuffer().then((b) => new TextDecoder().decode(b));
+      made = (await import('./kicad.js')).importKicad(text, f.name);
+    } catch (err) {
+      await ask({ title: t('app.kicad.cannot_open', { name: f.name }), text: String(err && err.message ? err.message : err), buttons: [['cancel', t('app.btn.ok'), 'pc-btn is-primary']] });
+      return;
+    }
+    await openText(P.toJSON(made.part), made.part.name);
+    dirty = true;   // a new part made from the board, not a file on disk yet
+    status(t('app.kicad.opened', { name: f.name, parts: made.board.parts.length }));
+    await ask({ title: t('app.kicad.report', { name: f.name }), text: made.report.join(' '), buttons: [['cancel', t('app.btn.ok'), 'pc-btn is-primary']] });
+  }
+
   async function importMesh(f, { step = false, threedm = false } = {}) {
     if (!step && f.size > MI.MAX_BYTES) { status(t('mesh.err.too_big', { mb: Math.round(MI.MAX_BYTES / 1048576) }), true); return; }
     ui.busy.hidden = false; ui.busyText.textContent = t(step ? 'app.step.reading' : threedm ? 'ccdm.part.reading' : 'app.mesh.reading', { name: f.name });
@@ -3169,6 +3394,25 @@ function init(root) {
       setStock: (stock) => { const h = holder(); if (!h) return; h.stock = stock; if (h === asm) asmDirty = true; else dirty = true; } }, parts);
   }
 
+  /** Nested sheets to G-code (0.8 SU.1035 step 4b, fab-08's cam-sheets-ui.js): a program per sheet of a nested DXF through the posts of
+   *  this part's Manufacture study (its own posts and the post last chosen), else the built-in ones. */
+  async function openSheets() {
+    const SU = await import('./cam-sheets-ui.js');
+    const mfg = () => part?.studies?.manufacture || null;
+    await SU.openSheets({ ask, el, btn, status, download: (text, name, type) => download(text, name, type), fileBase: () => fileBase(),
+      posts: () => (mfg()?.posts || []), post: () => mfg()?.setup?.machine?.post });
+  }
+
+  /** SU.934 / SU.929 step 5 (print-export.js): the part's mesh scaled for printing, or cut into pieces for the bed (a zip). Actions on the export,
+   *  not features: the mesh kernel holds one body (engineer.md § Inbox). */
+  async function printExport(cmd) {
+    if (mode === 'assembly') { status(t('pexp.part_only'), true); return; }
+    await built();
+    const PX = await import('./print-export.js');
+    const ctx = { ask, el, status, download: (bytes, name, type) => download(bytes, name, type), mesh: () => regen?.mesh, name: () => fileBase(), manifold: M };
+    return cmd === 'export-scaled' ? PX.openScaleDialog(ctx) : PX.openSplitDialog(ctx);
+  }
+
   /** Laser program (0.7 SU.772, laser-ui.js on make-07's panel): the flat patterns of this part's or the assembly's sheet metal
    *  parts (the exact kernel unfolds them) and/or outlines from a DXF; the settings are saved in the file (`laser`). */
   async function openLaser() {
@@ -3274,6 +3518,26 @@ function init(root) {
     instName: (id) => (asm && instById(id)?.name) || '', partOf: (id) => { const i = asm && instById(id); return i ? asm.parts[i.part]?.part : null; },
     commit: (label, fn) => commitAsm(label, fn), download: (text, name, type) => download(text, name, type), fileBase: () => asm?.name || fileBase(),
   });
+  // Motion studies (0.8 EG.7, motion-ui.js): Assembly › Motion, a card over the stage; a study is not saved in the file
+  motion = createMotion({
+    el, btn, stage: ui.gl.parentElement, status: (m, keep) => status(m, keep),
+    asm: () => (mode === 'assembly' ? asm : null), builds: () => asmBuilds, M: () => M,
+    instName: (id) => (asm && instById(id)?.name) || '', download: (text, name, type) => download(text, name, type), fileBase: () => asm?.name || fileBase(),
+    // 0.8 EG.7 (round 3): the study's settings kept in the assembly file, and the scrub bar's pose (shown only; the joint keeps its value)
+    save: (spec) => { if (!asm) return; asm.motion = spec; asmDirty = true; },
+    pose: (jid, key, v) => { const x = asm && jointById(jid); if (!x) return; const keep = x[key]; x[key] = v; try { asmPlace = A.placeAll(asm, asmBuilds, { hold: new Set([jid + '.' + key]), start: asmPlace?.loops?.values }); } finally { x[key] = keep; } showInstances(); },
+    unpose: () => { if (!asm) return; asmPlace = A.placeAll(asm, asmBuilds); showInstances(); },
+  });
+  // Contact studies (0.8 SU.891, asm-contact-ui.js): Assembly › Contact, a card over the stage; the pairs and settings are kept in the assembly file
+  contactStudy = createContact({
+    el, btn, stage: ui.gl.parentElement, status: (m, keep) => status(m, keep),
+    asm: () => (mode === 'assembly' ? asm : null), builds: () => asmBuilds, world: () => asmPlace?.world || new Map(),
+    instName: (id) => (asm && instById(id)?.name) || '', fileBase: () => asm?.name || fileBase(), download: (text, name, type) => download(text, name, type),
+    refSide: (h) => { const i = asm && instById(h.inst), b = i && asmBuilds.get(i.part), f = b && b.faces && b.faces[h.face]; return f && f.name ? faceRef(f) : null; },
+    save: (spec) => { if (!asm) return; if (spec) asm.contactStudy = spec; else delete asm.contactStudy; asmDirty = true; },
+    computeWorker: (modules, opts) => host.computeWorker(modules, opts), refreshProblems: () => problemsSync?.(),
+    openText: async (types) => { const [hf] = await fileHost.openFile({ types }); return hf ? { name: hf.name, text: await hf.text() } : null; },   // a CalculiX .frd
+  });
   asmTools = createAsmTools({
     el, view, THREE, A, V, X, exact, toPdf: (sh) => drawingPdf(sh), tokens: () => tokens(),
     get asm() { return asm; }, get builds() { return asmBuilds; }, get place() { return asmPlace; },
@@ -3289,9 +3553,13 @@ function init(root) {
     rebuild: () => rebuild(), built: () => built(), renderAll: () => renderAll(), renderPanel: () => keepFocus(() => renderProps()),
     /** One undo step on the part: fn() changes host.part. rebuild false = data only (studies), no kernel run. */
     commit: (label, fn, { rebuild: rb = true } = {}) => { if (rb) return commit(label, fn); hist.push(part, label); const r = fn(); dirty = true; renderAll(); return r; },
+    buildPart: (p) => buildPart(p),   // a copy of the part built with the kernel in use (design studies)
+    refreshProblems: () => problemsSync?.(),
+    markDirty: () => { dirty = true; },   // data kept outside the part's undo (the Surfaces patch set)
     study: (key) => P.study(part, key),
-    setStudy: (key, value, label = t('app.undo.change_study')) => host.commit(label, () => P.setStudy(part, key, value), { rebuild: false }),
+    setStudy: (key, value, label = t('app.undo.change_study')) => (host.commit(label, () => P.setStudy(part, key, value), { rebuild: false }), problemsSync?.()),
     downloadBlob: (name, blob, mime) => download(blob, name, mime || blob.type || 'application/octet-stream'),
+    openText: async (types) => { const [hf] = await fileHost.openFile({ types }); return hf ? { name: hf.name, text: await hf.text() } : null; },   // SU.891: a CalculiX .frd
     ask: (o) => ask(o),
     confirm: async (title, text, yes = t('app.btn.ok')) => (await ask({ title, text, buttons: [['cancel', t('app.btn.cancel'), 'pc-btn'], ['yes', yes, 'pc-btn is-primary']] })) === 'yes',
     computeWorker: (modules, opts = {}) => {   // opts.threads: every call's args get the Settings thread count (compute-worker.js)
@@ -3301,6 +3569,8 @@ function init(root) {
       return { call: (op, args, o) => w.call(op, args && typeof args === 'object' && !Array.isArray(args) ? { ...args, threads: n() } : args, o), terminate: () => w.terminate(), get busy() { return w.busy; } };
     },
     focusStage: () => focusStage(), tokens: () => tokens(),
+    /** The Generated feature's panel and generator list (gen-ui.js, 0.8 CE.3 / CE.9), for the Engineer workspace. */
+    get generated() { return GU; },
     /** The open assembly, read-only (0.7, for Illustrate): its instances' builds and world placements, or null. */
     assembly: () => (mode === 'assembly' && asm ? { asm, builds: asmBuilds, world: asmPlace?.world || null } : null),
   };
@@ -3360,7 +3630,7 @@ function init(root) {
     measure?.stop(); draft?.stop();
     if (ws === WS.DESIGN) paramsUI.showTab('props');   // the Design tab's script editor goes home first (0.5 WL.31)
     wsCall('exit', host);
-    view.clearOverlays(); view.setFaceColors(null); view.setPartVisible(true);
+    view.clearOverlays(); bodyOverlays.clear(); syncAddonBodies(); view.setFaceColors(null); view.setPartVisible(true);
     ws = next;
     root.dataset.activeWorkspace = ws.id;
     wsCall('enter', host);
@@ -3461,6 +3731,8 @@ function init(root) {
     }
     if (tgt && tgt.closest && tgt.closest('.pc-tree') && (e.altKey || e.key.startsWith('Arrow'))) return;
     if (stackup?.active && stackup.keydown(e)) { e.preventDefault(); return; }
+    if (motion?.active && motion.keydown(e)) { e.preventDefault(); return; }
+    if (contactStudy?.active && contactStudy.keydown(e)) { e.preventDefault(); return; }
     if (measure?.active && measure.keydown(e)) { e.preventDefault(); return; }
     if (section?.active && section.keydown(e)) { e.preventDefault(); return; }
     if (draft?.active && draft.keydown(e)) { e.preventDefault(); return; }
@@ -3528,15 +3800,22 @@ function init(root) {
   installAgents({ part: () => part, regen: () => regen, mode: () => mode, commit: (label, fn) => commit(label, fn), built: async () => { await ready; await built(); },
     savePart: () => savePart(), download: (bytes, name, mime) => download(bytes, name, mime), computeWorker: (modules, opts) => host.computeWorker(modules, opts),
     fileBase: () => fileBase(), undo: () => undoRedo(true), lastUndo: () => (hist.undoStack.length ? hist.undoStack[hist.undoStack.length - 1].label : null) });
+  // ---- the shell's modules (0.8 round 3, docs/apps/shell-modules.md § Mounting): calc sheets drive parameters, reasons on features, the part's weight
+  shellKit = mountPartShell({ part: () => part, regen: () => regen, control: fileHost.control, commit: (label, fn) => commit(label, fn), undo: () => undoRedo(true),
+    undoDepth: () => hist.undoStack.length, sel: () => sel, selectFeature: (id) => selectFeature(id), labelOf: (f) => f.name || P.FEATURE_LABELS[f.type] || f.type,
+    name: () => part.name || fileBase(), path: () => saveTarget?.path || '', markDirty: () => { dirty = true; }, statusBar: document.querySelector('.pc-status') });
 
+  mountPartAccess({ part: () => part, regen: () => regen, stage: ui.tree, status: ui.status, facts: () => [...(ui.facts?.querySelectorAll('dt') || [])].map((dt) => dt.textContent.trim() + ' ' + (dt.nextElementSibling?.textContent || '').trim()).filter((x) => /\S\s+\S/.test(x)).join('. ') + '.', sel: () => sel,
+    selectFeature: (id) => selectFeature(id), partName: () => part.name || fileBase(), labelOf: (f) => f.name || P.FEATURE_LABELS[f.type] || f.type });   // EG.52
   window.partcraft = {
     ready, built, asmBuilt, exact, get useExact() { return useExact; }, get multi() { return multi; }, get drawing() { return drawingState; }, startPick, endPick, enterDrawing, leaveDrawing, drawingClick, G,
     exactReady: () => (exactOff() ? built() : exact.start().then(() => built())),   // no exact kernel (0.4): the mesh kernel's build
     viewCube, axisIcon, cubeView: cubeOpts.getView, get settings() { return settings; },
     get part() { return part; }, get regen() { return regen; }, get mode() { return mode; }, get editing() { return editing; },
     get lastSolve() { return lastSolve; }, get sel() { return sel; }, get pick() { return pick; },
-    get asm() { return asm; }, get asmPlace() { return asmPlace; }, get clashes() { return clashes; }, get asmSel() { return asmSel; }, A,
+    get asm() { return asm; }, get contactStudy() { return contactStudy; }, get asmBuilds() { return asmBuilds; }, get asmPlace() { return asmPlace; }, get clashes() { return clashes; }, get asmSel() { return asmSel; }, A,
     get workspace() { return ws.id; }, setWorkspace, host, WS,
+    control: fileHost.control, get shellKit() { return shellKit; },   // the assistants' channel and the shell's modules (tests, 0.8 round 3)
     // 0.7 WS.14 (session ws-partcraft, workspace-partcraft.js): unsaved changes, the running tool, the part panel's list of bodies
     get dirty() { return dirty; },
     get tool() { return mode === 'sketch' ? 'sketch' : mode === 'pick' ? 'pick' : mode === 'drawing' && drawingState?.tool ? 'drawing' : pendingSketch ? 'sketch-plane' : measure?.active ? 'measure' : section?.active ? 'section' : draft?.active ? 'draft' : 'select'; },
@@ -3569,7 +3848,9 @@ function init(root) {
       } }, ex.label));
     }
   };
-  startAddons({ host, selection: () => sel, select: (id) => selectFeature(id), find: (q) => root.querySelector(q), showTab: (k) => paramsUI.showTab(k || 'props') })
+  // 0.8 EG.78 (studio_PART_2): drag the part to another app in Studio (drag-out.js, part-item.js; Studio's window.cadcraftStudio.drag)
+  if (window.cadcraftStudio?.drag) import('./drag-out.js').then((m) => m.mountDragOut({ current: () => (regen?.mesh ? { part, mesh: regen.mesh } : null), status, t })).catch((e) => console.warn('drag to another app did not start:', e));   // i18n-ignore: a developer message
+  startAddons({ host, bodies: { sync: () => syncAddonBodies(), fit: () => { syncAddonBodies(); view.view('iso'); } }, selection: () => sel, select: (id) => selectFeature(id), find: (q) => root.querySelector(q), showTab: (k) => paramsUI.showTab(k || 'props') })
     .then((a) => { addons = a; a.onChange(() => { syncAddonExports(); renderProps(); }); syncAddonExports(); renderProps(); })
     .catch((e) => console.warn('add-ons did not start:', e));   // i18n-ignore: a developer message
   // the layouts of Settings › Global › Layout (0.7 WS.14): the shell's engine builds a layout file's blocks, workspace-partcraft.js

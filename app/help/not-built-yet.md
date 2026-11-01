@@ -156,3 +156,14 @@ Some rows in the tables below suggest one of these features as the way round som
 | Working fully offline from a fresh start | Only when the app has been saved for offline use: see [Working offline](common:offline) |
 
 Report what you miss most through the site's support page: it shapes what comes next.
+
+## Engineer (generators and fields)
+
+| Not built yet | Instead, today |
+|---|---|
+| Headers, ports and fittings on the generated heat exchanger; temperature curves for material strength; tee losses in the manifold | The generators build the core and the tubes; add fittings in Design; use the material's room-temperature figures with a safety factor |
+| Installing generators from the add-on directory with one click | {{ui:Open}} in the Engineer workspace adds a generator from a file |
+| A field file finer than the generator's own voxel size; reading `.vdb` files in | Save a finer field from a script; `.vdb` is written, not read |
+| Pressure-vessel code calculations | The textbook thin-wall and thick-wall formulas, with the safety factor you choose; not a code margin |
+| Generators for the other apps | PartCraft only in this version |
+

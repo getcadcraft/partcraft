@@ -19,6 +19,7 @@ import { postCopy, blankPost } from './cam-posts-builtin.js';
 import { GOUGE_RGB, ON_RGB, THIN_RGB, MID_RGB, STOCK_RGB } from './cam-sim.js';
 import { faceRef, edgeRef } from './brep.js';
 import { exactWhy } from './exact-client.js';
+import { renderCost } from './cost-ui.js';   // 0.8 EG.76: the Cost tab
 
 registerStudyReader('manufacture', (raw) => readStudy(raw));
 
@@ -304,8 +305,9 @@ function renderPanel(host, box) {
   const K = kit(host);
   const st = study(host);
   const tabs = el('div', { className: 'pc-actions', role: 'group', 'aria-label': t('mfg.panel.aria') },
-    ...[['ops', t('mfg.tab.ops')], ['setup', t('mfg.tab.setup')], ['tools', t('mfg.tab.tools')]].map(([k, l]) => K.btn(l, () => { S.tab = k; S.picking = false; host.renderPanel(); }, 'pc-btn' + (S.tab === k ? ' is-primary' : ''), { 'aria-pressed': String(S.tab === k), dataset: { mtab: k } })));
+    ...[['ops', t('mfg.tab.ops')], ['setup', t('mfg.tab.setup')], ['tools', t('mfg.tab.tools')], ['cost', t('mfg.tab.cost')]].map(([k, l]) => K.btn(l, () => { S.tab = k; S.picking = false; host.renderPanel(); }, 'pc-btn' + (S.tab === k ? ' is-primary' : ''), { 'aria-pressed': String(S.tab === k), dataset: { mtab: k } })));
   box.append(el('div', { className: 'pc-block' }, tabs));
+  if (S.tab === 'cost') { renderCost(host, box, K); marks(host); return t('mfg.ws.label'); }   // needs no CAM setup
   if (!st) {
     box.append(el('div', { className: 'pc-block' },
       el('p', { className: 'pc-note' }, t('mfg.intro')),
@@ -525,6 +527,7 @@ function renderProgram(host, box, st, r, K) {
       }), 'pc-btn', { dataset: { mpostimport: '1' } })),
     el('div', { className: 'pc-actions' },
       K.btn(t('mfg.download_gcode'), () => doPost(host), 'pc-btn is-primary', { disabled: !r, dataset: { mpost: '1' } }),
+      ...(machinesReady() ? [K.btn(t('mfg.send'), () => doPost(host, true), 'pc-btn', { disabled: !r, dataset: { msend: '1' }, title: t('mfg.send.title') })] : []),   // 0.8 EG.40: Studio's machines (upload only)
       K.btn(t('mfg.toolpath_csv'), () => { const pg = program(host); if (pg) host.downloadBlob(baseName(host) + '-toolpath.csv', new Blob([toolpathCsv(pg)], { type: 'text/csv' }), 'text/csv'); }, 'pc-btn', { disabled: !r }),
       K.btn(t('mfg.toolpath_json'), () => { const pg = program(host); if (pg) host.downloadBlob(baseName(host) + '-toolpath.json', new Blob([toolpathJson(pg)], { type: 'application/json' }), 'application/json'); }, 'pc-btn', { disabled: !r })),
     el('p', { className: 'pc-note' }, t('mfg.lab_note')));
@@ -627,7 +630,20 @@ function renderLibrary(host, box, st, K) {
 }
 
 const baseName = (host) => String(host.part.name || 'Part').replace(/[^A-Za-z0-9 _-]/g, '').trim().replace(/\s+/g, '-') || 'Part';   // i18n-ignore: file name
-function doPost(host) {
+// 0.8 EG.40 (part_PART_3): "Send to a machine…". Studio's desktop shell offers `window.ccSendToMachine({ app, kind, files: [{ name, bytes }], note })
+// → Promise<{ ok, sent, cancelled?, error? }>` (studio_PART_3's dialog, the same one DetailCraft calls) over the bridge `cadcraftDesktop.machines`; without
+// both the button is not shown. The program is uploaded, never started from here (the owner's rule: no remote start of a cutting tool).
+const machinesReady = () => typeof window !== 'undefined' && !!(window.ccSendToMachine && window.cadcraftDesktop && window.cadcraftDesktop.machines);
+async function sendProgram(host, name, text) {
+  if (!machinesReady()) { host.status(t('mfg.send.none'), true); return; }
+  try {
+    const r = await window.ccSendToMachine({ app: 'partcraft', kind: 'gcode', files: [{ name, bytes: new TextEncoder().encode(text) }], note: host.part.name || '' });
+    if (r && r.ok) host.status(t('mfg.send.done', { name }));
+    else if (r && r.cancelled) host.status(t('mfg.send.cancelled'));
+    else host.status(t('mfg.send.failed', { error: String((r && r.error) || '') }), true);
+  } catch (err) { host.status(t('mfg.send.failed', { error: String(err && err.message || err) }), true); }
+}
+function doPost(host, send = false) {
   const pg = program(host);
   if (!pg) { host.status(t('mfg.make_first')); return; }
   const bad = pg.paths.filter((p) => p.error);
@@ -636,6 +652,7 @@ function doPost(host) {
   const cur = study(host) || S.resultFor;
   const kind = cur.setup.machine.post;
   const out = post(pg, { post: kind, name: host.part.name || 'Part', posts: cur.posts || [] });   // i18n-ignore: program name in the G-code
+  if (send) { sendProgram(host, `${baseName(host)}.${out.ext}`, out.text); return; }
   host.downloadBlob(`${baseName(host)}.${out.ext}`, new Blob([out.text], { type: 'text/plain' }), 'text/plain');
   if (!bad.length) host.status(t('mfg.post.done', { post: postName(cur, kind) }));
 }

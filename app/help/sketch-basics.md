@@ -121,3 +121,7 @@ The sketch stays selected, so the next {{ui:Extrude}} or {{ui:Revolve}} uses it.
 - Points and construction geometry are ignored by the profile.
 
 Next: [Fully define a sketch with relations and dimensions](topic:relations-dimensions).
+
+## A sketch from a photo
+
+**Features › More › Sketch from a photo…** (or the Sketch group in the Feature tree ribbon) traces a picture of a flat part on a plain ground — its outline and its holes — or a pen drawing into a sketch of lines, arcs and circles. Say one length (the width, the height or the longest side) so the sketch has the right size, check what it found in the preview, and choose **Make the sketch**; it can extrude it too, in the same undo step. It is traced on this computer. Corner radii come back within about 5 %, details of a pixel or two are lost, and a photo taken at a slant or with shadows across the part is not straightened: photograph the part square on, with even light.

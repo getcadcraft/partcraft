@@ -37,6 +37,7 @@ export function edit(host, ctx, label, fn) {
   const s = JSON.parse(JSON.stringify(study(host, ctx) || ctx.newStudy()));
   if (fn(s) === false) return null;
   host.setStudy(ctx.key, ctx.readStudy(s), label);
+  if (ctx.onEdit) ctx.onEdit(host);
   return s;
 }
 export const itemOf = (st, id) => (st ? Object.keys(ITEM).flatMap((k) => (st[k] || []).map((it) => ({ it, kind: k }))).find((x) => x.it.id === id) || null : null);

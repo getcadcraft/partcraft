@@ -81,3 +81,8 @@ Every file starts with comments for the program, stock, work offset and tools. C
 - Three axes only: no tilting, no turning, no inspection.
 - Holders and shanks are not checked for collisions; a warning appears when a cut is deeper than the flute length.
 - Feeds and speeds are starting values. A post is text you can edit, but it only decides how the moves are written; it cannot change the toolpath, add axes or know your machine ([Post processors](topic:post-processors) lists what it cannot do).
+
+## Send the program to a machine
+
+In CadCraft Studio on the desktop, with a machine set up in Studio, **Send to a machine…** appears beside **Download G-code** and uploads the same program to the machine on your network. It is never started from PartCraft: start it at the machine when it is clear. In a browser the button is not shown (a web page cannot reach a machine on your network): download the program instead.
+

@@ -44,6 +44,7 @@
  * 0.5 = Crank–Nicolson; radiation there is linearised about the previous step. Heat balance: every boundary condition's heat into
  * the part — fixed temperatures by the reaction (K T − f) at their nodes — plus generation, minus storage; the sum is the imbalance.
  */
+import { applyEnv } from './env/env.js';
 import * as VX from './voxel.js';
 import { hexElement, elasticD, solveSmall } from './fea.js';
 import { readMaterial } from './materials.js';
@@ -576,6 +577,7 @@ export function heatOnMesh(job, mesh, { steadyOnly = false, frameSteps = null, o
 
 /** A whole thermal study (job: sim.js simJob with kind 'thermal'), pure; the worker calls it. */
 export function solveThermalStudy(job, onProgress = () => {}, cancelled = null) {
+  job = applyEnv(job);   // EG.32: the environment fills gravity, gauge pressure and ambient temperature (env/env.js)
   const t0 = Date.now();
   onProgress(0, 'Building the voxel mesh');   // i18n-ignore: progress label, never shown (the workers pass on only the fraction)
   const grid = VX.voxelize(job.mesh, { h: job.h });

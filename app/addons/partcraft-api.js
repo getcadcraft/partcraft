@@ -7,7 +7,11 @@
  *
  *   api = { ...sharedApi (ui.toolbarGroup, ui.panelSection, ui.settingsSection, files.importer / exporter),
  *           part: { get, commit, addFeature, onChange, mesh }, selection: { get, feature }, select(id),
- *           commands: { add, run, has }, props: { section }, ui.panelTab, status }
+ *           model (API 1.1): { addBodies(group, bodies, { name, label, fit }), addBody(body, { group }), removeBodies(group), bodies() } — display bodies,
+ *           commands: { add, run, has }, props: { section }, ui.panelTab, status,
+ *           study (API 1.2): { get(key), set(key, value, label), regen(), worker(modules, { name }) } — studies as data, the last rebuild, the compute worker }
+ * api.model (1.1): boxes or meshes with a name, colour, opacity and transform (addons/addon-bodies.js) drawn in the 3D viewport, kept in the
+ * part file under the add-on's id, placed or removed as a group in ONE undo step. Display only: never part of the solid (no mass, no STL).
  *
  * The part is PartCraft's own (part.js: { features[], seq, rollback, … }); every edit is host.commit(label, fn): one undo step,
  * then a rebuild. Commands are named "<add-on id>:<name>" inside PartCraft and run from the add-on's buttons or run(name).
@@ -23,8 +27,12 @@
 import { AddonLoader, sharedApi } from '../addons.js';
 import * as P from '../part.js';
 import { installTrust, bundledOnly, NO_PACKAGES } from './trust.js';
+import * as AB from './addon-bodies.js';
 
-export const PARTCRAFT_API_VERSION = '1.0';
+/** 1.1 (0.8 DC.117): api.model, display bodies in the viewport (additive; an add-on that asks for "1.0" still loads). */
+/** 1.2 (0.8 SU.891, add-on advanced-sim): api.study, the part's studies as data, the last rebuild read-only and the app's compute worker (additive). */
+export const PARTCRAFT_API_VERSION = '1.2';
+const WORKER_MODULE = /^[a-z0-9][a-z0-9-]{0,40}\.js$/;
 const SAFE_ID = /^[a-z0-9][a-z0-9-]{0,40}$/;
 const clone = (v) => (v === undefined || v === null ? v ?? null : JSON.parse(JSON.stringify(v)));
 
@@ -57,6 +65,31 @@ export function makePartcraftApi(base, addon, ctx) {
   };
   ctx.changeListeners.add((why) => { for (const fn of listen) { try { fn(why); } catch (e) { base.log('onChange threw', e); } } });
 
+  const model = {
+    /** Place (or replace) a group of display bodies in the viewport: one undo step. bodies = [{ name, color, box | mesh, opacity?, at?, rotY? }] (mm, Y up). → count placed. */
+    addBodies(group, bodies, { name = '', label = null, fit = true } = {}) {
+      let n = 0;
+      AB.setGroup({}, id, String(group), { name, bodies });   // refused here, before an undo step is made, when the group id or the bodies are no good
+      ctx.host.commit(String(label || addon.name), () => { n = AB.setGroup(ctx.host.part, id, String(group), { name, bodies }); });
+      if (fit) ctx.bodies?.fit?.(); else ctx.bodies?.sync?.();
+      return n;
+    },
+    /** One body added to a group (made if it is new): one undo step. */
+    addBody(body, { group = 'default', label = null, fit = false } = {}) {
+      const have = (ctx.host.part.addonBodies?.[id]?.[group]) || { name: '', bodies: [] };
+      return model.addBodies(group, [...have.bodies, body], { name: have.name, label, fit });
+    },
+    /** Take a group away (one undo step) → true when it was there. */
+    removeBodies(group, { label = null } = {}) {
+      if (!ctx.host.part.addonBodies?.[id]?.[String(group)]) return false;
+      ctx.host.commit(String(label || addon.name), () => { AB.removeGroup(ctx.host.part, id, String(group)); });
+      ctx.bodies?.sync?.();
+      return true;
+    },
+    /** This add-on's groups: [{ group, name, count }]. */
+    bodies: () => AB.groupsOf(ctx.host.part, id).map(({ group, name, count }) => ({ group, name, count })),
+  };
+
   const commands = {
     /** A command of its own; run it from the add-on's toolbar group (api.ui.toolbarGroup tool run) or api.commands.run. */
     add(name, fn, { label = name } = {}) {
@@ -86,8 +119,21 @@ export function makePartcraftApi(base, addon, ctx) {
 
   const ui = { ...shared.ui, panelTab: panelTabMaker(ctx, id, base, track, '.pc-tabs[data-right-tabs]', 'pc-tab', 'pc-sec-') };
 
+  /** API 1.2: the part's studies (part.studies, read by the reader each workspace registered), changed as data: one undo step, no kernel run. */
+  const study = {
+    get: (key) => clone(ctx.host.study ? ctx.host.study(String(key)) : null),
+    set: (key, value, label = null) => { if (typeof ctx.host.setStudy !== 'function') throw new Error('study.set: this PartCraft cannot change studies'); ctx.host.setStudy(String(key), clone(value), String(label || addon.name)); },
+    /** The last rebuild, read-only (do not change it): { mesh, faces, stats, named, exact } or null. */
+    regen: () => { const r = ctx.host.regen; return r && r.mesh ? { mesh: r.mesh, faces: r.faces || [], stats: r.stats || null, named: !!r.named, exact: !!r.exact } : null; },
+    /** The app's compute worker on its own modules (file names in PartCraft's folder, e.g. ['tet-worker.js', 'nl-worker.js']) → { call(op, args, { transfer }), terminate() }. */
+    worker: (modules, opts = {}) => {
+      if (!Array.isArray(modules) || !modules.length || !modules.every((m) => WORKER_MODULE.test(String(m)))) throw new Error('study.worker: modules are PartCraft file names');
+      if (typeof ctx.host.computeWorker !== 'function') throw new Error('study.worker: no compute worker here');
+      return ctx.host.computeWorker(modules.map(String), { name: String(opts.name || addon.name) });
+    },
+  };
   const api = {
-    ...shared, ui, part, commands, props,
+    ...shared, ui, part, model, commands, props, study,
     selection: { get: () => clone(ctx.selection()), feature: () => { const s = ctx.selection(); return s && s.kind === 'feature' ? clone(P.featureById(ctx.host.part, s.id)) : null; } },
     select: (fid) => ctx.select(fid),
     status: (text) => ctx.host.status(String(text)),

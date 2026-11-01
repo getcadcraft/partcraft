@@ -14,6 +14,7 @@
  */
 import { CsError, tensor, empty, isTensor, typeOf, describe, prodOf, normShape, checkSize, sizeOf, cell, SHARED } from './cs-values.js';
 import { t } from './i18n.js';
+import { dpow, datan2 } from './field/detmath.js';   // 0.8 CE.4 (rule D2): pow and atan2 must give the same bits in every engine
 
 export const COLON = Object.freeze({ t: 'colon' });
 /** ':' as an index (the VM passes the text ':'). */
@@ -39,15 +40,25 @@ function scalarOp(op, x, y) {
     case '>': return x > y; case '>=': return x >= y; case '&': return x !== 0 && y !== 0; case '|': return x !== 0 || y !== 0;
     case 'min': return x < y || Number.isNaN(y) ? x : y; case 'max': return x > y || Number.isNaN(y) ? x : y;
     case 'mod': return y === 0 ? x : x - Math.floor(x / y) * y; case 'rem': return y === 0 ? x : x - Math.trunc(x / y) * y;
-    case 'atan2': return Math.atan2(x, y); case 'hypot': return Math.hypot(x, y);
+    case 'atan2': return datan2(x, y); case 'hypot': return hypot2(x, y);
     default: throw new CsError(t('script.tensor.unknown_op', { op }));
   }
+}
+/** √(x²+y²) without overflow, from + − × ÷ and sqrt only (Math.hypot is allowed to differ between engines). */
+export function hypot2(x, y) {
+  const a = Math.abs(x), b = Math.abs(y);
+  if (a === Infinity || b === Infinity) return Infinity;
+  if (a !== a || b !== b) return NaN;
+  const m = a > b ? a : b;
+  if (m === 0) return 0;
+  const p = a / m, q = b / m;
+  return m * Math.sqrt(p * p + q * q);
 }
 /** x^y as MATLAB for real results; a negative base with a non-integer exponent is complex → NaN with a clear error. */
 function pow(x, y) {
   if (y === 2) return x * x;
   if (y === 0.5) return Math.sqrt(x);
-  const r = Math.pow(x, y);
+  const r = dpow(x, y);
   if (Number.isNaN(r) && x < 0 && !Number.isInteger(y) && Number.isFinite(y)) throw new CsError(t('script.tensor.complex_power', { x, y }));
   return r;
 }

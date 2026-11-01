@@ -22,7 +22,7 @@ const MAX_TRIANGLES = 200000;
 const r = (v, d) => { const k = 10 ** d; const x = Math.round(v * k) / k; return x === 0 ? 0 : x; };
 
 /** The variant's mesh in library coordinates (Z up, front −Y, anchored back-middle-bottom) and its bounds. */
-function libraryBody(mesh, decimals) {
+export function libraryBody(mesh, decimals) {
   const P = mesh.positions, n = P.length / 3;
   const q = new Array(P.length);
   let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity, minZ = Infinity, maxZ = -Infinity;

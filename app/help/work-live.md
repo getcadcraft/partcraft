@@ -1,14 +1,14 @@
 ---
-title: Model one part together, live
-summary: What changes in PartCraft while you are in a CadCraft Studio live session: everyone's features in one tree, each window building the same solid, your own undo, and joining from a browser on the same network.
+title: Model one part together with Live TeamWork
+summary: What changes in PartCraft while you are in a Live TeamWork session from CadCraft Studio: everyone's features in one tree, each window building the same solid, your own undo, and joining from a browser on the same network.
 section: tasks
 order: 199
-keywords: live, studio live, together, collaborate, session, share live, join, feature tree, history, rebuild, undo, host
+keywords: live, live teamwork, studio live, together, collaborate, session, share live, join, feature tree, history, rebuild, undo, host
 ---
 
 ## What you will learn
 
-What happens to a part while several people model it at the same time. CadCraft Studio starts and joins the session (Share live, Join); this page is about the part itself.
+What happens to a part while several people model it at the same time. CadCraft Studio starts and joins the Live TeamWork session (Share, Join); this page is about the part itself.
 
 ## Everyone models at once
 

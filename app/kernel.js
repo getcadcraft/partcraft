@@ -687,6 +687,9 @@ const FEATURES = {
 
   import(f, ctx) { return meshImport(f, ctx); },
 
+  // a Generated feature (0.8 CE.3) keeps the body its last run made, as a mesh body (meshimport.js); building it never runs a script
+  generated(f, ctx) { if (!f.mesh) fail(t('gb.err.not_run')); return meshImport({ ...f, units: 'mm', file: '' }, ctx); },
+
   member(f, ctx) { return memberTools(f, ctx, { fail, frames: ctx.frames, sketchOf: (id) => ctx.part.features.find((x) => x.id === id && x.type === 'sketch') }); },
 
   lpattern(f, ctx) {

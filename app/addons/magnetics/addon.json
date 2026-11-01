@@ -1,0 +1,22 @@
+{
+  "id": "magnetics",
+  "name": "Magnetics",
+  "version": "0.8.0",
+  "apps": [
+    "partcraft"
+  ],
+  "api": "1.1",
+  "license": "Apache-2.0",
+  "entry": "./main.js",
+  "permissions": [
+    "panel",
+    "files",
+    "storage",
+    "commands"
+  ],
+  "description": "Flat (2-D) magnetostatic studies in PartCraft: iron, permanent magnets and coils in an air box, from an example device or your sketches. Flux density, flux lines, force and torque on a body, the result shown on the part and saved as CSV, VTK or SVG. Linear iron unless you give a B–H curve; no 3-D, no eddy currents. An analysis aid, not a design approval.",
+  "author": "CadCraft",
+  "lang": "./lang/",
+  "help": "./help/help.js",
+  "default": "off"
+}

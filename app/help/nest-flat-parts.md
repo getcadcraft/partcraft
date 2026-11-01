@@ -40,6 +40,10 @@ Press {{ui:Nest}}. The preview shows every sheet; the facts say how many plates 
 Mixing several parts usually nests better than many copies of one: small parts fill the gaps between big ones.
 :::
 
+## Cut the sheets (G-code)
+
+**Export › Nested sheets to G-code** reads a nested DXF (this one, or the Cabinets add-on's sheets in CadCraft) and makes one program per sheet through the post you choose: holes and cut-outs first, then the outlines, each cut the tool's radius outside the part, through the sheet and 1 mm more, with tabs if you ask for them. The post list is the built-in posts plus your Manufacture study's own. Check every program in a simulator before you run it: drilling and pockets are not made.
+
 ## What to check
 
 PartCraft checks every layout again on the true shapes (not the grid it searched with): no two parts closer than the spacing, nothing in the margins. It does not plan the cut: lead-ins, the cutting order, cutting shared edges once and keeping the leftover sheet are your cutter's software's job. Check the DXF there before cutting.

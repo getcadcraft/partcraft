@@ -15,16 +15,35 @@
  * Units: millimetres; the model is Y up (exports turn it Z up, as the app's own exports do). The dev build builds on the mesh
  * kernel (manifold): volumes are those of the triangle mesh (a little under a true curved solid) and STEP is faceted.
  */
-import { FEATURE_LABELS, builtCount } from './part.js';
+import { FEATURE_LABELS, builtCount, addFeature } from './part.js';
 import { evaluateVars, cloneParams, emptyParams, setVar } from './params.js';
 import { partAdapter, applyPartParams, tidyParams, resolveTarget, linkOf } from './params-part.js';
 import { solveSketch } from './solver.js';
 import { meshMass } from './measure.js';
 import { stlBinary, threeMf, stepFaceted } from './export.js';
-import { getHost } from "./host.js";
+import { getHost, undoRollback, ToolError } from "./host.js";
+import * as DI from './design-it.js';
+const PHOTO = () => import('./photo-sketch.js');   // 0.8 EG.38: loaded when a photo is imported (it brings the raster readers with it)
+import * as HYDRO from './hydrostatics.js';   // 0.8 EG.26
+import * as COST from './cost.js';   // 0.8 EG.76 (also registers part.studies.cost for headless readers)
+import * as BRK from './break-part.js';   // 0.8 EG.31: Break it
+export const design = DI;
+export const cost = COST;
+export const photo = PHOTO;   // a function: await photo() gives the module
+export const hydro = HYDRO;   // headless tools (tools/cli/headless/tools.mjs) share the same sizing code
 import { t } from './i18n.js';
 
 const r6 = (v) => (typeof v === 'number' && Number.isFinite(v) ? Math.round(v * 1e6) / 1e6 : v ?? null);
+export const PHOTO_PROPS = {
+  path: { type: 'string', minLength: 1, maxLength: 1024, description: 'The picture (a PNG, a baseline JPEG or a TIFF) inside a folder you were given.' },
+  mode: { type: 'string', enum: ['silhouette', 'lines'], default: 'silhouette', description: 'silhouette: a flat part as a dark (or light) shape on a plain ground, holes included. lines: a pen drawing of the outline.' },
+  known_of: { type: 'string', enum: ['width', 'height', 'longest'], default: 'width', description: 'Which side of the shape known_mm is the length of.' },
+  known_mm: { type: 'number', minimum: 0.01, maximum: 100000, description: 'The real length, in millimetres, of the side named by known_of. Needed unless mm_per_px is given.' },
+  mm_per_px: { type: 'number', minimum: 0.0001, maximum: 1000, description: 'Millimetres per pixel, instead of known_mm.' },
+  plane: { type: 'string', enum: ['front', 'top', 'right'], default: 'front', description: 'The base plane the sketch is drawn on.' },
+  extrude: { type: 'number', minimum: 0, maximum: 10000, default: 0, description: 'Extrude the sketch by this many millimetres (0 = a sketch only).' },
+  tolerance_px: { type: 'number', minimum: 0.5, maximum: 20, default: 1.5, description: 'How far, in pixels, the fitted lines and arcs may stray from the outline.' },
+};
 const obj = (properties, required = []) => ({ type: 'object', properties, required, additionalProperties: false });
 export const EXPORT_KINDS = { stl: { ext: 'stl', mime: 'model/stl' }, '3mf': { ext: '3mf', mime: 'model/3mf' }, step: { ext: 'step', mime: 'model/step' },
   usdz: { ext: 'usdz', mime: 'model/vnd.usdz+zip' }, usda: { ext: 'usda', mime: 'model/vnd.usda' }, usdc: { ext: 'usdc', mime: 'application/octet-stream' } };   // USD: 0.7 AS.6 (usd-partcraft.js, XF.8)
@@ -164,10 +183,10 @@ export const ILLUSTRATE_SCHEMA = obj({
   as: { type: 'string', enum: ['pdf', 'svg', 'html'], description: 'pdf (default), svg (one file per page) or html (views: the interactive 3D file that opens offline in a browser; instructions: the instructions as a web page).' },
   what: { type: 'string', enum: ['views', 'instructions'], default: 'views', description: 'views: the manual\'s saved views as line art (as Export writes them); instructions: the step-by-step document (as Instructions › Save writes it; pdf or html).' },
   view: { anyOf: [{ type: 'string', minLength: 1, maxLength: 200 }, { type: 'integer', minimum: 1 }], description: 'One saved view (its name, or its number from 1); default every view (the scene when the manual has none).' },
-  paper: { type: 'string', enum: ['a4', 'a3', 'letter', 'tabloid'], default: 'a4' },
+  paper: { type: 'string', enum: ['a4', 'a3', 'letter', 'tabloid'], default: 'a4', description: 'Paper size (default a4).' },
   layout: { type: 'string', enum: ['pages', 'sheet'], default: 'pages', description: 'pages: a page per view; sheet: every view on one sheet.' },
   hidden: { type: 'string', enum: ['dashed', 'off'], default: 'dashed', description: 'Hidden lines dashed or left out.' },
-  fills: { type: 'string', enum: ['auto', 'none', 'flat', 'shaded'], default: 'auto' },
+  fills: { type: 'string', enum: ['auto', 'none', 'flat', 'shaded'], default: 'auto', description: 'Fill style of the line art: auto, none, flat or shaded (default auto).' },
 });
 
 /**
@@ -230,8 +249,8 @@ export async function illustrateFiles(m, meshes, { as = 'pdf', what = 'views', v
 // ---------------------------------------------------------------- the live tools
 
 const PATH = { type: 'string', minLength: 1, maxLength: 4096, description: 'Studio: a file inside the folders the person allowed (Settings › Assistants › Folders); without it the file downloads as the app\'s own Export does.' };
-const SCRIPT_SCHEMA = obj({ source: { type: 'string', minLength: 1, maxLength: 1000000 }, path: { ...PATH, description: 'Studio: a .craft, .lua or .py file inside the allowed folders.' },
-  language: { type: 'string', enum: ['craft', 'lua', 'python'] }, budget: { type: 'number', minimum: 1e3, maximum: 1e11, default: 2e9, description: 'Most steps the script may take.' } });
+const SCRIPT_SCHEMA = obj({ source: { type: 'string', minLength: 1, maxLength: 1000000, description: 'The script source (use path instead to run a file).' }, path: { ...PATH, description: 'Studio: a .craft, .lua or .py file inside the allowed folders.' },
+  language: { type: 'string', enum: ['craft', 'lua', 'python'], description: 'craft (CraftScript), lua or python.' }, budget: { type: 'number', minimum: 1e3, maximum: 1e11, default: 2e9, description: 'Most steps the script may take.' } });
 
 /**
  * Register PartCraft's live tools. `app` = {part(), regen(), mode(), commit(label, fn) (one undo step + rebuild),
@@ -251,20 +270,122 @@ export function installAgents(app) {
   };
   C.configure({
     title: 'PartCraft',
+    rollback: undoRollback(async () => { app.undo(); await app.built(); }),   // previews of edit tools (AI-CONNECT-SPEC § 2.3)
     document: () => (app.part().name ? app.part().name + '.partcraft.json' : null),
     info: () => ({ part: app.part().name, features: app.part().features.length, mode: app.mode() }),
   });
   T({ name: 'app_info', group: 'read', title: 'About this window', description: 'PartCraft\'s window: the part open, its feature count, the mode (model, sketch, drawing, assembly) and the permissions the person allowed.',
     run: async () => ({ app: 'partcraft', allowed: C.groups, part: app.part().name, features: app.part().features.length, mode: app.mode() }) });
-  T({ name: 'part_describe', group: 'read', title: 'Describe the part', description: 'The part: features by type, failing ones, parameters and equations, configurations, material, and the built solid (volume mm³, area, bodies, bounding box; model Y up).',
+  T({ name: 'part_describe', group: 'read', untrusted: true, title: 'Describe the part', description: 'The part: features by type, failing ones, parameters and equations, configurations, material, and the built solid (volume mm³, area, bodies, bounding box; model Y up).',
     run: async () => { partMode(); await app.built(); return describePart(app.part(), app.regen()); } });
-  T({ name: 'features_list', group: 'read', title: 'List features', description: 'The feature history in order: id, name, type, suppressed, after the rollback bar, build status and message.',
+  T({ name: 'features_list', group: 'read', untrusted: true, title: 'List features', description: 'The feature history in order: id, name, type, suppressed, after the rollback bar, build status and message.',
     run: async () => { partMode(); await app.built(); return { features: featureRows(app.part(), app.regen()) }; } });
-  T({ name: 'params_list', group: 'read', title: 'List parameters', description: 'The part\'s parameters (name, expression, value) and every number an equation can drive (key, label such as "Extrude1 depth", value, the equation when driven).',
+  T({ name: 'params_list', group: 'read', untrusted: true, title: 'List parameters', description: 'The part\'s parameters (name, expression, value) and every number an equation can drive (key, label such as "Extrude1 depth", value, the equation when driven).',
     run: async () => { partMode(); return paramRows(app.part()); } });
   T({ name: 'mass_properties', group: 'read', title: 'Mass properties', description: 'Volume, surface area, centre of mass and the inertia tensor about it; the mass when the part has a material. From the triangle mesh.',
     run: async () => { partMode(); await app.built(); return massOf(app.part(), app.regen()); } });
-  T({ name: 'param_set', group: 'edit', title: 'Set a parameter and rebuild', description: 'Set a parameter (a number or an expression) or one of the part\'s numbers ("Extrude1.depth", "Sketch1.D2"), apply the equations and rebuild: one undo step labelled "Assistant: set …". Returns what failed to build, if anything, and the new solid.',
+  // ---- Break it (0.8 EG.31): what gives way first. Runs the part's own Simulation study; changes nothing, so no preview or undo step ----
+  T({ name: 'break_run', group: 'read', title: 'What breaks first', description: 'Scale the loads of the part\'s Simulation study until it gives way: returns the load factor to first yield (and where, in mm) and to buckling, worst first. A factor under 1 means it gives way as loaded. Linear study with tetrahedral elements at the study\'s element size; all loads scale together. Changes nothing. Add supports and loads in the Simulation workspace first.',
+    inputSchema: obj({}),
+    outputSchema: obj({ first: { type: ['object', 'null'], description: 'What gives way first: kind (yield | buckling), factor, failing.' }, findings: { type: 'array', description: 'Worst first: kind, factor (load factor to failure), util (1/factor), failing, where ({at:[x,y,z]} for yield), what (peak stress and yield, MPa).' }, notes: { type: 'array', items: { type: 'string' } }, elementSize: { type: 'number', description: 'Element size used, mm.' } }),
+    run: async () => {
+      partMode(); await app.built();
+      const part = app.part(), st = part.studies && part.studies.simulation;
+      if (!st) throw new ToolError('no_study', 'The part has no Simulation study.', { next: ['Open the Simulation workspace, add a support and a load, then call break_run again.'] });
+      const w = app.computeWorker(['sim-worker.js', 'thermal-worker.js', 'tet-worker.js'], { name: 'PartCraft break it', threads: true });
+      try {
+        const solve = async (job) => { const tr = [job.mesh.positions.buffer, job.mesh.indices.buffer]; if (job.mesh.triFace) tr.push(job.mesh.triFace.buffer); return w.call('tetSolve', job, { transfer: tr }); };
+        const r = await BRK.breakPart({ st, regen: app.regen(), env: (part.studies && part.studies.environment) || null, solve });
+        if (!r.ok) throw new ToolError('not_ready', r.problems[0] || 'The study cannot be solved yet.', { next: ['Fix what the Simulation panel lists (supports, loads, faces), then call break_run again.'] });
+        const row = (f) => ({ kind: f.kind, factor: r6(f.factor), util: r6(f.util), failing: f.failing, where: f.where || null, what: f.what || {} });
+        return { first: r.first ? { kind: r.first.kind, factor: r6(r.first.factor), failing: r.first.failing } : null, findings: r.findings.map(row), notes: r.notes, elementSize: r6(r.h) };
+      } finally { try { w.terminate(); } catch (e) { /* already gone */ } }
+    } });
+  // ---- describe it, get it (0.8 EG.75): pick a generator, size it from loads and material, stress-check it, return the checked part ----
+  T({ name: 'generators_list', group: 'read', title: 'List generators', description: 'The generators that can make a part from a need: the ones sized here by hand formulas (bracket, shaft) and the Engineer workspace scripts (heat exchanger, manifold, lattice beam, gyroid block). Returns each id, what it needs and what it makes. Use generators_find to pick one from words.',
+    run: async () => ({ generators: DI.listGenerators() }) });
+  T({ name: 'generators_find', group: 'read', title: 'Find a generator', description: 'Rank the generators for a need written in words ("bracket holding 20 pounds at 6 inches"). Matches words, not meaning: no trained model. Returns the candidates with the words that matched; an empty list means none fits.',
+    inputSchema: obj({ text: { type: 'string', maxLength: 500, description: 'The need in plain words.' }, load: { type: 'string', maxLength: 60, description: 'Optional load kind: point-force-at-distance, torque, bending-and-torque, heat-duty.' } }),
+    run: async (a) => ({ picks: DI.findGenerators(a) }) });
+  const designRun = (fn) => async (a) => { try { return await fn(a); } catch (e) { if (e instanceof DI.DesignError) throw new ToolError(e.code, e.message, { next: e.next }); throw e; } };
+  const DESIGN_REQ = ['generator', 'material'];
+  T({ name: 'design_estimate', group: 'read', title: 'Size a part from its loads', description: 'Size a generator from the loads and the material by textbook formulas and check it: returns the dimensions, every check (stress, shear, deflection, bolts) with its limit and safety factor, the mass and the working. Builds nothing; design_make builds it. States what is not checked.',
+    inputSchema: obj({ ...DI.DESIGN_PROPS }, DESIGN_REQ), outputSchema: DI.ESTIMATE_SCHEMA,
+    run: designRun((a) => DI.publicEstimate(DI.estimate(DI.specFromArgs(a)))) });
+  T({ name: 'design_check', group: 'read', title: 'Check a bracket\'s thickness', description: 'Check a bracket you chose the thickness of, for the same loads: returns the stress, shear, deflection and bolt checks against the limits. Use design_estimate to let the thickness be sized.',
+    inputSchema: obj({ ...DI.DESIGN_PROPS, thickness: { type: 'number', minimum: 0.1, maximum: 200, description: 'The shelf and flange thickness, in length_unit.' } }, [...DESIGN_REQ, 'thickness']), outputSchema: DI.ESTIMATE_SCHEMA,
+    run: designRun((a) => { if (a.generator !== 'bracket') throw new DI.DesignError('unsupported', 'Only a bracket is checked at a chosen thickness.', ['Use design_estimate for a shaft.']); return DI.publicEstimate(DI.estimate(DI.specFromArgs(a))); }) });
+  T({ name: 'design_make', group: 'edit', title: 'Make the checked part', description: 'Size the generator (as design_estimate), build the part (sketches, extrudes and the bolt holes, material set) and put it in the open part as one undo step. Refuses a part that already has features unless replace is true. Returns the estimate and the built solid.',
+    inputSchema: obj({ ...DI.DESIGN_PROPS, name: { type: 'string', maxLength: 60, description: 'The part\'s name (default Bracket or Shaft).' }, replace: { type: 'boolean', default: false, description: 'true replaces the features of a part that is not empty.' } }, DESIGN_REQ), outputSchema: DI.MAKE_SCHEMA,
+    preview: designRun((a) => { partMode(); const est = DI.estimate(DI.specFromArgs(a)); const n = app.part().features.length; if (n && !a.replace) throw new ToolError('conflict', 'The part already has ' + n + ' features.', { next: ['Call design_make again with replace true.', 'Open a new part first.'] }); return { would: { generator: est.generator, ok: est.ok, dims: est.dims, features: est.generator === 'bracket' ? 4 : 2, replaces: n }, undo: PREFIX + 'design ' + est.generator }; }),
+    run: designRun(async (a) => {
+      partMode();
+      const est = DI.estimate(DI.specFromArgs(a));
+      const n = app.part().features.length;
+      if (n && !a.replace) throw new ToolError('conflict', 'The part already has ' + n + ' features.', { next: ['Call design_make again with replace true.', 'Open a new part first.'] });
+      const built = DI.buildPart(est, a.name);
+      const label = PREFIX + 'design ' + est.generator;
+      app.commit(label, () => { const p = app.part(); p.features = built.features; p.seq = built.seq; p.rollback = null; p.material = built.material; if (a.name) p.name = a.name; });
+      await app.built();
+      const d = describePart(app.part(), app.regen());
+      return { undo: label, estimate: DI.publicEstimate(est), failing: d.failing, solid: d.solid };
+    }) });
+  // ---- making cost as you design (0.8 EG.76) ----
+  T({ name: 'cost_estimate', group: 'read', title: 'Estimate the making cost', description: 'Estimate what it costs to make the part, machined from a block of stock or 3D printed: stock or filament, cutting or machine time, holes, handling and the setup shared by the quantity. Returns each row, the total for one part at that quantity, the biggest drivers and what is not counted. Uses the rates saved with the part, else placeholders: an estimate, not a quote.',
+    inputSchema: obj({
+      process: { type: 'string', enum: ['cnc', 'printed'], description: 'How it is made: cnc (cut from a block of stock) or printed (3D printed). Default: the part\'s saved choice, else cnc.' },
+      qty: { type: 'integer', minimum: 1, maximum: 1000000, description: 'How many parts the job makes (the setup is shared by them).' },
+      machine_rate: { type: 'number', minimum: 0, maximum: 100000, description: 'Machine cost per hour, in the cost currency.' },
+      setup: { type: 'number', minimum: 0, maximum: 1000000, description: 'Setup cost per job, in the cost currency.' },
+      price_per_kg: { type: 'number', minimum: 0, maximum: 100000, description: 'Price of the part\'s material per kilogram, in the cost currency.' },
+    }),
+    run: async (a) => {
+      partMode();
+      await app.built();
+      try { return COST.estimate(app.part(), app.regen(), COST.optionsFor(app.part(), a)); }
+      catch (e) { if (e.code) throw new ToolError(e.code, e.message, { next: e.next || [] }); throw e; }
+    } });
+  // ---- photo to sketch (0.8 EG.38): a picture of a flat part or a pen drawing becomes a sketch at a stated scale ----
+  const photoOpts = (a) => ({ mode: a.mode, tolPx: a.tolerance_px, ...(a.mm_per_px ? { mmPerPx: a.mm_per_px } : a.known_mm ? { known: { of: a.known_of || 'width', mm: a.known_mm } } : {}) });
+  const photoLoad = async (a) => {
+    partMode();
+    if (!F.available) throw new ToolError('unsupported', 'Reading a picture from a path works only in CadCraft Studio (the desktop app).', { next: ['Open the part in Studio, or use File › Import there.'] });
+    if (!a.known_mm && !a.mm_per_px) throw new ToolError('invalid_argument', 'Say the scale: one real length (known_mm, with known_of) or mm_per_px.', { next: ['Give known_mm, for example the width of the part in millimetres.'] });
+    const PH = await PHOTO();
+    let img;
+    try { img = await PH.decodePhoto(await F.read(F.resolve(a.path))); }
+    catch (e) { if (e.code) throw new ToolError(e.code, e.message, { next: e.next || [] }); throw e; }
+    const r = PH.photoToSketch(img, photoOpts(a));
+    r.PH = PH;
+    if (!r.found) throw new ToolError('failed', r.problems.join(' ') || 'No shape was found in the picture.', { next: ['Use a picture of the part on a plain, evenly lit ground.', 'Try mode lines for a pen drawing.'] });
+    return r;
+  };
+  const photoSummary = (r) => ({ entities: { lines: r.report.lines || 0, arcs: r.report.arcs || 0, circles: r.report.circles || 0 }, outlines: r.loops.length, size_mm: { width: Math.round(r.size.w * 100) / 100, height: Math.round(r.size.h * 100) / 100 }, mm_per_px: Math.round(r.mmPerPx * 1e5) / 1e5, notes: r.problems });
+  T({ name: 'photo_import', group: 'edit', title: 'Sketch from a photo', description: 'Turn a picture of a flat part (its silhouette on a plain ground, holes included) or of a pen drawing into a sketch of lines, arcs and circles at the scale you give, and optionally extrude it: one undo step. Classic image processing on this computer, no trained model. Returns what it found and what it could not tell.',
+    inputSchema: obj({ ...PHOTO_PROPS }, ['path']),
+    preview: async (a) => { const r = await photoLoad(a); return { would: { ...photoSummary(r), features: a.extrude > 0 ? 2 : 1 }, undo: PREFIX + 'photo to sketch' }; },
+    run: async (a) => {
+      const r = await photoLoad(a);
+      const label = PREFIX + 'photo to sketch';
+      app.commit(label, () => {
+        const p = app.part();
+        const sk = addFeature(p, 'sketch', { plane: { kind: 'base', name: a.plane || 'front' }, sketch: r.PH.sketchFromEntities(r.entities, r.loops) });
+        if (a.extrude > 0) addFeature(p, 'extrude', { sketch: sk.id, depth: a.extrude });
+      });
+      await app.built();
+      const d = describePart(app.part(), app.regen());
+      return { undo: label, ...photoSummary(r), failing: d.failing, solid: d.solid };
+    } });
+  // ---- hydrostatics of a floating hull (0.8 EG.26) ----
+  T({ name: 'hydrostatics_describe', group: 'read', title: 'Hydrostatics of the hull', description: 'Float the part as a hull at a draft: displacement, centre of buoyancy, waterplane, wetted surface, metacentre heights, block and waterplane coefficients, tonnes per cm; with kg also the metacentric height and the righting-arm curve (GZ against heel). Textbook hydrostatics from the solid; no trim, no free surface.',
+    inputSchema: obj({ draft: HYDRO.HYDRO_PROPS.draft, length_unit: HYDRO.HYDRO_PROPS.length_unit, water: HYDRO.HYDRO_PROPS.water, kg: HYDRO.HYDRO_PROPS.kg, heel_to: HYDRO.HYDRO_PROPS.heel_to, up: HYDRO.HYDRO_PROPS.up, length_axis: HYDRO.HYDRO_PROPS.length_axis, across_axis: HYDRO.HYDRO_PROPS.across_axis }, ['draft']),
+    run: async (a) => {
+      partMode();
+      await app.built();
+      try { return HYDRO.describe(app.regen(), a); }
+      catch (e) { if (e.code) throw new ToolError(e.code, e.message, { next: e.next || [] }); throw e; }
+    } });
+  T({ name: 'param_set', group: 'edit', rollbackPreview: true, title: 'Set a parameter and rebuild', description: 'Set a parameter (a number or an expression) or one of the part\'s numbers ("Extrude1.depth", "Sketch1.D2"), apply the equations and rebuild: one undo step labelled "Assistant: set …". Returns what failed to build, if anything, and the new solid.',
     inputSchema: PARAM_SET_SCHEMA,
     run: async (a) => {
       partMode();
@@ -279,7 +400,8 @@ export function installAgents(app) {
       return { ...r, undo: label, failing: d.failing, solid: d.solid };
     } });
   T({ name: 'undo', group: 'edit', title: 'Undo', description: 'Undo the assistant\'s last steps on the part (only steps labelled "Assistant:" unless any is true).',
-    inputSchema: obj({ steps: { type: 'integer', minimum: 1, maximum: 100, default: 1 }, any: { type: 'boolean', default: false } }),
+    inputSchema: obj({ steps: { description: 'How many steps to undo (default 1).', type: 'integer', minimum: 1, maximum: 100, default: 1 }, any: { description: 'true also undoes steps the person made, not only the assistant\'s (default false).', type: 'boolean', default: false } }),
+    preview: (a) => { const l = app.lastUndo(); return { wouldUndo: l && (a.any || l.startsWith(PREFIX)) ? [l] : [], note: 'Only the last step is shown: PartCraft\'s history is not listed.' }; },
     run: async (a) => {
       partMode();
       const undone = [];
@@ -287,7 +409,7 @@ export function installAgents(app) {
       await app.built();
       return { undone };
     } });
-  T({ name: 'script_run', group: 'edit', title: 'Run a script', description: 'Run a CraftScript, Lua or Python script in the same sealed worker the Script workspace uses (no network, no files, no page): `part` is the built solid and param()/params() the parameters. Returns what it printed and displayed. It does not change the part.',
+  T({ name: 'script_run', group: 'edit', rollbackPreview: true, title: 'Run a script', description: 'Run a CraftScript, Lua or Python script in the same sealed worker the Script workspace uses (no network, no files, no page): `part` is the built solid and param()/params() the parameters. Returns what it printed and displayed. It does not change the part.',
     inputSchema: SCRIPT_SCHEMA,
     run: async (a) => {
       partMode();
@@ -307,7 +429,7 @@ export function installAgents(app) {
       } finally { try { eng.stop(); } catch { /* gone */ } }
     } });
   T({ name: 'part_export', group: 'export', title: 'Export the part', description: 'The built solid as STL, 3MF, STEP (faceted: the mesh kernel has no exact surfaces) or OpenUSD (.usdz, .usda, .usdc, with its material and mass), as File › Export writes them. With a path (Studio) it is written there, else it downloads.',
-    inputSchema: obj({ format: { type: 'string', enum: Object.keys(EXPORT_KINDS) }, path: PATH, overwrite: { type: 'boolean', default: false } }, ['format']),
+    inputSchema: obj({ format: { description: 'stl, 3mf, step (faceted), usdz, usda or usdc.', type: 'string', enum: Object.keys(EXPORT_KINDS) }, path: PATH, overwrite: { description: 'true replaces an existing file at the path (default false: an existing file is never overwritten).', type: 'boolean', default: false } }, ['format']),
     run: async (a) => {
       partMode();
       await app.built();
@@ -317,7 +439,7 @@ export function installAgents(app) {
     } });
   // ---- 0.7 AS.6 (assistants-gaps): a manual made in the Illustrate workspace (TP.12), as its Export / Instructions menus write it
   T({ name: 'illustrate_export', group: 'export', title: 'Export a manual', description: 'A manual (Illustrate workspace) as PDF or SVG line art of its saved views, as the interactive 3D file (html, opens offline in a browser), or its step-by-step instructions (what: instructions; pdf or html), as the workspace\'s Export and Instructions menus write them. The manual open in the Illustrate workspace, or (Studio) a .partcraft-manual.json file. With a path (Studio) the file is written there (several SVG pages: path is a folder), else it downloads.',
-    inputSchema: obj({ ...ILLUSTRATE_SCHEMA.properties, file: { ...PATH, description: 'Studio: a .partcraft-manual.json inside the allowed folders; default the manual open in the Illustrate workspace.' }, path: PATH, overwrite: { type: 'boolean', default: false } }),
+    inputSchema: obj({ ...ILLUSTRATE_SCHEMA.properties, file: { ...PATH, description: 'Studio: a .partcraft-manual.json inside the allowed folders; default the manual open in the Illustrate workspace.' }, path: PATH, overwrite: { description: 'true replaces an existing file at the path (default false: an existing file is never overwritten).', type: 'boolean', default: false } }),
     run: async (a) => {
       let doc;
       if (a.file) {
@@ -352,7 +474,7 @@ export function installAgents(app) {
       return { ...info, downloaded: r.files.map((f) => f.name) };
     } });
   T({ name: 'part_save', group: 'save', title: 'Save the part', description: 'PartCraft\'s own Save (.partcraft.json): to its file when it was opened from one on the desktop, else a new file; with a path (Studio) written there, and later saves go there too.',
-    inputSchema: obj({ path: { ...PATH, description: 'Studio: a .partcraft.json file inside the allowed folders.' }, overwrite: { type: 'boolean', default: false } }),
+    inputSchema: obj({ path: { ...PATH, description: 'Studio: a .partcraft.json file inside the allowed folders.' }, overwrite: { description: 'true replaces an existing file at the path (default false: an existing file is never overwritten).', type: 'boolean', default: false } }),
     run: async (a) => {
       partMode();
       if (!a.path) { await app.savePart(); return { saved: true }; }

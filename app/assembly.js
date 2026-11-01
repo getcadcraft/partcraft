@@ -36,7 +36,10 @@
  *              (no volume, faces in contact within touchTol; only with touch: true)
  *   filterClashes(asm, list) → { shown, hidden }   asm.clashFilter = { hide: [kinds], pairs: [[inst a, inst b] sorted] }
  *              (written only when it holds something; such a file is version 4)
- *   asm.stackups = [stack-up] (stackup.js, 0.6 LC.18; written only when there is one; such a file is version 5)
+ *   asm.motion = { joint, key, from, to, duration, steps, law, clearance, limit, tracks: [{ inst, at | null, name }] } (0.8 EG.7, part_PART_3: the
+ *     Motion study's settings, not its results; optional, no version change — an older reader leaves it out)
+ *   asm.contactStudy = { steps, Et, tol, pairs: [{ id, type, a: { inst, faces }, b: { inst, faces }, factor }] } (0.8 SU.891, asm-contact.js; optional, no version change)
+ *   asm.stackups = [stack-up] (stackup.js, 0.6 LC.18; written only when there is one; such a file is version 5, or 6 when a stack-up has several directions, 0.8 STACK-DIR)
  *   jointTree(asm, builds, world) → [{ joint, parent, child, normal }]   the joints placement walked, parents first
  *   freeIds(asm) → Set of instances no joint path ties to the grounded part (only these move by hand)
  *   movePlace(place, { move?: [dx,dy,dz], rotate?: { axis: [x,y,z], angle (deg), about: [x,y,z] } }) → new place
@@ -49,11 +52,12 @@ import { readPartProps } from './bom.js';
 import { readViews } from './explode.js';
 import { cleanStock } from './nest/nest-stock.js';
 import { cleanJob } from './laser/laser-model.js';
-import { readStackups } from './stackup.js';
+import { readStackups, isVector } from './stackup.js';
+import { readContact } from './asm-contact-read.js';
 import { t } from './i18n.js';
 
 export const FORMAT = 'partcraft-assembly';
-export const VERSION = 5;   // 5: tolerance stack-ups (0.6 LC.18); 4: interference filters (0.5 WL.33); 3: 0.4's joints
+export const VERSION = 6;   // 6: stack-ups in several directions (0.8 STACK-DIR); 5: tolerance stack-ups (0.6 LC.18); 4: interference filters (0.5 WL.33); 3: 0.4's joints
 export const JOINT_TYPES = { rigid: 'Rigid', revolute: 'Revolute', slider: 'Slider', cylindrical: 'Cylindrical', planar: 'Planar', ball: 'Ball', pinslot: 'PinSlot' };
 /** The values a joint lets move (its degrees of freedom), first = the one a motion check sweeps by default. */
 export const JOINT_DOF = { rigid: [], revolute: ['angle'], slider: ['offset'], cylindrical: ['angle', 'offset'], planar: ['dx', 'dy', 'angle'], ball: ['angle', 'tiltX', 'tiltY'], pinslot: ['slide', 'angle'] };
@@ -751,6 +755,10 @@ export function readAssembly(raw) {
   if (su.length) asm.stackups = su;
   if (j.stock !== undefined && j.stock !== null) { const st = cleanStock(j.stock); if (st.items.length) asm.stock = st; }
   if (j.laser !== undefined && j.laser !== null) { const lj = cleanJob(j.laser); if (lj.layers.length) asm.laser = lj; }   // 0.7 SU.772: the Laser program's settings   // 0.7 SU.755: offcut stock
+  const mo = readMotionSpec(j.motion, asm.instances.map((i) => i.id), asm.joints.map((x) => x.id));   // 0.8 EG.7: the Motion study's settings
+  if (mo) asm.motion = mo;
+  const cs = readContact(j.contactStudy, asm.instances.map((i) => i.id));   // 0.8 SU.891: the contact study's pairs and settings (no version change)
+  if (cs) asm.contactStudy = cs;
   asm.seq = maxN + 1;
   asm.version = fileVersion(asm);   // what its contents need (and what it is written as)
   return asm;
@@ -782,5 +790,18 @@ export function readLimitsSafe(L, type) { try { return readLimits(L, type); } ca
 
 /** 5 with tolerance stack-ups (0.6 LC.18); 4 with interference filters (0.5 WL.33); 3 when a joint is of a 0.4 type or limits a
  *  value per name; else 2 (readers of version 2 open it). */
-export const fileVersion = (asm) => (asm.stackups?.length ? 5 : asm.clashFilter ? 4 : asm.joints.some((j) => NEW_TYPES.has(j.type) || (j.limits && typeof j.limits.min !== 'number') || EXTRA_VALUES.some((k) => j[k] !== undefined && j[k] !== 0)) ? 3 : 2);
+export const fileVersion = (asm) => (asm.stackups?.some(isVector) ? 6 : asm.stackups?.length ? 5 : asm.clashFilter ? 4 : asm.joints.some((j) => NEW_TYPES.has(j.type) || (j.limits && typeof j.limits.min !== 'number') || EXTRA_VALUES.some((k) => j[k] !== undefined && j[k] !== 0)) ? 3 : 2);
 export const toJSON = (asm) => JSON.stringify({ ...asm, version: fileVersion(asm) }, null, 1);
+
+/** The Motion study's settings from a file (untrusted) → a clean copy, or null when absent or not usable (0.8 EG.7). */
+export function readMotionSpec(raw, instIds, jointIds) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw) || !jointIds.includes(raw.joint)) return null;
+  const n = (v, lo, hi, d) => (typeof v === 'number' && Number.isFinite(v) && v >= lo && v <= hi ? v : d);
+  const key = typeof raw.key === 'string' && /^[a-z]{1,12}$/i.test(raw.key) ? raw.key : null;
+  const tracks = (Array.isArray(raw.tracks) ? raw.tracks : []).slice(0, 12).filter((q) => q && instIds.includes(q.inst)).map((q) => ({
+    inst: q.inst, at: Array.isArray(q.at) && q.at.length === 3 && q.at.every((v) => typeof v === 'number' && Number.isFinite(v) && Math.abs(v) < 1e7) ? q.at.slice() : null,
+    name: typeof q.name === 'string' ? q.name.slice(0, 80) : '' }));
+  return { joint: raw.joint, key, from: n(raw.from, -1e6, 1e6, 0), to: n(raw.to, -1e6, 1e6, 90), duration: n(raw.duration, 1e-3, 3600, 2), steps: Math.round(n(raw.steps, 1, 400, 24)),
+    law: typeof raw.law === 'string' && /^[a-z]{1,16}$/.test(raw.law) ? raw.law : 'linear', clearance: raw.clearance !== false,
+    limit: typeof raw.limit === 'number' && Number.isFinite(raw.limit) && raw.limit >= 0 ? raw.limit : null, tracks };
+}

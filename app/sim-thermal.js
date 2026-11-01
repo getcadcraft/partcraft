@@ -45,8 +45,8 @@ export function readThermalFields(raw, { faceRefs, id, num, items }) {
     if (it.type === 'temperature') base.T = temp(it.T, t('study.thermal.what.temperature'));
     if (it.type === 'flux') base.q = num(it.q, -1e9, 1e9, t('study.thermal.what.heat_flux'));
     if (it.type === 'power') base.P = num(it.P, -1e7, 1e7, t('study.thermal.what.heat_power'));
-    if (it.type === 'convection') { base.h = num(it.h, 0, 1e6, t('study.thermal.what.convection')); base.Tamb = temp(it.Tamb, t('study.thermal.what.ambient')); }
-    if (it.type === 'radiation') { base.eps = num(it.eps, 0, 1, t('study.thermal.what.emissivity')); base.Tamb = temp(it.Tamb, t('study.thermal.what.surroundings')); }
+    if (it.type === 'convection') { base.h = num(it.h, 0, 1e6, t('study.thermal.what.convection')); base.Tamb = it.Tamb === null ? null : temp(it.Tamb, t('study.thermal.what.ambient')); }   // null = the environment's temperature (env/env.js)
+    if (it.type === 'radiation') { base.eps = num(it.eps, 0, 1, t('study.thermal.what.emissivity')); base.Tamb = it.Tamb === null ? null : temp(it.Tamb, t('study.thermal.what.surroundings')); }
     return base;
   });
   if (raw.thermal !== undefined) {
@@ -61,7 +61,7 @@ export function readThermalFields(raw, { faceRefs, id, num, items }) {
   if (raw.thermalLoad !== undefined) {
     const l = raw.thermalLoad;
     if (!l || typeof l !== 'object' || Array.isArray(l)) bad(t('study.thermal.read.load_bad'));
-    out.thermalLoad = { mode: LOAD_MODES.includes(l.mode) ? l.mode : bad(t('study.thermal.read.load_mode')), dT: num(l.dT ?? 0, -1e4, 1e4, t('study.thermal.what.dt')), Tref: temp(l.Tref ?? 20, t('study.thermal.what.tref')) };
+    out.thermalLoad = { mode: LOAD_MODES.includes(l.mode) ? l.mode : bad(t('study.thermal.read.load_mode')), dT: num(l.dT ?? 0, -1e4, 1e4, t('study.thermal.what.dt')), Tref: l.Tref === null ? null : temp(l.Tref ?? 20, t('study.thermal.what.tref')) };   // null = the environment's temperature
     if (l.at !== undefined) out.thermalLoad.at = ['worst', 'time'].includes(l.at) ? l.at : bad(t('study.thermal.read.load_at'));
     if (l.time !== undefined) out.thermalLoad.time = num(l.time, 0, 1e9, t('study.thermal.what.load_time'));
     if (l.solves !== undefined) out.thermalLoad.solves = Math.round(num(l.solves, 2, 51, t('study.thermal.what.solves')));

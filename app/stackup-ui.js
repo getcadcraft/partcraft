@@ -41,13 +41,16 @@ export function createStackup(ctx) {
     if (!st.picking) return;
     st.picking = false;
     if (apply && st.picks.length >= 2) {
+      const free = st.dirKey === 'xy' || st.dirKey === 'xyz';   // 0.8 STACK-DIR: each link keeps its own direction
       const dir = st.dirKey === 'face' && st.faceDir ? st.faceDir : DIRS[st.dirKey] || DIRS.x;
-      const links = SU.fromPicks(st.picks, dir, { part: (a) => t('stack.link.part', { name: ctx.instName(a.inst) }), iface: (a, b) => t('stack.link.iface', { a: ctx.instName(a.inst), b: ctx.instName(b.inst) }) });
+      const names = { part: (a) => t('stack.link.part', { name: ctx.instName(a.inst) }), iface: (a, b) => t('stack.link.iface', { a: ctx.instName(a.inst), b: ctx.instName(b.inst) }) };
+      const links = free ? SU.fromPicks3(st.picks, names) : SU.fromPicks(st.picks, dir, names);
       const exists = !!cur();
       commit(t('stack.undo.chain'), (a) => {
         let s = exists ? a.stackups.find((x) => x.id === cur().id) : null;
         if (!s) { s = { id: nextId(a.stackups, 's'), name: t('stack.default_name', { n: a.stackups.length + 1 }), dir: SU.unit(dir), spec: null, links: [] }; a.stackups.push(s); st.sel = s.id; }
         s.dir = SU.unit(dir); s.links = links;
+        if (free) s.outputs = SU.directionsFor(st.dirKey); else delete s.outputs;
         // a part's general tolerance (its title block) is the first guess for its dimensions
         for (const l of s.links) if (l.inst) applyGeneral(l);
       });
@@ -111,7 +114,7 @@ export function createStackup(ctx) {
   const select = (opts, value, onchange, attrs = {}) => { const s = el('select', { className: 'pc-select pc-select-sm', id: id(), ...attrs }, ...opts.map(([v, l]) => el('option', { value: v, selected: v === value }, l))); s.addEventListener('change', () => onchange(s.value)); return s; };
   const labelled = (label, input) => el('label', { className: 'pc-stk-field', htmlFor: input.id }, el('span', {}, label), input);
 
-  function linkRow(l, i, res) {
+  function linkRow(l, i, res, vec) {
     const r = res.rows.find((x) => x.link.id === l.id);
     const srcOpts = [['typed', t('stack.source.typed')]];
     if (l.inst) {
@@ -127,6 +130,7 @@ export function createStackup(ctx) {
       el('td', {}, num(l.nominal, (v) => ed(t('stack.undo.edit'), (x) => { x.nominal = Math.max(0, v); }), { min: 0, 'aria-label': t('stack.col.nominal'), dataset: { stkNominal: String(i) } })),
       el('td', {}, num(l.up, (v) => ed(t('stack.undo.edit'), (x) => { x.up = v; x.lo = Math.min(x.lo, v); x.source = 'typed'; delete x.ref; }), { 'aria-label': t('stack.col.up'), dataset: { stkUp: String(i) } })),
       el('td', {}, num(l.lo, (v) => ed(t('stack.undo.edit'), (x) => { x.lo = v; x.up = Math.max(x.up, v); x.source = 'typed'; delete x.ref; }), { 'aria-label': t('stack.col.lo'), dataset: { stkLo: String(i) } })),
+      ...(vec ? [el('td', {}, num(l.ang ? (l.ang.up - l.ang.lo) / 2 : 0, (v) => ed(t('stack.undo.edit'), (x) => { if (v > 0) x.ang = { axis: x.ang?.axis || [0, 0, 1], up: v, lo: -v }; else delete x.ang; }), { min: 0, 'aria-label': t('stack.col.swing'), dataset: { stkSwing: String(i) } }))] : []),
       el('td', {}, select(srcOpts, srcVal, (v) => ed(t('stack.undo.edit'), (x) => setSource(x, v)), { 'aria-label': t('stack.col.source'), dataset: { stkSource: String(i) } })),
       // i18n-ignore-next-line: a CSS custom property, not words
       el('td', { className: 'pc-stk-share' }, r ? el('span', { className: 'pc-stk-bar', style: `--share:${(r.rssShare * 100).toFixed(1)}%` }, f(r.rssShare * 100, 1) + ' %') : ''),
@@ -146,24 +150,45 @@ export function createStackup(ctx) {
     if (s) row.push(btn(t('stack.delete'), () => commit(t('stack.undo.delete'), (a) => { a.stackups = a.stackups.filter((x) => x.id !== s.id); st.sel = null; }), 'pc-btn pc-btn-sm'));
     kids.push(el('div', { className: 'pc-actions' }, ...row));
     // the chain
-    const dirSel = select([['x', 'X'], ['y', 'Y'], ['z', 'Z'], ['face', t('stack.dir.face')]], st.dirKey, (v) => { st.dirKey = v; }, { dataset: { stkDir: '1' } });
+    const dirSel = select([['x', 'X'], ['y', 'Y'], ['z', 'Z'], ['face', t('stack.dir.face')], ['xy', t('stack.dir.xy')], ['xyz', t('stack.dir.xyz')]], st.dirKey, (v) => { st.dirKey = v; }, { dataset: { stkDir: '1' } });
     if (st.picking) {
       kids.push(el('p', { className: 'pc-props-sub', dataset: { stkPicking: '1' } }, t('stack.pick.help', { n: st.picks.length })),
         el('div', { className: 'pc-actions' }, btn(t('stack.pick.end'), () => endPick(true), 'pc-btn is-primary pc-btn-sm', { dataset: { stkDone: '1' } }), btn(t('app.btn.cancel'), () => endPick(false), 'pc-btn pc-btn-sm')));
     } else kids.push(el('div', { className: 'pc-stk-row' }, labelled(t('stack.dir'), dirSel), btn(t(s?.links.length ? 'stack.pick.again' : 'stack.pick.start'), () => beginPick(), 'pc-btn pc-btn-sm', { dataset: { stkPick: '1' }, title: t('stack.pick.title') })));
     if (s) {
+      const vec = SU.isVector(s), vres = vec ? SU.analyzeVector(s) : null;
       kids.push(el('div', { className: 'pc-stk-row' },
         labelled(t('stack.name'), (() => { const i = el('input', { type: 'text', className: 'pc-input', value: s.name, maxLength: SU.LIMITS.name, id: id() }); i.addEventListener('change', () => edit(t('stack.undo.edit'), (x) => { x.name = i.value.replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, SU.LIMITS.name) || x.name; })); return i; })()),
-        labelled(t('stack.spec.min'), num(s.spec?.min ?? NaN, (v) => edit(t('stack.undo.edit'), (x) => { x.spec = { ...(x.spec || {}), min: v }; }), { dataset: { stkMin: '1' }, value: Number.isFinite(s.spec?.min) ? f(s.spec.min) : '' })),
-        labelled(t('stack.spec.max'), num(s.spec?.max ?? NaN, (v) => edit(t('stack.undo.edit'), (x) => { x.spec = { ...(x.spec || {}), max: v }; }), { dataset: { stkMax: '1' }, value: Number.isFinite(s.spec?.max) ? f(s.spec.max) : '' }))));
-      const res = SU.analyze(s);
+        ...(vec ? [] : [labelled(t('stack.spec.min'), num(s.spec?.min ?? NaN, (v) => edit(t('stack.undo.edit'), (x) => { x.spec = { ...(x.spec || {}), min: v }; }), { dataset: { stkMin: '1' }, value: Number.isFinite(s.spec?.min) ? f(s.spec.min) : '' })),
+        labelled(t('stack.spec.max'), num(s.spec?.max ?? NaN, (v) => edit(t('stack.undo.edit'), (x) => { x.spec = { ...(x.spec || {}), max: v }; }), { dataset: { stkMax: '1' }, value: Number.isFinite(s.spec?.max) ? f(s.spec.max) : '' }))])));
+      const res = vec ? (vres.outputs.find((o) => o.id === 'gap') || vres.outputs[0]) : SU.analyze(s);
       if (s.links.length) {
         kids.push(el('div', { className: 'pc-stk-wrap' }, el('table', { className: 'pc-bom pc-stk-table' },
-          el('thead', {}, el('tr', {}, ...['stack.col.rank', 'stack.col.link', 'stack.col.sign', 'stack.col.nominal', 'stack.col.up', 'stack.col.lo', 'stack.col.source', 'stack.col.share', ''].map((k) => el('th', {}, k ? t(k) : '')))),
-          el('tbody', {}, ...s.links.map((l, i) => linkRow(l, i, res))))));
+          el('thead', {}, el('tr', {}, ...['stack.col.rank', 'stack.col.link', 'stack.col.sign', 'stack.col.nominal', 'stack.col.up', 'stack.col.lo', ...(vec ? ['stack.col.swing'] : []), 'stack.col.source', 'stack.col.share', ''].map((k) => el('th', {}, k ? t(k) : '')))),
+          el('tbody', {}, ...s.links.map((l, i) => linkRow(l, i, res, vec))))));
       } else kids.push(el('p', { className: 'pc-props-sub' }, t('stack.empty')));
       kids.push(el('div', { className: 'pc-actions' }, btn(t('stack.link.add'), () => edit(t('stack.undo.add'), (x) => { x.links.push({ id: nextId(x.links, 'l'), label: t('stack.link.typed'), inst: null, sign: 1, nominal: 0, up: 0, lo: 0, sens: 1, source: 'typed' }); }), 'pc-btn pc-btn-sm', { dataset: { stkAdd: '1' } })));
-      if (s.links.length) {
+      if (s.links.length && vec) {
+        for (const o of vres.outputs) {
+          const oi = s.outputs ? s.outputs.findIndex((x) => x.id === o.id) : -1;
+          const dl = el('dl', { className: 'pc-dl pc-measure-dl', dataset: { stkResult: o.id } });
+          const add = (k, v) => dl.append(el('dt', {}, k), el('dd', {}, v));
+          add(o.id === 'gap' ? t('stack.out.gap') : t('stack.r.along', { name: o.name }), f(o.nominal) + ' mm');
+          if (Math.abs(o.mean - o.nominal) > 1e-9) add(t('stack.r.mean'), f(o.mean) + ' mm');
+          add(t('stack.r.wc'), t('stack.r.range', { tol: f(o.wc.tol), min: f(o.wc.min), max: f(o.wc.max) }));
+          add(t('stack.r.rss'), t('stack.r.range', { tol: f(o.rss.tol), min: f(o.rss.min), max: f(o.rss.max) }));
+          if (o.spec) {
+            add(t('stack.r.spec_wc'), o.spec.wcOk ? t('stack.r.ok') : t('stack.r.out'));
+            add(t('stack.r.spec_rss'), t('stack.r.ppm', { ppm: o.spec.ppm < 0.01 ? '< 0.01' : f(o.spec.ppm, 2) }));
+          }
+          kids.push(dl);
+          if (oi >= 0) kids.push(el('div', { className: 'pc-stk-row' },
+            labelled(t('stack.spec.min'), num(s.outputs[oi].spec?.min ?? NaN, (v) => edit(t('stack.undo.edit'), (x) => { x.outputs[oi].spec = { ...(x.outputs[oi].spec || {}), min: v }; }), { dataset: { stkOutMin: o.id }, value: Number.isFinite(s.outputs[oi].spec?.min) ? f(s.outputs[oi].spec.min) : '' })),
+            labelled(t('stack.spec.max'), num(s.outputs[oi].spec?.max ?? NaN, (v) => edit(t('stack.undo.edit'), (x) => { x.outputs[oi].spec = { ...(x.outputs[oi].spec || {}), max: v }; }), { dataset: { stkOutMax: o.id }, value: Number.isFinite(s.outputs[oi].spec?.max) ? f(s.outputs[oi].spec.max) : '' }))));
+        }
+        kids.push(el('p', { className: 'pc-props-sub' }, t('stack.r.note_vector')),
+          el('div', { className: 'pc-actions' }, btn(t('stack.csv'), () => ctx.download(SU.csvVector(s, vres, (i) => (i ? ctx.instName(i) : '')), t('stack.csv.file', { name: ctx.fileBase(), stack: s.name }), 'text/csv'), 'pc-btn pc-btn-sm', { dataset: { stkCsv: '1' } })));
+      } else if (s.links.length) {
         const dl = el('dl', { className: 'pc-dl pc-measure-dl', dataset: { stkResult: '1' } });
         const add = (k, v) => dl.append(el('dt', {}, k), el('dd', {}, v));
         add(t('stack.r.nominal'), f(res.nominal) + ' mm');

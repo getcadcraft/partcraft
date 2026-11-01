@@ -2,7 +2,9 @@
   "app": "partcraft",
   "css": [
     "partcraft.css",
-    "laser/laser-panel.css"
+    "laser/laser-panel.css",
+    "vault/vault-panel.css",
+    "nurbs-ui/nurbs-ui.css"
   ],
   "module": "partcraft.js",
   "imports": {
@@ -14,6 +16,18 @@
     "@noble/ciphers/": "/assets/vendor/noble-ciphers/current/"
   },
   "phone": true,
+  "devices": true,
+  "calc": true,
+  "reasons": true,
+  "teamwork": true,
+  "totals": true,
+  "lessons": true,
+  "ai-suggest": true,
+  "ai-activity": true,
+  "ai-ask": true,
+  "access": true,
+  "fields": true,
+  "propgrid": true,
   "panels": [
     "move",
     "window"
@@ -27,9 +41,13 @@
   "workspaces": {
     "layouts": [
       "docked",
-      "toolbox"
+      "toolbox",
+      "autorev"
     ],
     "adapter": "workspace-partcraft.js"
   },
-  "hardware": true
+  "hardware": true,
+  "problems": true,
+  "nodes": true,
+  "engines": true
 }

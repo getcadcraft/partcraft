@@ -44,7 +44,7 @@ Files are named by the configuration. A configuration that fails to build (a fea
 
 ## Put the variants on a library page
 
-Upload `<part>.item.json` at **Library › Upload** on the site. Choose its category, license and your credit line, and it becomes a LibraryCraft item with its variants. In BimCraft, placing it asks which variant, and Swap offers the others. The page where visitors choose options, see the 3D and download a variant is a **staff preview** for now: it is not open to the public yet.
+Upload `<part>.item.json` at **Library › Upload** on the site. Choose its category, license and your credit line, and it becomes a Library item with its variants. In BimCraft, placing it asks which variant, and Swap offers the others. The page where visitors choose options, see the 3D and download a variant is a **staff preview** for now: it is not open to the public yet.
 
 ## From the command line
 

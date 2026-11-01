@@ -113,7 +113,7 @@ export class SheetView {
     let drag = null;
     const fingers = new Map();   // touch pointers: id → [clientX, clientY]
     let pinch = null;            // { d, m } while two fingers are down
-    s.addEventListener('wheel', (e) => { e.preventDefault(); this.zoomAt(e.deltaY < 0 ? 1.15 : 1 / 1.15, e.clientX, e.clientY); }, { passive: false });
+    s.addEventListener('wheel', (e) => { e.preventDefault(); if (!e.ctrlKey && this.cb.isPad?.(e)) { this.panBy(-e.deltaX * (e.deltaMode === 1 ? 16 : 1), -e.deltaY * (e.deltaMode === 1 ? 16 : 1)); return; } this.zoomAt(e.deltaY < 0 ? 1.15 : 1 / 1.15, e.clientX, e.clientY); }, { passive: false });
     s.addEventListener('contextmenu', (e) => e.preventDefault());
     s.addEventListener('pointerdown', (e) => {
       s.focus({ preventScroll: true });

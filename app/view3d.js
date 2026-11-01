@@ -245,6 +245,8 @@ export class View3D {
     if (obj) { this.overlays.set(id, obj); this.overlayRoot.add(obj); }
     this.render();
   }
+  /** The box (min/max in mm) of scene objects that are not the part (an add-on's display bodies), so Fit and the views frame them; null clears it. */
+  setExtraBounds(b) { this.extraBox = b ? new THREE.Box3(tv(b.min), tv(b.max)) : null; }
   clearOverlays() { for (const id of [...this.overlays.keys()]) this.setOverlay(id, null); }
   /** Colour the part (a result plot): RGB 0…1 per mesh vertex (length = mesh.positions.length) or per triangle corner
    *  (length = 9 × triangles); null = the plain body colour. setMesh (every rebuild) clears it. */
@@ -540,7 +542,8 @@ export class View3D {
   /** Look at the model from direction d (towards the viewer), fitted. */
   lookAlong(d, up = new THREE.Vector3(0, 1, 0)) {
     if (this.sketchFrame) return;
-    const box = this.mesh || this.instances?.length ? this.box : new THREE.Box3(new THREE.Vector3(-this.size * 0.6, -this.size * 0.6, -this.size * 0.6), new THREE.Vector3(this.size * 0.6, this.size * 0.6, this.size * 0.6));
+    const own = this.mesh || this.instances?.length ? this.box : null;
+    const box = own && this.extraBox ? own.clone().union(this.extraBox) : own || this.extraBox || new THREE.Box3(new THREE.Vector3(-this.size * 0.6, -this.size * 0.6, -this.size * 0.6), new THREE.Vector3(this.size * 0.6, this.size * 0.6, this.size * 0.6));
     const c = box.getCenter(new THREE.Vector3());
     const r = Math.max(box.getSize(new THREE.Vector3()).length() / 2, 1);
     this.camera.up.copy(up);

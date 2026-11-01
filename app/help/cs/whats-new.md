@@ -1,0 +1,75 @@
+---
+title: Co je nového v 0.7
+summary: PartCraft 0.7 přidává pracovní prostor Illustrate pro návody, soubory STEP, STL, OBJ, 3MF a .3dm otevírané jako tělesa, svařované rámy z ocelových profilů, uzavřené mechanismy, díly se stovkami prvků, balíček variant z vašich konfigurací, upravitelné postprocesory s 3D dokončováním a knihovnou nástrojů, zbytky ponechané mezi rozmísťováními, laserové programy, export USD a nástroje pro vašeho vlastního AI asistenta.
+keywords: co je nového, novinky, poznámky k vydání, seznam změn, změny, 0.7, verze, nové funkce, illustrate, návod, technická ilustrace, rozložený pohled, bubliny, seznam dílů, pokyny, interaktivní 3d, animace, step, stp, stl, obj, 3mf, 3dm, síť na těleso, otevřít síť, svařenec, konstrukční prvek, rám, řezný seznam, uzavřená smyčka, mechanismus, čtyřkloubový, velký díl, mnoho prvků, balíček variant, varianty, konfigurátor, postprocesor, upravit postprocesor, cpost, rovnoběžné, scallop, 3d dokončování, knihovna nástrojů, barvy polotovaru, zbytek, laser, usd, usdz, asistent, mcp, kompaktní, jednotky, portugalština
+from: d6fed81f
+---
+
+Toto se změnilo v PartCraftu 0.7 oproti 0.6. Díly přicházejí z více souborů a nový pracovní prostor vytváří návody z vašeho návrhu.
+
+## Nové
+
+### Návody z vašeho návrhu
+
+- **Pracovní prostor Illustrate.** Zvolte {{ui:Illustrate}} v přepínači {{ui:Pracovní prostor}}, pak {{ui:Nový}} ve skupině {{ui:Návod}}: návod začíná z otevřeného dílu nebo sestavy, uložené sestavy nebo souboru glTF, OBJ, STL či 3MF (jeho strom a názvy se zachovají; kopie jednoho dílu se stanou jedním dílem s počtem kusů). Návod je samostatný soubor (`.partcraft-manual.json`) s kopií dílů, takže dokumentace pokračuje, zatímco návrh se vyvíjí. Viz [Začátek návodu v Illustrate](topic:illustrate).
+- **Pohledy a vzhledy.** Skrývejte, zešedněte, izolujte nebo přebarvujte díly, přehrajte rozložený pohled, vyřízněte z modelu řez nebo kvádr, přidejte lupu a vše uložte jako pohled. Viz [Pohledy, vzhledy, řezy a lupa](topic:illustrate-views).
+- **Bubliny a seznam dílů.** Jedním kliknutím se očíslují všechny díly, které pohled ukazuje; čísla zůstávají u svých dílů a nikdy se nepoužijí znovu. Seznam může být v pohledu a ukládá se jako CSV. Viz [Seznam dílů a bubliny](topic:illustrate-parts-list).
+- **Anotace, které zůstávají připojené:** popisky a výnosky, které doplní číslo dílu, název, materiál nebo počet kusů, šipky, vzdálenosti, úhly a poloměry změřené z dílů, tvary a obrázky. Pohybují se se svým dílem, když se rozloží. Viz [Anotace, které zůstávají připojené](topic:illustrate-annotations).
+- **Perokresba, pokyny a 3D soubor.** Exportujte libovolný pohled jako vektorovou perokresbu (SVG nebo PDF) se skrytými čarami a šrafovanými řezy, nebo jako PNG; změňte pohledy na pokyny krok za krokem jako PDF nebo jednu stránku HTML; nebo uložte jeden soubor HTML, který se otevře offline v libovolném prohlížeči s pohledy, seznamem dílů a animací. Viz [Technické ilustrace](topic:illustrate-line-art), [Dokumenty s pokyny](topic:illustrate-instructions) a [Interaktivní 3D soubor](topic:illustrate-interactive).
+- **Animace a aktualizace.** Klíčujte díly a kameru, nahrajte rozložený pohled krok za krokem a uložte video. Když se návrh změní, {{ui:Aktualizovat z konstrukce…}} ukáže, co se přesunulo, změnilo, přibylo nebo zmizelo, než se cokoli změní, a ponechá pohledy, anotace, bubliny a klíče u jejich dílů. Viz [Animace návodu](topic:illustrate-animation) a [Aktualizace návodu z návrhu](topic:illustrate-update).
+
+### Otevírání dalších souborů
+
+- **Soubory STEP se otevírají jako tělesa.** {{ui:Otevřít}} čte STEP AP203, AP214 a AP242 bez přesného jádra. Rovné plochy zůstávají rovné, zakřivené plochy se stanou mnoha malými rovnými a sestava přichází jako jedno těleso se všemi díly tam, kam je soubor umístí. Skicujte na jeho rovných plochách, vyřezávejte do něj a přidávejte k němu. Viz [Otevření souboru STEP a stavba na něm](topic:import-step).
+- **Sítě STL, OBJ a 3MF se stanou tělesy.** Soubor otevřete nebo pustíte a PartCraft spojí zdvojené rohy, zavře malé mezery, vyplní otvory a otočí trojúhelníky otočené nesprávným směrem, pak řekne, co udělal, a zda se síť nyní uzavírá. Zvolte jednotky a kterým směrem je nahoře a těleso přijde jako **Imported1**, s rovnými oblastmi jako plochami pro skicování. Síť, která se uzavřít nedá, řekne, kolik otvorů zbývá, a nic nepřidá. Viz [Otevření STL, OBJ nebo 3MF jako tělesa](topic:open-meshes).
+- **Soubory .3dm se otevírají jako jedno těleso.** Sítě, polyplochy, vytažení a umístění bloků souboru `.3dm` přicházejí jako jedno těleso, ze sítí uložených v souboru nebo teselovaných PartCraftem, stejnou opravou a kontrolou „uzavírá se?“ jako síť. Křivky, text, objekty SubD, vrstvy a barvy jsou vynechány a dialog to říká. Viz [Otevření modelu .3dm jako tělesa](topic:open-3dm-files).
+
+### Díly a sestavy
+
+- **Rámy z ocelových profilů.** Nakreslete rám jako úsečky, v jedné skice nebo ve více pro rám ve 3D, pak {{ui:Více}} › {{ui:Konstrukční prvek}}: profil z tabulek AISC nebo EN 10365 běží podél každé úsečky. Rohy jsou pokosové nebo na tupo, prvky, které se stýkají do T nebo tři v rohu, se přizpůsobí řezem, volné konce mohou dostat čepičky a rohy styčníkové plechy a řezný seznam uvádí délku každého kusu a úhly konců ({{ui:Uložit řezný seznam (CSV)}}). Viz [Rámy z ocelových profilů](topic:structural-members).
+- **Uzavřené smyčky v sestavách.** Díly spojené do kruhu (čtyřkloubový mechanismus, klika a posuvník, ztužený rám) se nyní uzavírají: přetáhněte nebo zadejte hodnotu na smyčce a zbytek ji následuje a kontrola pohybu smyčku prochází stejně. Vazba, která se ještě může pohybovat, je modrá, smyčka, která se nemůže uzavřít, zčervená a řekne, o kolik je vedle. Viz [Uzavřené smyčky: mechanismy](topic:build-assembly#closed-loops-linkages).
+- **Díly se stovkami prvků.** PartCraft uchovává těleso, které mělo v polovině historie, takže změna pozdě v historii znovu sestaví jen prvky za ní a výřezy a výstupky, které se nedotýkají, se použijí společně. Je vyzkoušen na dílu se 750 prvky. Okno Parametrů drží krok se stovkami rovnic a krok zpět uchovává 200 kroků, pokud by nezabraly hodně paměti (nikdy méně než 20). Viz [Díly se stovkami prvků](topic:edit-history#parts-with-hundreds-of-features).
+- **Balíček variant z vašich konfigurací.** {{ui:Balíček variant…}} pod **Konfigurace** na kartě {{ui:Parametry}} sestaví každou konfiguraci, nebo ty, které zaškrtnete, v jednom zipu: STEP, IFC, list výkresu DWG a náhled pro každou, tabulku jejich parametrů (CSV a JSON) a díl jako jednu položku knihovny s jeho variantami. Konfigurace, kterou nelze sestavit, je vypsána a vynechána. Příkazový řádek dělá totéž pomocí `partcraft variants`. Viz [Vytvoření balíčku variant z konfigurací](topic:variant-pack).
+
+### Výroba
+
+- **Upravitelné postprocesory.** Postprocesory ve stylu Fanuc, GRBL a LinuxCNC ve Výrobě jsou nyní krátké textové soubory ve vlastním formátu postprocesorů PartCraftu a stále zapisují přesně to, co dříve. {{ui:Upravit postprocesor…}} otevře vaši vlastní kopii jednoho z nich (také {{ui:Nový postprocesor…}} a {{ui:Importovat soubor postprocesoru…}}), řekne, který řádek je špatně, a při psaní ukazuje G-kód, který zapisuje. Postprocesory se ukládají v dílu a jako soubory `.cpost`. Viz [Upravitelné postprocesory](topic:post-processors).
+- **3D dokončování: Rovnoběžné a Scallop.** Dokončete povrch celého modelu kuličkovou, rádiusovou nebo válcovou frézou, v rovnoběžných čarách pod libovolným úhlem, nebo v průchodech v zadané vzdálenosti, takže hřeben mezi nimi má výšku, kterou požadujete (ne s válcovou frézou). Viz [3D dokončování: rovnoběžné a scallop](topic:finish-3d).
+- **Knihovna nástrojů.** Ukládejte nástroje v tomto prohlížeči pro každý díl a exportujte je nebo importujte jako soubor JSON, abyste je přenesli na jiný počítač. Viz [Knihovna nástrojů](topic:tool-library).
+- **Polotovar proti modelu barevně.** Se zapnutým **Zobrazit simulovaný polotovar** je polotovar na modelu zelený, červený tam, kam do něj nástroj vnikl, a žlutý až šedý tam, kde polotovar zůstává, s legendou v panelu. Viz [Simulace](topic:manufacture#simulate).
+- **Zbytky ponechané mezi rozmísťováními.** Po rozmístění se z toho, co z každé desky zbude, může stát číslovaný zbytek s materiálem a tloušťkou. Další rozmístění stejného materiálu a tloušťky použije nejdřív zbytky, pak celé desky; seznam polotovarů se ukládá v souboru i jako CSV a DXF každý zbytek označí. Viz [Uchování a opětovné použití zbytků](topic:nest-offcuts).
+- **Laserové programy.** {{ui:Export}} › {{ui:Laserový program…}} bere obrysy ze souboru DXF a nastavuje, co každá vrstva dělá (řez, rytí čáry, gravírování, výplň), zobrazí náhled pohybů hlavy a uloží G-kód GRBL v laserovém režimu. V Chrome a Edge může také vyznačit rám úlohy s vypnutým laserem a pak ji odeslat přes USB. Nastavení se ukládají v souboru. Viz [Odeslání výkresu na laser](topic:laser-cutting).
+- **Export USD.** {{ui:Export}} › {{ui:Balíček USD (.usdz)}} zapíše díl s jeho materiálem, objemem a hmotností, nebo sestavu s každým dílem jednou a každou umístěnou kopií, v metrech se Z nahoru. Viz [Export dílu nebo sestavy jako USD](topic:usd).
+
+### Asistenti
+
+- **Nástroje pro vašeho vlastního AI asistenta.** Po zapnutí v {{ui:Nastavení}} › {{ui:PartCraft}} › {{ui:Asistenti}} může asistent připojený přes CadCraft Studio číst prvky, parametry a hmotnostní vlastnosti, nastavit parametr a znovu sestavit (jeden krok zpět), spustit skript CraftScript, Lua nebo Python tak, jak to dělá pracovní prostor Skript, exportovat STL, 3MF, fasetovaný STEP nebo USD, uložit a exportovat návod jako PDF, SVG, pokyny nebo interaktivní 3D soubor. Souborový server a příkazový řádek `cadcraft` dělají totéž na uložených dílech a návodech. PartCraft neobsahuje žádnou AI. Viz [Používání PartCraftu s AI asistentem](topic:use-with-ai-assistants).
+
+## Změněno
+
+- **Díl s tělesem ze souboru se ukládá jako díl verze 5.** Díl s tělesem ze STEP, STL, OBJ, 3MF nebo `.3dm` uchovává opravené trojúhelníky uvnitř souboru `.partcraft.json`, takže původní soubor už nepotřebujete. PartCraft 0.6 verzi 5 odmítne zprávou o „novější verzi“, místo aby ji otevřel špatně. Ostatní díly se ukládají jako dříve. Viz [Soubory PartCraftu](topic:file-formats#the-partcraft-files).
+- Postprocesory, které napíšete, se ukládají v dílu. Starší PartCraft, který takový díl otevře, postprocesory při dalším uložení zahodí.
+
+## V každé aplikaci
+
+- **Jednotky.** {{ui:Nastavení}} › {{ui:Obecné}} › {{ui:Jednotky}} má po jednom seznamu pro délku, plochu, objem, úhel a sklon, s přesnými velikostmi podle definic jednotek (americká zeměměřická stopa je samostatná jednotka). Vypněte jednotky, které nikdy nepoužíváte, a z nabídek jednotek zmizí; označte jednu hvězdičkou a nová práce začíná v ní. Soubor si vždy ponechá vlastní jednotku. Vlastní pole PartCraftu zatím seznamy ani hvězdičku nesledují: díly se stále zobrazují v milimetrech. Viz [Jednotky, zadávané hodnoty a seznamy jednotek](common:unit-lists).
+- **Hustší rozložení a panely, které se schovají.** {{ui:Nastavení}} › {{ui:Obecné}} › {{ui:Hustota rozložení}} › {{ui:Kompaktní}} vměstná na obrazovku víc (dotykové obrazovky a telefony si ponechají velká tlačítka). Každý boční panel má štíhlou záhlavní lištu: přetažením panel ukotvíte nebo necháte plovoucí, puštěním na lištu jiného panelu sdílejí jeden rám jako karty, připnutím se zasune k okraji, nebo jej skryjete a vrátíte z okraje. Viz [Uspořádání panelů](common:arrange-panels#make-the-layout-denser).
+- **Dialogy se přesouvají.** Dialog přetáhněte za záhlaví stranou od výkresu; vrátí se tam, kde jste jej nechali. Dvojitým kliknutím na záhlaví jej znovu vycentrujete. Viz [Přesunutí dialogu](common:arrange-panels#move-a-dialog).
+- **Návody pro AI asistenty.** Deset vzorových požadavků pro vašeho vlastního asistenta (uklidit výkres, vykreslit sadu, zkontrolovat výkresy, ptát se modelu, sečíst výkaz výměr, vyzkoušet variantu dílu…), každý s nástroji, které volá, a oprávněními, která potřebuje, a každý přehraný našimi testy. Aplikace neobsahují žádnou AI. Viz [Návody pro AI asistenty](common:assistants-recipes).
+- **Jazyky.** **Português (Portugal)** je nový v {{ui:Nastavení}} › {{ui:Obecné}} › {{ui:Jazyk}}. Ten, **Português (Brasil)**, **Español (México)** a **Bahasa Indonesia** nyní mají v aplikacích každé slovo, jako koncepty, které ještě nezkontroloval rodilý mluvčí. Témata nápovědy jsou v angličtině, jedno ve španělštině.
+- **CadCraft Studio** říká, proč kontrola aktualizace selhala (zatím žádný soubor pro váš systém, žádná síť, špatný podpis), místo pouhého „Hotovo“, a přestane vracet kartu Co je nového, kterou jste zavřeli, dokud nevyjde novější vydání.
+
+## Zatím není v této verzi
+
+- **0.7 není podepsaná kódovým podpisem.** Podepisování a balíček Microsoft Store se přesunuly do 0.8, protože ověření certifikátu zatím nedoběhlo. Zkontrolujte SHA-256 vedle každého souboru na getcadcraft.com/download. Pokud ve Windows instalátor zastaví SmartScreen, zvolte {{ui:Další informace}} a poté {{ui:Přesto spustit}}. Na Macu poprvé klikněte pravým tlačítkem na CadCraft Studio a zvolte {{ui:Otevřít}}. CadCraft Studio zatím není v žádném obchodě s aplikacemi a zatím neexistuje ani sestavení pro iPad nebo iPhone.
+- Seznamy úhlu a sklonu v {{ui:Jednotky}} se ukládají, ale zatím je žádné pole nečte.
+- Tělesa ze souborů STEP, sítí a `.3dm` nemají historii a jejich zakřivené plochy jsou rovné facety. Barvy, názvy dílů a strom sestavy se ze STEP nečtou; křivky, objekty SubD, text, vrstvy a barvy se z `.3dm` nečtou. Čtečka `.3dm` je ověřena na souborech zapsaných sadou nástrojů formátu, ještě ne na souborech uložených samotným modelovacím programem.
+- Illustrate zatím neotevírá soubory STEP v {{ui:Z jiného souboru…}} (otevřete STEP v Návrhu a začněte {{ui:Z otevřeného dílu}}), ModelCraft a BimCraft mu nemohou předat model přímo a obrázky v kvalitě path traceru se nenabízejí. Export videa a interaktivní soubor zatím nebyly zkoušeny na skutečných telefonech a tabletech.
+- Laserové programy berou obrysy jen ze souborů DXF: rozvinutí plechových dílů potřebují přesné jádro. CadCraft Studio zatím nemá Web Serial, takže tam G-kód uložte a odešlete jej vlastním programem svého laseru. Laserový G-kód a tři vestavěné postprocesory nebyly ověřeny na skutečném stroji: každý program nejdřív zkontrolujte v simulátoru vlastního řízení.
+- 3D dokončování je jen Rovnoběžné a Scallop: žádné 3D hrubování, vrstevnicové, tužkové ani zbytkové obrábění, žádné soustružení. Knihovna nástrojů je uložena v tomto prohlížeči, nesynchronizuje se.
+- Stránka konfigurátoru, kde návštěvníci na webu vybírají variantu a stahují ji, je otevřená jen zaměstnancům, dokud se nezapne přepínač webu. Porty (spojovací body) se z PartCraftu nenastavují.
+- Konstrukční prvky sledují jen přímé úsečky a jsou jedním tělesem bez svarových housenek.
+- Menu pásu karet PartCraftu stále kreslí každé tlačítko v plné velikosti.
+- Magnetika: permanentní magnety jsou jen ve 2D; motory, saturující ocel a síťovač pro zakřivené díly zatím nejsou hotové.
+
+Vše ostatní je v tématu [Co ještě není hotovo](topic:not-built-yet).

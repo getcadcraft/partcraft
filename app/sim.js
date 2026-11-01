@@ -22,7 +22,9 @@ import { t } from './i18n.js';
 import { MATERIALS, materialById, readMaterial } from './materials.js';
 import { NAME_RE } from './brep.js';
 import { THERMAL_KINDS, HEAT_LABEL, readThermalFields, describeHeat, thermalJob } from './sim-thermal.js';
+import { newEnv, envProblems } from './env/env.js';
 import { readFlow } from './flow-study.js';   // kind 'flow': settings in study.flow (flow-study.js)
+import { NL_KINDS, readNlFields, nlJob } from './nlstudy.js';   // 0.8 SU.891: kinds 'nonlinear' | 'contact' (nlstudy.js, part_PART_3's mount)
 
 export const LIMITS = { simElements: 300000, genElements: 60000, tetElements: 150000, refs: 64, items: 32 };
 export const AUTO_ELEMENTS = { simulation: 20000, generative: 8000, tet: 12000 };
@@ -64,7 +66,7 @@ function items(list, read) {
 const constraint = (c) => ({ id: id(c.id), type: ['fixed', 'frictionless'].includes(c.type) ? c.type : bad(t('study.sim.err.constraint_type')), faces: faceRefs(c.faces) });
 function load(l, allowGravity = true) {
   if (l.type === 'force') return { id: id(l.id), type: 'force', faces: faceRefs(l.faces), total: num(l.total, -1e9, 1e9, t('study.sim.what.force')), dir: l.dir === 'normal' ? 'normal' : vec(l.dir, t('study.sim.what.force')) };
-  if (l.type === 'pressure') return { id: id(l.id), type: 'pressure', faces: faceRefs(l.faces), p: num(l.p, -1e5, 1e5, t('study.sim.what.pressure')) };
+  if (l.type === 'pressure') return { id: id(l.id), type: 'pressure', faces: faceRefs(l.faces), p: num(l.p, -1e5, 1e5, t('study.sim.what.pressure')), ...(l.absolute === true ? { absolute: true } : {}) };   // absolute: the pressure inside a sealed volume; the environment's ambient is taken off (env/env.js)
   if (l.type === 'gravity' && allowGravity) return { id: id(l.id), type: 'gravity', dir: vec(l.dir, t('study.sim.what.gravity')) };
   return bad(t('study.sim.err.load_type'));
 }
@@ -77,7 +79,7 @@ const readAdaptive = (a) => (a && typeof a === 'object' && !Array.isArray(a) ? {
 export function readSimStudy(raw) {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw) || raw.v !== 1) bad(t('study.sim.err.bad_study'));
   return {
-    v: 1, kind: ['static', 'modal', ...THERMAL_KINDS, 'flow'].includes(raw.kind) ? raw.kind : bad(t('study.sim.err.unknown_kind')),
+    v: 1, kind: ['static', 'modal', ...THERMAL_KINDS, 'flow', ...NL_KINDS].includes(raw.kind) ? raw.kind : bad(t('study.sim.err.unknown_kind')),
     material: material(raw.material), h: size(raw.h), elem: ['h8i', 'h8'].includes(raw.elem) ? raw.elem : bad(t('study.sim.err.unknown_elem')),
     // the mesher right after elem (where newSimStudy has it), only when present: older files read back unchanged
     ...(raw.mesher !== undefined ? { mesher: ['tet', 'voxel'].includes(raw.mesher) ? raw.mesher : bad(t('study.sim.err.unknown_mesher')) } : {}),
@@ -87,6 +89,7 @@ export function readSimStudy(raw) {
     constraints: items(raw.constraints, constraint), loads: items(raw.loads, (l) => load(l, true)),
     ...readThermalFields(raw, { faceRefs, id, num, items }),   // heat, thermal, thermalLoad (only when present)
     ...(raw.kind === 'flow' || raw.flow !== undefined ? { flow: readFlow(raw.flow) } : {}),   // flow settings (flow-study.js)
+    ...readNlFields(raw, { faceRefs, id, num, items }),   // nonlinear, contacts (only when present: nlstudy.js)
   };
 }
 /** part.studies.generative from a file (untrusted) → a clean copy, or throws. */
@@ -150,7 +153,7 @@ function resolve(list, faces, what, gone) {
 export const meshForJob = (mesh) => ({ positions: Float32Array.from(mesh.positions), indices: Uint32Array.from(mesh.indices), triFace: mesh.triFace ? Int32Array.from(mesh.triFace) : null });
 
 /** Simulation study + exact build → { job, problems: [text] } (problems: nothing to solve yet, faces gone, …); check: no mesh copy. */
-export function simJob(st, regen, { check = false } = {}) {
+export function simJob(st, regen, { check = false, env = null } = {}) {
   const problems = [];
   if (!regen || !(regen.exact || regen.named) || !regen.mesh || !regen.faces || !regen.stats) return { job: null, problems: [t('study.sim.need_exact')] };
   const gone = [];
@@ -158,9 +161,11 @@ export function simJob(st, regen, { check = false } = {}) {
   const loads = resolve(st.loads, regen.faces, (l) => t('study.sim.item_name', { label: LOAD_LABEL[l.type], n: l.id.replace(/\D/g, '') }), gone);
   const heat = resolve(st.heat || [], regen.faces, (h) => t('study.sim.item_name', { label: HEAT_LABEL[h.type], n: h.id.replace(/\D/g, '') }), gone);
   const tj = thermalJob(st, heat, materialOf(st.material));   // thermal / buckling / thermal load (sim-thermal.js)
+  const nj = nlJob(st, regen.faces, materialOf(st.material));   // nonlinear / contact (nlstudy.js)
   if (gone.length) problems.push(t('study.sim.faces_gone', { items: gone.join(', ') }));
+  problems.push(...nj.problems);
   if (!constraints.length && tj.needsConstraint && st.kind !== 'flow') problems.push(t('study.sim.add_constraint'));
-  if ((st.kind === 'static' || st.kind === 'buckling') && !loads.length && tj.needsLoad) problems.push(t('study.sim.add_load'));
+  if ((st.kind === 'static' || st.kind === 'buckling' || NL_KINDS.includes(st.kind)) && !loads.length && (tj.needsLoad || NL_KINDS.includes(st.kind))) problems.push(t('study.sim.add_load'));
   problems.push(...tj.problems);
   for (const it of st.kind === 'thermal' ? [] : [...constraints, ...loads]) if (it.faces && !it.faces.length) problems.push(t('study.sim.no_faces', { item: t('study.sim.item_name', { label: it.type === 'fixed' || it.type === 'frictionless' ? CONSTRAINT_LABEL[it.type] : LOAD_LABEL[it.type], n: it.id.replace(/\D/g, '') }) }));
   const tet = mesherOf(st) === 'tet';
@@ -168,14 +173,27 @@ export function simJob(st, regen, { check = false } = {}) {
   const est = Math.round((tet ? 12 : 1) * regen.stats.volume / h ** 3);   // tets: before grading near curved faces and edges
   const lim = tet ? LIMITS.tetElements : LIMITS.simElements;
   if (est > lim) problems.push(t('study.sim.too_many', { n: est.toLocaleString('en-US'), max: lim.toLocaleString('en-US') }));
-  const job = { kind: st.kind, modes: st.modes, material: materialOf(st.material), h, elem: st.elem, mesh: check ? null : meshForJob(regen.mesh), faces: regen.faces.map((f) => ({ area: f.area })), bcs: { constraints, loads }, ...tj.fields };
+  const job = { kind: st.kind, modes: st.modes, material: materialOf(st.material), h, elem: st.elem, mesh: check ? null : meshForJob(regen.mesh), faces: regen.faces.map((f) => ({ area: f.area })), bcs: { constraints, loads }, ...tj.fields, ...nj.fields };
   if (tet) {   // the tet mesher reads the exact surfaces (planes, cylinders) and the B-rep edges
     job.mesher = 'tet'; job.refineCurved = st.refineCurved !== false;
     if (st.adaptive && ['static', 'thermal', 'modal', 'buckling'].includes(st.kind)) job.adaptive = { target: st.adaptive.target, passes: st.adaptive.passes, maxElements: LIMITS.tetElements };   // tet-worker.js applies it (static / buckling without a thermal load, modal, steady thermal)
     job.faces = regen.faces.map((f) => ({ area: f.area, type: f.type, ...(f.n ? { n: f.n.slice(), o: f.o.slice() } : {}), ...(f.axis ? { axis: { o: f.axis.o.slice(), d: f.axis.d.slice() }, r: f.r } : {}), ...(f.surf ? { surf: f.surf } : {}) }));   // surf: brep-surf.js exact surface (spheres, cones, tori, revolutions, extrusions, B-splines)
     if (job.mesh && regen.mesh.edgeSegs) job.mesh.edgeSegs = Float32Array.from(regen.mesh.edgeSegs);
   }
-  return { job, problems, h, estimate: est };
+  // EG.32: the part's environment (part.studies.environment) rides with the job; a heat condition or a thermal load that asks for
+  // "the environment's temperature" (Tamb / Tref null) gets Earth's when the part has none set. Files without an environment keep 9810 mm/s².
+  const needsAmbient = heat.some((x) => x.Tamb === null) || (job.thermalLoad && job.thermalLoad.Tref === null);
+  if (env || needsAmbient) job.env = env || newEnv('earth');
+  const envNotes = envProblems(job.env || null, { gravityLoads: loads.filter((l) => l.type === 'gravity').length, absolutePressure: loads.filter((l) => l.absolute).length, material: materialOf(st.material) });
+  return { job, problems, h, estimate: est, envProblems: envNotes };
+}
+
+/** EG.32: the environment's own Problems for the shell (no solve needed): part.studies → [problem]. Empty when the part sets no environment. */
+export function simEnvProblems(studies) {
+  const env = studies && studies.environment;
+  if (!env) return [];
+  const st = studies.simulation ? readSimStudy(studies.simulation) : newSimStudy();
+  return envProblems(env, { gravityLoads: st.loads.filter((l) => l.type === 'gravity').length, absolutePressure: st.loads.filter((l) => l.absolute).length, material: materialOf(st.material) });
 }
 
 /** Generative study + exact build → { job, variants, problems }. */

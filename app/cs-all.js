@@ -18,6 +18,9 @@ import './cs-lib-core.js';
 import * as LINALG from './cs-lib-linalg.js';
 import * as MESH from './cs-lib-mesh.js';
 import * as IO from './cs-lib-io.js';
+import * as FIELD from './cs-lib-field.js';   // 0.8 CE.2: signed-distance fields, lattices, TPMS, to_body
+import * as ENG from './cs-lib-eng.js';       // 0.8 CE.4: units with dimensions, fluids, materials (the formulas are craftlib/eng/*.craft)
+import './cs-lib-nodes.js';           // 0.8 DC.54: every node of cc-nodes is a function nd_<node> (lib/nodes, nodes_PART_3)
 import { has, init } from './i18n.js';
 
 // Node (the CLI, tests) has no page to read the language catalog from: English, from this build's lang/en.json, so messages
@@ -33,7 +36,7 @@ let done = false;
 function registerAll() {
   if (done) return;
   done = true;
-  for (const m of [LINALG, MESH, IO]) if (typeof m.register === 'function') m.register(registerBuiltin, registerMethod);
+  for (const m of [LINALG, MESH, IO, FIELD, ENG]) if (typeof m.register === 'function') m.register(registerBuiltin, registerMethod);
 }
 registerAll();
 
@@ -42,5 +45,5 @@ export function makeRuntime(opts = {}) {
   return createRuntime({ prepare: (src) => IO.prepareIo(src), ...opts });
 }
 
-export { IO, LINALG, MESH };
+export { IO, LINALG, MESH, FIELD, ENG };
 export * from './cs-runtime.js';

@@ -578,6 +578,10 @@ button.cs-shown-h:focus-visible { outline: var(--pen-2) solid var(--action); }
 
 /* Tolerance stack-ups (0.6 LC.18, stackup-ui.js; session lc-make): a wider Measure-style card */
 .pc-measure.pc-stk { width: min(40rem, calc(100% - 1.5rem)); }
+.pc-mot-num { width: 6.5rem; }
+.pc-mot-tracks { margin: .25rem 0; padding-left: 1.1rem; font-size: .8125rem; }
+.pc-mot-tracks li { display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
+.pc-mot-plot { width: 100%; height: auto; color: var(--ink); margin-top: .4rem; }
 .pc-stk-row { display: flex; flex-wrap: wrap; align-items: end; gap: .4rem .75rem; margin: .4rem 0; }
 .pc-stk-field { display: grid; gap: .15rem; font-size: .8125rem; color: var(--ink-2); }
 .pc-stk-field .pc-input { width: 9rem; }
@@ -606,3 +610,9 @@ button.cs-shown-h:focus-visible { outline: var(--pen-2) solid var(--action); }
 .ws-stage :is(.cc-vc, .cc-axes):is(.at-top-left, .at-bottom-left) { left: calc(var(--ws-sl, 0px) + .5rem); }
 /* the toolbar's menus inside the drawing area (a layout's stage-top): short enough to end above the area's bottom edge */
 .ws-region .pc-menu-list { max-height: min(calc(100vh - 9rem), calc(100vh - var(--ws-st, 0px) - 5rem)); }
+
+/* 0.8 EG.38: Sketch › From a photo… — the picture with what was found over it */
+.pc-photo-pair { display: grid; grid-template-columns: 1fr 2fr; gap: 0.5rem; align-items: start; }
+.pc-photo-thumb { width: 100%; height: auto; border: 1px solid var(--line, #ccc); }
+.pc-photo-preview { display: block; width: 100%; height: auto; max-height: 40vh; border: 1px solid var(--line, #ccc); background: var(--sheet-2, #f4f4f4); }
+.pc-photo .pc-inline { display: inline-flex; gap: 0.5rem; align-items: center; }

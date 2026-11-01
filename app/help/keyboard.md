@@ -210,3 +210,7 @@ See [Write and run scripts](topic:craftscript).
 - Function keys on many laptops and Macs need the Fn key: press Fn+{{key:F1}} for help, or use the {{ui:Help}} button.
 
 Touch and trackpad gestures: [Trackpad, touch and small screens](topic:trackpad-and-touch).
+
+## Where Move lives
+
+Move lives in the Features group's {{ui:More}} menu as {{ui:Move body}}, in the {{ui:Move}} box where you type ΔX, ΔY and ΔZ, and as {{ui:Drag to move}} arrows on the part.

@@ -29,18 +29,18 @@ const fsHost = IO.memoryFs({ onWrite: (name, bytes, mime) => { if (current) curr
 IO.setIoHost(fsHost);
 
 let userFiles = new Map();                // name → { source, lang, file }
-let libBase = null, libIndex = null, libIndexBase = null;
+let libBase = null;
 const fetchText = async (url) => { const r = await fetch(url); if (!r.ok) return null; return r.text(); };
 
-async function libraryNames() {
-  if (!libBase) return null;
-  if (libIndexBase === libBase) return libIndex;
-  libIndexBase = libBase;
-  libIndex = null;
+/** The function names an index.json lists, for one library folder (craftlib/ or craftlib/eng/). */
+const indexCache = new Map();
+async function namesOf(root) {
+  if (indexCache.has(root)) return indexCache.get(root);
+  let names = null;
   try {
-    const t = await fetchText(new URL('index.json', libBase).href);
+    const t = await fetchText(new URL('index.json', root).href);
     if (t) {
-      const names = new Set();
+      names = new Set();
       const walk = (x, d = 0) => {
         if (d > 8 || !x) return;
         if (Array.isArray(x)) { for (const y of x) walk(y, d + 1); return; }
@@ -53,19 +53,24 @@ async function libraryNames() {
         } else if (typeof x === 'string' && /^[A-Za-z][A-Za-z0-9_]*\.craft$/.test(x)) names.add(x.slice(0, -6));
       };
       walk(JSON.parse(t));
-      libIndex = names;
     }
-  } catch { libIndex = null; }
-  return libIndex;
+  } catch { names = null; }
+  indexCache.set(root, names);
+  return names;
 }
 async function library(name) {
   const u = userFiles.get(name);
   if (u) return u;
   if (!libBase) return null;
-  const idx = await libraryNames();
-  if (idx && !idx.has(name)) return null;
-  const text = await fetchText(new URL(name + '.craft', libBase).href).catch(() => null);
-  return text === null ? null : { source: text, file: 'craftlib/' + name + '.craft', lang: 'craft' };
+  // craftlib/ first, then the engineering library in craftlib/eng/ (0.8 CE.4: its own folder and index, so a name is found in one place)
+  for (const dir of ['', 'eng/']) {
+    const root = new URL(dir, libBase).href;
+    const idx = await namesOf(root);
+    if (idx && !idx.has(name)) continue;
+    const text = await fetchText(new URL(name + '.craft', root).href).catch(() => null);
+    if (text !== null) return { source: text, file: 'craftlib/' + dir + name + '.craft', lang: 'craft' };
+  }
+  return null;
 }
 
 const rt = makeRuntime({

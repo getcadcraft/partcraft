@@ -22,11 +22,18 @@
  *   GDT_CHAR → how a feature control frame's tolerance enters a stack; fromGdt(note) → { up, lo, kind, words[] } | null
  *   generalTol(text, nominal) → { up, lo, rule } | null   "±0.1", "+0.2/-0.1", "ISO 2768-m" (f, m, c, v; Table 1 linear)
  *   readStackups(raw, instIds) → [stack]   untrusted (a file): bad links dropped, numbers range-checked, at most 50 × 100
+ *   Vector stacks (0.8 STACK-DIR): a chain whose links run in different directions. stack.outputs = [{ id 'o<n>', name, dir (unit), spec? }]
+ *     (the directions the gap is judged along: X, Y, Z, an angle in the XY plane, the nominal gap itself); each link may carry
+ *     dir (unit, the way it runs, sign applies) and ang { axis: [x, y, z], up, lo } (degrees: the link swings about its start,
+ *     a hinge or a drawing's angular tolerance). Per output d, link i enters as a 1-D link with sensitivity u_i·d, and its swing as an extra
+ *     link of ℓ·((axis × u)·d)·Δθ (first order, small angles) — the same analyze() runs on it, so a collinear vector stack and a
+ *     1-D stack agree to the last digit. analyzeVector(stack) → { gap: nominal gap vector, outputs: [analyze result + id, name, dir] }.
+ *     fromPicks3(picks) → links straight from pick to pick (3-D lengths); directionsFor('xy' | 'xyz' | angle…) → outputs.
  *   normalTail(z) = P(Z > z) · csv(stack, res) → text (RFC 4180, a leading ' before = + − @)
  */
 import { t } from './i18n.js';
 
-export const LIMITS = { stacks: 50, links: 100, mm: 1e6, tol: 1e4, label: 80, name: 60 };
+export const LIMITS = { stacks: 50, links: 100, mm: 1e6, tol: 1e4, label: 80, name: 60, outputs: 8 };
 export const SOURCES = ['typed', 'gdt', 'general', 'interface', 'measured'];
 
 // ------------------------------------------------------------------------------------------------ analysis
@@ -91,6 +98,58 @@ export function fromPicks(picks, dir, labels = {}) {
 const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 export const unit = (v) => { const L = Math.hypot(v[0], v[1], v[2]); return L > 1e-12 ? [v[0] / L, v[1] / L, v[2] / L] : [1, 0, 0]; };
 const round = (v) => Math.round(v * 1e9) / 1e9;
+
+// ------------------------------------------------------------------------------------------------ vector stacks (STACK-DIR)
+
+const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+const RAD = Math.PI / 180;
+export const isVector = (stack) => !!(stack.outputs && stack.outputs.length) || (stack.links || []).some((l) => l.dir);
+
+/** The output directions of a kind: 'x', 'xy', 'xyz', or a number (degrees from X in the XY plane), several joined by arrays. */
+export function directionsFor(kind, names = {}) {
+  const AX = { x: [1, 0, 0], y: [0, 1, 0], z: [0, 0, 1] };
+  const list = Array.isArray(kind) ? kind : typeof kind === 'number' ? [kind] : String(kind).split('');
+  return list.map((k, i) => (typeof k === 'number'
+    ? { id: 'o' + (i + 1), name: names[k] || k + '°', dir: [Math.cos(k * RAD), Math.sin(k * RAD), 0], spec: null }
+    : { id: 'o' + (i + 1), name: names[k] || k.toUpperCase(), dir: AX[k], spec: null }));
+}
+
+/** Per output direction, the 1-D stack the same analyze() takes: link i has sensitivity u_i·d, a swing is an extra link. */
+export function projected(stack, d) {
+  const links = [];
+  for (const l of stack.links || []) {
+    const u0 = l.dir ? unit(l.dir) : [1, 0, 0], g = l.sign < 0 ? -1 : 1;
+    const u = u0.map((v) => v * g);
+    links.push({ ...l, sign: 1, sens: dot(u, d) * (Number.isFinite(l.sens) ? l.sens : 1) });
+    if (l.ang && (l.ang.up || l.ang.lo)) {
+      const w = cross(unit(l.ang.axis || [0, 0, 1]), u), c = l.nominal * dot(w, d);   // mm per radian along d
+      const hi = c * l.ang.up * RAD, lo = c * l.ang.lo * RAD;
+      links.push({ id: l.id + 'a', label: (l.label || '') + ' ∠', inst: l.inst, sign: 1, nominal: 0, up: Math.max(hi, lo), lo: Math.min(hi, lo), sens: 1, source: 'typed', swing: true });
+    }
+  }
+  return { ...stack, dir: d, links };
+}
+
+export function analyzeVector(stack) {
+  const gap = [0, 0, 0];
+  for (const l of stack.links || []) { const u = l.dir ? unit(l.dir) : [1, 0, 0], g = (l.sign < 0 ? -1 : 1) * l.nominal; for (let k = 0; k < 3; k++) gap[k] += g * u[k]; }
+  const outs = (stack.outputs && stack.outputs.length ? stack.outputs : directionsFor('xy')).slice();
+  const L = Math.hypot(...gap);
+  if (L > 1e-9 && !outs.some((o) => o.id === 'gap')) outs.push({ id: 'gap', name: 'gap', dir: gap.map((v) => v / L), spec: null, resultant: true });
+  return { gap, gapLength: L, outputs: outs.map((o) => ({ id: o.id, name: o.name, dir: unit(o.dir), ...analyze({ ...projected(stack, unit(o.dir)), spec: o.spec || null }) })) };
+}
+
+/** Picks → links straight from one pick to the next, as the vector between them (assembly coordinates, 3-D length). */
+export function fromPicks3(picks, labels = {}) {
+  const links = [];
+  for (let i = 0; i + 1 < picks.length; i++) {
+    const a = picks[i], b = picks[i + 1], v = [b.at[0] - a.at[0], b.at[1] - a.at[1], b.at[2] - a.at[2]], len = Math.hypot(...v);
+    const same = a.inst === b.inst;
+    links.push({ id: 'l' + (i + 1), label: same ? (labels.part ? labels.part(a, b) : (a.label || '') + ' → ' + (b.label || '')) : (labels.iface ? labels.iface(a, b) : ''),
+      inst: same ? a.inst : null, sign: 1, nominal: round(len), dir: len > 1e-12 ? v.map((q) => round(q / len)) : [1, 0, 0], up: 0, lo: 0, sens: 1, source: same ? 'measured' : 'interface' });
+  }
+  return links;
+}
 
 // ------------------------------------------------------------------------------------------------ tolerances from the parts
 
@@ -158,8 +217,10 @@ export function readStackups(raw, instIds = []) {
   const ids = new Set(instIds);
   const out = [];
   for (const s of raw.slice(0, LIMITS.stacks)) {
-    if (!s || typeof s !== 'object' || !Array.isArray(s.dir) || s.dir.length !== 3 || !s.dir.every((v) => num(v, -1e6, 1e6) !== null)) continue;
-    if (Math.hypot(...s.dir) < 1e-9) continue;
+    if (!s || typeof s !== 'object') continue;
+    const vec3 = (v) => Array.isArray(v) && v.length === 3 && v.every((q) => num(q, -1e6, 1e6) !== null) && Math.hypot(...v) >= 1e-9;
+    const outsRaw = Array.isArray(s.outputs) ? s.outputs.slice(0, LIMITS.outputs) : [];
+    if (!vec3(s.dir) && !outsRaw.length) continue;
     const links = [];
     for (const l of (Array.isArray(s.links) ? s.links : []).slice(0, LIMITS.links)) {
       if (!l || typeof l !== 'object') continue;
@@ -167,17 +228,29 @@ export function readStackups(raw, instIds = []) {
       if (nominal === null || up === null || lo === null || up < lo) continue;
       const sens = l.sens === undefined ? 1 : num(l.sens, -100, 100);
       if (sens === null) continue;
+      const ang = l.ang && typeof l.ang === 'object' && num(l.ang.up, -180, 180) !== null && num(l.ang.lo, -180, 180) !== null && l.ang.up >= l.ang.lo
+        ? { axis: vec3(l.ang.axis) ? unit(l.ang.axis) : [0, 0, 1], up: l.ang.up, lo: l.ang.lo } : null;
       links.push({
         id: /^l\d{1,6}$/.test(l.id) ? l.id : 'l' + (links.length + 1), label: text(l.label, LIMITS.label),
         inst: typeof l.inst === 'string' && ids.has(l.inst) ? l.inst : null, sign: l.sign === -1 ? -1 : 1, nominal, up, lo, sens,
         source: SOURCES.includes(l.source) ? l.source : 'typed', ...(typeof l.ref === 'string' ? { ref: text(l.ref, 60) } : {}),
+        ...(vec3(l.dir) ? { dir: unit(l.dir) } : {}), ...(ang ? { ang } : {}),
       });
     }
     const spec = s.spec && typeof s.spec === 'object' ? { min: num(s.spec.min, -LIMITS.mm, LIMITS.mm), max: num(s.spec.max, -LIMITS.mm, LIMITS.mm) } : null;
     if (spec && spec.min !== null && spec.max !== null && spec.min > spec.max) continue;
+    const outputs = [];
+    for (const o of outsRaw) {
+      if (!o || typeof o !== 'object' || !vec3(o.dir)) continue;
+      const sp = o.spec && typeof o.spec === 'object' ? { min: num(o.spec.min, -LIMITS.mm, LIMITS.mm), max: num(o.spec.max, -LIMITS.mm, LIMITS.mm) } : null;
+      if (sp && sp.min !== null && sp.max !== null && sp.min > sp.max) continue;
+      outputs.push({ id: /^o\d{1,6}$/.test(o.id) || o.id === 'gap' ? o.id : 'o' + (outputs.length + 1), name: text(o.name, LIMITS.name) || 'Direction ' + (outputs.length + 1), // i18n-ignore: a fallback name in the file
+        dir: unit(o.dir), spec: sp && (sp.min !== null || sp.max !== null) ? { ...(sp.min !== null ? { min: sp.min } : {}), ...(sp.max !== null ? { max: sp.max } : {}) } : null });
+    }
+    if (!vec3(s.dir) && !outputs.length) continue;
     out.push({
       id: /^s\d{1,6}$/.test(s.id) ? s.id : 's' + (out.length + 1), name: text(s.name, LIMITS.name) || 'Stack-up ' + (out.length + 1), // i18n-ignore: a fallback name in the file
-      dir: unit(s.dir), spec: spec && (spec.min !== null || spec.max !== null) ? { ...(spec.min !== null ? { min: spec.min } : {}), ...(spec.max !== null ? { max: spec.max } : {}) } : null, links,
+      dir: vec3(s.dir) ? unit(s.dir) : outputs[0].dir, ...(outputs.length ? { outputs } : {}), spec: spec && (spec.min !== null || spec.max !== null) ? { ...(spec.min !== null ? { min: spec.min } : {}), ...(spec.max !== null ? { max: spec.max } : {}) } : null, links,
     });
   }
   return out;
@@ -196,4 +269,22 @@ export function csv(stack, res, instName = (id) => id || '') {
   lines.push([t('stack.r.wc'), f4(res.nominal), f4(res.mean), f4(res.wc.tol), f4(res.wc.min), f4(res.wc.max)].map(cell).join(','));
   lines.push([t('stack.r.rss'), f4(res.nominal), f4(res.mean), f4(res.rss.tol), f4(res.rss.min), f4(res.rss.max)].map(cell).join(','));
   return '﻿' + lines.join('\r\n') + '\r\n';
+}
+
+/** A vector stack-up as CSV: one row per link (its direction, nominal, tolerances, swing), then one result block per direction. */
+export function csvVector(stack, vres, instName = (id) => id || '') {
+  const head = [t('stack.csv.link'), t('stack.csv.part'), t('stack.csv.sign'), 'dx', 'dy', 'dz', t('stack.csv.nominal'), t('stack.csv.up'), t('stack.csv.lo'), t('stack.col.swing'), t('stack.csv.source')];
+  const lines = [head.map(cell).join(',')];
+  for (const l of stack.links) {
+    const u = l.dir || [1, 0, 0];
+    lines.push([l.label, instName(l.inst), l.sign < 0 ? '-' : '+', f4(u[0]), f4(u[1]), f4(u[2]), f4(l.nominal), f4(l.up), f4(l.lo), l.ang ? f4((l.ang.up - l.ang.lo) / 2) : '', t('stack.source.' + l.source)].map(cell).join(','));
+  }
+  lines.push('');
+  lines.push([t('stack.csv.dir'), t('stack.csv.result'), t('stack.csv.nominal'), t('stack.csv.mean'), t('stack.csv.tol'), t('stack.csv.min'), t('stack.csv.max')].map(cell).join(','));
+  for (const o of vres.outputs) {
+    const name = o.id === 'gap' ? t('stack.out.gap') : o.name;
+    lines.push([name, t('stack.r.wc'), f4(o.nominal), f4(o.mean), f4(o.wc.tol), f4(o.wc.min), f4(o.wc.max)].map(cell).join(','));
+    lines.push([name, t('stack.r.rss'), f4(o.nominal), f4(o.mean), f4(o.rss.tol), f4(o.rss.min), f4(o.rss.max)].map(cell).join(','));
+  }
+  return '\ufeff' + lines.join('\r\n') + '\r\n';
 }

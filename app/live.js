@@ -163,6 +163,22 @@ export function createLive(opts) {
       return out;
     },
     touched, validate, diff,
+    /** EG.41 (0.8 round 3, part_PART_3): where a step landed, for an assistant's scope (studio/hub/live/assistant-scope.js). A part is one place
+     *  (sheet ''), so a scope holds an assistant to kinds of change instead — `tags`: sketch (sketches), features (the solid features), params
+     *  (variables and equations), studies (simulation, manufacture … settings), drawing, material, part (the rest). No box: a 2-D area means
+     *  nothing on a part, so an area scope refuses a step it cannot place (scope-unknown), never lets one through. */
+    where(ops) {
+      const tags = new Set();
+      const kind = (id, v) => { const f = v || P().features.find((x) => x.id === id); return f && f.type === 'sketch' ? 'sketch' : 'features'; };
+      for (const op of ops || []) {
+        if (!op || typeof op !== 'object') continue;
+        if (op.o === 'add' || op.o === 'set' || op.o === 'del') tags.add(kind(op.id, op.o === 'add' ? op.v : null));
+        else if (op.o === 'ord') tags.add('features');
+        else if (op.o === 'top') tags.add(['params', 'studies', 'drawing', 'material'].includes(op.f) ? op.f : op.f === 'configs' ? 'params' : 'part');
+      }
+      return tags.size ? { sheet: '', tags: [...tags] } : null;
+    },
+    sheetLabel() { return t('live.where.part'); },
     snapshot() { return pack({ v: SCHEMA, part: shared() }); },
     load(bytes) {
       const s = unpack(bytes);

@@ -1,0 +1,21 @@
+{
+  "id": "advanced-sim",
+  "name": "Advanced simulation",
+  "version": "0.8.0",
+  "apps": [
+    "partcraft"
+  ],
+  "api": "1.2",
+  "license": "Apache-2.0",
+  "entry": "./main.js",
+  "permissions": [
+    "panel",
+    "commands",
+    "files"
+  ],
+  "description": "Nonlinear studies (material that yields, bilinear) and contact studies (separate pieces, frictionless or bonded) on the part's Simulation study, with the load steps, a colour plot beside the part and CalculiX input decks (.inp) and results (.frd). The decks are written to CalculiX's manual and have never been run in CalculiX. An analysis aid, not a design approval.",
+  "author": "CadCraft",
+  "lang": "./lang/",
+  "help": "./help/help.js",
+  "default": "off"
+}

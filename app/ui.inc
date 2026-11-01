@@ -31,6 +31,7 @@ $__tools = [
         ['open', 'folder2-open', Lang::t('ui.tb.file.open'), Lang::t('ui.tb.file.open.title')],
         ['save', 'download', Lang::t('ui.tb.file.save'), Lang::t('ui.tb.file.save.title')],
         ['std-part', 'nut', Lang::t('ui.tb.file.std_part'), Lang::t('ui.tb.file.std_part.title')],
+        ['documents', 'folder2-open', Lang::t('input.cmd.file.documents'), Lang::t('sx.vault.cmd.help')],   // 0.8 SU.1058 (vault-08, mounted by engineer): the Documents panel
     ],
     'Sketch' => [   // i18n-ignore: the group's key (also its aria-label, which the shell's toolbar arrangement saves); the visible name is ui.tb.group.*
         ['sketch', 'pencil-square', Lang::t('ui.tb.sketch.sketch'), Lang::t('ui.tb.sketch.sketch.title')],
@@ -77,6 +78,8 @@ $__tools = [
         ['asm-joint', 'link-45deg', Lang::t('ui.tb.assembly.asm_joint'), Lang::t('ui.tb.assembly.asm_joint.title')],
         ['asm-check', 'exclamation-diamond', Lang::t('ui.tb.assembly.asm_check'), Lang::t('ui.tb.assembly.asm_check.title')],
         ['asm-stackup', 'rulers', Lang::t('ui.tb.assembly.asm_stackup'), Lang::t('ui.tb.assembly.asm_stackup.title')],
+        ['asm-motion', 'speedometer2', Lang::t('ui.tb.assembly.asm_motion'), Lang::t('ui.tb.assembly.asm_motion.title')],
+        ['asm-contact', 'layers-half', Lang::t('ui.tb.assembly.asm_contact'), Lang::t('ui.tb.assembly.asm_contact.title')],
         ['asm-edit', 'pencil', Lang::t('ui.tb.assembly.asm_edit'), Lang::t('ui.tb.assembly.asm_edit.title')],
         ['asm-close', 'x-square', Lang::t('ui.tb.assembly.asm_close'), Lang::t('ui.tb.assembly.asm_close.title')],
     ],
@@ -120,6 +123,8 @@ $__tools = [
               <div class="pc-menu-list" role="menu">
                 <?php foreach ([
                     ['revolve-cut', 'arrow-clockwise', Lang::t('ui.tb.fmore.revolve_cut'), Lang::t('ui.tb.fmore.revolve_cut.title')],
+                    ['sketch-photo', 'image', Lang::t('ui.tb.fmore.sketch_photo'), Lang::t('ui.tb.fmore.sketch_photo.title')],
+                    ['sketch-magnet', 'magnet', Lang::t('ui.tb.fmore.sketch_magnet'), Lang::t('ui.tb.fmore.sketch_magnet.title')],   /* 0.8 SG.7+ */
                     'ui.tb.fmore.h.reference',
                     ['plane', 'square-half', Lang::t('ui.tb.fmore.plane'), Lang::t('ui.tb.fmore.plane.title')],
                     ['axis', 'arrows-vertical', Lang::t('ui.tb.fmore.axis'), Lang::t('ui.tb.fmore.axis.title')],
@@ -146,7 +151,7 @@ $__tools = [
                   <?php if (is_string($__m)): ?><hr><div class="pc-menu-h" role="presentation"><?= Lang::e($__m) ?></div><?php continue; endif; ?>
                   <button type="button" role="menuitem" data-cmd="<?= e($__m[0]) ?>" title="<?= e($__m[3]) ?>"><i class="bi bi-<?= e($__m[1]) ?>" aria-hidden="true"></i> <?= e($__m[2]) ?></button><?php /* i18n-ignore: $__m holds Lang::t() texts */ ?>
                 <?php endforeach; ?>
-                <?php foreach (['ui.tb.fmore.h.details', ['rib', 'triangle', 'rib.menu'], ['thread', 'nut', 'thread.menu'], ['member', 'bounding-box', 'weld.menu'], 'ui.tb.fmore.h.sheet', ['sheetbase', 'file-earmark', 'sheet.menu.base'], ['sheetflange', 'arrow-90deg-up', 'sheet.menu.flange']] as $__m): ?>
+                <?php foreach (['ui.tb.fmore.h.details', ['rib', 'triangle', 'rib.menu'], ['thread', 'nut', 'thread.menu'], ['member', 'bounding-box', 'weld.menu'], ['generated', 'cpu', 'gb.menu'], 'ui.tb.fmore.h.sheet', ['sheetbase', 'file-earmark', 'sheet.menu.base'], ['sheetflange', 'arrow-90deg-up', 'sheet.menu.flange']] as $__m): ?>
                   <?php if (is_string($__m)): ?><hr><div class="pc-menu-h" role="presentation"><?= Lang::e($__m) ?></div><?php continue; endif; ?>
                   <button type="button" role="menuitem" data-cmd="<?= e($__m[0]) ?>" title="<?= Lang::e($__m[2] . '.title') ?>"><i class="bi bi-<?= e($__m[1]) ?>" aria-hidden="true"></i> <?= Lang::e($__m[2]) ?></button>
                 <?php endforeach; ?>
@@ -207,6 +212,8 @@ $__tools = [
               <summary class="pc-tool" title="<?= Lang::e('ui.tb.export.title') ?>"><i class="bi bi-box-arrow-up-right" aria-hidden="true"></i><span><?= Lang::e('ui.tb.export') ?></span></summary>
               <div class="pc-menu-list" role="menu">
                 <button type="button" role="menuitem" data-cmd="export-print"><?= Lang::e('ui.tb.export.print') ?></button>
+                <button type="button" role="menuitem" data-cmd="export-scaled" title="<?= Lang::e('ui.tb.export.scaled.title') ?>"><?= Lang::e('ui.tb.export.scaled') ?></button>
+                <button type="button" role="menuitem" data-cmd="export-split" title="<?= Lang::e('ui.tb.export.split.title') ?>"><?= Lang::e('ui.tb.export.split') ?></button>
                 <button type="button" role="menuitem" data-cmd="export-stl"><?= Lang::e('ui.tb.export.stl') ?></button>
                 <button type="button" role="menuitem" data-cmd="export-3mf"><?= Lang::e('ui.tb.export.3mf') ?></button>
                 <button type="button" role="menuitem" data-cmd="export-step"><?= Lang::e('ui.tb.export.step') ?></button>
@@ -220,7 +227,10 @@ $__tools = [
                 <a role="menuitem" class="pc-menu-link" data-sw-back href="<?= e($__build['url']) ?>CadCraftExport.swb" download="CadCraftExport.swb" title="<?= Lang::e('ui.tb.export.sw_back.title') ?>"><?= Lang::e('ui.tb.export.sw_back') ?></a>
                 <button type="button" role="menuitem" data-cmd="export-dxf"><?= Lang::e('ui.tb.export.dxf') ?></button>
                 <button type="button" role="menuitem" data-cmd="export-nest" title="<?= Lang::e('ui.tb.export.nest.title') ?>"><?= Lang::e('ui.tb.export.nest') ?></button>
+                <button type="button" role="menuitem" data-cmd="export-sheets" title="<?= Lang::e('ui.tb.export.sheets.title') ?>"><?= Lang::e('ui.tb.export.sheets') ?></button>
                 <button type="button" role="menuitem" data-cmd="export-laser" title="<?= Lang::e('ui.tb.export.laser.title') ?>"><?= Lang::e('ui.tb.export.laser') ?></button>
+                <button type="button" role="menuitem" data-cmd="export-ccx" title="<?= Lang::e('ui.tb.export.ccx.title') ?>"><?= Lang::e('ui.tb.export.ccx') ?></button>
+                <button type="button" role="menuitem" data-cmd="import-frd" title="<?= Lang::e('ui.tb.export.frd.title') ?>"><?= Lang::e('ui.tb.export.frd') ?></button>
                 <button type="button" role="menuitem" data-cmd="export-drawing"><?= Lang::e('ui.tb.export.drawing') ?></button>
                 <button type="button" role="menuitem" data-cmd="export-bom" hidden><?= Lang::e('ui.tb.export.bom') ?></button>
               </div>
@@ -229,7 +239,7 @@ $__tools = [
         </div>
       </div>
     <?php endforeach; ?>
-    <input type="file" class="visually-hidden" accept=".json,application/json,.step,.stp,.stl,.obj,.3mf,.3dm" tabindex="-1" aria-hidden="true" data-file>
+    <input type="file" class="visually-hidden" accept=".json,application/json,.step,.stp,.stl,.obj,.3mf,.3dm,.kicad_pcb" tabindex="-1" aria-hidden="true" data-file>
     <input type="file" class="visually-hidden" accept=".json,application/json" tabindex="-1" aria-hidden="true" data-insert-file>
   </div>
 

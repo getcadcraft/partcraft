@@ -41,6 +41,11 @@ A modelled thread prints as a real thread. Give it some **Clearance** so a print
 
 STL and 3MF are made of triangles. For smoother round faces, click empty space so nothing is selected and set **Curves** to **Fine (128 per turn)** or **Very fine (256 per turn)** in the right panel before you export. More triangles make bigger files.
 
+## Bigger, smaller, or in pieces
+
+- **Export › Scale for printing (STL or 3MF)…** saves the part scaled per axis without changing it: a **shrinkage allowance** in percent (size × (1 + s), or the exact size ÷ (1 − s)) for a casting pattern, or plain factors, about the middle, the lowest corner, the middle of the bottom or the origin.
+- **Export › Split for printing (a zip of pieces)…** cuts a part too big for your printer into pieces that each fit the bed you give, joined by pegs, keys, dovetails, dowel holes or magnet pockets (with the clearance you set), each piece and joint numbered, and saves the pieces as STL or 3MF in a zip with an assembly sheet. The part itself does not change.
+
 ## Not checked
 
 Wall thickness, details smaller than your nozzle can draw, and how the slicer will place supports. Your slicer shows those.
