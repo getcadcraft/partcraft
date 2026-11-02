@@ -708,11 +708,26 @@ export class View3D {
       down = null;
       this.onPick(this.pickAt(e.clientX, e.clientY), e);
     });
+    // Hover picking ray-casts the whole model (no BVH), so it must not run once per pointer event: a 1000 Hz mouse over a
+    // big part, or a large full-screen canvas, kept the main thread busy and the pointer stalled until Esc left full screen.
+    // One pick per animation frame with the latest position, and the next one waits as long as the last one took.
+    let hoverEv = null, hoverRaf = 0, hoverWait = 0;
+    const runHover = () => {
+      hoverRaf = 0;
+      const e = hoverEv; hoverEv = null;
+      if (!e || this.sketchFrame) return;
+      const t0 = performance.now();
+      this.onHover(this.pickAt(e.clientX, e.clientY), e);
+      hoverWait = Math.min(250, (performance.now() - t0) * 2);   // never more than 2/3 of the time busy picking
+      if (hoverWait > 8) { hoverRaf = -1; setTimeout(() => { hoverRaf = 0; if (hoverEv) schedHover(); }, hoverWait); }
+    };
+    const schedHover = () => { if (!hoverRaf) hoverRaf = requestAnimationFrame(runHover); };
     this.canvas.addEventListener('pointermove', (e) => {
       if (this.sketchFrame || e.buttons) return;
-      this.onHover(this.pickAt(e.clientX, e.clientY), e);
+      hoverEv = e;
+      schedHover();
     });
-    this.canvas.addEventListener('pointerleave', () => { if (!this.sketchFrame) this.onHover(null); });
+    this.canvas.addEventListener('pointerleave', () => { hoverEv = null; if (!this.sketchFrame) this.onHover(null); });
   }
 }
 
