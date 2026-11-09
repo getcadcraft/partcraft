@@ -27,6 +27,7 @@ const PHOTO = () => import('./photo-sketch.js');   // 0.8 EG.38: loaded when a p
 import * as HYDRO from './hydrostatics.js';   // 0.8 EG.26
 import * as COST from './cost.js';   // 0.8 EG.76 (also registers part.studies.cost for headless readers)
 import * as BRK from './break-part.js';   // 0.8 EG.31: Break it
+import { partLinkTools } from './link-pc.js';   // 0.9 SU.810b: a live link from a program that saves .3dm files
 export const design = DI;
 export const cost = COST;
 export const photo = PHOTO;   // a function: await photo() gives the module
@@ -399,6 +400,7 @@ export function installAgents(app) {
       const d = describePart(app.part(), app.regen());
       return { ...r, undo: label, failing: d.failing, solid: d.solid };
     } });
+  for (const d of partLinkTools(app)) T(d);
   T({ name: 'undo', group: 'edit', title: 'Undo', description: 'Undo the assistant\'s last steps on the part (only steps labelled "Assistant:" unless any is true).',
     inputSchema: obj({ steps: { description: 'How many steps to undo (default 1).', type: 'integer', minimum: 1, maximum: 100, default: 1 }, any: { description: 'true also undoes steps the person made, not only the assistant\'s (default false).', type: 'boolean', default: false } }),
     preview: (a) => { const l = app.lastUndo(); return { wouldUndo: l && (a.any || l.startsWith(PREFIX)) ? [l] : [], note: 'Only the last step is shown: PartCraft\'s history is not listed.' }; },

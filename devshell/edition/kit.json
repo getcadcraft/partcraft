@@ -66,6 +66,12 @@
             "url": "https://github.com/usnistgov/h5wasm",
             "note": "NIST public-domain-style statement for h5wasm; HDF5 under its BSD-style license (both permissive)."
         },
+        "kiri-moto": {
+            "name": "Kiri:Moto (slicer, grid-apps)",
+            "spdx": "MIT",
+            "url": "https://github.com/GridSpace/grid-apps",
+            "note": "Licence as stated in its LICENSE file (MIT, Stewart Allen). Open question PS.17: most of its source files also carry an \"All Rights Reserved\" header; legal has not answered, so this is the authors own statement, not a clearance."
+        },
         "manifold-3d": {
             "name": "Manifold",
             "spdx": "Apache-2.0",

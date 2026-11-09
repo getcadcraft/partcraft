@@ -275,7 +275,7 @@ function hideHostParts(host, hide) {
   host.view.setPartVisible?.(!hide);
   // the base planes too: only their object is hidden; Design's renderAll (syncPlanes) shows them again by its own setting
   if (hide && host.view.planes) host.view.planes.visible = false;
-  for (const o of host.view.instances || []) { if (o.mesh) o.mesh.visible = !hide; if (o.edges) o.edges.visible = !hide; }
+  host.view.setInstancesVisible?.(!hide);
 }
 /** The view's camera as a manual camera (the live view is orthographic; a view's own type is kept). */
 function cameraOf(host, type = 'ortho', fov = 35) {

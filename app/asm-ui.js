@@ -86,7 +86,7 @@ export function createAsmTools(ctx) {
     tc.addEventListener('change', () => view.render());
     tc.addEventListener('objectChange', () => {
       const d = deltaOf(g);
-      for (const o of view.instances) if (g.base?.has(o.id)) { const m = V.matMul(d, g.base.get(o.id)); for (const x of [o.mesh, o.edges]) { x.matrix.fromArray(m); x.matrixWorldNeedsUpdate = true; } }
+      view.setInstanceMatrices(new Map([...g.base].map(([id, b]) => [id, V.matMul(d, b)])));
       view.render();
     });
     tc.addEventListener('mouseUp', () => { const d = deltaOf(g); setTimeout(() => onDone(d), 0); });

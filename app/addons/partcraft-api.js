@@ -31,7 +31,8 @@ import * as AB from './addon-bodies.js';
 
 /** 1.1 (0.8 DC.117): api.model, display bodies in the viewport (additive; an add-on that asks for "1.0" still loads). */
 /** 1.2 (0.8 SU.891, add-on advanced-sim): api.study, the part's studies as data, the last rebuild read-only and the app's compute worker (additive). */
-export const PARTCRAFT_API_VERSION = '1.2';
+/** 1.3 (0.9 SU.908c, add-on fem-solid): api.view, picking faces of the part in the 3D view and marking them (additive). */
+export const PARTCRAFT_API_VERSION = '1.3';
 const WORKER_MODULE = /^[a-z0-9][a-z0-9-]{0,40}\.js$/;
 const SAFE_ID = /^[a-z0-9][a-z0-9-]{0,40}$/;
 const clone = (v) => (v === undefined || v === null ? v ?? null : JSON.parse(JSON.stringify(v)));
@@ -132,8 +133,35 @@ export function makePartcraftApi(base, addon, ctx) {
       return ctx.host.computeWorker(modules.map(String), { name: String(opts.name || addon.name) });
     },
   };
+  /** API 1.3: faces of the part's last rebuild, picked in the 3D view. A face is named by { name, at } (the part's own stable reference: it survives a rebuild). */
+  const view = {
+    /** [{ index, name, at, type, area }] of the last rebuild (empty when the rebuild has no named faces). */
+    faces: () => ((ctx.host.regen && ctx.host.regen.faces) || []).map((f, index) => ({ index, name: f.name, at: f.at ? f.at.map((v) => +v.toFixed(6)) : null, type: f.type, area: f.area })).filter((f) => f.name && f.at),
+    /** While active, a click on a face in the view calls fn({ index, ref: { name, at }, shift }) and does nothing else; → stop(). */
+    pickFaces(fn) {
+      if (typeof fn !== 'function') throw new Error('view.pickFaces: fn');
+      const entry = { fn, addon: id };
+      ctx.pickers.add(entry);
+      const off = () => { ctx.pickers.delete(entry); ctx.faceView?.hover?.(null); };
+      track(off);
+      return off;
+    },
+    /** Mark faces (face refs) in the view; [] clears. */
+    mark(refs) { ctx.faceView?.mark?.(view.resolve(refs || []).indices); },
+    /** Face refs → indices into the last rebuild's faces (nearest face of the same name); `gone` counts refs that found none. */
+    resolve(refs) {
+      const faces = (ctx.host.regen && ctx.host.regen.faces) || [], indices = [];
+      let gone = 0;
+      for (const r of refs) {
+        let best = -1, bd = Infinity;
+        faces.forEach((f, i) => { if (f.name !== r.name || !f.at) return; const d = Math.hypot(f.at[0] - r.at[0], f.at[1] - r.at[1], f.at[2] - r.at[2]); if (d < bd) { bd = d; best = i; } });
+        if (best >= 0) indices.push(best); else gone++;
+      }
+      return { indices, gone };
+    },
+  };
   const api = {
-    ...shared, ui, part, model, commands, props, study,
+    ...shared, ui, part, model, commands, props, study, view,
     selection: { get: () => clone(ctx.selection()), feature: () => { const s = ctx.selection(); return s && s.kind === 'feature' ? clone(P.featureById(ctx.host.part, s.id)) : null; } },
     select: (fid) => ctx.select(fid),
     status: (text) => ctx.host.status(String(text)),
@@ -198,7 +226,7 @@ export function appSide(ctx, registry) {
  */
 export async function startAddons(ctx) {
   const registry = { importers: new Map(), exporters: new Map(), listeners: new Set(), changed() { for (const fn of this.listeners) { try { fn(); } catch { /* app */ } } } };
-  const full = { ...ctx, registry, commands: new Map(), props: new Map(), tabs: new Map(), changeListeners: new Set() };
+  const full = { ...ctx, registry, commands: new Map(), props: new Map(), tabs: new Map(), changeListeners: new Set(), pickers: new Set() };
   const opts = { app: 'partcraft', appName: ctx.appName || 'PartCraft', apiVersion: PARTCRAFT_API_VERSION, makeApi: (b, a) => makePartcraftApi(b, a, full) };
   for (const k of ['packages', 'storage', 'importer', 'fetchJson', 'base', 'locale', 'timeout']) if (ctx[k] !== undefined) opts[k] = ctx[k];
   if (ctx.bundledOnly ?? bundledOnly()) opts.packages = NO_PACKAGES;
@@ -209,6 +237,24 @@ export async function startAddons(ctx) {
     loader, ...side,
     list: () => loader.list(), installPackage: (p) => loader.installPackage(p), uninstall: (id) => loader.uninstall(id),
     onChange: (fn) => { registry.listeners.add(fn); const off = loader.on(fn); return () => { registry.listeners.delete(fn); off(); }; },
+    /** The app calls this on a click in the view (API 1.3): true when an add-on is picking faces and took the click. */
+    pick(h, e) {
+      if (!full.pickers.size) return false;
+      const rg = ctx.host.regen, p = [...full.pickers].pop();
+      if (h && h.kind === 'face' && h.face !== undefined && h.face >= 0 && rg && rg.faces && rg.faces[h.face] && rg.faces[h.face].name) {
+        const f = rg.faces[h.face];
+        try { p.fn({ index: h.face, ref: { name: f.name, at: f.at.map((v) => +v.toFixed(6)) }, shift: !!(e && e.shiftKey) }); } catch (err) { console.warn('add-on face pick failed:', err); }   // i18n-ignore
+      }
+      return true;
+    },
+    /** The app calls this on hover: true while an add-on is picking (the face under the pointer is lit). */
+    hover(h) {
+      if (!full.pickers.size) return false;
+      const tf = ctx.host.regen && ctx.host.regen.mesh && ctx.host.regen.mesh.triFace, tris = [];
+      if (h && h.kind === 'face' && h.face >= 0 && tf) for (let t = 0; t < tf.length; t++) if (tf[t] === h.face) tris.push(t);
+      ctx.faceView?.hover?.(tris.length ? tris : null);
+      return true;
+    },
     /** The app calls this after every change (rebuild, undo, open): add-ons' part.onChange hears it. */
     changed: (why) => { for (const fn of full.changeListeners) fn(why); },
     /** An add-on importer for this file → true when it opened it ({ part } replaces the part; { features } adds them). */

@@ -1,1 +1,21 @@
-{"addons": ["cabinetcraft", "trusscraft", "advanced-sim", "magnetics"]}
+{
+  "addons": [
+    "cabinetcraft",
+    "trusscraft",
+    "advanced-sim",
+    "magnetics",
+    "factory",
+    "fem-solid",
+    "print3d",
+    "slicer-kiri",
+    "slicer-prusaslicer",
+    "slicer-orcaslicer",
+    "printer-bambu",
+    "slicer-resin",
+    "printer-resin-goo",
+    "printer-resin-sl1",
+    "resin-calibration",
+    "printer-resin-chitu",
+    "printer-resin-anycubic"
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "id": "factory",
+  "name": "Factory floor",
+  "version": "0.9.0",
+  "apps": [
+    "partcraft"
+  ],
+  "api": "1.0",
+  "license": "Apache-2.0",
+  "entry": "./main.js",
+  "permissions": [
+    "panel",
+    "files",
+    "storage"
+  ],
+  "description": "The CAM side of the factory job queue: hands each program posted in Manufacture to ModelCraft's Factory floor job queue, or saves it as a job file. It never sends or starts a machine itself.",
+  "author": "CadCraft",
+  "lang": "./lang/",
+  "help": "./help/help.js",
+  "default": "off"
+}

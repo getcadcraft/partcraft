@@ -25,6 +25,8 @@
 
 import { pack, unpack } from './live-client.js';
 import { t } from './i18n.js';
+import { attachPresence, threeView } from './live-presence.js';
+import { threeFollow } from './live-follow.js';   // 0.9 ED.1: follow a view (the camera)
 
 export const SCHEMA = 1;
 export const ID_BLOCK = 1e6;
@@ -225,6 +227,7 @@ export function createLiveAdapter({ host } = {}) {
       if (c && c.adapter === a) {
         a.bind(c); stop = watch(app, a, c);
         offs = [
+          attachPresence(c, a, presenceView(app), { t }),
           c.on('refused', (r) => say(t(r.reason === 'locked' ? 'live.refused.locked' : r.reason === 'role' ? 'live.refused.role' : 'live.refused', { what: r.label || '', name: r.byName || t('live.someone') }))),
           c.on('undo-skipped', (r) => say(t('live.undo_skipped', { what: r.label || '', name: r.byName || t('live.someone') }))),
           c.on('ended', () => say(t('live.ended'))),
@@ -285,6 +288,38 @@ function watch(app, a, client) {
 }
 
 /** A browser opening a link with #live=<code> (a page a host serves on the LAN) or ?live=<ROOM>#<secret> joins. */
+/**
+ * Where PartCraft's pointer is and where others' go (0.9 SU.1112, live-presence.js): part millimetres, the point on the
+ * part under the pointer (else the plane through the view's centre). A selection is a feature in the tree: its name goes
+ * beside the person's name.
+ */
+export function presenceView(app) {
+  const v = () => app.view;
+  const tv = threeView({
+    camera: () => v() && v().camera,
+    target: () => { const c = v() && v().controls && v().controls.target; return c ? [c.x, c.y, c.z] : null; },
+    hit: (x, y) => {
+      const view = v();
+      if (!view || !view.pickAt || !view.canvas) return null;
+      const r = view.canvas.getBoundingClientRect();
+      const h = view.pickAt(r.left + x, r.top + y, { planes: false, edges: false });
+      return h && h.kind === 'face' && Array.isArray(h.point) ? h.point : null;
+    },
+  });
+  return {
+    get el() { return v() && v().canvas; },
+    toModel: tv.toModel, toScreen: tv.toScreen,
+    ...threeFollow({ camera: () => v() && v().camera, controls: () => v() && v().controls, scale: 1, render: () => { const x = v(); if (x && x.render) x.render(); } }),   // 0.9 ED.1
+    selectionLabel: () => {
+      const s = app.sel, part = app.part;
+      if (!s || s.kind !== 'feature' || !part) return '';
+      const f = (part.features || []).find((x) => x.id === s.id);
+      return f ? String(f.name || '') : '';
+    },
+    hidden: () => { const c = v() && v().canvas; return !c || !c.isConnected || c.offsetParent === null; },
+  };
+}
+
 export async function joinFromPage(app, fileHost, w = globalThis) {
   const lv = fileHost && fileHost.live;
   if (!lv || !app) return false;

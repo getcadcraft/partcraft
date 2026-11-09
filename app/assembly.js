@@ -174,10 +174,13 @@ export function jointMotion(j) {
  * themselves are not changed: applySolved(asm, loops) writes the answer into them. `solve: false` = the old walk (a joint that
  * closes a loop only checked).
  */
-export function placeAll(asm, builds, { solve = true, hold = null, start = null } = {}) {
+export function placeAll(asm, builds, { solve = true, hold = null, start = null, prev = null } = {}) {
   const world = new Map();
   const problems = [];
   if (!asm.instances.length) return { world, problems, loops: null };
+  // 0.9 SU.749: only what moved. With the last answer (`prev`) and no loops, a joint whose values changed re-places just the
+  // parts behind it; anything else that differs (a part rebuilt, a joint added, a face changed) places everything again.
+  if (solve && prev?.inc) { const r = placeIncremental(asm, builds, prev); if (r) return r; }
   const frames = new Map();   // joint id → [FA, FB] (part coordinates); a joint whose faces are gone is left out
   for (const j of asm.joints) {
     try { const FA = endFrame(asm, builds, j.a), FB = endFrame(asm, builds, j.b); frames.set(j.id, [FA, FB, V.matMul(FLIP, rigidInverse(FB))]); }
@@ -194,11 +197,71 @@ export function placeAll(asm, builds, { solve = true, hold = null, start = null 
   for (const i of asm.instances) {
     if (!world.has(i.id)) { world.set(i.id, i.place); if (i !== ground) problems.push({ inst: i.id, message: t('model.assembly.not_joined', { name: i.name }), free: true }); }
   }
-  return { world, problems, loops };
+  const out = { world, problems, loops };
+  if (solve && (!loops || loops.status === 'none') && !w.closing.length && live.length === asm.joints.length) out.inc = incState(asm, builds, live, frames, w.up, world);
+  return out;
 }
 
+/** What placeIncremental needs from a full placement (a tree, no loops): the builds it used, each joint's frames and a signature of
+ *  its ends and of its values, the tree (child → joint and parent), and where the parts not in it sit. */
+function incState(asm, builds, joints, frames, up, world) {
+  const ends = new Map(), vals = new Map(), jobj = new Map();
+  for (const j of joints) { ends.set(j.id, JSON.stringify([j.a, j.b])); vals.set(j.id, valuesSig(j)); jobj.set(j.id, j); }
+  const kids = new Map(), childOfJoint = new Map();
+  for (const [child, u] of up) { if (!kids.has(u.parent)) kids.set(u.parent, []); kids.get(u.parent).push(child); childOfJoint.set(u.joint, child); }
+  const depth = new Map([[asm.instances[0].id, 0]]);
+  for (const queue = [asm.instances[0].id]; queue.length;) { const p = queue.pop(); for (const c of kids.get(p) || []) { depth.set(c, depth.get(p) + 1); queue.push(c); } }
+  return { depth, builds: new Map([...builds]), frames, ends, vals, up, kids, childOfJoint, ids: asm.instances.map((i) => i.id), ground: asm.instances[0].place, places: new Map(asm.instances.filter((i) => !up.has(i.id)).map((i) => [i.id, i.place.join(',')])), world, jointIds: joints.map((j) => j.id) };
+}
+const valuesSig = (j) => [j.type, j.angle, j.offset, j.dx, j.dy, j.tiltX, j.tiltY, j.slide, j.slotDir, j.limits ? JSON.stringify(j.limits) : ''].join('|');
+
+/** Re-place only the parts behind the joints whose values changed since `prev`; null when anything else changed (the caller places everything). */
+function placeIncremental(asm, builds, prev) {
+  const inc = prev.inc;
+  if (asm.instances.length !== inc.ids.length || asm.joints.length !== inc.jointIds.length) return null;
+  for (let k = 0; k < inc.ids.length; k++) if (asm.instances[k].id !== inc.ids[k]) return null;
+  for (const [pid, b] of builds) if (inc.builds.get(pid) !== b) return null;
+  if (builds.size !== inc.builds.size) return null;
+  if (asm.instances[0].place.join(',') !== inc.ground.join(',')) return null;
+  for (const i of asm.instances) { const was = inc.places.get(i.id); if (was !== undefined && was !== i.place.join(',')) return null; }
+  const changed = [];
+  for (let k = 0; k < asm.joints.length; k++) {
+    const j = asm.joints[k];
+    if (j.id !== inc.jointIds[k] || JSON.stringify([j.a, j.b]) !== inc.ends.get(j.id)) return null;
+    if (valuesSig(j) !== inc.vals.get(j.id)) changed.push(j);
+  }
+  const world = new Map(inc.world);
+  const vals = new Map(inc.vals);
+  const todo = [];
+  for (const j of changed) {
+    vals.set(j.id, valuesSig(j));
+    const child = inc.childOfJoint.get(j.id);
+    if (child === undefined) return null;
+    todo.push(child);
+  }
+  const jointOf = new Map(asm.joints.map((j) => [j.id, j]));
+  const seen = new Set();
+  for (const c of todo) {   // the changed joints' children and everything behind them
+    if (seen.has(c)) continue;
+    for (const stack = [c]; stack.length;) { const x = stack.pop(); if (seen.has(x)) continue; seen.add(x); for (const k of inc.kids.get(x) || []) stack.push(k); }
+  }
+  const order = [...seen].sort((p, q) => inc.depth.get(p) - inc.depth.get(q));   // parents before children
+  for (const child of order) {
+    const u = inc.up.get(child), j = jointOf.get(u.joint), [FA, , K] = inc.frames.get(j.id);
+    const chain = chainOf(j, FA, K, null);
+    world.set(child, j.a.inst === u.parent ? V.matMul(world.get(u.parent), chain) : V.matMul(world.get(u.parent), rigidInverse(chain)));
+  }
+  return { world, problems: prev.problems, loops: prev.loops, inc: { ...inc, vals, world }, moved: seen.size };
+}
+
+const instIndex = new WeakMap();   // asm.instances → Map id → instance (rebuilt when the list's length changes)
+function instanceOf(asm, id) {
+  let m = instIndex.get(asm.instances);
+  if (!m || m.n !== asm.instances.length || m.get(id)?.id !== id) { m = new Map(asm.instances.map((i) => [i.id, i])); m.n = asm.instances.length; instIndex.set(asm.instances, m); }
+  return m.get(id);
+}
 function endFrame(asm, builds, end) {
-  const inst = asm.instances.find((i) => i.id === end.inst);
+  const inst = instanceOf(asm, end.inst);
   const p = inst && asm.parts[inst.part];
   if (!p) throw new Error(t('model.assembly.joint_part_gone'));
   return mateFrame(end, builds.get(inst.part), p.part);
@@ -715,13 +778,13 @@ export function readAssembly(raw) {
     try { part = readPart(p.part); props = readPartProps(p); } catch (e) { throw new Error(t('model.assembly.file.part_problem', { name: text(p.name) || pid, message: e.message })); }
     asm.parts[pid] = { name: text(p.name) || part.name, part, ...props };
   }
-  if (!Array.isArray(j.instances) || j.instances.length > 500) throw new Error(t('model.assembly.file.no_instances'));
+  if (!Array.isArray(j.instances) || j.instances.length > 50000) throw new Error(t('model.assembly.file.no_instances'));
   for (const i of j.instances) {
     if (!asm.parts[i.part]) throw new Error(t('model.assembly.file.inst_missing_part'));
     if (!Array.isArray(i.place) || i.place.length !== 16 || !i.place.every(num)) throw new Error(t('model.assembly.file.inst_bad_place'));
     asm.instances.push({ id: take(i.id, /^i\d{1,9}$/), part: i.part, name: text(i.name, 80) || i.id, place: [...i.place] });
   }
-  if (!Array.isArray(j.joints) || j.joints.length > 1000) throw new Error(t('model.assembly.file.no_joints'));
+  if (!Array.isArray(j.joints) || j.joints.length > 100000) throw new Error(t('model.assembly.file.no_joints'));
   const insts = new Set(asm.instances.map((i) => i.id));
   const end = (e) => {
     if (!e || !insts.has(e.inst)) throw new Error(t('model.assembly.file.joint_missing_part'));

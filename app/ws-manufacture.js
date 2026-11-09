@@ -652,6 +652,8 @@ function doPost(host, send = false) {
   const cur = study(host) || S.resultFor;
   const kind = cur.setup.machine.post;
   const out = post(pg, { post: kind, name: host.part.name || 'Part', posts: cur.posts || [] });   // i18n-ignore: program name in the G-code
+  // 0.9 D8.13: the posted program, for the Factory floor add-on's job queue (it listens; nothing happens when it is off)
+  try { window.dispatchEvent(new CustomEvent('cc-cam-posted', { detail: { app: 'partcraft', file: `${baseName(host)}.${out.ext}`, text: out.text, post: kind, postName: postName(cur, kind), part: host.part.name || '' } })); } catch { /* no window (tests) */ }
   if (send) { sendProgram(host, `${baseName(host)}.${out.ext}`, out.text); return; }
   host.downloadBlob(`${baseName(host)}.${out.ext}`, new Blob([out.text], { type: 'text/plain' }), 'text/plain');
   if (!bad.length) host.status(t('mfg.post.done', { post: postName(cur, kind) }));

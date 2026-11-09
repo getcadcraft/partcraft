@@ -1239,6 +1239,7 @@ section('exact kernel: drawings by hidden-line removal, section and detail views
 
 await (await import(path.join(REPO, 'tools/partcraft-test/test-gdt.mjs'))).runGdtTests({ ok, section, near });
 await (await import(path.join(REPO, 'tools/partcraft-test/test-sketch-tools.mjs'))).runSketchToolTests({ ok, section, near, oc, skip });
+await (await import(path.join(REPO, 'tools/partcraft-test/test-sketch-arcs.mjs'))).runSketchArcTests({ ok, section, near });   // 0.9 FX.137
 await (await import(path.join(REPO, 'tools/partcraft-test/test-assembly-tools.mjs'))).runAssemblyToolsTests({ ok, section, oc, skip });
 await (await import(path.join(REPO, 'tools/partcraft-test/test-workspaces.mjs'))).runWorkspaceTests({ ok, section, near });
 await (await import(path.join(REPO, 'tools/partcraft-test/test-illustrate.mjs'))).runIllustrateTests({ ok, section, near, M });   // 0.7 Track TP (session illustrate; after the workspaces test, which lists the switcher)
@@ -1307,6 +1308,7 @@ await (await import(path.join(REPO, 'tools/partcraft-test/test-threads.mjs'))).r
 await (await import(path.join(REPO, 'tools/partcraft-test/test-script.mjs'))).runScriptTests({ ok, section });
 await (await import(path.join(REPO, 'tools/partcraft-test/test-pu.mjs'))).runPuTests({ ok, section, M });   // 0.6 PU.1–PU.6
 await (await import(path.join(REPO, 'tools/partcraft-test/test-large.mjs'))).runLargeTests({ ok, section, M });   // 0.7 D7.51 (750 features, batched build, checkpoints)
+await (await import(path.join(REPO, 'tools/partcraft-test/test-assembly-large.mjs'))).runAssemblyLargeTests({ ok, section });   // 0.9 SU.749 (large lattices, placing only what moved)
 
 section('exact kernel: hygiene');
 {

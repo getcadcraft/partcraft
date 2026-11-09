@@ -21,6 +21,7 @@ import { t as tr } from './i18n.js';
 
 /** The doc's block (shell-modules.md § Mounting 2). Kept as the doc has it; browser-mount-kit.mjs compares them. */
 export function mountShellModules(host) {
+  { const f = () => window.ccDocTitleFollow && window.ccDocTitleFollow(host); if (window.ccDocTitleFollow) f(); else window.addEventListener('load', f); }   // 2026-11-09: tab title = document name (one pattern, app-shell.js)
   const when = (api, name, go) => (window[api] ? go() : document.addEventListener('cc-' + name + '-ready', go, { once: true }));
   // EG.18 calc sheets — parameters in, drives out, saved inside the app's own file
   when('ccCalc', 'calc', () => {
@@ -46,6 +47,11 @@ export function mountShellModules(host) {
     for (const [name, fn] of Object.entries(host.probes || {})) ccLessons.probe(name, fn);
     ccLessons.registerTools(host.control);
     host.emit = (event, data) => ccLessons.emit(event, data);           // the app calls host.emit('tool', { name: 'line' }) where it runs a command
+  });
+  // DI.1 drawing details — what the app counts, and where the written details are kept in its file
+  when('ccDocInfo', 'docinfo', () => {
+    ccDocInfo.attach({ read: host.docinfo?.read, persist: (json) => host.file.set('docinfo', json), step: host.step, onChange: host.docinfo?.onChange });   // read() → { units, extents, counts, extra, bytes, path }
+    ccDocInfo.registerTools(host.control);
   });
   // AC.12 Suggest, AC.13 activity log, AC.8 Ask box — they ride on host.control, so the app hands over very little
   when('ccSuggest', 'suggest', () => {
@@ -74,6 +80,7 @@ const keepObject = (raw) => {
 // registered when this module loads (part.js refuses a study key without a reader), like every workspace's studies
 registerStudyReader('calcs', keepObject);
 registerStudyReader('reasons', keepObject);
+registerStudyReader('docinfo', keepObject);   // 0.9 DI.1: the drawing details
 
 // a value a calc sheet hands over in its unit → PartCraft's (mm, degrees)
 const TO_MM = { mm: 1, cm: 10, m: 1000, in: 25.4, ft: 304.8 }, TO_DEG = { deg: 1, '°': 1, rad: 180 / Math.PI };
@@ -118,6 +125,14 @@ export function partHost(pc, keep) {
     units: UNITS,
     step: (label, fn) => pc.commit(label, fn),
     file: { set: (key, json) => keep(key, json) },
+    docinfo: {   // DI.1: the built solid's real numbers; nothing while there is no solid (a part is in mm)
+      read: () => {
+        const r = pc.regen(), st = r && r.stats, mesh = r && r.mesh;
+        const counts = { elements: pc.part().features.length };
+        if (mesh && mesh.indices && mesh.positions) { counts.triangles = Math.floor(mesh.indices.length / 3); counts.vertices = Math.floor(mesh.positions.length / 3); }
+        return { units: 'mm', path: pc.path() || pc.name(), extents: st && st.bbox ? { min: st.bbox.min, max: st.bbox.max } : null, counts };
+      },
+    },
     params: {
       list: () => { const r = rows(); return [...r.variables.map((v) => v.name), ...r.numbers.map((n) => n.key)]; },
       get: (name) => {
@@ -151,6 +166,7 @@ export function partHost(pc, keep) {
     ...lessonsOf(pc),
     rev: () => pc.undoDepth(),
     document: () => ({ docId: pc.name(), path: pc.path() || '', name: pc.name() }),
+    dirty: () => !!pc.dirty,   // 2026-11-09: the tab title's unsaved mark (assets/js/app-doc-title.js)
     perms: {
       get: () => ASSIST(),
       set: (rec) => { try { localStorage.setItem(ASSIST_KEY + 'partcraft', JSON.stringify(rec)); } catch { /* private mode */ } },
@@ -179,9 +195,11 @@ export function mountPartShell(pc) {
     const st = pc.part().studies || {};
     if (window.ccCalc) ccCalc.load(st.calcs || null);
     if (window.ccReasons) ccReasons.load(st.reasons || null);
+    if (window.ccDocInfo) ccDocInfo.load(st.docinfo || null);
   };
   document.addEventListener('cc-calc-ready', reload, { once: true });
   document.addEventListener('cc-reasons-ready', reload, { once: true });
+  document.addEventListener('cc-docinfo-ready', reload, { once: true });
   let lastSel = null;
   return {
     host,
@@ -190,5 +208,7 @@ export function mountPartShell(pc) {
     selChanged() { const s = pc.sel(), k = s ? s.kind + ':' + s.id : ''; if (k !== lastSel) { lastSel = k; host._selChanged(); } },
     changed() { if (window.ccLessons) ccLessons.emit('model', {}); if (window.ccTotals) ccTotals.invalidate?.(); },
     tool(name) { host.emit?.('tool', { name }); },
+    /** DI.1: call just before the part is written. A part whose details were never written stays as it was; otherwise the save time goes in (outside undo). */
+    stampSave() { if (window.ccDocInfo && ccDocInfo.state().written) { const di = ccDocInfo.save(); if (di) (pc.part().studies ||= {}).docinfo = di; } },
   };
 }

@@ -29,6 +29,11 @@ export function meshFrom3dm(bytes) {
   let scene;
   try { scene = open3dm(bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes)); }
   catch (e) { throw e && e.name === 'ThreeDmError' ? new Mesh3dmError('ccdm.part.unreadable', { why: e.message }) : e; }
+  return meshFromScene(scene);
+}
+
+/** A scene already read (0.9 SU.810b: a live link merges scenes before it makes the mesh). */
+export function meshFromScene(scene) {
   const unitOk = PART_UNITS.has(scene.units.name);
   const s = unitOk ? 1 : scene.units.metres * 1000;   // other units: into millimetres
   const P = [], T = [];

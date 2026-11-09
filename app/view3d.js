@@ -48,7 +48,7 @@ export class View3D {
       f.ccFlipped = true;
       canvas.dispatchEvent(f);
     }, { capture: true, passive: false });
-    this.controls.addEventListener('change', () => this.render());
+    this.controls.addEventListener('change', () => { this.noteMoving(); this.render(); });
     // trackpad (Settings › PartCraft › Scrolling): a two-finger swipe orbits, Shift + swipe pans; a pinch
     // (wheel + ctrlKey) is left to OrbitControls, which zooms. Caught on the way down, before OrbitControls sees it.
     this.isPad = null;
@@ -112,7 +112,7 @@ export class View3D {
     this.bodyColor = new THREE.Color(dark ? '#8c96a3' : '#c8ced6');
     if (this.mesh && !this.mesh.material.vertexColors) this.mesh.material.color.copy(this.bodyColor);
     if (this.edges) this.edges.material.color.copy(this.colors.ink);
-    for (const o of this.instances || []) { o.edges.material.color.copy(this.colors.ink); if (dark) o.mesh.material.color.set('#8c96a3'); }
+    if (this.batches?.length) this.paintInstances();
     for (const p of this.planes.children) this.tintPlane(p);
     if (this.capQuad) this.capQuad.material.color.copy(this.capColor());
     this.render();
@@ -382,42 +382,71 @@ export class View3D {
   }
 
   // ---------------------------------------------------------------- assembly instances
+  // 0.9 SU.749: one InstancedMesh (and one instanced LineSegments for the edges) per part, whatever the number of copies: the
+  // draw calls follow the parts, not the copies. this.instances = [{ id, data, matrix, groups, batch, slot }] (light records);
+  // this.batches = [{ data, mesh, edges, recs }].
   clearInstances() {
-    for (const o of this.instances || []) { o.mesh.material.dispose(); o.edges.material.dispose(); o.mesh.removeFromParent(); o.edges.removeFromParent(); }
+    for (const b of this.batches || []) { for (const o of [b.mesh, b.edges, b.proxy]) { o.material.dispose(); o.dispose?.(); o.removeFromParent(); } }
+    this.batches = [];
     this.instances = [];
   }
 
-  /** Several parts at once: [{ id, data (kernel mesh), matrix (16), tint (0…1 toward the pick colour) }]. Geometry is shared per part mesh. */
+  /** Several parts at once: [{ id, data (kernel mesh), matrix (16) }]. Geometry is shared per part mesh; the copies of one part
+   *  are drawn in one call. When only the matrices differ from the last call (same copies of the same parts), just those move. */
   setInstances(list) {
     for (const o of [this.mesh, this.edges]) if (o) { o.geometry.dispose(); o.material.dispose(); o.removeFromParent(); }
     this.mesh = this.edges = null; this.data = null; this.groups = null;
     this.setHighlight(null); this.setHover(null);
+    const cur = this.instances;
+    if (cur?.length && cur.length === list.length && this.instMode && list.every((it, k) => it.id === cur[k].id && it.data === cur[k].data)) {
+      this.moveInstances(list);
+      return;
+    }
     this.clearInstances();
     this.geoCache = this.geoCache || new WeakMap();
-    const box = new THREE.Box3();
-    const palette = ['#c8ced6', '#b9c7d9', '#d6cbb9', '#c2d6c0', '#d6c0cd', '#c9c2d9'];
-    list.forEach((it, n) => {
-      let g = this.geoCache.get(it.data);
+    const box = new THREE.Box3(), tmp = new THREE.Box3(), mat = new THREE.Matrix4();
+    const byData = new Map(), recOf = new Map();
+    list.forEach((it) => {
+      let b = byData.get(it.data);
+      if (!b) { b = { data: it.data, recs: [] }; byData.set(it.data, b); }
+      b.recs.push(it);
+    });
+    for (const [data, b] of byData) {
+      let g = this.geoCache.get(data);
       if (!g) {
-        const P = it.data.positions, I = it.data.indices, nt = I.length / 3;
+        const P = data.positions, I = data.indices, nt = I.length / 3;
         const pos = new Float32Array(nt * 9);
         for (let t = 0; t < nt; t++) for (let k = 0; k < 3; k++) for (let c = 0; c < 3; c++) pos[t * 9 + k * 3 + c] = P[I[t * 3 + k] * 3 + c];
         const geo = new THREE.BufferGeometry();
         geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
         geo.computeVertexNormals(); geo.computeBoundingBox(); geo.computeBoundingSphere();
-        if (it.data.cornerNormals && it.data.cornerNormals.length === pos.length) geo.setAttribute('normal', new THREE.BufferAttribute(it.data.cornerNormals, 3));
-        g = { geo, edges: edgeGeometry(it.data).geo, groups: planarGroups(it.data) };
-        this.geoCache.set(it.data, g);
+        if (data.cornerNormals && data.cornerNormals.length === pos.length) geo.setAttribute('normal', new THREE.BufferAttribute(data.cornerNormals, 3));
+        g = { geo, edges: edgeGeometry(data).geo, groups: planarGroups(data) };
+        this.geoCache.set(data, g);
       }
-      const base = new THREE.Color(this.dark ? '#8c96a3' : palette[n % palette.length]);
-      if (this.dark) base.offsetHSL(0, 0, (n % 3) * 0.04);
-      const mesh = new THREE.Mesh(g.geo, new THREE.MeshStandardMaterial({ color: base, roughness: 0.75, metalness: 0.05, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 }));
-      const edges = new THREE.LineSegments(g.edges, new THREE.LineBasicMaterial({ color: this.colors.ink }));
-      for (const o of [mesh, edges]) { o.matrixAutoUpdate = false; o.matrix.fromArray(it.matrix); o.matrixWorldNeedsUpdate = true; this.root.add(o); }
-      mesh.userData.inst = it.id;
-      this.instances.push({ id: it.id, mesh, edges, data: it.data, matrix: it.matrix, groups: g.groups });
-      box.union(g.geo.boundingBox.clone().applyMatrix4(new THREE.Matrix4().fromArray(it.matrix)));
-    });
+      const n = b.recs.length;
+      const mesh = new THREE.InstancedMesh(g.geo, new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.75, metalness: 0.05, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 }), n);
+      const edges = new THREE.InstancedMesh(g.edges, new THREE.LineBasicMaterial({ color: this.colors.ink }), n);
+      edges.isMesh = false; edges.isLine = true; edges.isLineSegments = true;   // three draws any InstancedMesh-flagged object once per copy: here as lines
+      edges.raycast = () => {};
+      // the lightweight stand-in: the part's bounding box, in the same places and colours (shared buffers), drawn while the view moves
+      const bb = g.geo.boundingBox, bs = bb.getSize(new THREE.Vector3()), bc = bb.getCenter(new THREE.Vector3());
+      const boxGeo = g.box || (g.box = new THREE.BoxGeometry(Math.max(bs.x, 1e-6), Math.max(bs.y, 1e-6), Math.max(bs.z, 1e-6)).translate(bc.x, bc.y, bc.z));
+      const proxy = new THREE.InstancedMesh(boxGeo, new THREE.MeshLambertMaterial({ color: 0xffffff }), n);
+      proxy.instanceMatrix = mesh.instanceMatrix; proxy.visible = false; proxy.raycast = () => {};
+      const batch = { data, mesh, edges, proxy, recs: [], tris: g.geo.attributes.position.count / 3 };
+      b.recs.forEach((it, slot) => {
+        const rec = { id: it.id, data, matrix: it.matrix, groups: g.groups, batch, slot, n: 0 };
+        batch.recs.push(rec); recOf.set(it, rec);
+        mesh.setMatrixAt(slot, mat.fromArray(it.matrix)); edges.instanceMatrix.array.set(it.matrix, slot * 16);
+        tmp.copy(g.geo.boundingBox).applyMatrix4(mat); box.union(tmp);
+      });
+      for (const o of [mesh, edges, proxy]) { o.frustumCulled = false; o.matrixAutoUpdate = false; this.root.add(o); }
+      this.batches.push(batch);
+    }
+    // the colour of each copy follows its place in the list (as the one-mesh-per-copy version did)
+    this.instances = list.map((it, n) => { const r = recOf.get(it); r.n = n; return r; });   // in the caller's order (moveInstances relies on it)
+    this.paintInstances();
     if (!box.isEmpty()) {
       this.box = box;
       const sz = box.getSize(new THREE.Vector3()).length();
@@ -425,8 +454,76 @@ export class View3D {
       this.buildPlanes();
     }
     this.instMode = true;
+    this.instTris = this.batches.reduce((a, b) => a + b.tris * b.recs.length, 0);
+    this.updateLod();
     this.applySection();
     this.render();
+  }
+
+  /** The tint of every copy: a pale cycle on paper, mid grey with a little variation on the dark model space. */
+  paintInstances() {
+    const palette = ['#c8ced6', '#b9c7d9', '#d6cbb9', '#c2d6c0', '#d6c0cd', '#c9c2d9'];
+    const c = new THREE.Color();
+    for (const b of this.batches || []) {
+      for (const r of b.recs) {
+        c.set(this.dark ? '#8c96a3' : palette[r.n % palette.length]);
+        if (this.dark) c.offsetHSL(0, 0, (r.n % 3) * 0.04);
+        b.mesh.setColorAt(r.slot, c);
+      }
+      if (b.mesh.instanceColor) { b.mesh.instanceColor.needsUpdate = true; b.proxy.instanceColor = b.mesh.instanceColor; }
+      b.edges.material.color.copy(this.colors.ink);
+    }
+  }
+
+  /** Same copies of the same parts, new places: [{ id, matrix }]. Only the copies that moved are written. → batches touched */
+  moveInstances(list) {
+    const dirty = new Set(), m = new THREE.Matrix4();
+    for (let k = 0; k < list.length; k++) {
+      const r = this.instances[k], nm = list[k].matrix, om = r.matrix;
+      let same = nm === om;
+      if (!same) { same = true; for (let q = 0; q < 16; q++) if (nm[q] !== om[q]) { same = false; break; } }
+      r.matrix = nm;
+      if (same) continue;
+      r.batch.mesh.setMatrixAt(r.slot, m.fromArray(nm)); r.batch.edges.instanceMatrix.array.set(nm, r.slot * 16);
+      dirty.add(r.batch);
+    }
+    for (const b of dirty) { b.mesh.instanceMatrix.needsUpdate = true; b.edges.instanceMatrix.needsUpdate = true; }
+    this.render();
+    return dirty.size;
+  }
+
+  /** Put some copies elsewhere for now (a drag): Map id → matrix (16). */
+  setInstanceMatrices(map) {
+    const m = new THREE.Matrix4(), dirty = new Set();
+    for (const r of this.instances || []) {
+      const nm = map.get(r.id);
+      if (!nm) continue;
+      r.matrix = nm; r.batch.mesh.setMatrixAt(r.slot, m.fromArray(nm)); r.batch.edges.instanceMatrix.array.set(nm, r.slot * 16); dirty.add(r.batch);
+    }
+    for (const b of dirty) { b.mesh.instanceMatrix.needsUpdate = true; b.edges.instanceMatrix.needsUpdate = true; }
+    this.render();
+  }
+
+  /** Hide or show every copy (an illustration drawn over them). */
+  setInstancesVisible(on) { this.instHidden = !on; if (!on) for (const b of this.batches || []) b.mesh.visible = b.edges.visible = b.proxy.visible = false; else this.updateLod(); this.render(); }
+
+  // ---- lightweight display (0.9 SU.749): the whole thing, or only while the view moves, as boxes
+  /** 'auto' (the default: boxes while the view moves when the copies hold more than lodBudget triangles) | 'full' | 'light' (always boxes). */
+  setLod(mode) { this.lodMode = ['full', 'light'].includes(mode) ? mode : 'auto'; this.updateLod(); this.render(); }
+  noteMoving() {
+    if (!this.instTris || this.lodMode === 'full') return;
+    this.moving = true;
+    clearTimeout(this._movingT);
+    this._movingT = setTimeout(() => { this.moving = false; this.updateLod(); this.render(); }, 200);
+    this.updateLod();
+  }
+  /** Which of the two drawings of the copies shows now. -> true when boxes. */
+  updateLod() {
+    if (!this.batches?.length || this.instHidden) return false;
+    const light = this.lodMode === 'light' || ((this.lodMode || 'auto') === 'auto' && this.moving && this.instTris > (this.lodBudget ?? 300000));
+    this.lightNow = light;
+    for (const b of this.batches) { b.mesh.visible = b.edges.visible = !light; b.proxy.visible = light; }
+    return light;
   }
 
   // ---------------------------------------------------------------- live section (0.4 P13)
@@ -451,8 +548,9 @@ export class View3D {
     if (this.capQuad) { this.capQuad.geometry.dispose(); this.capQuad.material.dispose(); this.capQuad.removeFromParent(); this.capQuad = null; }
     this.capParts = [];
     const plane = this.sectionPlane(), planes = plane ? [plane] : [];
-    const bodies = this.instMode && this.instances?.length ? this.instances.map((o) => [o.mesh, o.edges]) : this.mesh ? [[this.mesh, this.edges]] : [];
+    const bodies = this.instMode && this.batches?.length ? this.batches.map((b) => [b.mesh, b.edges]) : this.mesh ? [[this.mesh, this.edges]] : [];
     for (const [m, e] of bodies) for (const o of [m, e]) if (o) { o.material.clippingPlanes = planes; o.material.needsUpdate = true; }
+    for (const b of this.batches || []) { b.proxy.material.clippingPlanes = planes; b.proxy.material.needsUpdate = true; }
     for (const o of [this.hl, this.hover, ...(this.marks || [])]) this.clipSection(o);
     if (!plane || !this.section.caps || !bodies.length) return;
     // stencil writers: same geometry and placement as each body, colour and depth untouched
@@ -460,7 +558,8 @@ export class View3D {
       stencilWrite: true, stencilFunc: THREE.AlwaysStencilFunc, stencilFail: op, stencilZFail: op, stencilZPass: op });
     for (const [m] of bodies) {
       for (const [side, op] of [[THREE.BackSide, THREE.IncrementWrapStencilOp], [THREE.FrontSide, THREE.DecrementWrapStencilOp]]) {
-        const w = new THREE.Mesh(m.geometry, writer(side, op));
+        const w = m.isInstancedMesh ? new THREE.InstancedMesh(m.geometry, writer(side, op), m.count) : new THREE.Mesh(m.geometry, writer(side, op));
+        if (m.isInstancedMesh) { w.instanceMatrix = m.instanceMatrix; w.frustumCulled = false; }   // the same places, shared
         w.matrixAutoUpdate = m.matrixAutoUpdate; w.matrix.copy(m.matrix); w.matrixWorldNeedsUpdate = true;
         w.renderOrder = 1; w.raycast = () => {};
         m.parent.add(w); this.capParts.push(w);
@@ -660,9 +759,9 @@ export class View3D {
       }
     }
     if (this.instances?.length) {
-      const h = this.keptHit(ray.intersectObjects(this.instances.map((o) => o.mesh), false));
+      const h = this.keptHit(ray.intersectObjects(this.batches.map((b) => b.mesh), false));
       if (h) {
-        const it = this.instances.find((o) => o.mesh === h.object);
+        const it = this.batches.find((b) => b.mesh === h.object).recs[h.instanceId];
         const tri = h.faceIndex;
         const inv = new THREE.Matrix4().fromArray(it.matrix).invert();
         const local = h.point.clone().applyMatrix4(inv);

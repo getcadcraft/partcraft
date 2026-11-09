@@ -1,0 +1,21 @@
+{
+  "id": "fem-solid",
+  "name": "Solid FEM",
+  "version": "0.9.0",
+  "apps": [
+    "partcraft"
+  ],
+  "api": "1.3",
+  "license": "Apache-2.0",
+  "entry": "./main.js",
+  "permissions": [
+    "panel",
+    "commands"
+  ],
+  "description": "Mesh a part, set a material, fixed faces and loads (force, pressure, gravity) by picking faces in the 3D view, and solve a linear static or modal study with the CadCraft finite element library. Displacement, von Mises stress, reactions and frequencies are drawn on the model, with a warning list. Linear elastic only. Not a code check; your engineer reviews the results.",
+  "author": "CadCraft",
+  "lang": "./lang/",
+  "help": "./help/help.js",
+  "default": "off",
+  "honesty": "Linear small-displacement analysis with isotropic materials. Checked against closed-form answers (cantilever, Lame cylinder, patch test) and against PartCraft's own Simulation solver on the same mesh; not compared with any other program. Not a code check."
+}

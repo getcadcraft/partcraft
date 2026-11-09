@@ -115,6 +115,14 @@ Bringing the change back is one step in the assembly's undo list.
 - {{ui:Close}} closes the assembly and returns to the part you started from. If the assembly is unsaved it asks: {{ui:Cancel}}, {{ui:Discard the assembly}} or {{ui:Save first}}.
 - To rename the assembly, click empty space so nothing is selected and change **Name** in the right panel.
 
+## Large assemblies
+
+An assembly can hold thousands of copies of a few parts. Copies of one part are drawn together, a joint you turn places only the parts behind it, and the part list shows its first rows with a "Show more" button under them (the selected part is always listed).
+
+- While you turn or zoom the view, an assembly of more than about 300,000 triangles is drawn as one box per part, then in full a moment after you stop.
+- {{ui:Views}} › {{ui:Lightweight display}} keeps the boxes on all the time. Picking a part and joints still use the real parts.
+- How fast it turns also depends on your graphics card. The numbers PartCraft has measured are in the release notes with the machine they came from.
+
 ## Joint problems
 
 - A part no joint reaches is listed as **free** and the panel says "Bracket2 is not joined to the grounded part, so it stays where it was put."

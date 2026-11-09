@@ -513,8 +513,12 @@ function mount(cfg, reg) {
     const fam = IP.familyOf(reg, S, S.style), sh = sharedFamily();
     const every = el('input', { type: 'checkbox', 'data-input-every': '', checked: !!(fam && sh && sh.family === fam), disabled: !fam });
     every.addEventListener('change', () => useEverywhere(every.checked));
+    // 0.9.1: a layout with more tools in a menu, split or list than the engine keeps says so here, in words, instead of showing a shorter menu
+    const over = IP.validateProfile(cur, COMMANDS, STYLES, OPTS).problems.filter(IP.isLimitProblem);
+    const alertBox = over.length ? el('p', { className: 'shell-alert', role: 'alert', 'data-input-limit-alert': '' }, T('shell.input.limit.alert', { n: over.length, style: nameOf(raw(S.style) || STYLES[OWN]), max: IP.LIMITS.items })) : null;
     setHost.replaceChildren(
       cards,
+      alertBox,
       el('p', { className: 'shell-hint-text' }, desc),
       el('label', { className: 'shell-check' }, every, ' ', T('shell.input.every')),
       el('p', { className: 'shell-hint-text', 'data-input-every-hint': '' }, fam ? T('shell.input.every.hint', { family: T('shell.input.family.' + fam) }) : T('shell.input.every.none')),

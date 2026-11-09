@@ -21,6 +21,7 @@
     "vendor": {
         "cpython-wasi": "3.14.7",
         "h5wasm": "0.10.3",
+        "kiri-moto": "4.7.3",
         "manifold-3d": "3.5.4",
         "noble-ciphers": "2.4.0",
         "noble-curves": "2.4.0",
@@ -30,7 +31,7 @@
     },
     "origin": "https://getcadcraft.com",
     "packed": {
-        "at": "2026-11-02T15:17:22Z",
+        "at": "2026-11-09T09:06:59Z",
         "build": "dev"
     }
 }

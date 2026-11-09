@@ -10,8 +10,13 @@
  *   - picking in 3D: a click on the view while a command waits for a curve, surface, edge or end (capture phase, before the part's own
  *     picking), and points clicked on the part's faces or, off the part, on the ground plane (y = 0); Enter or a double click ends them;
  *   - continuity problems go to the shell's Problems (source 'partcraft.nurbs', fix "Match" = surface.match, one panel undo step).
- * The surfaces are their own set beside the solid: they do not change the part's features or its build (trimming, stitching and
- * solids from surfaces are S2, after the owner's D7.45 answer).
+ * The surfaces are their own set beside the solid: they do not change the part's features or its build — until a NURBS solid is BAKED
+ * (0.9 DC.54, session nurbs-09): Surfaces › Bake (or Bake into the part in the Solids list) adds the solid to the part as a body from a
+ * mesh (an `import` feature with `mesh`, the same as an opened STL; its faces as triangles within the tolerance asked, Y up as drawn
+ * here), added, cut or intersected, ONE part undo step; the patch set keeps the exact solid. The panel's solid Booleans run on the
+ * part's own manifold-3d (host.manifold).
+ * Scan fit (0.9 SU.1082, session reverse-nurbs-09): the panel's Scan group fits trimmed planes, cylinders and free-form patches to the part's built
+ * mesh (host.regen.mesh, the same space as the surfaces) and then stitches them to a solid; cc-nurbs reverse.js does the work.
  */
 import * as THREE from 'three';
 import * as N from './nurbs/index.js';
@@ -21,6 +26,7 @@ import { mountSurfacesPanel } from './nurbs-ui/panel.js';
 import * as HULL from './hull/fair.js';   // 0.8 EG.26: fairness of hull lines (cc-hull, lib/hull; node tools/hull/sync.mjs partcraft)
 import { surfacesToSolid } from './hull/solid.js';   // 0.8 EG.26 (D7.45, decided 2026-10-29): surfaces to solid, so a hull drawn as surfaces can float
 import * as HYDRO from './hydrostatics.js';
+import * as MI from './meshimport.js';   // 0.9 DC.54: the bake is a body from a mesh, checked and kept as an opened STL is
 import { registerWorkspace } from './workspaces.js';
 import { registerStudyReader } from './part.js';
 import { t } from './i18n.js';
@@ -149,6 +155,36 @@ async function floatDialog(host) {
   await host.ask({ title: t('hull.float.title'), body, buttons: [['cancel', t('hull.float.close'), 'pc-btn is-primary']] });
 }
 
+// ---- 0.9 DC.54: bake a NURBS solid into the part — a body from a mesh (import feature), added, cut or intersected, one part undo step ----
+async function bakeDialog(host, sid = null) {
+  ensure(host);
+  const list = N.solid.solids(S.session.doc);
+  if (!list.length) { host.status(t('nurbs.ui.solid.bake_none'), true); return; }
+  const el = host.el;
+  const solidSel = el('select', { className: 'pc-input', dataset: { bakeSolid: '1' } }, ...list.map((b) => el('option', { value: b.id, selected: b.id === sid }, (b.name || b.id) + ' (' + t('nurbs.ui.solid.faces', { n: b.faces.length }) + ')')));
+  const opSel = el('select', { className: 'pc-input', dataset: { bakeOp: '1' } }, ...['add', 'cut', 'intersect'].map((o) => el('option', { value: o }, t('app.mesh.op.' + o))));
+  const tol = el('input', { type: 'number', className: 'pc-input', value: '0.05', min: '0.001', step: 'any', inputMode: 'decimal', dataset: { bakeTol: '1' } });
+  const field = (label, c) => el('label', { className: 'pc-field' }, el('span', {}, label), c);
+  const body = el('div', { className: 'pc-form', dataset: { bakeDialog: '1' } }, el('p', { className: 'pc-note' }, t('nurbs.ui.solid.bake_intro')),
+    field(t('nurbs.ui.solid.bake_which'), solidSel), field(t('app.mesh.op'), opSel), field(t('nurbs.ui.solid.bake_tol'), tol));
+  const key = await host.ask({ title: t('nurbs.ui.solid.bake_title'), body, buttons: [['cancel', t('app.btn.cancel'), 'pc-btn'], ['bake', t('nurbs.ui.solid.bake_pc'), 'pc-btn is-primary']] });
+  if (key !== 'bake') return;
+  const tl = Number(tol.value);
+  if (!(tl >= 0.001 && tl <= 10)) { host.status(t('nurbs.ui.solid.bake_bad_tol'), true); return; }
+  const id = solidSel.value, b = N.solid.solid(S.session.doc, id);
+  let m;
+  try { m = N.solid.mesh(S.session.doc, id, { tol: tl }); } catch (e) { host.status(t(e && e.code ? e.code : 'nurbs.ui.err.failed', (e && e.vars) || { error: String(e?.message || e) }), true); return; }
+  const fixed = MI.repairMesh({ positions: m.positions, indices: m.indices });
+  if (!fixed.report.closed) { host.status(t('nurbs.err.solid_open', { name: b.name || id, edges: fixed.report.openEdges + fixed.report.nonManifold, gap: tl * 2, tol: tl }), true); return; }
+  if (fixed.report.triangles > MI.MAX_TRIS) { host.status(t('nurbs.ui.solid.bake_big', { n: fixed.report.triangles }), true); return; }
+  const op = opSel.value;
+  const g = host.commit(t('nurbs.ui.solid.bake_undo'), () => host.P.addFeature(host.part, 'import', { file: t('nurbs.ui.solid.bake_file', { name: b.name || id }).slice(0, 200), mesh: MI.encodeMesh(fixed), units: 'mm', up: 'y', op, report: fixed.report }));
+  await host.built?.();
+  const r = host.regen?.results?.get(g.id);
+  if (r && r.status && r.status !== 'ok') host.status(t('nurbs.ui.solid.bake_failed', { why: r.message || r.status }), true);
+  else host.status(t('nurbs.ui.solid.baked_pc', { name: b.name || id, n: fixed.report.triangles, volume: Math.round(m.report.volume * 100) / 100, op: t('app.mesh.op.' + op) }), true);
+}
+
 // ---- picking: a curve / surface / edge / end for a command, or points on the part or the ground ----
 const ray = new THREE.Raycaster();
 function rayAt(host, ev) {
@@ -217,12 +253,33 @@ function renderPanel(host, box) {
     open: (exts) => host.openText?.([{ description: exts.join(' '), extensions: exts }]),   // i18n-ignore: file extensions
     base: () => String(host.part?.name || 'part').replace(/[^A-Za-z0-9 _-]/g, '').trim() || 'part',
     print: (text) => host.status(text), range: () => S.display.range(),
+    manifold: async () => { if (!host.manifold) throw new Error('manifold'); return host.manifold; },   // i18n-ignore: never shown (the panel words it)
+    bake: { label: t('nurbs.ui.solid.bake_pc'), run: (id) => bakeDialog(host, id) },
+    // 0.9 SU.1082: the part's built mesh (mm, Y up as drawn, the same space as the surfaces) is the scan to fit planes, cylinders and free-form patches to
+    cloud: (map, tol) => { S.display.setCloud(map, tol); host.view.render(); },   // the scan fit's deviation map (0.9 round 2)
+    scan: { get: () => { const m = host.regen?.mesh; return m && m.indices && m.indices.length >= 3 ? { positions: m.positions, indices: m.indices } : null; } },
   });
   return t('surf.ws.heading');
 }
 
 /** The open part changed (opened, New, undo of a study): read its patch set again while the workspace shows. */
 export function partChanged(host) { if (S.session && host.workspace === 'surfaces') { fromPart(host); draw(); S.panel?.refresh(); } }
+/**
+ * 0.9 DC.54: SuperCad Studio's Surfaces panel sends its patch set here and brings ours back (window.partcraft.surfaces). The set is in this app's own
+ * space (mm, Y up as drawn; Super turns its Z-up set a quarter turn before it calls). `receive` adds it as ONE import step of the panel's session
+ * (the panel's Undo takes it out) and keeps it in the part's study like any edit; the caller (window.partcraft.surfaces) shows the Surfaces workspace first, because the
+ * session's history is only kept while that workspace shows. `snapshot` is the part's current patch set (cleaned), or null.
+ */
+export function receive(host, other, label) {
+  ensure(host);
+  if (host.workspace !== 'surfaces') fromPart(host);
+  return S.session.importDoc(other, label);
+}
+export function snapshot(host) {
+  if (S.session && host.workspace === 'surfaces') return JSON.parse(N.doc.toJSON(S.session.doc));
+  const j = host.part?.studies?.[KEY];
+  return j && typeof j === 'object' ? JSON.parse(N.doc.toJSON(N.doc.fromJSON(JSON.stringify(j)))) : null;
+}
 export const _state = S;   // tests
 
 const TB = { 'surfaces-curve': 'curve.points', 'surfaces-loft': 'surface.loft', 'surfaces-sweep': 'surface.sweep1', 'surfaces-match': 'surface.match' };
@@ -236,6 +293,7 @@ const ws = registerWorkspace({
     { cmd: 'surfaces-zebra', icon: 'reception-4', label: 'surf.tb.zebra', title: 'surf.tb.zebra.title' },
     { cmd: 'surfaces-fair', icon: 'activity', label: 'surf.tb.fair', title: 'surf.tb.fair.title' },   // 0.8 EG.26
     { cmd: 'surfaces-float', icon: 'water', label: 'surf.tb.float', title: 'surf.tb.float.title' },   // 0.8 EG.26 (D7.45)
+    { cmd: 'surfaces-bake', icon: 'box-arrow-in-down', label: 'nurbs.ui.tb.bake', title: 'nurbs.ui.tb.bake.title' },   // 0.9 DC.54
   ] }],
   enter, exit, renderPanel,
   command(cmd, host) {
@@ -243,6 +301,7 @@ const ws = registerWorkspace({
     if (TB[cmd]) { if (S.session.cmd === TB[cmd]) S.session.cancel(); else S.session.start(TB[cmd]); host.renderPanel(); return true; }
     if (cmd === 'surfaces-fair') { fairDialog(host); return true; }
     if (cmd === 'surfaces-float') { floatDialog(host); return true; }
+    if (cmd === 'surfaces-bake') { bakeDialog(host); return true; }
     if (cmd === 'surfaces-zebra') { S.view = { ...S.view, mode: S.view.mode === 'zebra' ? 'shaded' : 'zebra' }; draw(); host.renderPanel(); return true; }
     return false;
   },

@@ -407,6 +407,7 @@ export function readPart(raw) {
           need(f.units === undefined || Object.hasOwn(UNITS, f.units), 'model.file.bad.its_units');
           need(f.op === undefined || ['add', 'cut', 'intersect'].includes(f.op), 'model.file.bad.the_operation');
           Object.assign(g, { file: text(f.file, 200), mesh: { nv: f.mesh.nv, nt: f.mesh.nt, v: f.mesh.v, i: f.mesh.i }, units: f.units || 'mm', up: f.up === 'y' ? 'y' : 'z', op: f.op || 'add' });
+          if (typeof f.link === 'string' && /^[A-Za-z0-9_.:{}-]{1,200}$/.test(f.link)) g.link = f.link;   // 0.9 SU.810b: what a live link brought (link-pc.js)
           const rep = readReport(f.report);
           if (rep) g.report = rep;
           break;

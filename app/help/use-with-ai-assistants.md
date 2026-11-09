@@ -31,6 +31,8 @@ Assistants connect through **CadCraft Studio** on your computer: Studio shows th
 | `param_set` | Edit | Sets a parameter or a feature's number and rebuilds. One step you can undo |
 | `script_run` | Edit | Runs a CraftScript, Lua or Python script the way the {{ui:Script}} workspace does: sealed, no files and no network. The part does not change |
 | `part_export` | Export | STL, 3MF, STEP or OpenUSD (.usdz, .usda, .usdc), as {{ui:File}} › {{ui:Export}} writes them |
+| `link_push` | Edit | Updates a model linked from another program (see [Keep a .3dm model live](topic:live-3dm-link)) |
+| `link_status` | Read | Says whether a linked model is still here and when it last updated |
 | `part_save` | Save | PartCraft's own {{ui:Save}} |
 | `illustrate_export` | Export | A manual from the {{ui:Illustrate}} workspace as PDF or SVG line art of its views, as the interactive 3D file, or its instructions as PDF or a web page, as the workspace's {{ui:Export}} and {{ui:Instructions}} menus write them ([Manuals](topic:illustrate)) |
 

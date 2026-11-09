@@ -23,6 +23,7 @@ const S = { host: null, win: null, root: null, loading: null };
 
 async function ensure(host) {
   S.host = host;
+  if (host.manifold) N.nodesSolid.setEngine(host.manifold);   // the solid nodes' Booleans (0.9 SU.747c) run on the part's own manifold-3d
   S.loading ??= import('/assets/js/app-nodes.js').then(({ openNodesWindow }) => {
     S.root = new THREE.Group(); S.root.name = 'nodes';
     S.win = openNodesWindow({

@@ -28,6 +28,7 @@
 import Module from 'manifold-3d';
 import { View3D, THREE } from './view3d.js';
 import { SketchEditor } from './sketchview.js';
+import { CMD_METHOD as ARC_CMDS } from './sketch-arcs.js';   // 0.9 FX.137: tool-arc-3p … the Arc tool's methods
 import * as S from './sketch.js';
 import { solveSketch } from './solver.js';
 import * as P from './part.js';
@@ -56,6 +57,7 @@ import { installSheetUI, SHEET_TYPES, SHEET_MENU, SHEET_ICONS } from './sheet-ui
 import { installRibUI, RIB_TYPES, RIB_MENU, RIB_ICONS } from './rib-ui.js';
 import { installWeldUI, WELD_TYPES, WELD_ICONS } from './weld-ui.js';   // 0.7 D7.50: structural members
 import { simEnvProblems } from './sim.js';
+import './fem-solid-study.js';   // 0.9 SU.908c: the settings of the Solid FEM add-on in the file (part.studies['fem-solid'])
 import { studyProblemsNow } from './study-ui.js';
 import { pcProblems, SRC_ID as PROBLEMS_SRC } from './problems-partcraft.js';   // 0.8 CE.6: the shell's Problems
 import { installGenUI, GEN_TYPES, GEN_ICONS } from './gen-ui.js';   // 0.8 CE.3: a script that adds a body (Generated)
@@ -91,7 +93,7 @@ import { breakProblemsNow } from './break-part.js';   // 0.8 EG.31 (physics_PART
 import { mountPartShell } from './shell-mount.js';
 import { mountPartAccess } from './access-mount.js';   // 0.8 round 3 (access_PART_3): EG.52, the feature tree without sight
 import { partChanged as nodesChanged } from './nodes-pc.js';   // 0.8 DC.54 (nodes_PART_3): the Nodes workspace (cc-nodes)
-import { partChanged as surfacesChanged } from './surfaces-pc.js';   // 0.8 SU.747b (part_PART_3): the Surfaces workspace (cc-nurbs + cc-nurbs-ui)   // 0.8 round 3 (part_PART_3): the shell's calc sheets, reasons, totals, lessons, Suggest, activity, Ask box
+import { partChanged as surfacesChanged, receive as surfacesReceive, snapshot as surfacesSnapshot } from './surfaces-pc.js';   // 0.8 SU.747b (part_PART_3): the Surfaces workspace (cc-nurbs + cc-nurbs-ui)   // 0.8 round 3 (part_PART_3): the shell's calc sheets, reasons, totals, lessons, Suggest, activity, Ask box
 import { exportDeck as ccxExport, importResults as ccxImport } from './nlstudy-ui.js';   // 0.8 SU.891: File › Export CalculiX (.inp) / its results (.frd)
 import './ws-generative.js';
 import './ws-manufacture.js';
@@ -195,7 +197,7 @@ function init(root) {
   view.onResize = () => { if (mode === 'sketch') { view.setSketch(currentFrame(), editor.view); editor.draw(); } };
 
   // ---------------------------------------------------------------- settings (Settings › PartCraft; per viewer conveniences)
-  const SET_DEFAULTS = { orbit: 'left', scroll: 'auto', autoRel: true, corner: 'cube', threads: 'auto', bed: null, planes: true, dimDraw: true };   // planes: View › Base planes (0.6 PU.4); dimDraw: Dimension as you draw (0.6 PU.1)
+  const SET_DEFAULTS = { orbit: 'left', scroll: 'auto', autoRel: true, corner: 'cube', threads: 'auto', bed: null, planes: true, dimDraw: true, lightDisplay: false };   // planes: View › Base planes (0.6 PU.4); dimDraw: Dimension as you draw (0.6 PU.1)
   // the printer's bed for the 3D-printing check (0.5 SG.4): [x, y, z] mm, each 10–5000, or null = not checked
   const okBed = (v) => v === null || (Array.isArray(v) && v.length === 3 && v.every((n) => Number.isFinite(n) && n >= 10 && n <= 5000));
   const okThreads = (v) => v === 'auto' || (Number.isInteger(v) && v >= 1 && v <= MAX_THREADS);
@@ -211,9 +213,11 @@ function init(root) {
       if (v && v.bed !== undefined && okBed(v.bed)) out.bed = v.bed;
       if (v && typeof v.planes === 'boolean') out.planes = v.planes;
       if (v && typeof v.dimDraw === 'boolean') out.dimDraw = v.dimDraw;
+      if (v && typeof v.lightDisplay === 'boolean') out.lightDisplay = v.lightDisplay;
     } catch { /* private window or bad data: defaults */ }
     return out;
   })();
+  view.lodMode = settings.lightDisplay ? 'light' : 'auto';   // 0.9 SU.749: the lightweight display (Views menu)
   const persistSettings = () => { try { localStorage.setItem('partcraft.settings', JSON.stringify(settings)); } catch { /* fine: this visit keeps them */ } };
   const settingsDlg = document.querySelector('[data-app-settings]');
   // Trackpads: in trackpad mode a two-finger swipe turns the part (pans a sketch); in "auto" when the scrolling looks
@@ -350,7 +354,7 @@ function init(root) {
   const upToNow = () => (mode === 'sketch' && editing ? P.indexOf(part, editing) + 1 : mode === 'pick' && editing ? P.indexOf(part, editing) : null);
   function rebuild() {
     if (!M && !useExact) return;
-    if (mode === 'assembly') { rebuildAsm(); return; }
+    if (mode === 'assembly') { return rebuildAsm(); }
     // the open sketch's state is the page's own solve: shown at once, whatever the kernel is doing
     if (mode === 'sketch' && editing && editingFeature()) { lastSolve = solveSketch(editingFeature().sketch); showSketchState(); }
     if (mode === 'drawing') { drawingRefresh(); }
@@ -502,6 +506,7 @@ function init(root) {
   }
 
   function onHover(h) {
+    if (addons?.hover(h)) return;   // an add-on is picking faces: the face under the pointer is lit
     if (measure?.active) return;   // measure-ui.js shows its own snap preview
     if (ws !== WS.DESIGN) { if (ws.onHover) wsCall('onHover', h, host); else view.setHover(null); return; }
     if (mode === 'sketch' || mode === 'drawing') return;
@@ -542,6 +547,7 @@ function init(root) {
   }
 
   function onPick(h, e) {
+    if (addons?.pick(h, e)) return;   // an add-on is picking faces (add-on API 1.3 api.view)
     if (section?.picking && section.pick(h)) return;
     if (draft?.picking && draft.pick(h)) return;
     if (stackup?.picking) { stackup.pick(h, e); return; }
@@ -1749,6 +1755,7 @@ function init(root) {
     for (const b of ui.tools.querySelectorAll('[data-cmd="std-part"]')) b.hidden = inSk;
     for (const b of ui.tools.querySelectorAll('[data-cmd="view-measure"]')) b.setAttribute('aria-checked', String(!!measure?.active));
     for (const b of ui.tools.querySelectorAll('[data-cmd="view-section"]')) b.setAttribute('aria-checked', String(!!section?.active));
+    for (const b of ui.tools.querySelectorAll('[data-cmd="view-light"]')) { b.setAttribute('aria-checked', String(settings.lightDisplay)); b.hidden = mode !== 'assembly'; }
     for (const b of ui.tools.querySelectorAll('[data-cmd="view-planes"]')) b.setAttribute('aria-checked', String(settings.planes));
     for (const [c, m] of [['view-draft', 'draft'], ['view-zebra', 'zebra'], ['view-curvature', 'curvature']]) for (const b of ui.tools.querySelectorAll(`[data-cmd="${c}"]`)) b.setAttribute('aria-checked', String(!!draft?.active && draft.mode === m));
     // a workspace with its own history (Illustrate's manual) says when Undo / Redo can act (0.7, asked by illustrate)
@@ -1773,7 +1780,7 @@ function init(root) {
         continue;
       }
       if (c === 'asm-new') dis = dis || inSk || !(regen?.mesh || asm);
-      if (SKETCH_TOOLS[c] || c === 'construction' || c === 'exit-sketch') dis = dis || !inSk;
+      if (SKETCH_TOOLS[c] || ARC_CMDS[c] || c === 'construction' || c === 'exit-sketch') dis = dis || !inSk;
       if (c === 'sketch') dis = dis || inSk;
       if (['extrude', 'cut-extrude', 'revolve', 'revolve-cut', 'hole', 'lpattern', 'cpattern', 'mirror', 'view-normal'].includes(c) || /^view-(iso|front|back|top|bottom|right|left)$/.test(c)) dis = dis || inSk || inDr;
       if (['plane', 'axis', 'point'].includes(c)) dis = dis || inSk || inDr;
@@ -1788,6 +1795,7 @@ function init(root) {
       if (c === 'redo') dis = !hist.redoStack.length;
       b.disabled = dis;
       if (SKETCH_TOOLS[c]) b.setAttribute('aria-pressed', String(inSk && editor.tool === SKETCH_TOOLS[c]));
+      if (ARC_CMDS[c]) b.setAttribute('aria-pressed', String(inSk && editor.tool === 'arc' && editor.arcM === ARC_CMDS[c]));
       if (c === 'sketch') b.setAttribute('aria-pressed', String(pendingSketch));
     }
     applyEditState();
@@ -1871,6 +1879,7 @@ function init(root) {
     if (measure?.active && !/^(view-|export-|undo$|redo$|save$)/.test(cmd)) measure.stop();
     if (cmd === 'view-planes') { settings.planes = !settings.planes; persistSettings(); syncPlanes(); updateTools(); status(t(settings.planes ? 'app.planes.shown' : 'app.planes.hidden')); return; }
     if (cmd === 'view-section') { section.toggle(); updateTools(); return; }
+    if (cmd === 'view-light') { settings.lightDisplay = !settings.lightDisplay; persistSettings(); view.setLod(settings.lightDisplay ? 'light' : 'auto'); updateTools(); status(t(settings.lightDisplay ? 'asm.light.on' : 'asm.light.off')); return; }
     if (cmd === 'view-draft') { draft.toggle('draft'); updateTools(); return; }
     if (cmd === 'view-zebra') { draft.toggle('zebra'); updateTools(); return; }
     if (cmd === 'view-curvature') { draft.toggle('curvature'); updateTools(); return; }
@@ -1896,6 +1905,7 @@ function init(root) {
     if (cmd === 'import-frd') { if (ws.id !== 'simulation' && !setWorkspace('simulation')) return; return ccxImport(host); }
     if (cmd === 'export-laser') return openLaser();
     if (mode === 'assembly' && ASM_EXPORTS.includes(cmd)) return asmTools.exportCmd(cmd);
+    if (ARC_CMDS[cmd]) { if (mode === 'sketch') { editor.setArcMethod(ARC_CMDS[cmd]); editor.setTool('arc'); updateTools(); } focusStage(); return; }   // 0.9 FX.137
     if (SKETCH_TOOLS[cmd]) { if (mode === 'sketch') editor.setTool(editor.tool === SKETCH_TOOLS[cmd] ? 'select' : SKETCH_TOOLS[cmd]); focusStage(); return; }
     if (exactOff() && P.EXACT_ONLY.has(cmd) && !MESH_BUILT.has(cmd)) { status(t('kernel.not_built', { what: P.FEATURE_LABELS[cmd] }), true); return; }
     switch (cmd) {
@@ -2160,7 +2170,9 @@ function init(root) {
       stepFor: useExact ? (p) => exact.call('step', { part: p, schema: 'AP242' }).then((r) => r.text) : null,
     });
   }
-  let asmSeq = 0;
+  let asmSeq = 0, asmFit = false;
+  let asmTreeLimit = 300;
+  const asmTreeStep = 700;   // 0.9 SU.749: rows listed in the assembly tree before 'Show more'
   async function rebuildAsm() {
     if ((!M && !useExact) || !asm) return;
     const t0 = performance.now();
@@ -2175,9 +2187,10 @@ function init(root) {
       }
     }
     for (const pid of [...asmBuilds.keys()]) if (!asm.parts[pid]) asmBuilds.delete(pid);
-    asmPlace = A.placeAll(asm, asmBuilds);
+    asmPlace = A.placeAll(asm, asmBuilds, { prev: asmPlace });   // only what moved is placed again (0.9 SU.749)
     view.setSketchLines([]);
     showInstances();
+    if (asmFit) { asmFit = false; view.view('iso'); }
     const bad = asmPlace.problems.filter((x) => !x.free).length;
     ui.build.textContent = bad ? t('app.asm.joint_problems', { n: bad }) : t('app.asm.placed', { ms: Math.round(performance.now() - t0) });
     ui.build.className = 'pc-chip ' + (bad ? 'is-error' : 'is-ok');
@@ -2421,6 +2434,7 @@ function init(root) {
     if (editPartOf) backToAssembly();
     asmTools.reset(); measure.stop(); stackup?.stop(); motion?.stop();
     asm = a; asmBuilds = new Map(); asmHist.clear(); asmDirty = false; asmSel = null; jointPick = null; clashes = null;
+    asmTreeLimit = 300; asmFit = true;   // the view fits the parts once they are placed
     mode = 'assembly';
     view.setPlanesVisible(false);
     rebuildAsm(); renderAll(); view.view('iso');
@@ -2430,9 +2444,16 @@ function init(root) {
   // ---- assembly panels
   function renderAsmTree() {
     ui.partName.textContent = asm.name;
-    const problem = (kind, id) => asmPlace?.problems.find((x) => x[kind] === id);
+    const probs = { inst: new Map(), joint: new Map() };   // one pass, so a long list does not search the problems per row
+    for (const x of asmPlace?.problems || []) for (const k of ['inst', 'joint']) if (x[k] && !probs[k].has(x[k])) probs[k].set(x[k], x);
+    const problem = (kind, id) => probs[kind].get(id);
+    // a long assembly lists its first rows (and the selected one) and says so (0.9 SU.749): 20,000 rows made every click take seconds
+    const limit = asmTreeLimit;
+    const moreBtn = (shown, total, grow) => (shown < total ? el('li', { role: 'none', className: 'pc-muted' }, t('app.asm.tree_shown', { shown, total }) + ' ', btn(t('app.asm.tree_more', { n: Math.min(asmTreeStep, total - shown) }), () => { asmTreeLimit += asmTreeStep; renderAsmTree(); }, 'pc-linkbtn', { dataset: { treeMore: grow } })) : null);
     const items = [el('li', { role: 'none', className: 'pc-props-sub' }, t('app.asm.tree_parts'))];
-    asm.instances.forEach((i, n) => {
+    const selIdx = asmSel?.kind === 'inst' ? asm.instances.findIndex((i) => i.id === asmSel.id) : -1;
+    const rows = asm.instances.map((i, n) => [i, n]).filter(([, n]) => n < limit || n === selIdx);
+    rows.forEach(([i, n]) => {
       const pr = problem('inst', i.id);
       items.push(el('li', { role: 'none' }, el('button', {
         type: 'button', role: 'treeitem', className: 'pc-node' + (pr ? ' is-warn' : ''), dataset: { inst: i.id }, 'aria-selected': String(asmSel?.kind === 'inst' && asmSel.id === i.id), title: pr ? pr.message : '',
@@ -2440,8 +2461,11 @@ function init(root) {
         ondblclick: () => { asmSel = { kind: 'inst', id: i.id }; asmEditPart(); },
       }, el('i', { className: 'bi bi-box', 'aria-hidden': 'true' }), el('span', { className: 'pc-node-name' }, i.name), el('span', { className: 'pc-node-flag' }, n === 0 ? t('app.asm.flag_grounded') : pr ? t('app.asm.flag_free') : ''))));
     });
+    const more1 = moreBtn(Math.min(limit, asm.instances.length), asm.instances.length, 'parts');
+    if (more1) items.push(more1);
     items.push(el('li', { role: 'none', className: 'pc-props-sub' }, t('app.asm.tree_joints')));
-    for (const j of asm.joints) {
+    const selJ = asmSel?.kind === 'joint' ? asm.joints.findIndex((j) => j.id === asmSel.id) : -1;
+    for (const j of asm.joints.filter((_, n) => n < limit || n === selJ)) {
       const pr = problem('joint', j.id);
       const ls = asmPlace?.loops?.joints.get(j.id);   // on a loop (0.7 D7.40): under (can still move) / full / over (does not close)
       items.push(el('li', { role: 'none' }, el('button', {
@@ -2450,6 +2474,8 @@ function init(root) {
       }, el('i', { className: 'bi bi-' + (pr ? 'exclamation-triangle-fill' : 'link-45deg'), 'aria-hidden': 'true' }), el('span', { className: 'pc-node-name' }, j.name), el('span', { className: 'pc-node-flag' }, pr ? '⚠' : t('asm.joint.type.' + j.type).toLowerCase()))));   // i18n-ignore: icon class names
     }
     if (!asm.joints.length) items.push(el('li', { role: 'none', className: 'pc-muted' }, t('app.asm.no_joints')));
+    const more2 = moreBtn(Math.min(limit, asm.joints.length), asm.joints.length, 'joints');
+    if (more2) items.push(more2);
     swapChildren(ui.tree, items);
   }
 
@@ -2491,7 +2517,7 @@ function init(root) {
         const start = j[key] || 0;
         const n = numInput(j[key] || 0, (v) => setValue(label, key, v));
         const r = el('input', { type: 'range', className: 'span pc-range', min: String(min), max: String(max), step: String(step), value: String(j[key] || 0), 'aria-label': t('asm.joint.drag', { label }), dataset: { jointRange: key } });
-        r.addEventListener('input', () => { const x = jointById(j.id); x[key] = Number(r.value); asmPlace = A.placeAll(asm, asmBuilds, { hold: hold(key), start: asmPlace?.loops?.values }); showInstances(); n.value = r.value; });
+        r.addEventListener('input', () => { const x = jointById(j.id); x[key] = Number(r.value); asmPlace = A.placeAll(asm, asmBuilds, { hold: hold(key), start: asmPlace?.loops?.values, prev: asmPlace }); showInstances(); n.value = r.value; });
         r.addEventListener('change', () => { const v = Number(r.value); jointById(j.id)[key] = start; setValue(label, key, v); });
         n.dataset.jointValue = key;
         return [...field(label, n), r];
@@ -2921,6 +2947,7 @@ function init(root) {
     if (mode === 'assembly') { saveAssembly(); return; }
     if (mode === 'sketch') exitSketch();
     const name = fileBase() + '.partcraft.json';
+    shellKit?.stampSave?.();   // 0.9 DI.1
     const r = await fileHost.save({ target: saveTarget, data: P.toJSON(part), name, types: PART_TYPES });
     if (!r.ok) { if (!r.cancelled) status(t('app.file.save_failed', { error: String(r.error?.message || r.error || '') })); return; }
     if (r.target?.writable) saveTarget = r.target;
@@ -3799,7 +3826,8 @@ function init(root) {
   // ---- AI assistants and scripts (0.7 AS.4, session assistants; agents.js on host.js's control channel): tools only, off until Settings › Assistants ----
   installAgents({ part: () => part, regen: () => regen, mode: () => mode, commit: (label, fn) => commit(label, fn), built: async () => { await ready; await built(); },
     savePart: () => savePart(), download: (bytes, name, mime) => download(bytes, name, mime), computeWorker: (modules, opts) => host.computeWorker(modules, opts),
-    fileBase: () => fileBase(), undo: () => undoRedo(true), lastUndo: () => (hist.undoStack.length ? hist.undoStack[hist.undoStack.length - 1].label : null) });
+    fileBase: () => fileBase(), undo: () => undoRedo(true), lastUndo: () => (hist.undoStack.length ? hist.undoStack[hist.undoStack.length - 1].label : null),
+    foldUndo: () => { hist.undoStack.pop(); }, say: (s) => status(s) });   // 0.9 SU.810b: a live link's pushes share one undo step; its update in the status bar
   // ---- the shell's modules (0.8 round 3, docs/apps/shell-modules.md § Mounting): calc sheets drive parameters, reasons on features, the part's weight
   shellKit = mountPartShell({ part: () => part, regen: () => regen, control: fileHost.control, commit: (label, fn) => commit(label, fn), undo: () => undoRedo(true),
     undoDepth: () => hist.undoStack.length, sel: () => sel, selectFeature: (id) => selectFeature(id), labelOf: (f) => f.name || P.FEATURE_LABELS[f.type] || f.type,
@@ -3815,6 +3843,7 @@ function init(root) {
     get lastSolve() { return lastSolve; }, get sel() { return sel; }, get pick() { return pick; },
     get asm() { return asm; }, get contactStudy() { return contactStudy; }, get asmBuilds() { return asmBuilds; }, get asmPlace() { return asmPlace; }, get clashes() { return clashes; }, get asmSel() { return asmSel; }, A,
     get workspace() { return ws.id; }, setWorkspace, host, WS,
+    surfaces: { receive: (doc, label) => { if (ws.id !== 'surfaces' && !setWorkspace('surfaces')) return { ok: false, error: { key: 'nurbs.ui.err.failed', vars: { error: 'workspace' } } }; return surfacesReceive(host, doc, label); }, snapshot: () => surfacesSnapshot(host) },   // 0.9 DC.54: SuperCad Studio's Surfaces panel sends to / brings back from here (surfaces-pc.js)
     control: fileHost.control, get shellKit() { return shellKit; },   // the assistants' channel and the shell's modules (tests, 0.8 round 3)
     // 0.7 WS.14 (session ws-partcraft, workspace-partcraft.js): unsaved changes, the running tool, the part panel's list of bodies
     get dirty() { return dirty; },
@@ -3850,7 +3879,7 @@ function init(root) {
   };
   // 0.8 EG.78 (studio_PART_2): drag the part to another app in Studio (drag-out.js, part-item.js; Studio's window.cadcraftStudio.drag)
   if (window.cadcraftStudio?.drag) import('./drag-out.js').then((m) => m.mountDragOut({ current: () => (regen?.mesh ? { part, mesh: regen.mesh } : null), status, t })).catch((e) => console.warn('drag to another app did not start:', e));   // i18n-ignore: a developer message
-  startAddons({ host, bodies: { sync: () => syncAddonBodies(), fit: () => { syncAddonBodies(); view.view('iso'); } }, selection: () => sel, select: (id) => selectFeature(id), find: (q) => root.querySelector(q), showTab: (k) => paramsUI.showTab(k || 'props') })
+  startAddons({ host, faceView: { mark: (faces) => view.setMarks(faces.length ? { faces } : null), hover: (tris) => view.setHover(tris ? { tris } : null) }, bodies: { sync: () => syncAddonBodies(), fit: () => { syncAddonBodies(); view.view('iso'); } }, selection: () => sel, select: (id) => selectFeature(id), find: (q) => root.querySelector(q), showTab: (k) => paramsUI.showTab(k || 'props') })
     .then((a) => { addons = a; a.onChange(() => { syncAddonExports(); renderProps(); }); syncAddonExports(); renderProps(); })
     .catch((e) => console.warn('add-ons did not start:', e));   // i18n-ignore: a developer message
   // the layouts of Settings › Global › Layout (0.7 WS.14): the shell's engine builds a layout file's blocks, workspace-partcraft.js

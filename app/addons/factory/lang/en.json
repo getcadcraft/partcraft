@@ -1,0 +1,13 @@
+{
+ "@note": "Factory floor add-on for PartCraft (0.9 D8.13). Words from lib/factory/words.js.",
+ "factory.part.title": "Factory floor",
+ "factory.part.note": "Post a program in Manufacture (Post… or Send to a machine…), then hand it to the factory job queue in ModelCraft or save it as a job file.",
+ "factory.part.none": "No program posted yet in this session.",
+ "factory.part.last": "Last posted: {file} for {post}.",
+ "factory.part.queue": "Add to the factory job queue",
+ "factory.part.queued": "{file} waits in the factory job queue ({n} waiting).",
+ "factory.part.noStore": "This browser keeps no storage: save a job file instead.",
+ "factory.part.save": "Save as a job file",
+ "factory.safety": "Not a safety system, and never part of a safety chain. The machines' own guards, interlocks and emergency stops are the only safety functions.",
+ "factory.jobs.waiting": "Jobs waiting from PartCraft: {n}."
+}

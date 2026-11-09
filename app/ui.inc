@@ -178,6 +178,7 @@ $__tools = [
               <summary class="pc-tool" title="<?= Lang::e('ui.tb.sketch.more.title') ?>"><i class="bi bi-three-dots" aria-hidden="true"></i><span><?= Lang::e('ui.tb.more') ?></span></summary>
               <div class="pc-menu-list" role="menu">
                 <?php foreach ([
+                    ['tool-arc-3p', Lang::t('ui.tb.sketchmenu.arc_3p'), ''], ['tool-arc-sce', Lang::t('ui.tb.sketchmenu.arc_sce'), ''], ['tool-arc-sca', Lang::t('ui.tb.sketchmenu.arc_sca'), ''], ['tool-arc-scl', Lang::t('ui.tb.sketchmenu.arc_scl'), ''], ['tool-arc-sea', Lang::t('ui.tb.sketchmenu.arc_sea'), ''], ['tool-arc-sed', Lang::t('ui.tb.sketchmenu.arc_sed'), ''], ['tool-arc-ser', Lang::t('ui.tb.sketchmenu.arc_ser'), ''], ['tool-arc-cse', Lang::t('ui.tb.sketchmenu.arc_cse'), ''], ['tool-arc-csa', Lang::t('ui.tb.sketchmenu.arc_csa'), ''], ['tool-arc-csl', Lang::t('ui.tb.sketchmenu.arc_csl'), ''], ['tool-arc-con', Lang::t('ui.tb.sketchmenu.arc_con'), ''], null,   // i18n-ignore: the arc methods (0.9 FX.137)
                     ['tool-cspline', Lang::t('ui.tb.sketchmenu.tool_cspline'), ''], ['tool-extend', Lang::t('ui.tb.sketchmenu.tool_extend'), 'E'], ['tool-offset', Lang::t('ui.tb.sketchmenu.tool_offset'), 'O'], ['tool-mirror', Lang::t('ui.tb.sketchmenu.tool_mirror'), 'M'], null,   // i18n-ignore: the third item is a shortcut key
                     ['tool-polygon', Lang::t('ui.tb.sketchmenu.tool_polygon'), ''], ['tool-slot', Lang::t('ui.tb.sketchmenu.tool_slot'), ''], null,
                     ['tool-lpattern', Lang::t('ui.tb.sketchmenu.tool_lpattern'), ''], ['tool-cpattern', Lang::t('ui.tb.sketchmenu.tool_cpattern'), ''], null,
@@ -196,6 +197,7 @@ $__tools = [
                 <button type="button" role="menuitemcheckbox" aria-checked="false" data-cmd="view-measure" title="<?= Lang::e('ui.tb.views.measure.title') ?>"><?= Lang::e('ui.tb.views.measure') ?> <kbd>M</kbd></button>
                 <button type="button" role="menuitem" data-cmd="view-mass" title="<?= Lang::e('ui.tb.views.mass.title') ?>"><?= Lang::e('ui.tb.views.mass') ?></button>
                 <button type="button" role="menuitemcheckbox" aria-checked="false" data-cmd="view-section" title="<?= Lang::e('section.menu.title') ?>"><?= Lang::e('section.menu') ?> <kbd>X</kbd></button>
+                <button type="button" role="menuitemcheckbox" aria-checked="false" data-cmd="view-light" title="<?= Lang::e('asm.light.title') ?>"><?= Lang::e('asm.light.menu') ?></button>
                 <button type="button" role="menuitemcheckbox" aria-checked="false" data-cmd="view-draft" title="<?= Lang::e('draft.menu.title') ?>"><?= Lang::e('draft.menu') ?></button>
                 <button type="button" role="menuitemcheckbox" aria-checked="false" data-cmd="view-zebra" title="<?= Lang::e('analysis.menu.zebra.title') ?>"><?= Lang::e('analysis.menu.zebra') ?></button>
                 <button type="button" role="menuitemcheckbox" aria-checked="false" data-cmd="view-curvature" title="<?= Lang::e('analysis.menu.curvature.title') ?>"><?= Lang::e('analysis.menu.curvature') ?></button>

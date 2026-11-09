@@ -39,6 +39,8 @@ import * as SP from './sketch-spline.js';
 import * as TL from './sketch-tools.js';
 import { panButton, wheelFactor } from './input-mouse.js';   // 0.5 IP.3: the menu style's wheel and pan buttons
 import { pointOn } from './sketch-intersect.js';
+import * as Arcs from './arcs/arcs.js';
+import * as SA from './sketch-arcs.js';
 import { t } from './i18n.js';
 
 const PICK = 7, SNAP_PT = 10, SNAP_CURVE = 7;
@@ -117,10 +119,74 @@ export class SketchEditor {
     if (tool !== 'select') this.sel.clear();
     this.canvas.dataset.tool = tool;
     if (tool === 'mirror' && this.toolSel.length) this.step = { axis: true };
+    if (tool === 'arc') this.armArc();
     this.host.toolChanged?.(tool);
     this.host.changed();
     const hint = TOOL_HINTS[tool];
     if (hint) this.host.status(hint(this));
+    else if (tool === 'arc' && this.arcM !== 'CSE') this.arcStatus();
+    this.draw();
+  }
+
+  // ---------------------------------------------------------------- the ten ways to draw an arc (0.9 FX.137; geometry arcs/arcs.js)
+  /** The method the Arc tool draws with: CSE (centre, start, a click for the end: the tool's own way) or any of arcs.js METHODS. */
+  get arcM() { return this.arcMethod || 'CSE'; }
+  /** Choose the method (the menu's items). Takes effect on the next arc; one being drawn is dropped. */
+  setArcMethod(id) {
+    if (!SA.METHOD_ORDER.includes(id)) return false;
+    this.arcMethod = id;
+    if (this.tool === 'arc') { this.step = null; this.hideInput(); this.armArc(); this.arcStatus(); this.draw(); }
+    return true;
+  }
+  /** Continue has its start already: the end of the last line or arc. */
+  armArc() {
+    if (this.arcM !== 'CON') return;
+    const from = SA.continueFrom(this.sk);
+    if (!from) { this.arcMethod = 'CSE'; this.host.status(t('ui.sketch.arc.nothing_to_continue')); return; }
+    this.step = { gm: 'CON', v: [], picks: [], from, dd: {} };
+  }
+  arcRole() { const st = this.step, m = st ? st.gm : this.arcM; return Arcs.ROLES[m][m === 'CON' ? 0 : (st ? st.v.length : 0)]; }
+  arcStatus() { this.host.status(t('ui.sketch.arc.prompt.' + this.arcRole(), { method: t('ui.sketch.arc.method.' + this.arcM.toLowerCase()) })); }
+  /** The arc the inputs so far and the pointer (or the typed number) make: { arc } | null. */
+  arcPending(cur, typed) {
+    const st = this.step;
+    if (!st?.gm) return null;
+    const m = st.gm, roles = Arcs.ROLES[m], i = m === 'CON' ? 0 : st.v.length, last = m === 'CON' || i === roles.length - 1;
+    if (!last) return null;
+    const opt = st.from ? { from: st.from } : {};
+    const p = { x: cur[0], y: cur[1] };
+    if (typed !== undefined && !SA.POINT_ROLES.has(roles[i])) { const r = Arcs.solve(m, [...(m === 'CON' ? [] : st.v), SA.roleToRadians(roles[i], typed)], opt); return r.arc ? r : null; }
+    return Arcs.drag(m, st.v, p, opt);
+  }
+  /** One click (or Enter on a typed number) of a method other than CSE. */
+  arcClick(sn, dd) {
+    const m = this.arcM;
+    const st = this.step || (this.step = { gm: m, v: [], picks: [], dd: {} });
+    const roles = Arcs.ROLES[m], i = m === 'CON' ? 0 : st.v.length, role = roles[i], opt = st.from ? { from: st.from } : {};
+    let val, pick = null;
+    if (SA.POINT_ROLES.has(role)) {
+      const prev = st.v[st.v.length - 1];
+      if (prev && Math.hypot(sn.xy[0] - prev.x, sn.xy[1] - prev.y) * this.view.s < 2) return;   // the same spot twice
+      val = { x: sn.xy[0], y: sn.xy[1] }; pick = sn;
+    } else if (dd?.aval !== undefined) val = SA.roleToRadians(role, dd.aval);
+    else val = Arcs.pointerValue(m, st.v, { x: sn.xy[0], y: sn.xy[1] }, opt);
+    st.v.push(val); st.picks.push(pick); st.dd = {};
+    if (m !== 'CON' && st.v.length < roles.length) { this.arcStatus(); this.draw(); return; }
+    const res = Arcs.solve(m, m === 'CON' ? [val] : st.v, opt);
+    if (!res.arc) {
+      this.host.status(t('ui.sketch.arc.err.' + res.error));
+      st.v.pop(); st.picks.pop();   // the last input again
+      this.draw();
+      return;
+    }
+    const picks = st.picks.filter(Boolean);
+    if (st.from) picks.push({ xy: [st.from.x, st.from.y], ref: st.from.ref });
+    const radius = m === 'SER' && dd?.aval !== undefined ? val : undefined;
+    this.host.commit(t('ui.sketch.op.arc'), (sk) => { SA.addSolvedArc(sk, res.arc, picks, { auto: this.autoRelations, tangentTo: st.from?.entity, radius }); });
+    this.step = null;
+    this.hideInput();
+    if (m === 'CON') this.armArc();   // another one on from this
+    this.arcStatus();
     this.draw();
   }
 
@@ -360,7 +426,7 @@ export class SketchEditor {
     if (k === 'Enter' && (this.step || this.tool === 'mirror')) { this.finishStep(); return true; }
     if ((k === 'Delete' || k === 'Backspace') && this.sel.size) { this.deleteSelection(); return true; }
     if (this.tool === 'offset' && k.toLowerCase() === 'b') { this.offsetBoth = !this.offsetBoth; this.host.status(this.offsetBoth ? t('ui.sketch.offset.both_on') : t('ui.sketch.offset.both_off')); this.draw(); return true; }
-    if (/^[0-9.]$/.test(k) && this.ddStart(k)) return true;   // 0.6 PU.1: a size typed while drawing
+    if ((/^[0-9.]$/.test(k) || (k === '-' && this.step?.gm)) && this.ddStart(k)) return true;   // 0.6 PU.1: a size typed while drawing
     const tools = { l: 'line', n: 'centerline', r: 'rect', c: 'circle', a: 'arc', p: 'point', d: 'dimension', f: 'fillet', s: 'select', b: 'spline', t: 'trim', e: 'extend', o: 'offset', m: 'mirror' };
     if (tools[k.toLowerCase()] && !e.shiftKey) { this.setTool(tools[k.toLowerCase()]); return true; }
     if (k.toLowerCase() === 'q') { this.toggleConstruction(); return true; }
@@ -510,6 +576,7 @@ export class SketchEditor {
       this.step = null;
       return;
     }
+    if (tl === 'arc' && this.arcM !== 'CSE') { this.arcClick(sn, dd); return; }
     if (tl === 'arc') {
       if (!this.step) { this.step = { c: sn }; this.ddHint(); this.draw(); return; }
       if (!this.step.s) {
@@ -791,12 +858,14 @@ export class SketchEditor {
     if (tl === 'line' || tl === 'centerline') return [['len', t('ui.sketch.dd.length')], ['ang', t('ui.sketch.dd.angle')]];
     if (tl === 'rect') return [['w', t('ui.sketch.dd.width')], ['h', t('ui.sketch.dd.height')]];
     if (tl === 'circle') return [['d', t('ui.sketch.dd.diameter')]];
+    if (tl === 'arc' && st.gm) { const role = this.arcRole(); return SA.POINT_ROLES.has(role) ? null : [['aval', t('ui.sketch.arc.value.' + role)]]; }
     if (tl === 'arc') return st.s ? [['sweep', t('ui.sketch.dd.sweep')]] : [['r', t('ui.sketch.dd.radius')]];
     return null;
   }
   /** What the status bar says once a shape is started (the setting on). */
   ddHint() {
     if (!this.dimDraw || !this.step) return;
+    if (this.step.gm) { this.arcStatus(); return; }
     const tl = this.tool, key = tl === 'arc' ? (this.step.s ? 'arc_sweep' : 'arc_r') : tl === 'centerline' ? 'line' : tl;
     if (['line', 'rect', 'circle', 'arc_r', 'arc_sweep'].includes(key)) this.host.status(t('ui.sketch.dd.hint.' + key));
   }
@@ -804,6 +873,12 @@ export class SketchEditor {
   ddLive() {
     const st = this.step, cur = this.snapAt?.xy || this.cursor;
     if (!st || !cur) return {};
+    if (st.gm) {
+      const role = this.arcRole(), p = { x: cur[0], y: cur[1] };
+      if (SA.POINT_ROLES.has(role)) return {};
+      const v = Arcs.pointerValue(st.gm, st.v, p, st.from ? { from: st.from } : {});
+      return { aval: +SA.roleToDisplay(role, v).toFixed(3) };
+    }
     const d = (p) => Math.hypot(cur[0] - p[0], cur[1] - p[1]);
     if (st.a) { const a = st.a.xy; return { len: d(a), ang: Math.atan2(cur[1] - a[1], cur[0] - a[0]) * 180 / Math.PI, w: Math.abs(cur[0] - a[0]), h: Math.abs(cur[1] - a[1]) }; }
     if (st.c && !st.s) return { d: 2 * d(st.c.xy), r: d(st.c.xy) };
@@ -844,6 +919,11 @@ export class SketchEditor {
     const st = this.step;
     if (!st) return false;
     if (k === 'ang') { st.dd.ang = ((v % 360) + 360) % 360; this.draw(); return true; }
+    if (k === 'aval') {
+      const role = this.arcRole();
+      if (!Number.isFinite(v) || v === 0 || ((role === 'angle') && Math.abs(v) >= 360)) { this.host.status(t('ui.sketch.arc.err.value')); return false; }
+      st.dd.aval = v; this.draw(); return true;
+    }
     if (k === 'sweep' && !(v > 0 && v < 360)) { this.host.status(t('ui.sketch.dd.bad_sweep')); return false; }
     if (!(v > 0)) { this.host.status(t('ui.sketch.dim.positive')); return false; }
     st.dd[k] = v;
@@ -854,6 +934,7 @@ export class SketchEditor {
   ddPoint() {
     const st = this.step, tl = this.tool, dd = st.dd || {}, live = this.ddLive();
     const cur = this.snapAt?.xy || this.cursor || [0, 0];
+    if (tl === 'arc' && st.gm) return cur;   // a typed number needs no point: arcClick takes dd.aval
     const dirFrom = (o, q = cur) => { const dx = q[0] - o[0], dy = q[1] - o[1], l = Math.hypot(dx, dy); return l > 1e-12 ? [dx / l, dy / l] : [1, 0]; };
     if (tl === 'line' || tl === 'centerline') {
       const a = st.a.xy;
@@ -1021,6 +1102,22 @@ export class SketchEditor {
       const c = P(st.c.xy), r = Math.hypot(cur[0] - st.c.xy[0], cur[1] - st.c.xy[1]);
       ctx.arc(c[0], c[1], r * this.view.s, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
       this.tag(ctx, T, P(cur), '⌀' + fmt(2 * r, 2), this.dimDraw);
+    } else if (tl === 'arc' && st?.gm) {
+      const pts = [...(st.from ? [[st.from.x, st.from.y]] : []), ...st.v.filter((q) => typeof q === 'object').map((q) => [q.x, q.y])];
+      const role = this.arcRole(), aval = st.dd?.aval;
+      const res = this.arcPending(cur, SA.POINT_ROLES.has(role) ? undefined : aval);
+      if (res) {
+        const a = res.arc, sw = Arcs.sweep(a), c = P([a.cx, a.cy]);
+        ctx.arc(c[0], c[1], a.r * this.view.s, -a.a0, -(a.a0 + sw), true);
+        ctx.stroke(); ctx.setLineDash([]);
+        if (this.dimDraw) this.tag(ctx, T, P(cur), 'R' + fmt(a.r, 2) + '  ' + fmt(sw * 180 / Math.PI, 1) + '°', true);
+      } else if (pts.length) {   // before the last input: the rubber band from the latest point
+        const q = pts[pts.length - 1];
+        ctx.moveTo(...P(q)); ctx.lineTo(...P(cur)); ctx.stroke(); ctx.setLineDash([]);
+      }
+      ctx.setLineDash([]);
+      ctx.fillStyle = T.sel;
+      for (const q of pts) { const [x, y] = P(q); ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI * 2); ctx.fill(); }
     } else if (tl === 'arc' && st) {
       const c = P(st.c.xy);
       if (!st.s) { ctx.moveTo(...c); ctx.lineTo(...P(cur)); ctx.stroke(); if (this.dimDraw) { ctx.setLineDash([]); this.tag(ctx, T, P(cur), 'R' + fmt(Math.hypot(cur[0] - st.c.xy[0], cur[1] - st.c.xy[1]), 2), true); } }

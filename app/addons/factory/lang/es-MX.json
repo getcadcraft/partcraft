@@ -1,0 +1,13 @@
+{
+ "@note": "Borrador es-MX (0.9 D8.13).",
+ "factory.part.title": "Planta de producción",
+ "factory.part.note": "Posprocesa un programa en Manufactura (Posprocesar… o Enviar a una máquina…) y luego pásalo a la cola de trabajos de la planta en ModelCraft o guárdalo como archivo de trabajo.",
+ "factory.part.none": "Aún no se ha posprocesado ningún programa en esta sesión.",
+ "factory.part.last": "Último posprocesado: {file} para {post}.",
+ "factory.part.queue": "Agregar a la cola de trabajos de la planta",
+ "factory.part.queued": "{file} espera en la cola de trabajos de la planta ({n} en espera).",
+ "factory.part.noStore": "Este navegador no guarda datos: guarda mejor un archivo de trabajo.",
+ "factory.part.save": "Guardar como archivo de trabajo",
+ "factory.safety": "No es un sistema de seguridad y nunca forma parte de una cadena de seguridad. Las guardas, enclavamientos y paros de emergencia de las propias máquinas son las únicas funciones de seguridad.",
+ "factory.jobs.waiting": "Trabajos en espera desde PartCraft: {n}."
+}
