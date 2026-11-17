@@ -6,9 +6,9 @@ Sketch, constrain, extrude. Then build the assembly.
 
 **[Website](https://getcadcraft.com/apps/partcraft) | [Use it in your browser](https://getcadcraft.com/use/partcraft) | [Download CadCraft Studio](https://getcadcraft.com/download#studio) | [Help and tutorials](https://getcadcraft.com/tutorials/partcraft) | [News](https://getcadcraft.com/news) | [Suggest a feature](https://getcadcraft.com/suggest)**
 
-[![PartCraft 0.9](screenshots/paper.png)](https://getcadcraft.com/use/partcraft)
+[![PartCraft 0.10](screenshots/paper.png)](https://getcadcraft.com/use/partcraft)
 
-<sub>PartCraft 0.9 in the browser, dark theme. [A second view](screenshots/model.png).</sub>
+<sub>PartCraft 0.10 in the browser, dark theme. [A second view](screenshots/model.png).</sub>
 
 PartCraft is the parametric parts & assemblies app in the [CadCraft](https://getcadcraft.com) family: Constrained sketches, feature history, assemblies with joints and drawings with GD&T. STEP in and out.
 
