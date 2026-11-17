@@ -1,99 +1,99 @@
 ---
 title: PartCraft ကို စတင်အသုံးပြုခြင်း
-summary: PartCraft ယခုလုပ်ဆောင်နိုင်သည့်အရာများ၊ browser လိုအပ်ချက်များနှင့် မိနစ် ၁၀ အတွင်း ပထမ part တစ်ခု၊ sketch မှ သိမ်းထားသော ဖိုင်အထိ။
-keywords: စတင်ခြင်း, ပထမဆုံးအကြိမ်, quick start, မိတ်ဆက်, tutorial, ပထမ part, plate, parametric, part modeler
-from: 5f0a668d
+summary: PartCraft ယခု ဘာလုပ်နိုင်သလဲ၊ သင့် browser ဘာလိုသလဲ၊ နှင့် ဆယ်မိနစ်အတွင်း ပထမအစိတ်အပိုင်း — sketch မှ သိမ်းထားသော ဖိုင်အထိ။
+keywords: start, first run, quick start, introduction, tutorial, first part, plate, parametric, part modeler, စတင်ခြင်း, ပထမဆုံးအကြိမ်, အမြန်စတင်ခြင်း, မိတ်ဆက်, သင်ခန်းစာ, ပထမအစိတ်အပိုင်း, ပြား, parametric, အစိတ်အပိုင်း မော်ဒယ်လ်
+from: 7d43283f
 ---
 
-PartCraft သည် CadCraft မိသားစု၏ parametric part နှင့် assembly app ဖြစ်သည်။ 2D sketch ဆွဲပြီး relations နှင့် dimensions ဖြင့် တင်းကျပ်စေကာ extrude, revolve နှင့် hole ကဲ့သို့ features များဖြင့် solid အဖြစ် ပြောင်းသည်။ နောက်မှ ဂဏန်းတစ်ခုခုကို ပြောင်းလျှင် part သည် ၎င်း၏ history မှ ပြန်တည်ဆောက်သည်။ Parts များကို ထို့နောက် assemblies တွင် ထည့်ပြီး joints ဖြင့် နေရာချကာ motion ကို စစ်ဆေးနိုင်သည်။
+PartCraft သည် CadCraft မိသားစု၏ parametric အစိတ်အပိုင်းနှင့် assembly အက်ပ်ဖြစ်သည်။ 2D sketch ကို ဆွဲပြီး ဆက်စပ်မှုများနှင့် အတိုင်းအတာများဖြင့် တင်းကျပ်စေကာ extrude၊ revolve နှင့် hole ကဲ့သို့ အင်္ဂါရပ်များဖြင့် solid အဖြစ် ပြောင်းသည်။ နောက်ပိုင်း ဂဏန်းတစ်ခုခုကို ပြောင်းနိုင်ပြီး အစိတ်အပိုင်းသည် ၎င်း၏ history မှ ပြန်တည်ဆောက်သည်။ အစိတ်အပိုင်းများကို ထို့နောက် assembly များထဲ ထည့်နိုင်ပြီး joint များက နေရာချပေးကာ ရွေ့လျားမှုကို စစ်ဆေးနိုင်သည်။
 
-ဤ build က လုပ်ဆောင်နိုင်သည်များ:
+ဤဗားရှင်းက ဘာလုပ်သလဲ:
 
-| အလုပ် | ရရှိမည့်အရာ |
+| အလုပ် | သင်ရရှိမည့်အရာ |
 |---|---|
-| Sketches | Lines, rectangles, circles, arcs, points နှင့် centerlines၊ relations နှင့် dimensions ပါဝင်ပြီး တိုက်ရိုက် state: under, fully သို့မဟုတ် over defined |
-| Solid features | Extrude, cut, revolve, revolved cut၊ simple နှင့် counterbored holes၊ linear နှင့် circular patterns၊ mirror၊ straight edges ကြား flat faces များပေါ်ရှိ fillets နှင့် chamfers၊ flat faces ပေါ်ရှိ shells နှင့် drafts။ Sweeps, lofts နှင့် exact kernel လိုအပ်သော အခြား features များကို ဤ version တွင် မတည်ဆောက်ရသေးပါ: see [ယခုမတည်ဆောက်ရသေးသောအရာများ](topic:not-built-yet) |
-| History | Feature တစ်ခုစီ၏ ဂဏန်းများကို တည်းဖြတ်ခြင်း၊ suppress၊ rollback၊ နေရာပြောင်းခြင်းနှင့် ဖျက်ခြင်း၊ undo ဖြင့် |
-| Assemblies | Rigid, revolute နှင့် slider joints ဖြင့် ချိတ်ဆက်ထားသော parts၊ clash စစ်ဆေးမှုနှင့် motion စစ်ဆေးမှု |
-| Drawings | A3 sheet တွင် views သုံးခု၊ isometric၊ section၊ detail view၊ overall sizes၊ datums၊ feature control frames နှင့် surface finish symbols၊ PDF အဖြစ် ထုတ်ရန် |
-| Files | ကိုယ်ပိုင် part နှင့် assembly ဖိုင်များ၊ STL, 3MF, faceted STEP, DXF နှင့် PDF ထုတ်ခြင်း |
+| Sketches | မျဉ်း၊ ထောင့်မှန်စတုဂံ၊ စက်ဝိုင်း၊ စက်ဝိုင်းပိုင်း၊ အမှတ်များနှင့် centerline များ၊ ဆက်စပ်မှုများနှင့် အတိုင်းအတာများနှင့်အတူ၊ နှင့် တိုက်ရိုက်အခြေအနေ: under၊ fully သို့မဟုတ် over defined |
+| Solid အင်္ဂါရပ်များ | Extrude၊ cut၊ revolve၊ revolved cut၊ ရိုးရှင်းသော နှင့် counterbored hole များ၊ linear နှင့် circular pattern များ၊ mirror၊ ဖြောင့်သော အစွန်းများ ပြားမျက်နှာများကြား fillet နှင့် chamfer၊ ပြားမျက်နှာပေါ် shell နှင့် draft။ Sweep၊ loft နှင့် တိကျသော kernel လိုအပ်သော အခြားအင်္ဂါရပ်များသည် ဤဗားရှင်းတွင် ယခုမတည်ဆောက်ရသေးပါ: [ယခုမတည်ဆောက်ရသေးသည်များ](topic:not-built-yet) ကို ကြည့်ပါ |
+| History | အင်္ဂါရပ်တိုင်း၏ ဂဏန်းများ တည်းဖြတ်၊ suppress၊ rollback၊ ပြန်စီ နှင့် ဖျက်ခြင်း၊ undo ဖြင့် |
+| Assemblies | rigid၊ revolute နှင့် slider joint များဖြင့် ချိတ်ဆက်ထားသော အစိတ်အပိုင်းများ၊ clash စစ်ဆေးမှု နှင့် motion စစ်ဆေးမှု |
+| Drawings | A3 စာရွက်တစ်ခုတွင် view သုံးခု၊ isometric၊ section၊ detail view၊ အပြင်ဘက် အရွယ်အစားများ၊ datum များ၊ feature control frame များနှင့် မျက်နှာပြင် အပြီးသတ် သင်္ကေတများ၊ PDF အဖြစ် export |
+| ဖိုင်များ | ကိုယ်ပိုင် အစိတ်အပိုင်းနှင့် assembly ဖိုင်များ; STL၊ 3MF၊ exact STEP၊ DXF နှင့် PDF အထွက် |
 
-အားလုံးသည် browser ထဲတွင်၊ သင့်ကွန်ပျူတာပေါ်တွင် လုပ်ဆောင်သည်။ **တစ်ခုမျှ upload မလုပ်ပါ။** ဖိုင်များ ရောက်ရာနေရာအတွက် see [ဖိုင်များ: ဖွင့်ခြင်း၊ သိမ်းခြင်းနှင့် ထုတ်ခြင်း](topic:files)။
+အရာအားလုံးသည် သင့်ကွန်ပျူတာပေါ်ရှိ browser တွင် အလုပ်လုပ်သည်။ **ဘာမှ upload မလုပ်ပါ။** ဖိုင်များ ဘယ်သို့ သွားသည်ကို [Files: open, save and export](topic:files) တွင် ကြည့်ပါ။
 
 ## လိုအပ်သည်များ
 
-- **WebGL** (3D graphics) နှင့် **WebAssembly** ဖွင့်ထားသော လက်ရှိ Chrome, Edge, Firefox သို့မဟုတ် Safari။ နှစ်ခုစလုံး default အနေဖြင့် ဖွင့်ထားသည်။ Solid geometry ကို app နှင့်အတူ ဖွင့်လာသော WebAssembly mesh kernel က တည်ဆောက်သည်: see [The mesh kernel](topic:solid-kernels)။
-- Mouse က အလွယ်ဆုံးဖြစ်သည်။ Trackpad အလုပ်လုပ်သည်၊ touch screen သည် ကြည့်ရှုခြင်းနှင့် ရိုးရှင်းသော sketching အတွက် အလုပ်လုပ်သည်: see [Trackpad, touch နှင့် သေးငယ်သော screen များ](topic:trackpad-and-touch)။
-- 1280 pixels အနည်းဆုံးကျယ်သော screen တွင် toolbar အပြည့်အစုံကို တစ်တန်းတည်း ပြသည်။ ပိုကျဉ်းသော window များတွင် toolbar ကို ဘေးသို့ scroll လုပ်ရသည်; ဖုန်းတွင် panel များကို အောက်ခြေ bar မှ sheet အဖြစ် ဖွင့်သည်။
+- **WebGL** (3D graphics) နှင့် **WebAssembly** ဖွင့်ထားသော လက်ရှိ Chrome၊ Edge၊ Firefox သို့မဟုတ် Safari။ နှစ်ခုစလုံး ပုံမှန်အားဖြင့် ဖွင့်ထားသည်။ solid geometry ကို အက်ပ်နှင့်အတူ တင်သော WebAssembly mesh kernel က တည်ဆောက်သည်: [mesh kernel](topic:solid-kernels) ကို ကြည့်ပါ။
+- Mouse က အလွယ်ဆုံးဖြစ်သည်။ Trackpad အလုပ်လုပ်သည်၊ touch screen များက ကြည့်ခြင်းနှင့် ရိုးရှင်းသော sketch အတွက် အလုပ်လုပ်သည်: [Trackpad, touch and small screens](topic:trackpad-and-touch) ကို ကြည့်ပါ။
+- အကျယ် 1280 pixel အနည်းဆုံး ရှိသော မျက်နှာပြင်တွင် toolbar တစ်ခုလုံးကို အတန်းတစ်ခုတည်းတွင် ပြသည်။ ပိုကျဉ်းသော window များတွင် toolbar ကို ဘေးသို့ scroll လုပ်ရမည်; ဖုန်းတွင် panel များသည် အောက်ခြေ bar မှ စာရွက်အဖြစ် ဖွင့်သည်။
 
-Browser အကြောင်းပိုမိုသိရန်: [Browsers နှင့် computers](common:browsers)။
+browser များအကြောင်း နောက်ထပ်: [Browsers and computers](common:browsers)။
 
 :::note
-PartCraft သည် browser ထဲတွင် အလုပ်လုပ်ပြီး desktop တွင် CadCraft Studio အတွင်း ဖွင့်နိုင်သည်။ Cloud saving ကို ယခုအချိန်တွင် မရနိုင်သေးပါ: သင့်ကွန်ပျူတာမှ parts များကို ဖွင့်ပြီး ဖိုင်များအဖြစ် ပြန်သိမ်းရသည်။
+PartCraft သည် browser တွင် အလုပ်လုပ်ပြီး desktop တွင် CadCraft Studio အတွင်း အလုပ်လုပ်သည်။ Cloud သိမ်းဆည်းခြင်း ယခုမရနိုင်သေးပါ: သင့်ကွန်ပျူတာမှ အစိတ်အပိုင်းများကို ဖွင့်ပြီး ဖိုင်များအဖြစ် ပြန်သိမ်းပါ။
 :::
 
 ## PartCraft ကို ဖွင့်ခြင်း
 
 1. PartCraft ကို ဖွင့်ပါ။
-2. Screen က "Loading the solid kernel…" ဟု ပြသည်အထိ စောင့်ပါ။ ပထမအကြိမ်တွင် အချိန်အနည်းငယ် ကြာသည်။
-3. Empty 3D view တစ်ခု၊ base planes သုံးခု၊ ဘယ်ဘက်တွင် history ("Part1" ပြီးနောက် ရှေ့ plane, အပေါ် plane, ညာဘက် plane) နှင့် view ထဲတွင် "Start a part" ခေါင်းစဉ်ရှိ box တစ်ခုကို တွေ့ရမည်။
-4. Status bar ညာဘက်ဆုံးအနားရှိ chip က "Mesh kernel" ဟု ပြသည်: ဤ version တွင် PartCraft သည် part တိုင်းကို mesh kernel ဖြင့် တည်ဆောက်သဖြင့် လုံးဝန်းသော မျက်နှာပြင်များသည် flat facets ဖြစ်သည်။ ချက်ချင်း modeling စတင်နိုင်သည်။
+2. မျက်နှာပြင်က "Loading the solid kernel…" ဟု ပြသနေစဉ် စောင့်ပါ။ ပထမအကြိမ်တွင် ခဏကြာသည်။
+3. အလွတ် 3D view ကို မြင်ရမည်၊ base ပြား သုံးခုနှင့်အတူ၊ ဘယ်ဘက်တွင် history ("Part1"၊ ထို့နောက် Front plane၊ Top plane၊ Right plane) နှင့် "Start a part" ခေါင်းစဉ်ရှိ view ထဲ သေတ္တာတစ်ခု။
+4. Status bar ၏ ညာဘက်အဆုံးနား "Mesh kernel" chip သည် ဤဗားရှင်းတွင် PartCraft က အစိတ်အပိုင်းတိုင်းကို mesh kernel ဖြင့် တည်ဆောက်ကြောင်း ပြသည်၊ ထို့ကြောင့် ဝိုင်းသော မျက်နှာများသည် ပြားငယ်များ ဖြစ်သည်။ ချက်ချင်း မော်ဒယ်လုပ်စတင်နိုင်သည်။
 
-View က browser သည် 3D ကို မပြနိုင်ဟု ပြလျှင်၊ သို့မဟုတ် kernel မ load ဖြစ်လျှင် see [ပြဿနာရှာဖွေခြင်း](topic:troubleshooting#the-app-does-not-start)။
+view က browser က 3D မပြနိုင်ဟု ပြသလျှင် သို့မဟုတ် kernel မတင်ရလျှင် [Troubleshooting](topic:troubleshooting#the-app-does-not-start) ကို ကြည့်ပါ။
 
-## ပထမ part: အပေါက်ပါသော plate
+## ပထမအစိတ်အပိုင်း: အပေါက်ပါသော ပြား
 
-60 × 40 mm ဖြစ်ပြီး အထူ 10 mm၊ အပေါက် 6 mm ဖောက်ထားသော plate တစ်ခု ဖန်တီးပါမည်။ ယူနစ်များသည် millimeters ဖြစ်သည်။
+အထူ 10 mm၊ 60 × 40 mm ပြား၊ အပေါက် 6 mm ဖောက်ထားသော ပြားတစ်ခုကို ဖန်တီးမည်။ ယူနစ်များသည် မီလီမီတာ ဖြစ်သည်။
 
-### Outline ကို sketch ဆွဲခြင်း
+### Outline ကို sketch လုပ်ခြင်း
 
-1. ဘယ်ဘက် history ရှိ **ရှေ့ plane** ကို နှိပ်ပါ။ Plane သည် view တွင် မီးထိုးပြသည်။
-2. Toolbar တွင် {{ui:Sketch}} ကို ရွေးပါ၊ သို့မဟုတ် {{key:S}} ကို နှိပ်ပါ။ View သည် plane ကို တိုက်ရိုက်ကြည့်ရန် လှည့်သွားပြီး Line tool ဖွင့်ထားသည်။
+1. history ရှိ **Front plane** ကို နှိပ်ပါ။ ပြားသည် view တွင် မီးမောင်းပြသည်။
+2. Toolbar တွင် {{ui:Sketch}} ကို ရွေးပါ၊ သို့မဟုတ် {{key:S}} ကို နှိပ်ပါ။ view သည် ပြားကို တည့်တည့်ကြည့်သည်၊ Line tool က active ဖြစ်သည်။
 3. Rectangle tool အတွက် {{key:R}} ကို နှိပ်ပါ။
-4. Pointer ကို origin (အနီရောင် အမှတ်ပါ သေးငယ်သော စက်ဝိုင်း) ပေါ်သို့ ရွှေ့ပါ။ သေးငယ်သော စတုရန်းတစ်ခုက snap ဖြစ်ကြောင်း ပြသည်။ နှိပ်ပါ။
-5. အပေါ်သို့ နှင့် ညာဘက်သို့ ရွှေ့ပြီး ထပ်နှိပ်ပါ။ ထောင့်မှန်တစ်ခု ရရှိသည်။ မျဉ်းများသည် အပြာရောင်ဖြစ်သည်: အပြာဆိုသည်မှာ ၎င်းတို့ ရွေ့နိုင်ဆဲဖြစ်သည်။
+4. Pointer ကို origin (အနီရောင် အေးဆေးသော စက်ဝိုင်းငယ်တစ်ခု ကျော်ဖြတ်ထားသည်) ပေါ်သို့ ရွှေ့ပါ။ အကွက်ငယ်တစ်ခုက snap ဖြစ်ကြောင်း ပြသည်။ နှိပ်ပါ။
+5. အပေါ်နှင့် ညာဘက်သို့ ရွှေ့ပြီး နောက်တစ်ကြိမ် နှိပ်ပါ။ စတုဂံ တစ်ခုရရှိသည်။ ၎င်း၏ မျဉ်းများသည် အပြာရောင်ဖြစ်သည်: အပြာရောင်ဆိုသည်မှာ ၎င်းတို့ ဆက်ရွေ့နိုင်သေးသည်။
 
-### အရွယ်အစား သတ်မှတ်ခြင်း
+### အရွယ်အစားများ ပေးခြင်း
 
 1. Dimension tool အတွက် {{key:D}} ကို နှိပ်ပါ။
-2. အပေါ်ဘက် မျဉ်းကို နှိပ်ပြီး ၎င်းအပေါ် အနည်းငယ် နှိပ်ပါ။ လက်ရှိ အရှည်ပါသော ဂဏန်းကွက် ဖွင့်လာသည်။
-3. `60` ဟု ရိုက်ပြီး {{key:Enter}} ကို နှိပ်ပါ။ ထောင့်မှန်သည် 60 mm ကျယ်သို့ ပြောင်းသည်။
-4. ဘယ်ဘက် မျဉ်းကို နှိပ်ပြီး ၎င်း၏ ဘယ်ဘက်အနည်းငယ်ကို နှိပ်ပါ။ `40` ဟု ရိုက်ပြီး {{key:Enter}} ကို နှိပ်ပါ။
+2. အပေါ်မျဉ်းကို နှိပ်ပြီး ထိုအပေါ်ဘက်ခပ်ငယ်ငယ် နှိပ်ပါ။ လက်ရှိအလျားနှင့်အတူ နံပါတ်အကွက် ပွင့်လာသည်။
+3. `60` ကို ရိုက်ပြီး {{key:Enter}} ကို နှိပ်ပါ။ စတုဂံသည် အကျယ် 60 mm ဖြစ်သွားသည်။
+4. ဘယ်ဘက်မျဉ်းကို နှိပ်ပြီး ၎င်း၏ ဘယ်ဘက်ခပ်ငယ်ငယ် နှိပ်ပါ။ `40` ကို ရိုက်ပြီး {{key:Enter}} ကို နှိပ်ပါ။
 
-View ၏ ဘယ်ဘက်အပေါ်ထောင့်ရှိ chip သည် ယခု **အပြည့်အစုံ သတ်မှတ်ပြီး** ဟု ပြပြီး မျဉ်းများသည် မည်းရောင်သို့ ပြောင်းသည် (Paper theme တွင် အနက်၊ Model theme တွင် အဖြူ)။ အမှတ်နှင့် အရွယ်အစား အားလုံး ပြီးသတ်ပြီဖြစ်သည်။
+view ၏ ဘယ်ဘက်အပေါ်ထောင့်ရှိ chip သည် ယခု **Fully defined** ဟု ပြပြီး မျဉ်းများသည် မှင်ရောင် (Paper theme တွင် အမည်း၊ Model theme တွင် အဖြူ) သို့ ပြောင်းသည်။ အမှတ်နှင့် အရွယ်အစား အားလုံး ပြင်ဆင်ထားသည်။
 
 :::tip
-Rectangle ကို origin မှ ဝေးသည့်နေရာတွင် စတင်ခဲ့လျှင် chip က "မပြည့်စုံသေး · 2 degrees of freedom" ဟုသာ ပြဦးမည်။ {{key:S}} ကို နှိပ်ပြီး Select ရွေးကာ ထောင့်တစ်ခုကို နှိပ်ပါ၊ {{key:Shift}}+နှိပ်ပြီး origin ကို နှိပ်ပါ၊ ထို့နောက် ညာဘက် panel တွင် {{ui:• Coincident}} ကို ရွေးပါ။
+စတုဂံကို origin မှ ဝေးသော နေရာမှ စတင်ခဲ့လျှင် chip က "Under defined · 2 degrees of freedom" ဟု ဆက်ပြနေမည်။ {{key:S}} ကို နှိပ်ပြီး Select ရွေးပါ၊ ထောင့်တစ်ခုကို နှိပ်ပါ၊ {{key:Shift}}+နှိပ်ပြီး origin ကို ရွေးပါ၊ ထို့နောက် ညာဘက် panel တွင် {{ui:• Coincident}} ကို ရွေးပါ။
 :::
 
 ### Extrude လုပ်ခြင်း
 
-1. Toolbar တွင် {{ui:Exit}} ကို ရွေးပါ၊ သို့မဟုတ် sketch ပိတ်သွားသည်အထိ {{key:Esc}} ကို နှိပ်ပါ (များသောအားဖြင့် နှစ်ကြိမ်)။
-2. {{ui:Extrude}} ကို ရွေးပါ။ 10 mm solid ပေါ်လာသည်။ History တွင် "Extrude1" ထည့်ပြီး "Sketch1" သည် ၎င်းအောက်တွင် indent ဖြင့် ပြသည်။
-3. ညာဘက် panel တွင် extrude ၏ ဆက်တင်များကို ပြသည်။ အထူပြောင်းရန် **Depth (mm)** တွင် ဂဏန်းအသစ် ရိုက်ပြီး {{key:Enter}} သို့မဟုတ် {{key:Tab}} ကို နှိပ်ပါ။ Part သည် ချက်ချင်း ပြန်တည်ဆောက်သည်။
+1. View ၏ toolbar တွင် {{ui:Exit}} ကို ရွေးပါ၊ သို့မဟုတ် sketch ပိတ်သည်အထိ {{key:Esc}} ကို နှိပ်ပါ (များသောအားဖြင့် နှစ်ကြိမ်)။
+2. {{ui:Extrude}} ကို ရွေးပါ။ အထူ 10 mm solid ပေါ်လာသည်။ "Extrude1" ကို history သို့ ထည့်ပြီး "Sketch1" ကို ၎င်းအောက်တွင် ဝင်ဆွဲထားသည်။
+3. ညာဘက် panel တွင် extrude ၏ ဆက်တင်များ ပြသည်။ အထူကို ပြောင်းရန် **Depth (mm)** တွင် နံပါတ်အသစ် ရိုက်ပြီး {{key:Enter}} သို့မဟုတ် {{key:Tab}} ကို နှိပ်ပါ။ အစိတ်အပိုင်းသည် ချက်ချင်း ပြန်တည်ဆောက်သည်။
 
 ### အပေါက် ထည့်ခြင်း
 
-1. Plate ရှေ့ရှိ ကြီးမားသော flat face (extrusion ၏ အဆုံး) ကို နှိပ်ပါ။ Face တစ်ခုလုံး မီးထိုးပြပြီး ညာဘက် panel တွင် **Face** ဟု ပြသည်။
+1. ပြား၏ ရှေ့ဘက်ရှိ ကြီးမားသော ပြားမျက်နှာကို နှိပ်ပါ (extrusion ၏ အဆုံး)။ မျက်နှာတစ်ခုလုံး မီးမောင်းပြပြီး ညာဘက် panel က **Face** ဟု ပြသည်။
 2. ညာဘက် panel တွင် {{ui:Sketch on this face}} ကို ရွေးပါ။
-3. Point tool အတွက် {{key:P}} ကို နှိပ်ပြီး face ၏ အလယ်အနီးတွင် နှိပ်ပါ။
+3. Point tool အတွက် {{key:P}} ကို နှိပ်ပြီး မျက်နှာ၏ အလယ်အနီးတွင် နှိပ်ပါ။
 4. {{ui:Exit}} ကို ရွေးပါ။
-5. {{ui:Hole}} ကို ရွေးပါ။ Plate ကို ဖောက်ထားသော 6 mm အပေါက် ရရှိသည်။ လိုအပ်လျှင် ညာဘက် panel ရှိ **Diameter (mm)** ကို ပြောင်းပါ။
+5. {{ui:Hole}} ကို ရွေးပါ။ ပြားကို ဖောက်သော အပေါက် 6 mm ရရှိသည်။ လိုလျှင် ညာဘက် panel တွင် **Diameter (mm)** ကို ပြောင်းပါ။
 
-ဘယ်ဘက်အောက်ခြေရှိ **Part** box တွင် ယခု ထုထည်၊ မျက်နှာပြင် ဧရိယာ၊ အရွယ်အစား (60 × 40 × 10 mm) နှင့် "Through holes: 1" ကို ပြသည်။
+ဘယ်ဘက်အောက်ရှိ **Part** အကွက်သည် ယခု ထုထည်၊ မျက်နှာပြင်ဧရိယာ၊ အရွယ်အစား (60 × 40 × 10 mm) နှင့် "Through holes: 1" ကို ဖတ်ပြသည်။
 
 ### သိမ်းခြင်း
 
 1. {{key:Mod+S}} ကို နှိပ်ပါ သို့မဟုတ် {{ui:Save}} ကို ရွေးပါ။
-2. Browser က `Part1.partcraft.json` ကို downloads folder သို့ ဒေါင်းလုဒ်ဆွဲသည်။ ဖိုင်တွင် history အပြည့်အစုံ ပါဝင်သည်: ဆက်တည်းတည်းဖြတ်ရန် {{ui:Open}} ဖြင့် ပြန်ဖွင့်ပါ။
+2. သင့် browser က `Part1.partcraft.json` ကို downloads folder သို့ ဒေါင်းလုဒ်ဆွဲသည်။ ဖိုင်တွင် history အားလုံး ပါသည်: ဆက်တည်းဖြတ်ရန် {{ui:Open}} ဖြင့် ပြန်ဖွင့်ပါ။
 
-Part ကို အရင်အမည်ပြောင်းလိုလျှင် view ရှိ အလွတ်နေရာကို နှိပ်ပြီး ဘာမျှ မရွေးထားစေဘဲ ညာဘက် panel တွင် **Name** အသစ်ကို ရိုက်ပါ။
+ပထမဦးစွာ အစိတ်အပိုင်းကို နာမည်ပြောင်းလိုလျှင် view ရှိ အလွတ်နေရာကို နှိပ်ပြီး ဘာမှ မရွေးထားစေပါ၊ ညာဘက် panel ရှိ **Name** အသစ် ရိုက်ပါ။
 
-## နောက်တစ်ဆင့်
+## နောက်ဆက်တွဲ
 
-- [ပထမ sketch ဆွဲခြင်း](topic:sketch-basics) နှင့် [Sketch ကို အပြည့်အစုံ သတ်မှတ်ခြင်း](topic:relations-dimensions) တို့က sketcher ကို အသေးစိတ် ရှင်းပြသည်။
-- [History မှတစ်ဆင့် part ကို ပြောင်းခြင်း](topic:edit-history) က ဆောက်ထားသည်များကို တည်းဖြတ်ပုံ ပြသည်။
-- [Round, bevel နှင့် hollow](topic:fillet-chamfer-shell) နှင့် [Drawing ဆွဲခြင်း](topic:drawing-pdf) တို့က part ကို ပြီးအောင် လုပ်သည်။ [ယခုမတည်ဆောက်ရသေးသောအရာများ](topic:not-built-yet) တွင် sweeps နှင့် lofts ကဲ့သို့ ဤ version မလုပ်နိုင်သည်များကို စာရင်းပြုထားသည်။
-- [အခြား parametric modeler မှ လာခြင်း](topic:coming-from) တွင် ဤနေရာတွင် ကွာခြားစွာ အလုပ်လုပ်သော အကျင့်များကို စာရင်းပြုထားသည်။
-- [Keys နှင့် mouse](topic:keyboard) တွင် shortcut အပြည့်အစုံ ရှိသည်။
-- [ဤ help ကို သုံးခြင်း](common:help)။
+- [Draw your first sketch](topic:sketch-basics) နှင့် [Fully define a sketch](topic:relations-dimensions) က sketcher ကို အပြည့်အစုံ ရှင်းပြသည်။
+- [Change a part through its history](topic:edit-history) က သင်တည်ဆောက်ထားသည်ကို မည်သို့ တည်းဖြတ်ရမည်ကို ပြသည်။
+- [Round, bevel and hollow](topic:fillet-chamfer-shell) နှင့် [Make a drawing](topic:drawing-pdf) က အစိတ်အပိုင်းကို ပြီးစီးစေသည်။ [ယခုမတည်ဆောက်ရသေးသည်များ](topic:not-built-yet) က ဤဗားရှင်းမလုပ်နိုင်သည်များ (sweep နှင့် loft ကဲ့သို့) ကို စာရင်းပြုစုသည်။
+- [Coming from another parametric modeler](topic:coming-from) က ဤနေရာတွင် ကွဲပြားစွာ အလုပ်လုပ်သော အကျင့်များကို စာရင်းပြုစုသည်။
+- [Keys and mouse](topic:keyboard) သည် ဖြတ်လမ်းကီးများ၏ အပြည့်အစုံ စာရင်းဖြစ်သည်။
+- [Using this help](common:help)။

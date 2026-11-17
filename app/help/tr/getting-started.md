@@ -2,7 +2,7 @@
 title: PartCraft'a başlangıç
 summary: PartCraft'ın bugün ne yaptığı, tarayıcınızın neye ihtiyaç duyduğu ve eskizden kaydedilmiş dosyaya on dakikada ilk parçanız.
 keywords: başlangıç, ilk çalıştırma, hızlı başlangıç, giriş, öğretici, ilk parça, plaka, parametrik, parça modelleyici
-from: 5f0a668d
+from: 7d43283f
 ---
 
 PartCraft, CadCraft ailesinin parametrik parça ve montaj uygulamasıdır. 2B bir eskiz çizer, onu ilişkiler ve ölçülerle sabitler, ekstrüzyon, döndürme ve delik gibi özelliklerle katıya çevirir ve sonradan herhangi bir sayıyı değiştirirsiniz: parça geçmişinden yeniden kurulur. Parçalar sonra montajlara girer; orada birleşimler onları yerleştirir ve hareketi denetlemenizi sağlar.

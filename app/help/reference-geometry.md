@@ -29,6 +29,8 @@ They are in the Features group's {{ui:More}} menu: {{ui:Plane}}, {{ui:Axis}}, {{
 
 Every reference has a **Pick** button: choose it, then click in the view. A plane slot takes a base plane, a reference plane or a flat face; a point slot takes the end of an edge (click near that end), a point feature, or a spot on a face; an edge slot takes an edge. {{key:Esc}} cancels a pick. **Flip the normal** turns the plane over (which way a sketch on it faces).
 
+In this version a slot that needs an edge or a cylinder face (Tangent to a cylinder, and the Edge slots) answers "not built yet": use points or an axis instead.
+
 ## Sketch on a plane
 
 Select the plane (in the history or by clicking its square in the view) and choose {{ui:Sketch}}, or **Sketch on it** in its panel. The sketch follows the plane: change the plane's distance and the sketch, and every feature on it, moves too.
@@ -62,5 +64,5 @@ Use them in other features:
 A plane made from a face that no longer exists fails with a message naming it, such as "The face it sits on is gone from Extrude1." It is never moved to another face. The sketches and features on it are marked "not built" until you pick a new reference; the rest of the part stays as it was.
 
 :::note
-This version builds every part with the mesh kernel, which makes planes, axes and points from base planes, sketch points, coordinates and other references only. References on faces and edges of the solid need an exact kernel: not built yet in this version ("It uses a face or edge of the solid, which only an exact kernel can find: not built yet in this version.").
+This version builds every part with the mesh kernel, which makes planes, axes and points from base planes, flat faces made by an Extrude or Revolve, sketch points, coordinates and other reference features. Anything that needs an edge, the end of an edge or a curved face needs an exact kernel: not built yet in this version ("It uses a face or edge of the solid, which only an exact kernel can find: not built yet in this version.").
 :::

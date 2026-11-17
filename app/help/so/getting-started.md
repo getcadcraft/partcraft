@@ -1,99 +1,99 @@
 ---
 title: Bilow PartCraft
-summary: Waxa PartCraft hadda sameeya, waxa browser-kaagu u baahan yahay, iyo qayb koowaad oo daqiiqadaha 10 ah, laga bilaabo sawir-gacmeed ilaa fayl la kaydiyay.
-keywords: bilow, orodka koowaad, bilaabid degdeg ah, hordhac, casharro, qaybta koowaad, saxan bir, parametric, moodeelka qaybta
-from: 5f0a668d
+summary: Waxa PartCraft-ku hadda sameeyo, waxa browser-kaagu u baahan yahay, iyo qayb hore oo daqiiqado toban ah, laga bilaabo sketch ilaa fayl la kaydiyay.
+keywords: bilow, ku bilow, bilaabid, hordhac, casharka, qaybta ugu horreysa, saxan, parametric, qaybta modeler
+from: 7d43283f
 ---
 
-PartCraft waa app qayb parametric ah iyo isku-dhis ah oo qoyska CadCraft. Waxaad sawir-gacmeed 2D ah ka sawirtaa, waxaad ku xidhaa xidhiidho iyo cabbiro, waxaad u beddeshaa jidh adag astaamo sida extrude, revolve iyo hole, oo tiro kasta oo dambe ayaad beddeli kartaa: qaybtu waxay dib u dhisaa taariikhdeeda. Qaybaha ka dib waxay galaan isku-dhiskyada, halkaas oo isku-xidhyadu ay meeleeyaan oo ay kuu oggolaadaan inaad hubiso dhaqdhaqaaqa.
+PartCraft waa app-ka qaybta parametric-ka iyo isku-dhiska ee qoyska CadCraft. Waxaad sawirtaa sketch 2D, waxaad ku xidhaa xidhiidh iyo cabbirro, waxaad u beddeshaa jidh adag feature-yo sida extrude, revolve iyo hole, waxaadna bedeli kartaa tiro kasta markasta: qaybtu waxay dib u dhisaa taariikhdeeda. Qaybaha ka dib waxay galaan isku-dhiska (assemblies), halkaas oo joints ay meeshooda geliyaan oo ay kuu ogolaadaan inaad hubiso dhaqdhaqaaqa.
 
-Waxa dhismahan sameeyaa:
+Waxa dhismahan hadda sameeya:
 
-| Shaqo | Waxa aad heleysa |
+| Shaqada | Waxa aad heleysid |
 |---|---|
-| Sawir-gacmeedyo | Khadad, afar-geesle, goobooyin, qaansooyin, bar iyo khadad dhexe, oo leh xidhiidho iyo cabbiro, iyo xaalad toos ah: ka hooseeya, si buuxda loo qeexay ama ka sarreeya |
-| Astaamaha jidh adagta | Extrude, goo, revolve, revolved cut, god fudud iyo god ku qarsan, qaabab toosan iyo wareeg, muraayad, fillet iyo chamfer geesaha toosan ee u dhexeeya dusha fidsan, iyo shell iyo draft dusha fidsan. Sweep, loft iyo astaamaha kale ee u baahan kernel sax ah weli lama dhisin nooca tan: eeg [Waxa weli lama dhisin](topic:not-built-yet) |
-| Taariikh | Wax beddel tirooyinka astaam kasta, damin, dib u celin, dib-u-habayn iyo tirtir, iyo ka noqo |
-| Isku-dhiskyo | Qayb ay ku xirnaadaan xidhiidho adag, wareeg iyo siyaadi, iyo hubin is-jarka iyo hubin dhaqdhaqaaqa |
-| Naqshado | Xaashi A3 oo leh saddex muuqaal, isometric, qayb, muuqaal faahfaahin, cabbirrada guud, datums, fareemo kontoroolka joogsiga iyo calaamadaha dusha, oo loo dhoofiyo PDF |
-| Fayl | Faylashiisa qaybta iyo isku-dhiska; STL, 3MF, STEP dusha fidsan, DXF iyo PDF oo la bixiyo |
+| Sketches | Xariiqyo, laabyo, goobo, qaloocyo, barooyin iyo xariiqyo dhexe, oo leh xidhiidh iyo cabbirro, iyo xaalad toos ah: hoos, buuxa ama ka badan go'an |
+| Solid features | Extrude, cut, revolve, revolved cut, godad fudud iyo kuwa counterbore ah, qaabab toos ah iyo wareeg, mirror, fillet iyo chamfer geesaha toosan ee u dhexeeya dusha siman, iyo shell iyo draft dusha siman. Sweep, loft iyo feature-yada kale ee u baahan kernel saxda ah weli lama dhisin nooca hadda: eeg [Waxa aan wali la dhisin](topic:not-built-yet) |
+| History | Tafatir tirooyinka feature kasta, dami, dib u celi, dib u dalbo iyo tirtir, oo leh undo |
+| Assemblies | Qaybo ku xidhan rigid, revolute iyo slider joints, hubin isku dhac iyo hubin dhaqdhaqaaq |
+| Drawings | Sheet A3 oo leh saddex muuqaal, isometric, qayb (section), muuqaal faahfaahin, cabbirrada guud, datums, feature control frames iyo calaamadaha dhammaystirka dusha, oo loo dhoofiyay PDF |
+| Files | Faylalkeeda qaybta iyo isku-dhiska; soo dhoofinta STL, 3MF, STEP saxda ah, DXF iyo PDF |
 
-Waxaan oo dhan ku shaqeeyaan browser-kaaga, kombiyutarkaaga. **Waxba lama soo gelin.** Eeg [Faylasha: fur, kaydi iyo dhoofi](topic:files) meelaha faylashu tagaan.
+Wax walba browser-kaaga ayay ku shaqeeyaan, kombuyuutarkaaga. **Waxba lama soo dirin.** Eeg [Faylalka: fur, kaydi iyo dhoofi](topic:files) si aad u ogaato halka faylalku tagaan.
 
 ## Waxa aad u baahan tahay
 
-- Chrome, Edge, Firefox ama Safari oo casriga ah oo leh **WebGL** (grafikada 3D) iyo **WebAssembly** la shido. Labaduba caadi ahaan way shidan yihiin. Geometry-ga jidh adagta waxa dhisa mesh kernel WebAssembly oo app-ka la soo rarto: eeg [Mesh kernel-ka](topic:solid-kernels).
-- Mouse-ka ayaa ugu fudud. Trackpad-ku waa shaqeeyaa, shaashadaha taabashada waxay shaqeeyaan muuqaal eegista iyo sawir-gacmeed fudud: eeg [Trackpad, taabasho iyo shaashadaha yaryar](topic:trackpad-and-touch).
-- Shaashad ugu yaraan 1280 pixel ballac leh ayaa qalabka oo dhan hal safka muujisa. Daaqadaha ka yar qalabka ayay dhinac u shubaan; taleefanka panelada waxay ka furmaan xaashiyo bar-ka hoose ka.
+- Chrome, Edge, Firefox ama Safari oo casri ah oo leh **WebGL** (grafikada 3D) iyo **WebAssembly** la shido. Labaduba way shidan yihiin caadi ahaan. Kernel-ka adagga waxaa dhisa WebAssembly mesh kernel oo app-ka la soo rarto: eeg [Mesh kernel-ka](topic:solid-kernels).
+- Mouse-ka ayaa ugu fudud. Trackpad-ku wuu shaqeeyaa, shaashadaha taabashada ayaa u shaqeeya muuqaalka iyo sketch-ka fudud: eeg [Trackpad, taabasho iyo shaashadaha yaryar](topic:trackpad-and-touch).
+- Shaashad ugu yaraan 1280 pixel ballac ah ayaa muujinaysa toolbar-ka oo dhan hal safar. Daaqadaha ka yar waxay toolbar-ka u rogaan dhinac; telefoonka, panelada waxay u furmaan sida xaashi bar hoose ka bilaabanaya.
 
-Wax dheeraad ah oo ku saabsan browser-yada: [Browser-yada iyo kombiyuutarada](common:browsers).
+Wixii ku saabsan browser-yada: [Browsers iyo kombuyuutarrada](common:browsers).
 
 :::note
-PartCraft wuxuu ku shaqeeyaa browser-ka, iyo desktop-ka gudaha CadCraft Studio. Kaydinta daruurta weli ma diyaar aha: qaybaha kombiyutarkaaga ayaad ka furtaa oo waxaad ku kaydisaa sidii fayl.
+PartCraft wuxuu ku shaqeeyaa browser-ka, iyo desktop-ka gudaha CadCraft Studio. Kaydinta daruurta weli ma diyaar aha: fayl-ka kumbuyuutarkaaga ayaad ka furtaa qaybaha, oona ku kaydisaa sida faylal.
 :::
 
-## Furo PartCraft
+## Fur PartCraft
 
-1. Furo PartCraft.
-2. Sug inta shaashaddu tidhi "Kernel-ka jidh adagta ayaa la soo rarayaa…". Tani waqti ayay qaadataa markii ugu horreysay.
-3. Waxaad aragtaa muuqaal 3D madhan oo leh saddex diyaarad aasaasi ah, taariikhda bidix ("Part1", kadibna Diyaaradda hore, Diyaaradda sare, Diyaaradda midig) iyo sanduuq muuqaalka ku jira oo madaxa leh "Bilow qayb".
-4. Chip-ka ku dhow dhamaadka midig ee status bar-ka wuxuu tidhi "Mesh kernel": PartCraft wuxuu qayb kasta ku dhisaa mesh kernel-ka nooca tan, sidaas darteed dusha wareegsan waa dusha fidsan. Hadda ayaad bilaabi kartaa moodeelka.
+1. Fur PartCraft.
+2. Sug inta shaashaddu tidhi "Kernel-ka adagga ayaa la soo rarayaa…". Tani waxay qaadataa wakhti marka ugu horreysa.
+3. Waxaad aragtaa muuqaal 3D oo madhan oo leh saddex diyaarad oo salka ah, taariikhda bidix ("Part1", kadibna Front plane, Top plane, Right plane) iyo sanduuq muuqaalka ku qoran "Start a part".
+4. Chip-ka ku yaal dhamaadka midig ee status bar-ka wuxuu leeyahay "Mesh kernel": PartCraft wuxuu qayb kasta ku dhisaa mesh kernel nooca hadda, sidaas darteed wareegyada dusha waa dhaqaaqyo laga dhigay. Waad bilaabi kartaa naqshadeynta isla markiiba.
 
-Haddii muuqaalku tidhi browser-ku ma muujin karo 3D, ama kernel-ka ma soo rarnayn, eeg [Xallinta dhibaatooyinka](topic:troubleshooting#the-app-does-not-start).
+Haddii muuqaalku sheego in browser-ku aanu 3D tusi karin, ama kernel-ku soo rarmin, eeg [Dhibaatooyinka](topic:troubleshooting#the-app-does-not-start).
 
-## Qaybtaadii koowaad: saxan oo leh god
+## Qaybtaadii ugu horreysay: saxan leh god
 
-Waxaad samaysan doontaa saxan 60 × 40 mm ah, dhumuc 10 mm, oo ay ku jirto god 6 mm ah oo gudubta. Halbeegyada waa millimitir.
+Waxaad samayn doontaa saxan 60 × 40 mm ah, dhumuc 10 mm ah, leh god 6 mm ah oo dhex mara. Unugyadu waa millimeter.
 
-### Sawir-gacmeedka dhibcaha
+### Sketch-garee qaabka
 
-1. Guji **Diyaaradda hore** taariikhda bidix. Diyaaraddu muuqaalka waa ay iftiimaysaa.
-2. Dooro {{ui:Naqshad}} qalabka, ama riix {{key:S}}. Muuqaalku wuxuu si toos ah u eegaa diyaaradda, qalabka Xarriiqa ayaana shaqeeya.
-3. Riix {{key:R}} qalabka Afar-geesle.
-4. U dhaqaaji cursorka bilowga (goobta yar ee casaanka ah oo leh calaamad jeex). Labajib yar ayaa muujinaysa inuu ku dhejiyay. Guji.
-5. Kor u dhaqaaji oo midig u dhaqaaji, kadibna mar kale guji. Afar-geesle ayaad heshay. Khadadkiisu waa buluug: buluugu wuxuu macneeyaa weli way dhaqaaqi karaan.
+1. Dhagsii **Front plane** taariikhda bidix. Diyaaraddu waa la iftiimiyaa muuqaalka.
+2. Dooro {{ui:Sketch}} toolbar-ka, ama riix {{key:S}}. Muuqaalku wuxuu u jeedaa diyaaraddii toos, qalabka Line ayaa firfircoon.
+3. Riix {{key:R}} si aad u isticmaasho qalabka Rectangle.
+4. Dhaqdhaqaaq taxanaha xagga asalka (goobta cas ee yar ee jaranjarada leh). Laba jaad oo yar ayaa tilmaamaya inuu ku dhejiyo. Dhagsii.
+5. Kor u dhaqaaq oo midig u dhaqaaq, markaas mar kale dhagsii. Waxaad heshay laaban. Xariiqyadiisu waa buluug: buluug macnaheedu waa inay weli dhaqaaqi karaan.
 
 ### Siiso cabbirro
 
-1. Riix {{key:D}} qalabka Cabbir.
-2. Guji khadka sare, kadibna guji wax yar oo ka sarreeya. Sanduuq lambar ah ayaa furmaa oo leh dhererka hadda jira.
-3. Ku qor `60` oo riix {{key:Enter}}. Afar-geeslaha wuxuu noqonayaa 60 mm ballac.
-4. Guji khadka bidix, kadibna guji wax yar oo bidixda ka ah. Ku qor `40` oo riix {{key:Enter}}.
+1. Riix {{key:D}} si aad u isticmaasho qalabka Dimension.
+2. Dhagsii xariiqda sare, kadibna dhagsii wax yar oo ka sarreeya. Sanduuq tiro ayaa furmaya oo muujinaya dhererka hadda.
+3. Qor `60` kadibna riix {{key:Enter}}. Laabyadu waxay noqotaa 60 mm ballac.
+4. Dhagsii xariiqda bidix, kadibna dhagsii wax yar oo bidix ah. Qor `40` kadibna riix {{key:Enter}}.
 
-Chip-ka ku yaal geeska bidix sare ee muuqaalka hadda wuxuu tidhi **Si buuxda loo qeexay**, khadadkuna waxay u beddelmaan midab tiro (madow mawduuca Paper, iftiin mawduuca Model). Dhibcaha iyo cabbirrada oo dhan way go'an yihiin.
+Chip-ka geeska sare ee bidix ee muuqaalka hadda wuxuu leeyahay **Fully defined** xariiqyadana waxay noqdaan ink (madow theme-ka Paper, cad theme-ka Model). Dhammaan barooyinka iyo cabbirrada way go'an yihiin.
 
 :::tip
-Haddii afar-geeslaha uu ka bilaabmay meel ka fog bilowga, chip-ka wali wuxuu tidhi "Qeex ka hooseeya · 2 darajo oo xor ah". Riix {{key:S}} Dooro, guji hal geesood, {{key:Shift}}+guji bilowga, kadibna dooro {{ui:• Isku-beegan}} panelka midig.
+Haddii aad laabta ka bilaabatay meel ka fog asalka, chip-ku wuu sii sheegi doonaa "Under defined · 2 degrees of freedom". Riix {{key:S}} si aad u dooratid Select, dhagsii hal geeso, {{key:Shift}}+dhagsii asalka, kadibna dooro {{ui:• Coincident}} panelka midig. Lacaggaa: "• Isku-meel".
 :::
 
-### Soo saar qaybta
+### Soo saar
 
-1. Dooro {{ui:Ka bax}} qalabka, ama riix {{key:Esc}} ilaa sawir-gacmeedku xirmo (badanaa laba jeer).
-2. Dooro {{ui:Soo saar}}. Jidh adag oo 10 mm ah ayaa soo muuqda. "Extrude1" waxa lagu daraa taariikhda, "Sketch1" na waxa uu hoosta ugu jiraa gelin ahaan.
-3. Panelka midig wuxuu muujinayaa dejinta soo saarka. Si aad dhumucda u beddesho, ku qor lambar cusub **Qoto (mm)** oo riix {{key:Enter}} ama {{key:Tab}}. Qaybtu si degdeg ah ayay dib u dhisaysaa.
+1. Dooro {{ui:Exit}} toolbar-ka, ama riix {{key:Esc}} ilaa sketch-ku xirmo (badanaa laba jeer).
+2. Dooro {{ui:Extrude}}. Jidh adag oo 10 mm ah ayaa soo muuqda. "Extrude1" wuxuu ku daraa taariikhda, "Sketch1" ayaa hoos ka soo gashay.
+3. Panelka midig wuxuu muujinayaa dejinta extrude-ka. Si aad u beddesho dhumucda, qor tiro cusub sanduuqa **Depth (mm)** kadibna riix {{key:Enter}} ama {{key:Tab}}. Qaybtu isla markiiba dib ayay u dhismaysaa.
 
-### Ku dar god
+### Ku dar godka
 
-1. Guji dusha fidsan ee weyn ee saxanka hore (dhamaadka soo saarka). Dusha oo dhan ayaa iftiimaya, panelka midigna wuxuu tidhi **Dusha**.
-2. Dooro {{ui:Sawir-gacmeed wejiggan ku yaal}} panelka midig.
-3. Riix {{key:P}} qalabka Bar, oo guji meel u dhow dhexda dusha.
-4. Dooro {{ui:Ka bax}}.
-5. Dooro {{ui:God}}. God 6 mm ah ayaa saxanka gudbaysa. Beddel **Dhexroor (mm)** panelka midig haddii aad jeclaatid.
+1. Dhagsii dusha siman ee weyn ee hore ee saxanka (dhamaadka extrusion-ka). Dusha oo dhan ayaa iftiimaya, panelka midig wuxuu leeyahay **Face**.
+2. Dooro {{ui:Sketch on this face}} panelka midig.
+3. Riix {{key:P}} si aad u isticmaasho qalabka Point, kadibna dhagsii meel u dhow bartamaha dusha.
+4. Dooro {{ui:Exit}}.
+5. Dooro {{ui:Hole}}. God 6 mm ah ayaa saxanka dhex mara. Haddii aad rabto, beddel **Diameter (mm)** panelka midig.
 
-Sanduuqa **Qayb** ee hoose bidix hadda wuxuu akhrinayaa mugga, dusha, cabbirka (60 × 40 × 10 mm) iyo "Godad gudba: 1".
+Sanduuqa **Part** ee bidix hoose hadda wuxuu akhrinayaa mugga, balaadhka dusha, cabbirka (60 × 40 × 10 mm) iyo "Through holes: 1".
 
 ### Kaydi
 
-1. Riix {{key:Mod+S}} ama dooro {{ui:Kaydi}}.
-2. Browser-kaagu wuxuu soo dejinayaa `Part1.partcraft.json` galkiisa soo dejinta. Faylku wuxuu haystaa taariikhda oo dhan: mar kale ku fur {{ui:Fur}} si aad u sii wadato wax beddelka.
+1. Riix {{key:Mod+S}} ama dooro {{ui:Save}}.
+2. Browser-kaagu wuxuu soo dejinayaa `Part1.partcraft.json` meeshii download-yada ku jirto. Faylku wuxuu haysaa taariikhda oo dhan: mar kale fur {{ui:Open}} si aad u sii tafatirto.
 
-Si aad qaybta marka hore magac u beddesho, guji meel madhan muuqaalka si wax aan la dooran, kadibna ku qor **Magac** cusub panelka midig.
+Si aad marka hore magaca qaybta u beddesho, dhagsii meel bannaan muuqaalka si aan wax loo dooran, kadibna qor **Name** cusub panelka midig.
 
-## Meelaha xiga ee aad tagi karto
+## Meesha aad u tagi karto marka xigta
 
-- [Sawir sawirkaaga koowaad](topic:sketch-basics) iyo [Si buuxda u qeex sawir-gacmeed](topic:relations-dimensions) waxay si sax ah u sharxayaan sawir-gacmeeyaha.
-- [Qayb u beddel taariikhdeeda](topic:edit-history) waxa ay tusinaysaa sida wax aad dhistay loo tafatiro.
-- [Wareeg, bevel iyo god](topic:fillet-chamfer-shell) iyo [Samee naqshad](topic:drawing-pdf) ayaa dhammeeya qaybta. [Waxa weli lama dhisin](topic:not-built-yet) waxa uu liistaa waxa nooca tan aan samayn, sida sweeps iyo lofts.
-- [Ka imaanaya moodeelka parametric kale](topic:coming-from) waxa uu liistaa dabeecadaha halkan si kale u shaqeeya.
-- [Furayaasha iyo mouse-ka](topic:keyboard) waa liiska buuxa ee gaabin-furayaasha.
-- [Sida caawintan loo isticmaalo](common:help).
+- [Sketch-kaaga ugu horreeya sawir](topic:sketch-basics) iyo [Sketch si buuxa u go'ay](topic:relations-dimensions) waxay si habboon u sharxayaan sketcher-ka.
+- [Beddel qayb taariikhdeeda](topic:edit-history) wuxuu tusayaa sida aad wax u tafatirto.
+- [Wareeg, jar iyo qodi](topic:fillet-chamfer-shell) iyo [Samee sawir](topic:drawing-pdf) ayaa dhammeeya qaybta. [Waxa aan wali la dhisin](topic:not-built-yet) wuxuu liistaa waxa nooca hadda aan samayn, sida sweeps iyo lofts.
+- [Ka timaada naqshadeeye parametric kale](topic:coming-from) wuxuu liistaa caadooyinka halkan si kale u shaqeeya.
+- [Furayaasha iyo mouse-ka](topic:keyboard) waa liiska oo dhan ee shortcut-yada.
+- [Isticmaalka bogan](common:help).

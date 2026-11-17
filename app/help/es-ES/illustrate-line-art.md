@@ -1,0 +1,21 @@
+---
+title: Ilustraciones técnicas: dibujo lineal, imágenes y hojas
+summary: Exporte cualquier vista como dibujo lineal vectorial (SVG o PDF) con tres grosores de línea, líneas ocultas en discontinuo o suprimidas, caras de corte con trama y rellenos opcionales, o como PNG; coloque varias vistas en una misma hoja.
+keywords: illustrate, dibujo lineal, ilustración técnica, svg, pdf, png, líneas ocultas, silueta, trama, hoja, exportar
+from: 0e9bea63
+---
+
+{{ui:Exportar}} en el grupo {{ui:Salida}} abre el cuadro de exportación:
+
+- {{ui:Qué}}: la escena tal como está ahora, una vista o todas las vistas.
+- {{ui:Como}}: **PDF** o **SVG** (dibujo lineal vectorial; ambos se generan a partir del mismo dibujo), **PNG del dibujo lineal**, o un **PNG de la imagen de la vista 3D** (hasta 4096 píxeles de ancho), y el [archivo 3D interactivo](topic:illustrate-interactive).
+- {{ui:Páginas}}: una vista por página, o todas las vistas en una hoja con su nombre debajo. {{ui:Papel}}: A4, A3, Letter o Tabloid.
+- {{ui:Líneas ocultas}}: en discontinuo o suprimidas. {{ui:Rellenos}}: tal como se ve la vista, ninguno, colores planos o sombreado. {{ui:Dibujar también aristas suaves}} añade líneas de detalle.
+
+El dibujo lineal tiene tres grosores: contornos (siluetas, aristas abiertas y contornos de corte), aristas vivas y líneas de detalle. Las caras de corte de una sección o de un corte en caja se dibujan con trama. Las vistas explosionadas llevan trayectorias de línea de trazo y punto desde donde se encuentra cada pieza; también se dibujan los globos, las anotaciones, la lista de piezas y la lupa.
+
+El dibujo lineal se calcula a partir de las formas de las piezas mediante el método de malla (el mismo que usa la hoja de dibujo de PartCraft sin el núcleo exacto), por lo que las caras curvas se dibujan por sus facetas, tal como las guarda el modelo.
+
+## Aún no disponible
+
+- Las imágenes con la calidad del trazador de caminos (el renderizador de ModelCraft) no se ofrecen aquí; las imágenes PNG son el aspecto propio de la vista 3D.

@@ -1,37 +1,37 @@
 ---
-title: Mesh kernel-ka
-summary: Nooca tan ee PartCraft qayb kasta wuxuu ku dhisaa mesh kernel oo ku shaqeeya browser-kaaga. Taasi waxay ka dhigan tahay dusha wareegsan, mugga iyo faylasha, sida loo ogaado inuu shaqeynayo, iyo astaamaha sugaya kernel sax ah.
-keywords: kernel, mesh, manifold, sax ah, b-rep, fidsan, curves, opencascade, occt, fillet u baahan sax ah, weli lama dhisin, khadka ka baxsan, webassembly
-from: 68d32d16
+title: Kernel-ka mesh-ka
+summary: Nooca PartCraft ee hadda wuxuu dhisaa qayb kasta kernel mesh ah oo ku socda browser-kaaga. Waxa ay ka dhigan tahay wejiyada wareegsan, mugga iyo faylasha, sida loo ogaado inuu shaqeynayo, iyo astaamaha ku sugan kernel saxda ah.
+keywords: kernel, mesh, manifold, saxda ah, b-rep, dhinacyo leh, qalooc, opencascade, occt, fillet waxay u baahan tahay saxda ah, weli lama dhisin, khadka ka baxsan, webassembly
+from: f931645c
 ---
 
-Geometry kernel waa matoorka taariikhdaada u beddela jidh adag. Nooca tan ee PartCraft wuxuu leeyahay mid: **mesh kernel** (manifold-3d). Kombiyutarkaaga ayuu ku shaqeeyaa sida barnaamij WebAssembly yar oo diyaar ah wax yar ka dib markii app-ka la furo. Waxba oo ku saabsan qaybtaadu meel uma diro.
+Kernel-ka joomatariga waa mishiinka wuxuu taariikhdaada u beddelaa jir. Nooca PartCraft ee hadda wuxuu leeyahay mid: **mesh kernel** (manifold-3d). Wuxuu ku shaqeeyaa kombiyuutarkaaga sidii barnaamij yar oo WebAssembly wuuna diyaar yahay wakhti kooban ka dib markii app-ku furmo. Waxba oo ku saabsan qaybtaada looma diro meel kasta.
 
 | | Mesh kernel |
 |---|---|
-| Qaabab wareegsan | Dusha fidsan. **Qalooca** panelka qaybta ayaa go'aamisa sida ay u fiican tahay |
-| Mugga iyo dusha | Ee jidh adagta fidsan, wax yar oo hoos ah qaybaha wareegsan |
-| Sawir-gacmeedyada, soo saar, goo, revolve, godadka, qaababka, muraayadda, diyaaradaha tixraaca | Haa |
-| Fillet iyo Chamfer | Geesaha toosan ee u dhexeeya dusha fidsan; wareegyada isku dhaca waa la jaray |
-| Shell iyo Draft | Shell wuxuu furaa dusha fidsan (dhumucda derbiga oo sax ah); Draft wuxuu janjeeraa dusha fidsan |
-| Dhoofinta | STL, 3MF, STEP (fidsan), naqshadda PDF iyo DXF |
-| Muuqaallada naqshadda | Waxa laga sawiray dusha fidsan, oo ay ku jiraan muuqaallada qaybta |
-| Dusha iyo geesaha | Magac la siiyay oo lagu garto nooca (fidsan, silinder, koon, kura, torus; toos, wareeg), ka soo qaadan sawir-gacmeedyada: shaqooyinka Simulation, Generative iyo Manufacture, {{ui:Cabbir}}, dooridda iyo miiska godadka ayaa isticmaala |
+| Qaabab wareegsan | Dhinacyo fidsan. **Curves** guddiga qaybta ayaa dejiya sida ay u fiicnaato |
+| Mugga iyo dusha | Ee jirka dhinacyada leh, wuxuu ka hooseeyaa xoogaa qaybaha wareegsan |
+| Naqshadaha, soo saar, goyn, wareeg, godyo, qaababka, muraayad, diyaaradaha tixraaca | Haa |
+| Fillet iyo Chamfer | Geesaha toosan ee u dhexeeya wejiyada fidsan; wareegyada kulma waa la xardhaa |
+| Qolof iyo Qabyo | Qolof wuxuu furaa wejiyada fidsan (dhumuc derbiga saxda ah); Qabyo wuxuu u janjeeyaa wejiyada fidsan |
+| Dhoofinta | STL, 3MF, STEP (saxda ah: wejiyada wareegsan waxay ku qoran yihiin dusha runta ah; ama dhinacyo leh), PDF-ka sawirka iyo DXF |
+| Muuqaalada sawirka | Waxaa laga sawiraa dhinacyada, oo ay ku jiraan muuqaalada qaybta |
+| Wejiyada iyo geesaha | Magacyo lagu siiyey oo lagu garto nooca (fidsan, silinder, koon, kura, torus; toosan, goobo), laga soo qaatay naqshadaha: goobaha Simulation, Generative iyo Manufacture, Cabbir, dooritaanka iyo miiska godyada ayaa isticmaala |
 
-Chip-ka ku dhow dhamaadka midig ee status bar-ka wuxuu tidhi **Mesh kernel** intii uu qaybtaada dhisayo.
+Kaadhka ku sar-dhowaad dhamaadka midig ee status bar-ka wuxuu leeyahay **Mesh kernel** intuu qaybtaada dhisayo.
 
-## Waxa sugaya kernel sax ah
+## Waxa sugaya kernel saxda ah
 
-Kernel sax ah (B-rep) wuxuu ilaaliyaa goobooyin, silinderro iyo koonno run ah, iyo fillet-yo jilicsan geesha kasta, sweeps, lofts, dusha, birta xaashiga, ribs, jidh adag oo badan, STEP import iyo STEP export sax ah; dhammaantood waxa lagu dhisaa hal mid. Dhismayaashii hore ee tijaabada PartCraft waxay u isticmaali jireen OpenCascade taas. Shatiga (LGPL) ma waafaqo sii deynta tan, halkaas oo app kasta yahay Apache-2.0 oo uu isticmaalo maktabado shatiyo fudud oo keliya, sidaas darteed lama soo dhex geliyo. Waxa halkan wax taariikh ah lagama dhigin.
+Kernel saxda ah (B-rep) wuxuu hayaa goobooyin, silinderro iyo koonno runta ah, iyo fillet siman geesaha kasta, sweep, loft, dusha, sheet metal, ribs, jirro badan iyo STEP import oo wejiyada wareegsan saxda ku jira, dhamaantood ayaa lagu dhisaa. (Dhoofinta STEP ee saxda ah ma sugto: mesh kernel-ku wuxuu ka yaqaanaa dusha run ah ee wejig kasta naqshadda, dhoofintuna way qortaa.) Dhismayaasha lab-ka ee hore ee PartCraft waxay u isticmaaleen OpenCascade. Shatiga (LGPL) kama haboon sii-deyntan, halka app kasta yahay Apache-2.0 oo kaliya maktabado ogolaansho fudud leh isticmaala, sidaas darteed lama soo daro. Waxba halkan ma leh taariikh.
 
-Ilaa markaas astaamahaas waxay tidhaa **Weli lama dhisin** markaad doorato: status bar-ku wuxuu siinayaa sababta, tooltip-ka qalabkoodna wuxuu ku dhammaadaa "weli lama dhisin (wuxuu u baahan yahay kernel sax ah)". [Waxa weli lama dhisin](topic:not-built-yet) wuxuu liistaa mid kasta oo leh waxa loo samayn karo halkeeda.
+Ilaa markaas astaamahaas waxay leeyihiin **Weli lama dhisin** markaad doorato: status bar-ku wuxuu siiyaa sababta, tooltip-ka badhamadoodu wuxuu ku dhammaadaa "weli lama dhisin (wuxuu u baahan yahay kernel saxda ah)". [Waxa weli aan la dhisin](topic:not-built-yet) wuxuu liis ka dhigaa mid kasta oo leh waxa lagu samayn karo halkeeda.
 
-Qayb lagu sameeyay dhismaha hore weli way furmaysaa. Astaamahaas waxay ku sii jiraan taariikhda iyagoo lagu calaamadeeyay weli lama dhisin (ku dhaji mid ah sababta), qaybta kale way dhismaysaa, kaydintuna way ilaalinaysaa iyaga iyada oo aan la beddelin.
+Qayb lagu sameeyay dhismihii hore weli way furmaa. Astaamahaas waxay sii jiraan taariikhda oo lagu calaamadeeyay weli lama dhisin (dul-marso mid si aad sababta u aragto), qaybta intiisa kale way dhismaa, kaydintuna waxay ilaalisaa iyaga oo aan isbeddelin.
 
-## Wareegyada iyo Qalooca
+## Wejiyada wareegsan iyo Curves
 
-Mesh kernel-ku goobo wuxuu ka sawiraa poligon. **Qalooca** panelka qaybta ayaa go'aamisa inta jaanqaad ee goobo buuxda uu helayo; jaanqaadyo badan waxay u muuqdaan kuwo siman oo waxay u dhowaadaan qiimaha run ah, laakiin waxay qaadaan waqti dheer si ay u dhisaan. Mugga, dusha iyo masaafooyinka {{ui:Cabbir}} waa kuwa jidh adagtan fidsan: god ama boss ahaan waxay ka yar yihiin qaabka wareegsan ee dhabta ah.
+Mesh kernel-ku goobo wuxuu ka sawiraa poligon. **Curves** guddiga qaybta wuxuu dejiyaa inta dhinac ee goobo buuxda heleyso; dhinac badan waxay muuqdaan kuwo siman oo waxay u dhow yihiin qiimaha runta ah, laakiin way qaadanayaan wakhti dheer si loo dhiso. Mugga, dusha iyo masaafooyinka {{ui:Cabbir}} waa kuwa jirkan dhinacyada leh: godka ama boss-ka way yar yihiin marka loo barbar dhigo kan wareegsan.
 
-## Khadka ku jira iyo ka baxsan
+## Online iyo offline
 
-Mesh kernel-ku waa qayb ka mid ah soo dejinta app-ka laftiisa. Si aad uga shaqeyso iyada oo aan xiriir lahayn, PartCraft u kaydi isticmaalka khadka ka baxsan intaad khadka ku jirtid: dooro {{ui:Kaydi khadka ka baxsan}} bar-ka app-ka oo sug ilaa ay tidhi **Diyaar khadka ka baxsan**. Faahfaahin: [Shaqaynta khadka ka baxsan](common:offline).
+Mesh kernel-ku waa qayb ka mid ah soo-dejinta app-ka laftiisa. Si aad ugu shaqeyso adigoon xiriir lahayn, u kaydi PartCraft isticmaalka khadka ka baxsan intaad online tahay: dooro {{ui:Kaydi khadka ka baxsan}} app bar-ka oo sug ilaa uu leeyahay **Diyaar khadka ka baxsan**. Faahfaahin: [Shaqaynta khadka ka baxsan](common:offline).

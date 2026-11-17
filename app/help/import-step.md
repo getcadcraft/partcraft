@@ -54,7 +54,8 @@ The triangles are stored **inside** the `.partcraft.json` file, so the part file
 
 ## Limits
 
-- Curved faces are flat facets, as in every part this version builds. Exported STEP from such a part is faceted too.
+- Curved faces are drawn and measured as flat facets, as in every part this version builds. PartCraft keeps the file's own flat faces, cylinders, cones, spheres and tori with the body, so {{ui:Export}} › {{ui:STEP AP242 (exact solid)}} writes them back as true surfaces, holes as holes, together with the features you add. Faces the file gives as splines, sweeps or surfaces of revolution stay facets in the export. A part saved before 0.9.1 has no kept surfaces: open the STEP file again to get them.
+- {{ui:Export}} › {{ui:DXF of the sketch or flat face}} with a flat face picked writes a round hole of the file as a true circle.
 - Colors, names of bodies, assembly structure and PMI (tolerances in the file) are not read.
 - Besides STEP, PartCraft opens STL, OBJ and 3MF meshes ([Open an STL, OBJ or 3MF](topic:open-meshes)) and `.3dm` files ([Open a .3dm model](topic:open-3dm-files)) as solid bodies. IGES and other programs' native files are not supported.
 - A part with a STEP solid imported by a build that had the exact kernel keeps the STEP text; this version skips that feature ("not built"). Open the STEP file again to bring it in as triangles.

@@ -2,7 +2,7 @@
 title: Fayllar: ochish, saqlash va eksport
 summary: PartCraft ochadigan va saqlaydigan detal hamda yigʻma fayllari, har bir eksport formati va u nimani saqlashi, fayllar qayerga boradi, hamda oflayn rejimda va brauzerlar oʻrtasida nima oʻzgarishi.
 keywords: ochish, saqlash, eksport, yuklab olish, fayl, partcraft.json, yigʻma fayli, stl, 3mf, step, dxf, pdf, fayllarim qayerda, oflayn, boshqacha saqlash
-from: c15c2c48
+from: e5fbc7e3
 ---
 
 PartCraft kompyuteringizdagi fayllar bilan ishlaydi. U hech qachon detalni yuklab yubormaydi, hisob ham, bulutli xotira ham ishtirok etmaydi. Bulutli saqlash hozircha mavjud emas.

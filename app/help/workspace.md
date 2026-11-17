@@ -39,7 +39,7 @@ Hover over a button to see what it does and its key. A grayed-out button cannot 
 
 The {{ui:More}} menu in the Edit group lists each editing action with its key. What copy and paste act on follows where you are; see [Copy, paste and duplicate](topic:copy-paste). A grayed-out item's tooltip says why it cannot act now.
 
-The {{ui:Export}} menu holds {{ui:STL, for 3D printing}}, {{ui:3MF, for 3D printing}}, {{ui:STEP AP242 (exact solid)}}, {{ui:STEP AP214 (exact solid)}}, {{ui:STEP (faceted, mesh kernel)}}, {{ui:STEP AP214 (faceted, mesh kernel)}}, {{ui:DXF of the sketch or flat face}} and {{ui:Drawing (PDF): views, section, detail, GD&T}}. The two exact STEP items are grayed: they are not built yet in this version, so use {{ui:STEP (faceted, mesh kernel)}}.
+The {{ui:Export}} menu holds {{ui:STL, for 3D printing}}, {{ui:3MF, for 3D printing}}, {{ui:STEP AP242 (exact solid)}}, {{ui:STEP AP214 (exact solid)}}, {{ui:STEP (faceted, mesh kernel)}}, {{ui:STEP AP214 (faceted, mesh kernel)}}, {{ui:DXF of the sketch or flat face}} and {{ui:Drawing (PDF): views, section, detail, GD&T}}. The exact STEP items write round faces on their true surfaces; the faceted ones write them as flat facets.
 
 ## The history (left)
 

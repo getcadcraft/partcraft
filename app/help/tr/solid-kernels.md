@@ -2,7 +2,7 @@
 title: Örgü çekirdeği
 summary: PartCraft'ın bu sürümü her parçayı tarayıcınızda çalışan bir örgü çekirdeğiyle kurar. Bunun yuvarlak yüzeyler, hacimler ve dosyalar için ne anlama geldiği, çalıştığının nasıl anlaşılacağı ve hangi özelliklerin kesin bir çekirdeği beklediği.
 keywords: çekirdek, örgü, manifold, kesin, b-rep, yüzeyli, eğriler, opencascade, occt, yuvarlatma kesin çekirdek ister, henüz yapılmadı, çevrimdışı, webassembly
-from: 68d32d16
+from: f931645c
 ---
 
 Geometri çekirdeği, geçmişinizi bir katıya çeviren motordur. PartCraft'ın bu sürümünün bir tanesi var: **örgü çekirdeği** (manifold-3d). Bilgisayarınızda küçük bir WebAssembly programı olarak çalışır ve uygulama açıldıktan kısa süre sonra hazırdır. Parçanızla ilgili hiçbir şey hiçbir yere gönderilmez.

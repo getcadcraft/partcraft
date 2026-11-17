@@ -48,7 +48,7 @@ If you design parts in SolidWorks, most of PartCraft's ideas will be familiar: s
 | Measure / Inspect | {{ui:Views}}, then {{ui:Measure}} ({{key:M}}): distances, angles, radii, areas; {{ui:Mass properties}} |
 | Exploded view, BOM | In an assembly with nothing selected: **Exploded views** and **Bill of materials** in the right panel |
 | Mass properties | The **Part** box: volume, surface area, size, of the faceted solid (a little low on round parts). No mass: there are no materials yet |
-| Save, Save As STEP | {{ui:Save}} downloads a `.partcraft.json`; {{ui:Export}} has STL, 3MF, faceted STEP, DXF and a PDF drawing (exact STEP is not built yet in this version) |
+| Save, Save As STEP | {{ui:Save}} downloads a `.partcraft.json`; {{ui:Export}} has STL, 3MF, exact STEP (AP242 or AP214), faceted STEP, DXF and a PDF drawing |
 | Make a drawing from the part | {{ui:Drawing}}: an automatic A3 sheet with three views, isometric, one section, one detail, datums, feature control frames and finish symbols. Only overall sizes are dimensioned |
 | Middle-drag to rotate | **Left-drag** rotates here. Middle- or right-drag pans. The wheel zooms at the pointer |
 | View orientation, Normal To | {{ui:Views}} menu; {{ui:Normal to}} for a picked face, plane or sketch |
@@ -69,7 +69,7 @@ If your hands know SolidWorks, pick the {{ui:Feature tree}} menu style in {{ui:S
 
 **Over defined is never allowed to stand quietly.** There are no driven (reference) dimensions. A dimension that the other relations already fix is reported as over defined ("is already implied. Delete it."). A conflicting one leaves the geometry untouched and turns red. Delete one, or undo.
 
-**Sweeps, lofts and exact STEP are not built yet; fillets, chamfers, shells and drafts have limits.** This version of PartCraft builds every part with a mesh kernel; the status bar chip always says "Mesh kernel". Fillets and chamfers work on straight edges between two flat faces, and where rounds meet at a corner they are mitred, not blended. Shells open, and drafts tilt, flat faces only. Features that need an exact kernel stay clickable, but say "not built yet" when chosen. See [The mesh kernel](topic:solid-kernels) and [What is not built yet](topic:not-built-yet).
+**Sweeps and lofts are not built yet; fillets, chamfers, shells and drafts have limits.** This version of PartCraft builds every part with a mesh kernel; the status bar chip always says "Mesh kernel". Fillets and chamfers work on straight edges between two flat faces, and where rounds meet at a corner they are mitred, not blended. Shells open, and drafts tilt, flat faces only. Features that need an exact kernel stay clickable, but say "not built yet" when chosen. See [The mesh kernel](topic:solid-kernels) and [What is not built yet](topic:not-built-yet).
 
 **Two buttons called Fillet.** In a sketch, {{ui:Fillet}} ({{key:F}}) rounds a sketch corner. On the part, the {{ui:Fillet}} in the Features group rounds solid edges (straight edges between flat faces in this version). There is no sweep or loft in this version: see [What is not built yet](topic:not-built-yet).
 
@@ -77,11 +77,11 @@ If your hands know SolidWorks, pick the {{ui:Feature tree}} menu style in {{ui:S
 
 **Through all is for cuts only.** A boss needs a depth. There are no "up to vertex / surface / next" end conditions yet.
 
-**The solid is faceted.** The mesh kernel builds round faces from flat facets, so the view, volumes, STL, 3MF and STEP exports are all made of them: **Curves** in the part's panel makes them finer.
+**The solid is faceted.** The mesh kernel builds round faces from flat facets, so the view, volumes, STL and 3MF exports are all made of them: **Curves** in the part's panel makes them finer. The exact STEP export is not: it writes round faces on their true surfaces.
 
 **Millimeters only.** There is no inch setting yet. Multiply inch sizes by 25.4 when you type them.
 
-**Y is up.** The Front plane faces you and Top looks down on the part, as you expect, but the world's up axis is Y. STL and 3MF exports are turned to Z up; the faceted STEP keeps Y up.
+**Y is up.** The Front plane faces you and Top looks down on the part, as you expect, but the world's up axis is Y. STL, 3MF and exact STEP exports are turned to Z up; the faceted STEP keeps Y up.
 
 **Mates are faces, not geometry pairs.** A joint always starts from two flat faces put face to face. For a pin in a hole, pick the flat face around the hole and the pin's shoulder, then set **Centre on** to the hole's axis and the pin's revolve axis. Parts not reached by joints stay where they were inserted; you cannot drag them. Joints in a loop are not solved.
 

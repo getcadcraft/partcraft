@@ -1,94 +1,94 @@
 ---
 title: Súbory: otvorenie, uloženie a export
-summary: Súbory súčiastok a zostáv, ktoré PartCraft otvára a ukladá, každý exportný formát a čo uchová, kam súbory idú a čo sa mení offline alebo medzi prehliadačmi.
-keywords: otvoriť, uložiť, export, stiahnuť, súbor, partcraft.json, súbor zostavy, stl, 3mf, step, dxf, pdf, kde sú moje súbory, offline, uložiť ako
-from: c15c2c48
+summary: Súbory súčiastok a zostáv, ktoré PartCraft otvára a ukladá, každý formát exportu a to, čo zachováva, kam súbory idú a čo sa mení offline alebo medzi prehliadačmi.
+keywords: otvoriť, uložiť, exportovať, stiahnuť, súbor, partcraft.json, súbor zostavy, stl, 3mf, step, dxf, pdf, kde sú moje súbory, offline, uložiť ako
+from: e5fbc7e3
 ---
 
-PartCraft pracuje so súbormi vo Vašom počítači. Nikdy nenahráva súčiastku a nepoužíva účet ani cloudové úložisko. Ukladanie do cloudu zatiaľ nie je k dispozícii.
+PartCraft pracuje so súbormi na vašom počítači. Súčiastku nikdy nenahráva a nie je tu účet ani cloudové úložisko. Cloudové ukladanie zatiaľ nie je dostupné.
 
-## Čo PartCraft otvára
+## Čo PartCraft otvorí
 
 | Súbor | Prípona | Ako |
 |---|---|---|
-| Súčiastka PartCraft | `.partcraft.json` | {{ui:Otvoriť}}, {{key:Mod+O}} alebo pustenie na 3D pohľad |
-| Zostava PartCraft | `.partcraft-asm.json` | To isté: PartCraft rozozná, o aký druh ide |
-| Teleso STEP | `.step`, `.stp` | Plné teleso prečítané ako trojuholníky: [Otvorenie súboru STEP a stavba na ňom](topic:import-step) |
+| Súčiastka PartCraft | `.partcraft.json` | {{ui:Open}}, {{key:Mod+O}}, alebo ju pustite do 3D pohľadu |
+| Zostava PartCraft | `.partcraft-asm.json` | Rovnako: PartCraft zistí, ktorý druh je |
+| Teleso STEP | `.step`, `.stp` | Teleso načítané ako trojuholníky: [Otvorte súbor STEP a stavajte na ňom](topic:import-step) |
 
-Siete STL, OBJ a 3MF sa otvárajú tiež ako plné telesá ([Otvorenie STL, OBJ alebo 3MF](topic:open-meshes)) a rovnako súbory `.3dm` ([Otvorenie modelu .3dm](topic:open-3dm-files)). DXF, IGES a vlastné súbory súčiastok iných programov sa otvoriť nedajú (pozrite [Čo ešte nie je hotové](topic:not-built-yet)).
+Siete STL, OBJ a 3MF sa tiež otvoria ako telesá ([Otvorte STL, OBJ alebo 3MF](topic:open-meshes)), rovnako súbory `.3dm` ([Otvorte model .3dm](topic:open-3dm-files)). DXF, IGES a vlastné súbory súčiastok iných programov sa otvoriť nedajú (pozri [Čo ešte nie je hotové](topic:not-built-yet)).
 
 Pravidlá pri otváraní:
 
-- Názov súboru súčiastky alebo zostavy musí končiť na `.json` a súbor musí mať menej ako 50 MB.
-- Súbory sa pred zobrazením kontrolujú. Poškodený alebo upravený súbor sa odmietne s jasným dôvodom, napríklad „Toto nie je súbor PartCraft.“
-- Súbor uložený novšou verziou PartCraft sa odmietne: „Tento súbor uložila novšia verzia PartCraft (verzia súboru 3); táto číta verziu 2.“ Staršie súbory sa otvoria.
-- Ak súčiastka na obrazovke obsahuje neuložené zmeny, PartCraft sa najprv opýta: {{ui:Zrušiť}}, {{ui:Zahodiť zmeny}} alebo {{ui:Najprv uložiť}}.
+- Názov súboru súčiastky alebo zostavy musí končiť na `.json` a súbor musí byť menší ako 50 MB.
+- Súbory sa skontrolujú skôr, ako sa niečo zobrazí. Poškodený alebo upravený súbor sa odmietne s jednoduchým dôvodom, napríklad "Toto nie je súbor PartCraft."
+- Súbor uložený novším PartCraft sa odmietne: "Tento súbor bol uložený novším PartCraft (verzia súboru 3); táto verzia číta verziu 2." Staršie súbory sa otvoria.
+- Ak súčiastka na obrazovke obsahuje neuložené zmeny, PartCraft sa najprv opýta: {{ui:Cancel}}, {{ui:Discard changes}} alebo {{ui:Save first}}.
 
 ## Ukladanie
 
-{{ui:Uložiť}} alebo {{key:Mod+S}} uloží to, čo je na obrazovke:
+{{ui:Save}} alebo {{key:Mod+S}} uloží to, čo je na obrazovke:
 
-- Pri súčiastke: `<názov súčiastky>.partcraft.json`, úplná história (náčrty, väzby, kóty, prvky, poloha vrátenia), časť výkresového listu s rezom, detailom a poznámkami GD&T a celý text každého telesa STEP importovaného v staršej zostave. Prvky, ktoré táto verzia nevie vytvoriť, sa uložia späť nezmenené. Samotné teleso sa neukladá; PartCraft ho pri otvorení súboru znova vytvorí z histórie.
-- V zostave: `<názov zostavy>.partcraft-asm.json` s **každou súčiastkou vnútri**. Jeden súbor nesie celú zostavu, takže ho môžete poslať samostatne.
+- Pri súčiastke: `<názov súčiastky>.partcraft.json`, úplná história (náčrty, vzťahy, kóty, prvky, poloha návratu), časti rezu, detailu a poznámky GD&T listu výkresu a celý text každého telesa STEP importovaného v skoršom zostavení. Prvky, ktoré táto verzia nevytvorí, sa uložia späť nezmenené. Samotné teleso sa neukladá; PartCraft ho pri otvorení súboru znovu vytvorí z histórie.
+- Pri zostave: `<názov zostavy>.partcraft-asm.json`, s **každou súčiastkou vnútri**. Jeden súbor nesie celú zostavu, takže ju môžete poslať samostatne.
 
-Ukladanie je **stiahnutie**. Prehliadač uloží súbor do priečinka so stiahnutými súbormi alebo sa opýta, kam ho dať, ak ste to tak nastavili. Opätovné uloženie vytvorí nové stiahnutie; prehliadač ho môže pomenovať `Part1 (1).partcraft.json` namiesto nahradenia starého. Súbory premenúvajte alebo presúvajte v {{pick:mac=Finderi|windows=Prieskumníkovi|linux=Vašom správcovi súborov}} podľa potreby.
+Uloženie je **stiahnutie**. Váš prehliadač uloží súbor do priečinka sťahovania alebo sa opýta, kam ho uložiť, ak ste to tak nastavili. Opätovné uloženie vytvorí nové stiahnutie; prehliadač môže pomenovať súbor `Part1 (1).partcraft.json` namiesto toho, aby nahradil starý. Súbory premenujte alebo presuňte v aplikácii {{pick:mac=Finder|windows=Prieskumník súborov|linux=správca súborov}} podľa potreby.
 
-Znaky iné ako písmená, číslice, medzery, `_`, `.` a `-` v názve súčiastky sa v názve súboru zmenia na `_`.
+Názvy súčiastok: znaky okrem písmen, číslic, medzier, `_`, `.` a `-` v názve súčiastky sa v názve súboru zmenia na `_`.
 
 :::tip
-Väčšina prehliadačov má nastavenie, aby sa pri každom stiahnutí pýtali, kam súbor uložiť. Zapnite ho, ak chcete mať možnosť „Uložiť ako“ zakaždým: v Chrome a Edge je v nastaveniach v časti Stiahnuté súbory; vo Firefoxe v časti Všeobecné, Súbory a aplikácie; v Safari v časti Všeobecné, Umiestnenie sťahovaných súborov.
+Väčšina prehliadačov má nastavenie, ktoré sa pýta, kam uložiť každé stiahnutie. Zapnite ho, ak chcete pri každom ukladaní voľbu "Uložiť ako": v Chrome a Edge je to v nastaveniach pod Stiahnuté súbory; vo Firefox pod Všeobecné, Súbory a aplikácie; v Safari pod Všeobecné, Umiestnenie sťahovania súborov.
 :::
 
-Viac o tom, kam idú stiahnuté súbory a ako ich udržať v bezpečí: [Kam idú Vaše súbory](common:your-files).
+Viac o tom, kam idú stiahnuté súbory a ako ich chrániť: [Kde sú vaše súbory](common:your-files).
 
 ## Export
 
-Ponuka {{ui:Export}} zapisuje ďalšie formáty. Každý je stiahnutie pomenované podľa súčiastky.
+Ponuka {{ui:Export}} zapisuje ostatné formáty. Každý je stiahnutie pomenované podľa súčiastky.
 
-| Položka ponuky | Súbor | Čo obsahuje |
+| Položka ponuky | Súbor | Obsah |
 |---|---|---|
-| {{ui:STL, pre 3D tlač}} | `<názov>.stl` | Binárny STL trojuholníkov telesa, milimetre, **Z nahor** |
-| {{ui:3MF, pre 3D tlač}} | `<názov>.3mf` | 3MF s telesom ako jedným objektom, milimetre, **Z nahor** |
-| {{ui:STEP AP242 (presné teleso)}} | `<názov>.step` | V tejto verzii zatiaľ nie je hotové (sivé): potrebuje presné jadro |
-| {{ui:STEP AP214 (presné teleso)}} | `<názov>.step` | V tejto verzii zatiaľ nie je hotové (sivé) |
-| {{ui:STEP (fazetovaný, sieťové jadro)}} | `<názov>.step` | Teleso zložené z plochých plôch zo siete: **okrúhle povrchy sú veľa malých plochých fazet**. Milimetre, vo vlastných osiach PartCraft (Y nahor). STEP, ktorý sa v tejto verzii používa pre iné programy CAD |
-| {{ui:DXF náčrtu alebo plochej plochy}} | `<názov> - <náčrt>.dxf` alebo `<názov> - face.dxf` | DXF R12. Náčrt: úsečky, oblúky, kružnice a body vo vlastných súradniciach náčrtu, na hladinách PROFILE, CONSTRUCTION a POINTS. Vybraná plochá plocha: jej obrysy ako uzavreté lomené čiary (okrúhle hrany ako ich fazety) |
-| {{ui:Výkres (PDF): pohľady, rez, detail, GD&T}} | `<názov> - drawing.pdf` | Výkresový list A3: tri pohľady, izometria, rez a detail, ak sú nastavené, celkové rozmery, symboly GD&T, popisové pole |
+| {{ui:STL, for 3D printing}} | `<názov>.stl` | Binárny STL trojuholníkov telesa, milimetre, **Z nahor** |
+| {{ui:3MF, for 3D printing}} | `<názov>.3mf` | 3MF s telesom ako jedným objektom, milimetre, **Z nahor** |
+| {{ui:STEP AP242 (presné teleso)}} | `<názov>.step` | Jedno presné teleso, milimetre, Z nahor: okrúhle plochy ako skutočné valce, kužele, gule a torusy. STEP na použitie v iných CAD a CAM programoch |
+| {{ui:STEP AP214 (presné teleso)}} | `<názov>.step` | To isté presné teleso v staršej schéme AP214 |
+| {{ui:STEP (fazetovaný, sieťové jadro)}} | `<názov>.step` | Teleso z rovných plôch zo siete: **okrúhle povrchy sú veľa malých rovných fazet**. Milimetre, vo vlastných osiach PartCraft (Y nahor). Pre program, ktorý odmieta presný súbor |
+| {{ui:DXF náčrtu alebo plochej plochy}} | `<názov> - <náčrt>.dxf` alebo `<názov> - face.dxf` | DXF R12. Náčrt: čiary, oblúky, kružnice a body vo vlastných súradniciach náčrtu, na hladinách PROFILE, CONSTRUCTION a POINTS. Vybratá rovná plocha: jej obrysy ako uzavreté lomené čiary (okrúhle hrany ako ich fazety) |
+| {{ui:Drawing (PDF): views, section, detail, GD&T}} | `<názov> - drawing.pdf` | List výkresu formátu A3: tri pohľady, izometria, rez a detail, ak sú nastavené, celkové rozmery, symboly GD&T, popisové pole |
 
 :::note
-{{ui:STEP AP242 (presné teleso)}} a {{ui:STEP AP214 (presné teleso)}} zatiaľ nie sú v tejto verzii hotové: použite {{ui:STEP (fazetovaný, sieťové jadro)}}. Má správny tvar a objem, ale každá okrúhla plocha je veľa plochých fazet, takže iné programy nemôžu vybrať otvor ako valec. Ak na tom záleží, najprv nastavte **Krivky** jemnejšie.
+{{ui:STEP AP242 (presné teleso)}} zapíše diery, výstupky, zaoblenia, kužele, gule a torusy na ich skutočných povrchoch, takže iný program môže vybrať otvor ako valec; **Krivky** to nemení. Bočné strany splajnov, modelované závity a importované siete nemajú presný povrch a zostávajú rovnými fazetami v tom istom telese; stavový riadok uvedie, koľko ich je. {{ui:STEP (fazetovaný, sieťové jadro)}} zapíše každú okrúhlu plochu ako fazety.
 :::
 
-- Exporty sú zo súčiastky na obrazovke. V zostave je export vypnutý; export zostavy zatiaľ nie je.
-- STL, 3MF, fazetovaný STEP a DXF plochy sú vždy zložené z fazet. Nastavenie **Krivky** (v pravom paneli, keď nie je nič vybrané) určuje ich jemnosť, od 32 do 256 fazet na otáčku. Pred exportom STL alebo 3MF pre hladkú tlač vyberte Jemné alebo Veľmi jemné.
-- Výkres PDF používa vstavané písmo Helvetica čítačky. Znaky, ktoré nevie zobraziť, sa vytlačia ako „?“.
+- Exporty sa týkajú súčiastky na obrazovke. Export je v zostave vypnutý; exportovanie zostavy zatiaľ nie je.
+- STL, 3MF, fazetovaný STEP a DXF plochy sú vždy zložené z fazet. Nastavenie **Krivky** (v pravom paneli, keď nič nie je vybraté) určuje ich jemnosť, od 32 do 256 fazet na otáčku. Pred exportom STL alebo 3MF pre hladkú tlač zvoľte Jemné alebo Veľmi jemné.
+- Výkres PDF používa vstavané písmo Helvetica čitateľa. Znaky, ktoré nevie zobraziť, sa vytlačia ako "?".
 
-Krok za krokom: [Export pre tlač, STEP a DXF](topic:export-files) a [Vytvorenie výkresového listu](topic:drawing-pdf).
+Krok za krokom: [Export na tlač, STEP a DXF](topic:export-files) a [Vytvorte výkresový list](topic:drawing-pdf).
 
 ## Neuložená práca
 
-- PartCraft uchováva záchrannú kópiu otvorenej súčiastky alebo zostavy v tomto prehliadači chvíľu po každej zmene, takže pád alebo zatvorená karta o ňu nepripravia: pri ďalšom otvorení PartCraft sa opýta „Obnoviť prácu?“. Nie je to uloženie: ak chcete prácu zachovať, uložte ju do súboru. Pozrite [Obnovenie neuloženej práce](common:recover).
-- Ak sa pokúsite zavrieť kartu alebo obnoviť stránku s neuloženými zmenami, prehliadač sa opýta „Opustiť stránku?“. To je vlastné okno prehliadača; PartCraft nemôže zmeniť jeho znenie.
-- {{ui:Nový}}, {{ui:Otvoriť}} a zatvorenie zostavy sa pred zahodením neuložených zmien opýtajú.
+- PartCraft drží záložnú kópiu otvorenej súčiastky alebo zostavy v tomto prehliadači chvíľu po každej zmene, takže pád alebo zatvorená karta neprinesú stratu: pri ďalšom otvorení PartCraft sa spýta: "Obnoviť prácu?". Nie je to uloženie: uložte do súboru, aby ste si prácu ponechali. Pozri [Obnovenie neuloženej práce](common:recover).
+- Ak sa pokúsite zavrieť kartu alebo znovu načítať stránku s neuloženými zmenami, prehliadač sa opýta: "Opustiť stránku?". To je okno samotného prehliadača; PartCraft jeho text nezmení.
+- {{ui:New}}, {{ui:Open}} a zatvorenie zostavy sa pred zahodením neuložených zmien opýtajú.
 
 ## Online a offline
 
-Všetko prebieha vo Vašom počítači: sieťové jadro (program WebAssembly) sa sťahuje s aplikáciou a vytvára geometriu lokálne a súbory sa čítajú z disku a zapisujú na disk. Cez sieť neprechádzajú žiadne údaje súčiastok. Pozrite [Sieťové jadro](topic:solid-kernels).
+Všetko sa deje na vašom počítači: sieťové jadro (program WebAssembly) sa stiahne spolu s aplikáciou a geometriu vytvára lokálne a súbory sa čítajú a zapisujú na disk. Žiadne údaje o súčiastke nejdú cez sieť. Pozri [Sieťové jadro](topic:solid-kernels).
 
-Ak chcete pracovať úplne bez pripojenia, uložte PartCraft na offline použitie, kým ste online: vyberte {{ui:Uložiť na offline použitie}} v paneli aplikácie a počkajte, kým počíta („Ukladá sa 40 z 212“) a nahlási **Pripravené offline**. Uložená kópia obsahuje 3D knižnicu a sieťové jadro, takže potom fungujú modelovanie, ukladanie, každý export aj výkresy offline. Ak hlási **Nepodarilo sa uložiť**, kliknite naň a skúste to znova, kým ste online; **Offline nie je k dispozícii** znamená, že toto okno prehliadača nemôže uchovať kópiu (súkromné okná a niektoré spravované počítače). S uloženou kópiou kliknutie na **Pripravené offline** ponúka {{ui:Uložiť znova (získať najnovšiu verziu)}} a {{ui:Odstrániť offline kópiu}}. Podrobnosti: [Práca offline](common:offline).
+Aby ste mohli pracovať bez pripojenia, uložte PartCraft na offline použitie, keď ste online: v paneli aplikácie zvoľte {{ui:Save for offline}} a počkajte, kým počíta ("Ukladá sa 40 z 212"), kým nebude hlásiť **Pripravené na offline použitie**. Uložená kópia obsahuje 3D knižnicu a sieťové jadro, takže potom fungujú modelovanie, ukladanie, každý export aj výkresy offline. Ak hlási **Nepodarilo sa uložiť**, kliknite na ňu a skúste znova, keď ste online; **Offline nie je k dispozícii** znamená, že toto okno prehliadača nemôže uchovať kópiu (súkromné okná a niektoré spravované počítače). Keď je kópia uložená, kliknutím na **Pripravené na offline použitie** sa ponúknu {{ui:Save again (get the newest version)}} a {{ui:Remove the offline copy}}. Podrobnosti: [Práca offline](common:offline).
 
 :::online
-Ste online. Aj bez uloženia na offline použitie, keď sa PartCraft raz načíta a čip v stavovom riadku hlási „Sieťové jadro“, môžete pokračovať v práci, ak sa pripojenie preruší. Len stránku neobnovujte, kým nebudete znova online.
+Ste online. Aj bez uloženia na offline použitie, keď sa PartCraft načíta a čip na stavovom riadku hlási "sieťové jadro", môžete pokračovať, ak sa spojenie preruší. Len nenačítavajte stránku, kým nebudete znova online.
 :::
 
 :::offline
-Ste offline. Ak je PartCraft už otvorený, pracujte ďalej; ukladanie a export stále fungujú. Ak panel aplikácie hlási **Pripravené offline**, PartCraft sa dá otvoriť od začiatku aj bez pripojenia; inak túto kartu neobnovujte.
+Ste offline. Ak je PartCraft už otvorený, pokračujte v práci; ukladanie a exporty stále fungujú. Ak panel aplikácie hlási **Pripravené na offline použitie**, PartCraft sa otvorí aj od začiatku bez pripojenia; inak tento panel znova nenačítavajte.
 :::
 
 ## Rozdiely medzi prehliadačmi
 
-- **Stiahnuté súbory.** Každý prehliadač má vlastný priečinok so stiahnutými súbormi a vlastný spôsob, ako sa pýta. Ak sa prehliadač opýta, či táto stránka smie sťahovať súbory, povoľte to, inak ukladanie a export nemôžu fungovať.
-- **Pretiahnutie** súboru na pohľad funguje v Chrome, Edge, Firefoxe a Safari.
-- **Súbory z telefónu alebo tabletu.** Na iPhone a iPade Otvoriť zobrazí aplikáciu Súbory; uložené súbory idú do Súbory, Stiahnuté. Na Androide idú do priečinka Stiahnuté.
+- **Sťahovanie.** Každý prehliadač má vlastný priečinok sťahovania a vlastný spôsob pýtania sa. Ak sa prehliadač pýta, či tento web smie sťahovať súbory, povoľte to, inak ukladanie a exporty nebudú fungovať.
+- **Presúvanie súboru** do pohľadu funguje v Chrome, Edge, Firefox a Safari.
+- **Súbory z telefónu alebo tabletu.** Na iPhone a iPad Otvoriť zobrazí aplikáciu Files; uložené súbory idú do Files, Downloads. V Androide idú do priečinka Downloads.
 
 Obsah súborov sa medzi prehliadačmi ani operačnými systémami nelíši.

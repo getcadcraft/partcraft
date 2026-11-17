@@ -13,16 +13,16 @@ keywords: formats, file types, extensions, usd, usdz, 3dm, ifc, bim, partcraft.j
 | STL (binary or text) | `.stl` | Yes, as a solid body: [Open an STL, OBJ or 3MF](topic:open-meshes) | {{ui:STL, for 3D printing}} | mm (asked when opened) | Z | The solid's triangles only |
 | 3MF | `.3mf` | Yes, as a solid body | {{ui:3MF, for 3D printing}} | mm (stated in the file) | Z | The solid as one mesh object |
 | OBJ | `.obj` | Yes, as a solid body (faces only) | No | asked when opened | Z or Y | |
-| STEP (AP203, AP214, AP242) | `.step`, `.stp` | Yes, as a solid body read as triangles (curved faces as facets): [Open a STEP file](topic:import-step) | | mm (from the file's unit) | Z, or Y if you say so | The solids and surface bodies, assemblies with every part in place; no colors, names, assembly tree or PMI |
+| STEP (AP203, AP214, AP242) | `.step`, `.stp` | Yes, as a solid body read as triangles (curved faces drawn as facets; the file's flat faces, cylinders, cones, spheres and tori are kept for exact export): [Open a STEP file](topic:import-step) | | mm (from the file's unit) | Z, or Y if you say so | The solids and surface bodies, assemblies with every part in place; no colors, names, assembly tree or PMI |
 | `.3dm` | `.3dm` | Yes, as one solid body from its meshes and surfaces (saved render meshes, else tessellated): [Open a .3dm model](topic:open-3dm-files) | | From the file's unit | Z, or Y if you say so | Meshes, polysurfaces, extrusions and block placements as one body; no curves, colors, layers or names |
-| STEP AP242, exact | `.step` | | {{ui:STEP AP242 (exact solid)}} | mm | Z | Not built yet in this version (needs an exact kernel) |
-| STEP AP214, exact | `.step` | | {{ui:STEP AP214 (exact solid)}} | mm | Z | Not built yet in this version (needs an exact kernel) |
-| STEP AP242, faceted | `.step` | | {{ui:STEP (faceted, mesh kernel)}} | mm | Y | A closed solid of flat faces: round surfaces as facets. The STEP to use in this version |
+| STEP AP242, exact | `.step` | | {{ui:STEP AP242 (exact solid)}} | mm | Z | One exact solid: flat faces, cylinders, cones, spheres and tori on their true surfaces, true circles and lines as edges; spline sides, modelled threads, bodies from mesh files and a STEP file's spline faces stay facets. The STEP to use for other CAD and CAM programs |
+| STEP AP214, exact | `.step` | | {{ui:STEP AP214 (exact solid)}} | mm | Z | The same exact solid in the older AP214 schema, for programs that read only that |
+| STEP AP242, faceted | `.step` | | {{ui:STEP (faceted, mesh kernel)}} | mm | Y | A closed solid of flat faces: round surfaces as facets. For a program that refuses the exact file |
 | STEP AP214, faceted | `.step` | | {{ui:STEP AP214 (faceted, mesh kernel)}} | mm | Y | The same solid in the older AP214 schema, for programs that read only that |
 | USD package | `.usdz` | No | {{ui:USD package (.usdz)}} | m | Z | The solid with its material, volume and mass; an assembly with each part once and every copy placed: [Export as USD](topic:usd) |
 | IFC 4 | `.ifc` | No | {{ui:IFC 4 (with every property)}} | mm | Z | The shape as triangles, the material, every parameter, the title block, quantities; an assembly's parts as types and its copies placed |
 | DXF R12, sketch | `.dxf` | No | {{ui:DXF of the sketch or flat face}} with a sketch selected | mm | Sketch's own x, y | Lines, true arcs and circles, points; layers PROFILE, CONSTRUCTION, POINTS |
-| DXF R12, face | `.dxf` | No | {{ui:DXF of the sketch or flat face}} with a flat face picked | mm | Face's own x, y | The face's outlines as closed polylines (round edges as facets) |
+| DXF R12, face | `.dxf` | No | {{ui:DXF of the sketch or flat face}} with a flat face picked | mm | Face's own x, y | The face's outlines: round holes as true circles, the rest as closed polylines (round edges as facets) |
 | PDF drawing | `.pdf` | No | {{ui:Drawing (PDF): views, section, detail, GD&T}} | mm on an A3 sheet | | Front, top, right, isometric, section and detail views drawn from facets, hidden lines, overall sizes, GD&T symbols, title block |
 
 ## The PartCraft files
@@ -36,7 +36,7 @@ Both are plain text (JSON). The solid is never stored: PartCraft rebuilds it fro
 
 ## Facets and exactness
 
-STL, 3MF and the face DXF are always made of facets, at the **Curves** setting. The sketch DXF has true arcs and circles, because it comes straight from the sketch. This version builds every part with the mesh kernel, so the STEP export and the drawing's views (sections included) are faceted too. Exact STEP and true curves need an exact kernel: not built yet in this version.
+STL and 3MF are always made of facets, at the **Curves** setting, and so is the face DXF except for round holes, which are true circles. The sketch DXF has true arcs and circles, because it comes straight from the sketch. This version builds every part with the mesh kernel, so the drawing's views (sections included) are faceted too. The exact STEP export is the exception: the kernel knows each face's true surface from the sketch (or from the STEP file a body was opened from), so round faces are written as true cylinders, cones, spheres and tori whatever **Curves** is set to (see [Export for printing, STEP and DXF](topic:export-files#for-other-cad-programs-step)).
 
 ## Not supported in this build
 
@@ -44,7 +44,7 @@ STL, 3MF and the face DXF are always made of facets, at the **Curves** setting. 
 |---|---|
 | glTF, IGES, Parasolid, ACIS (in or out); OBJ export | Not built |
 | DWG | Written only by [the variant pack](topic:variant-pack), as the drawing sheet of each configuration. Not read, and no other export. Export DXF; every CAD program opens R12 DXF |
-| Assembly STEP and the drawing of an assembly | Not built yet (needs an exact kernel). STL, 3MF and the bill of materials export from an assembly |
+| Assembly STEP and the drawing of an assembly | Not built yet. Export each part as exact STEP; STL, 3MF and the bill of materials export from an assembly |
 | Other programs' native part and assembly files (except `.3dm`, which opens as one body) | Not built |
 
 See [What is not built yet](topic:not-built-yet).

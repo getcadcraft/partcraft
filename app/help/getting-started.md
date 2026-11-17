@@ -17,7 +17,7 @@ What this build does:
 | History | Edit any feature's numbers, suppress, roll back, reorder and delete, with undo |
 | Assemblies | Parts joined by rigid, revolute and slider joints, a clash check and a motion check |
 | Drawings | An A3 sheet with three views, an isometric, a section, a detail view, overall sizes, datums, feature control frames and surface finish symbols, exported as PDF |
-| Files | Its own part and assembly files; STL, 3MF, faceted STEP, DXF and PDF out |
+| Files | Its own part and assembly files; STL, 3MF, exact STEP, DXF and PDF out |
 
 Everything runs in your browser, on your computer. **Nothing is uploaded.** See [Files: open, save and export](topic:files) for where files go.
 

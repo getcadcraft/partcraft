@@ -1,0 +1,22 @@
+{
+  "id": "open-solvers",
+  "name": "Open solver cases",
+  "version": "0.9.1",
+  "apps": [
+    "partcraft"
+  ],
+  "api": "1.3",
+  "license": "Apache-2.0",
+  "entry": "./main.js",
+  "permissions": [
+    "panel",
+    "commands",
+    "files"
+  ],
+  "description": "Set a study up on a part, then export a ready-to-run case folder (.zip) for an outside solver you run yourself: a flow case for OpenFOAM, a stress, frequency or heat study for code_aster, a drop or impact run for OpenRadioss. Bring the results back and see them on the model. The solvers are separate programs, not part of CadCraft. No case has yet been run in the real solvers.",
+  "author": "CadCraft",
+  "lang": "./lang/",
+  "help": "./help/help.js",
+  "default": "off",
+  "honesty": "The files are written to each project's published formats and checked by strict readers written for the tests (structure, cross-references, units against hand calculations). No case has been run in OpenFOAM, code_aster or OpenRadioss. The result readers were tested on files written by hand in the documented layouts, not on real solver output. An analysis aid, not a design approval."
+}

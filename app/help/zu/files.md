@@ -2,7 +2,7 @@
 title: Amafayela: vula, londoloza nokuthumela
 summary: Amafayela e-PartCraft avula futhi alondoloza, zonke izinhlobo zokuthumela nokuthi zigcina ini, lapho amafayela aya khona, nokuthi yini eshintsha ngaphandle kwe-inthanethi nangaphakathi kwama-browser.
 keywords: vula, londoloza, thumela, landa, ifayela, partcraft.json, ifayela lenhlanganisela, stl, 3mf, step, dxf, pdf, lapho kukhona amafayela ami, ngaphandle kwe-inthanethi, londoloza njenge
-from: c15c2c48
+from: e5fbc7e3
 ---
 
 I-PartCraft isebenza ngamafayela akwikhompyutha yakho. Ayikaze ilayishe ingxenye, futhi akukho akhawunti noma isitoreji se-cloud esihileleke. Ukulondoloza ku-cloud akukatholakali okwamanje.

@@ -2,7 +2,7 @@
 title: Qala nge-PartCraft
 summary: Yini ePartCraft ayenza namuhla, okudingeka isiphequluli sakho, nengxenye yokuqala ngemizuzu eyishumi, kusukela ekuskeçheni kuya kufayela elilondoloziwe.
 keywords: qala, ukuqala kokuqala, isiqalo esisheshayo, isingeniso, ithutorial, ingxenye yokuqala, ipuleti, parametric, umenzi wengxenye
-from: 5f0a668d
+from: 7d43283f
 ---
 
 I-PartCraft iyi-app ye-parametric yengxenye nenhlanganisela yomndeni we-CadCraft. Udweba isikethi se-2D, uyibophe ngezihlobanisi nezilinganiso, uyiguqule ibe isolidi ngezici ezifana ne-{{ui:Ukukhipha}}, {{ui:Jikeleza}} ne-{{ui:Imbobo}}, futhi ungashintsha noma iyiphi inombolo kamuva: ingxenye iyakhiwa kabusha kusuka emlandweni wayo. Izingxenye zibe sezingena ezinhlanganisweni, lapho amajoyinti azibeka khona futhi akuvumele uhlole ukunyakaza.

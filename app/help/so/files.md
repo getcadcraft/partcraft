@@ -1,94 +1,94 @@
 ---
-title: Faylasha: fur, kaydi iyo dhoofi
-summary: Faylasha qaybta iyo isku-dhiska ee PartCraft furi karo oo kaydin karo, dhammaan qaababka dhoofinta iyo waxa ay haysaa, meelaha faylashu ku tagaan, iyo waxa isbedela markii khadka ka baxsan la shaqeynayo ama browser-yada dhexdooda.
-keywords: fur, kaydi, dhoofi, soo dejiso, fayl, partcraft.json, fayl isku-dhis, stl, 3mf, step, dxf, pdf, faylashaydu halkee ku jiraan, khadka ka baxsan, u kaydi sida
-from: c15c2c48
+title: Faylalka: fur, kaydi iyo dhoof
+summary: Faylalka qaybta iyo isku-dhisnaha ee PartCraft furo oo kaydiyo, dhoofin kasta iyo waxa uu hayo, meesha faylalku tagaan, iyo waxa isbeddela marka aan khadka lagu jirin ama browser-ka kala duwan.
+keywords: fur, kaydi, dhoofi, soo deji, fayl, partcraft.json, faylka isku-dhisnaha, stl, 3mf, step, dxf, pdf, faylalkaygu meeyaan yihiin, khadka ka baxsan, kaydi sida
+from: e5fbc7e3
 ---
 
-PartCraft wuxuu ku shaqeeyaa faylal ku yaal kombiyutarkaaga. Qayb ma soo dira abid, akoon ma leh, kaydna daruur ma ku lahan. Kaydinta daruurta weli ma diyaar aha.
+PartCraft wuxuu ka shaqeeyaa faylalka kombiyuutarkaaga. Qayb ma soo gudbiyo, akoon ma jiro, kaydinta gudaha ma jirto. Kaydinta cloud weli ma diyaar.
 
-## Waxa PartCraft furi karo
+## Waxa PartCraft furo
 
-| Fayl | Kordhinta | Sidee |
+| Faylka | Kordhinta | Sidee |
 |---|---|---|
-| Qayb PartCraft | `.partcraft.json` | {{ui:Fur}}, {{key:Mod+O}}, ama ku dhig muuqaalka 3D |
-| Isku-dhis PartCraft | `.partcraft-asm.json` | Isla sidaas: PartCraft wuxuu ogaadaa nooca uu yahay |
-| Jidh adag STEP | `.step`, `.stp` | Jidh adag oo loo akhriyo saddex-geesle: [Fur fayl STEP oo ku dhis](topic:import-step) |
+| Qayb PartCraft | `.partcraft.json` | {{ui:Fur}}, {{key:Mod+O}}, ama dhig dhinaca 3D |
+| Isku-dhisnaha PartCraft | `.partcraft-asm.json` | Isla sidaas: PartCraft wuu ogaadaa nooca |
+| STEP solid | `.step`, `.stp` | Jidh adag oo loo akhriyo saddex-geesood: [Fur faylka STEP oo ku dhis](topic:import-step) |
 
-Mashkiinnada STL, OBJ iyo 3MF sidoo kale waxay furmaan sida jidh adag ([Fur STL, OBJ ama 3MF](topic:open-meshes)), oo sidaas oo kale faylasha `.3dm` ([Fur moodeel .3dm](topic:open-3dm-files)). DXF, IGES iyo faylasha qaybta ee barnaamijyada kale lama furi karo (eeg [Waxa weli lama dhisin](topic:not-built-yet)).
+Faylalka STL, OBJ iyo 3MF waxay sidoo kale furmaan sida jidhadka adag ([Fur STL, OBJ ama 3MF](topic:open-meshes)), oo sidaas oo kale faylalka `.3dm` ([Fur moodel .3dm](topic:open-3dm-files)). DXF, IGES iyo faylalka qaybaha barnaamijyada kale lama furi karo (eeg [Waxa weli aan la dhisin](topic:not-built-yet)).
 
 Xeerarka markii la furayo:
 
-- Magaca faylka qayb ama isku-dhis waa inuu ku dhammaado `.json`, faylkuna waa inuu ka yaraado 50 MB.
-- Faylasha waa la hubiyaa ka hor inta aan wax la muujin. Fayl dhaawacan ama la beddelay waa la diidaa, iyadoo sabab fudud la sheegayo, tusaale ahaan "Tani ma aha fayl PartCraft ah."
-- Fayl ay kaydisay PartCraft cusub waa la diidaa: "Faylkan waxaa kaydiyay PartCraft cusub (nooca faylka 3); kan waxa uu akhrinayaa nooca 2." Faylasha hore way furmaan.
-- Haddii qaybta shaashadda ku jirta ay leedahay isbeddello aan la kaydin, PartCraft marka hore wuu weydiiyaa: {{ui:Jooji}}, {{ui:Iska tir isbeddellada}} ama {{ui:Marka hore kaydi}}.
+- Magaca faylka qaybta ama isku-dhisnaha waa inuu ku dhammaadaa `.json`, faylkuna waa inuu ka yaraado 50 MB.
+- Faylalka waa la hubiyaa ka hor inta aan wax la muujin. Fayl dhacay ama la tafatiray waa la diidaa, sabab fudud oo lagu sheegay, tusaale ahaan "This is not a PartCraft file."
+- Fayl ka yimid PartCraft cusub waa la diidaa: "This file was saved by a newer PartCraft (file version 3); this one reads version 2." Faylalka hore way furmaan.
+- Haddii qaybta shaashadda ku jirta ay leedahay isbeddello aan la kaydin, PartCraft wuu marka hore weydiiyaa: {{ui:Jooji}}, {{ui:Iska tir isbeddellada}} ama {{ui:Marka hore kaydi}}.
 
 ## Kaydinta
 
 {{ui:Kaydi}} ama {{key:Mod+S}} wuxuu kaydiyaa waxa shaashadda ku jira:
 
-- Qayb: `<magaca qaybta>.partcraft.json`, taariikhda oo dhan (sawir-gacmeedyada, xidhiidhada, cabbiraadyada, astaamaha, meesha dib-u-celinta), qaybta, faahfaahinta iyo qoraallada GD&T ee xaashida naqshadda, iyo qoraalka oo dhan ee jidh adag STEP oo la soo dhoofiyay dhismihii hore. Astaamaha nooca tan aan dhisi karin waxa dib loo kaydiyaa iyadoo aan la beddelin. Jidh adagta laftiisa lama kaydiyo; PartCraft wuxuu ku dhisaa taariikhda markii faylka la furo.
-- Isku-dhis: `<magaca isku-dhiska>.partcraft-asm.json`, oo leh **qayb kasta oo ku jirta**. Hal fayl ayaa qaadaya isku-dhiska oo dhan, sidaas darteed waad u diri kartaa keligiis.
+- Qayb ahaan: `<part name>.partcraft.json`, taariikhda oo dhan (sawir-gacmeedyada, xiriirada, cabbirrada, features, booska rollback-ka), qoraallada qaybta naqshadda, faahfaahinta iyo GD&T, iyo qoraalka oo dhan ee STEP solid kasta oo dhisme hore laga soo dhoofiyay. Features-ka nooca hadda aan dhisi karin ayaa lagu kaydiyaa siduu yahay. Jidhka ma kaydsana; PartCraft wuu dib u dhisaa taariikhda marka faylku furmo.
+- Isku-dhisnaha: `<assembly name>.partcraft-asm.json`, oo **qayb kasta ku jirta gudaheeda**. Hal fayl ayaa qaadaya isku-dhisnaha oo dhan, sidaas darteed waad u diri kartaa keligiis.
 
-Kaydintu waa **soo dejin**. Browser-kaagu faylka wuxuu geynayaa galkiisa soo dejinta, ama wuu weydiin doonaa meesha uu ku kaydiyo haddii aad u habaysay inuu weydiiyo. Mar kale kaydinta waxay samaysaa soo dejin cusub; browser-ku wuxuu magacaabi karaa `Part1 (1).partcraft.json` halkii uu ku beddeli lahaa kii hore. Magacyada ama goobaha faylasha ka beddel ama u guuri {{pick:mac=Finder|windows=File Explorer|linux=maamulaha faylalkaaga}} sida aad doonayso.
+Kaydintu waa **soo dejin**. Browser-kaagu wuxuu faylka u dhigaa folder-ka soo dejinta, ama wuxuu weydiin karaa meesha la geeyo haddii aad u dejiso inuu weydiiyo. Mar kale kaydinta waxay samaysaa soo dejin cusub; browser-ku wuxuu magaca u bedeli karaa `Part1 (1).partcraft.json` halkii uu ku beddeli lahaa kii hore. Magacyada ama meesha faylalka ku dhaqaaqi {{pick:mac=Finder|windows=File Explorer|linux=maareeyaha faylalkaaga}} sida aad rabto.
 
-Xarfaha aan ahayn xarfo, lambaro, meel bannaan, `_`, `.` iyo `-` ee magaca qaybta waxay noqdaan `_` magaca faylka.
+Magaca qaybta xarfaha aan ahayn xarfo, tiro, space, `_`, `.` iyo `-` waxay noqdaan `_` magaca faylka.
 
 :::tip
-Browser-yada badankood waxay leeyihiin dejin weydiisa meesha ay soo dejinta kasta ku kaydiyaan. Shid haddii aad rabto doorasho "U kaydi sida" mar kasta: Chrome iyo Edge waxay ku jirtaa dejinta Downloads; Firefox waxay ku jirtaa General, Files and Applications; Safari waxay ku jirtaa General, File download location.
+Browser-ka badankiis wuxuu leeyahay dejin weydiiso meesha loo kaydinayo soo dejin kasta: hagaaji haddii aad rabto doorashada "Save as" mar kasta: Chrome iyo Edge waxay ku jirtaa Downloads settings-ka; Firefox General, Files and Applications; Safari General, File download location.
 :::
 
-Wax dheeraad ah oo ku saabsan meelaha soo dejintu tagto iyo sida faylasha loo ilaaliyo: [Halkee faylashaadu tagaan](common:your-files).
+Wax dheeraad ah oo ku saabsan meesha soo dejintu tagto iyo sida faylalkaaga loo ilaaliyo: [Meesha faylalkaagu tagaan](common:your-files).
 
 ## Dhoofinta
 
-Liiska {{ui:Dhoofi}} wuxuu qoraa qaababka kale. Mid kastaa waa soo dejin, oo magaca qaybta ku salaysan.
+Menu-ka {{ui:Dhoofi}} wuxuu qoraa qaababka kale. Mid kasta waa soo dejin, magaceeda waxaa lagu magacaabaa qaybta.
 
-| Shayga liiska | Fayl | Waxa ku jira |
+| Waxa menu-ka ku jira | Faylka | Waxa ku jira |
 |---|---|---|
-| {{ui:STL, daabacaadda 3D}} | `<name>.stl` | STL binary ah oo saddex-geesleha jidh adagta ku jira, millimitir, **Z kor ayuu u taagan** |
-| {{ui:3MF, daabacaadda 3D}} | `<name>.3mf` | 3MF oo jidh adagta hal shay ahaan ku jira, millimitir, **Z kor ayuu u taagan** |
-| {{ui:STEP AP242 (jidh adag oo saxda ah)}} | `<name>.step` | Weli lama dhisin nooca tan (midabka ifka laga qaaday): waxay u baahan tahay kernel sax ah |
-| {{ui:STEP AP214 (jidh adag oo saxda ah)}} | `<name>.step` | Weli lama dhisin nooca tan (midabka ifka laga qaaday) |
-| {{ui:STEP (fasedyo, kernel-ka mesh)}} | `<name>.step` | Jidh adag oo ka samaysan dusha fidsan ee mesh-ka: **wareegyada waa dusha fidsan oo yaryar**. Millimitir, dhinacyada PartCraft u gaarka ah (Y kor). STEP-ka la isticmaalo barnaamijyada CAD kale nooca tan |
-| {{ui:DXF oo sawir-gacmeedka ama dhinac sinaan ah}} | `<name> - <sketch>.dxf` ama `<name> - face.dxf` | DXF R12. Sawir-gacmeed: khadadka, qaansooyinka, goobooyinka iyo bararka oo ku jira nidaamkooda sawir-gacmeedka, layerrada PROFILE, CONSTRUCTION iyo POINTS. Dusha fidsan ee la doortay: khadadkeeda go'an oo ah polilayn go'an (geesaha wareegsan iyaga oo ah dusha yaryar) |
-| {{ui:Naqshad (PDF): muuqaallada, qaybta, faahfaahinta, GD&T}} | `<name> - drawing.pdf` | Xaashida naqshadda A3: saddex muuqaal, isometric, qaybta iyo faahfaahinta haddii la dejiyo, cabbirrada guud, calaamadaha GD&T, iyo bloogga cinwaanka |
+| {{ui:STL, daabacaadda 3D}} | `<name>.stl` | STL binary oo saddex-geesoodka jidhka, millimitir, **Z sare** |
+| {{ui:3MF, daabacaadda 3D}} | `<name>.3mf` | 3MF oo jidhka ku jira hal object, millimitir, **Z sare** |
+| {{ui:STEP AP242 (jidh adag oo saxda ah)}} | `<name>.step` | Hal jidh adag oo saxda ah, millimitir, Z sare: wejiyada wareegsan sida silinder, koonn, kubbad iyo torus oo run ah. STEP-ka loo isticmaalo barnaamijyada CAD iyo CAM kale |
+| {{ui:STEP AP214 (jidh adag oo saxda ah)}} | `<name>.step` | Isla jidhka adag ee saxda ah schema-ga hore AP214 |
+| {{ui:STEP (fasedyo, kernel-ka mesh)}} | `<name>.step` | Jidh ka samaysan wejiyo toosan oo mesh-ka ka yimid: **wejiyada wareegsan waa facets yar yar**. Millimitir, axes-ka PartCraft (Y sare). Barnaamij diida faylka saxda ah |
+| {{ui:DXF oo sawir-gacmeedka ama dhinac sinaan ah}} | `<name> - <sketch>.dxf` ama `<name> - face.dxf` | DXF R12. Sawir-gacmeed: xariiqyo, qaansooyin, goobo iyo barar isku-xirnaanta sawir-gacmeedka, oo ku jira layers PROFILE, CONSTRUCTION iyo POINTS. Wejig toosan la doortay: qaabkiisa oo polyline xidhan (geesaha wareegsan sida facets) |
+| {{ui:Naqshad (PDF): muuqaallada, qaybta, faahfaahinta, GD&T}} | `<name> - drawing.pdf` | Xaashida naqshadda A3: saddex muuqaal, isometric, qaybta iyo faahfaahinta haddii la dejiyo, cabbirrada guud, calaamadaha GD&T, blokka cinwaanka |
 
 :::note
-{{ui:STEP AP242 (jidh adag oo saxda ah)}} iyo {{ui:STEP AP214 (jidh adag oo saxda ah)}} weli lama dhisin nooca tan: isticmaal {{ui:STEP (fasedyo, kernel-ka mesh)}}. Waxay leedahay qaabka iyo mugga saxda ah, laakiin dusha wareegsan kasta waa dusha fidsan oo badan, sidaas darteed barnaamijyada kale ma dooran karaan god ahaan silinder. Haddii taasi muhiim tahay, marka hore **Qalooca** ka dhig mid aad u fiican.
+{{ui:STEP AP242 (jidh adag oo saxda ah)}} wuxuu qoraa godad, bosses, fillets, koonno, kubbado iyo torusyo wejigooda run ah, si barnaamij kale u dooran karo god sida silinder; **Qalloocyada** ma beddelayso. Geesaha spline-ka, xarka la moodeelay iyo meshes-ka la soo dhoofiyay ma leeyihiin wejig saxda ah oo waxay ku sii jiraan facets isla jidhka; xaaladda xagga hoose waxay tirinaysaa. {{ui:STEP (fasedyo, kernel-ka mesh)}} wuxuu qoraa wejiyada wareegsan oo dhan sida facets.
 :::
 
-- Dhoofinta waxay ka timaadaa qaybta shaashadda ku jirta. Dhoofinta isku-dhiska waa la damiyay; weli ma jirto dhoofinta isku-dhiska.
-- STL, 3MF, STEP-ka dusha fidsan iyo DXF-ka dusha had iyo jeer dusha fidsan ayay ka samaysan yihiin. Dejinta **Qalooca** (panelka midig marka aan wax la dooran) ayaa go'aamisa sida ay u fiican yihiin, 32 ilaa 256 dusha fidsan wareeg kasta. Dooro Fiican ama Aad u fiican ka hor inta aadan dhoofin STL ama 3MF si daabacaaddu u noqoto mid siman.
-- Naqshadda PDF-ka waxay isticmaashaa foontiga Helvetica ee akhristaha ku jira. Xarfaha aan la muujin karin waxay ku daabacmaan "?".
+- Dhoofinta waa qaybta shaashadda ku jirta. Dhoofintu waa la damiyay isku-dhisnaha; ma jiro dhoofin isku-dhisnaha weli.
+- STL, 3MF, STEP-ka facet iyo DXF-ka wejiga had iyo jeer waxay ka samaysan yihiin facets. Dejinta **Qalloocyada** (panelka midig marka waxba la dooran) ayaa go'aaminta inta ay fiican yihiin, 32 ilaa 256 facet wareeg kasta. Dooro Fiican ama Aad u fiican ka hor inta aadan dhoofin STL ama 3MF si uu daabacaadu u siman yahay.
+- Naqshadda PDF waxay isticmaashaa font-ka Helvetica ee akhriyuhu ku dhex jiro. Xarfaha aan muuqan karin waxay daabacaan "?".
 
-Tallaabo tallaabo: [Dhoofi daabacaadda, STEP iyo DXF](topic:export-files) iyo [Samee xaashi naqshad](topic:drawing-pdf).
+Tallaab tallaab: [Dhoofinta daabacaadda, STEP iyo DXF](topic:export-files) iyo [Samee xaashi naqshad](topic:drawing-pdf).
 
 ## Shaqada aan la kaydin
 
-- PartCraft wuxuu browser-kan ku haynaa nuqul soo celin ah oo qaybta ama isku-dhiska furan, wax yar ka dib isbeddel kasta, si shil ama tab la xiray aanu shaqada u lumin: markii xigta ee aad PartCraft furto wuxuu weydiin doonaa "Ma soo celiyaa shaqadaada?". Taasi ma aha kaydin: u kaydi fayl si aad shaqadaada u ilaaliso. Eeg [Soo celi shaqada aan la kaydin](common:recover).
-- Haddii aad isku daydo inaad tab-ka xirto ama dib u soo rogto isbeddello aan la kaydin, browser-ku wuxuu weydiin doonaa "Ka tag goobta?". Taasi waa sanduuqa browser-ka laftiisa; PartCraft ma beddeli karo qoraalkiisa.
-- {{ui:Cusub}}, {{ui:Fur}} iyo xirista isku-dhiska waxay weydiiyaan ka hor inta aan isbeddello aan la kaydin la tirtirin.
+- PartCraft wuxuu hayaa nuqul soo kabasho ah oo qaybta ama isku-dhisnaha furan browser-kan wakhti yar kadib isbeddel kasta, sidaas darteed crash ama tab la xidhay shaqada ma lumiyo: markii dambe ee aad furto PartCraft wuxuu weydiinayaa "Recover your work?". Taasi ma aha kaydin: ku kaydi fayl si aad shaqadaadu u ilaaliso. Eeg [Soo kabso shaqada aan la kaydin](common:recover).
+- Haddii aad isku dayayso inaad tab-ka xidho ama dib u soo rogto isbeddello aan la kaydin, browser-ku wuxuu weydiinayaa "Leave site?". Taasi waa sanduuqa browser-ka laftiisa; PartCraft ma beddeli karo qoraalkiisa.
+- {{ui:Cusub}}, {{ui:Fur}} iyo xidhida isku-dhisnaha waxay weydiiyaan ka hor intaysan tirtirin isbeddellada aan la kaydin.
 
-## Khadka ku jira iyo khadka ka baxsan
+## Online iyo offline
 
-Waxyaabaha oo dhan kombiyutarkaaga ayay ku dhacaan: mesh kernel-ka (barnaamij WebAssembly) app-ka ayaa lagu soo dejiyaa, geometry-ga meel ahaan ayuu ku dhisaa, faylashana waxa laga akhriyaa oo lagu qoraa diskkaaga. Xog qayb ah shabakad uma marto. Eeg [Mesh kernel-ka](topic:solid-kernels).
+Waxa oo dhan kombiyuutarkaaga ayay ka dhacaan: mesh kernel-ka (barnaamij WebAssembly ah) waxa lagu soo dejiyaa app-ka oo geometry-ga wuxuu dhisaa kombiyuutarkaaga, faylalkana waxaa laga akhriyaa oo lagu qoraa diskkaaga. Xog qaybeed ma marto shabakadda. Eeg [Mesh kernel-ka](topic:solid-kernels).
 
-Si aad uga shaqeyso iyada oo aan xiriir lahayn, PartCraft u kaydi khadka ka baxsan intaad khadka ku jirtid: dooro {{ui:Kaydi khadka ka baxsan}} bar-ka app-ka oo sug inta ay tirinayso ("Kaydinta 40 ka mid ah 212") ilaa ay tidhi **Diyaar khadka ka baxsan**. Nuqulka la kaydiyay wuxuu ku jiraa maktabadda 3D iyo mesh kernel-ka, sidaas darteed ka dib nidaaminta, kaydinta, dhoofinta oo dhan iyo naqshadaha oo dhan khadka ka baxsan ayay shaqeeyaan. Haddii ay tidhi **Lama kaydin karo**, guji si aad mar kale ugu daydo intaad khadka ku jirtid. **Khadka ka baxsan lama heli karo** waxa uu macneeyaa daaqaddan browser-ka ma kaydin karto nuqul (daaqadaha gaarka ah iyo kombiyuutarada qaar oo la maamulo). Marka nuqulka la kaydiyo, markaad gujiso **Diyaar khadka ka baxsan** waxay soo bandhigtaa {{ui:Mar kale kaydi (hel nooca ugu dambeeya)}} iyo {{ui:Ka saar nuqulka khadka ka baxsan}}. Faahfaahin: [Shaqaynta khadka ka baxsan](common:offline).
+Si aad u shaqeyso xidhiidh la'aan, kaydi PartCraft si loo isticmaalo offline markaad online tahay: dooro {{ui:Kaydi khadka ka baxsan}} app bar-ka oo sug inta ay tirinayso ("Saving 40 of 212") ilaa ay tidhi **Offline ready**. Nuqulka la kaydiyay wuxuu ku jiraa maktabadda 3D iyo mesh kernel-ka, sidaas darteed kadibna modeling, kaydinta, dhoofinta oo dhan iyo naqshadaha oo dhan way shaqeeyaan offline. Haddii ay tidhi **Could not save**, guji si aad mar kale isku daydo markaad online tahay; **Offline not available** macnaheedu waa daaqadan browser-ka ma kaydin karto nuqul (daaqadaha gaarka ah iyo kombiyuutarrada la maamulo qaarkood). Nuqulka la kaydiyay markaad guujiso **Offline ready**, wuxuu soo bandhigaa {{ui:Mar kale kaydi (hel nooca ugu dambeeya)}} iyo {{ui:Ka saar nuqulka khadka ka baxsan}}. Faahfaahin: [Shaqada offline](common:offline).
 
 :::online
-Khadka ku jirtaa. Xitaa haddii aadan khadka ka baxsan u kaydin, marka PartCraft la soo rarto oo chip-ka status bar-ka uu tidhi "Mesh kernel", wali waad shaqeysan kartaa haddii xiriirku go'o. Bal ha dib u rogin bogga ilaa aad khadka ku soo noqoto.
+Waad online tahay. Xitaa haddii aanad kaydin offline isticmaalka, markii PartCraft uu soo dejiyo oo status bar chip-ku yidhi "Mesh kernel", wali waad shaqayn kartaa xidhiidhku haddii uu go'o. Bogga ha dib u soo rogin ilaa aad mar kale online tahay.
 :::
 
 :::offline
-Khadka ka baxsan baad tahay. Haddii PartCraft hore loo furay, sii wad shaqada; kaydinta iyo dhoofintu weli way shaqeeyaan. Haddii app bar-ku tidhi **Diyaar khadka ka baxsan**, PartCraft wuxuu sidoo kale ka furmi doonaa bilowga ah iyadoo aan xiriir lahayn; haddii kale ha dib u rogin tab-kan.
+Waad offline tahay. Haddii PartCraft hore loo furay, wali shaqayn kartaa; kaydinta iyo dhoofintu weli way shaqeeyaan. Haddii app bar-ku yidhi **Offline ready**, PartCraft wuxuu sidoo kale bilaabmaa xidhiidh la'aan; haddii kale ha dib u soo rogin tab-kan.
 :::
 
 ## Browser-yada kala duwan
 
-- **Soo dejinta.** Browser kasta wuxuu leeyahay galkiisa soo dejinta iyo habkiisa weydiinta. Haddii browser-ku weydiiyo in goobtan fayl soo dejin karto, oggolow; haddii kale kaydinta iyo dhoofintu ma shaqeyn karaan.
-- **Jiid oo dhig** fayl ku dhejinta muuqaalka wuxuu ku shaqeeyaa Chrome, Edge, Firefox iyo Safari.
-- **Faylal taleefan ama tablet ah.** Kombiyuutarada iPhone iyo iPad, Fur wuxuu muujiyaa app-ka Files; faylasha la kaydiyay waxay tagaan Files, Downloads. Android-ka waxay tagaan galka Downloads.
+- **Soo dejinta.** Browser kasta wuxuu leeyahay folder soo dejin gaar ah iyo habkiisa weydiinta. Haddii browser-ku weydiiyo inuu site-kani soo dejin karo faylal, oggolow, haddii kale kaydinta iyo dhoofintu ma shaqayn karaan.
+- **Jiid oo dhig** fayl dhinaca muuqaalka wuxuu shaqeeyaa Chrome, Edge, Firefox iyo Safari.
+- **Faylalka telefoon ama tablet-ka.** iPhone iyo iPad, Fur wuxuu muujiyaa app-ka Files; faylalka la kaydiyay waxay tagaan Files, Downloads. Android, waxay tagaan folder-ka Downloads.
 
-Faylasha waxa ay ku jiraan ma kala duwana browser-yada ama nidaamyada hawlgalka.
+Browser-yada ama nidaamyada hawlgalka kala duwan, waxa faylalku ka kooban yihiin isma duwana.

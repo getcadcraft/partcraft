@@ -50,14 +50,14 @@ The {{ui:Export}} menu writes other formats. Each is a download, named after the
 |---|---|---|
 | {{ui:STL, for 3D printing}} | `<name>.stl` | Binary STL of the solid's triangles, millimeters, **Z up** |
 | {{ui:3MF, for 3D printing}} | `<name>.3mf` | 3MF with the solid as one object, millimeters, **Z up** |
-| {{ui:STEP AP242 (exact solid)}} | `<name>.step` | Not built yet in this version (grayed): it needs an exact kernel |
-| {{ui:STEP AP214 (exact solid)}} | `<name>.step` | Not built yet in this version (grayed) |
-| {{ui:STEP (faceted, mesh kernel)}} | `<name>.step` | A solid made of flat faces from the mesh: **round surfaces are many small flat facets**. Millimeters, in PartCraft's own axes (Y up). The STEP to use for other CAD programs in this version |
+| {{ui:STEP AP242 (exact solid)}} | `<name>.step` | One exact solid, millimeters, Z up: round faces as true cylinders, cones, spheres and tori. The STEP to use for other CAD and CAM programs |
+| {{ui:STEP AP214 (exact solid)}} | `<name>.step` | The same exact solid in the older AP214 schema |
+| {{ui:STEP (faceted, mesh kernel)}} | `<name>.step` | A solid made of flat faces from the mesh: **round surfaces are many small flat facets**. Millimeters, in PartCraft's own axes (Y up). For a program that refuses the exact file |
 | {{ui:DXF of the sketch or flat face}} | `<name> - <sketch>.dxf` or `<name> - face.dxf` | DXF R12. A sketch: lines, arcs, circles and points in the sketch's own coordinates, on layers PROFILE, CONSTRUCTION and POINTS. A picked flat face: its outlines as closed polylines (round edges as their facets) |
 | {{ui:Drawing (PDF): views, section, detail, GD&T}} | `<name> - drawing.pdf` | The A3 drawing sheet: three views, isometric, section and detail if set, overall sizes, GD&T symbols, title block |
 
 :::note
-{{ui:STEP AP242 (exact solid)}} and {{ui:STEP AP214 (exact solid)}} are not built yet in this version: use {{ui:STEP (faceted, mesh kernel)}}. It has the right shape and volume, but every round face is many flat facets, so other programs cannot select a hole as a cylinder. Set **Curves** finer first if that matters.
+{{ui:STEP AP242 (exact solid)}} writes holes, bosses, fillets, cones, spheres and tori on their true surfaces, so another program can select a hole as a cylinder; **Curves** does not change it. Spline sides, modelled threads and imported meshes have no exact surface and stay flat facets in the same solid; the status bar says how many. {{ui:STEP (faceted, mesh kernel)}} writes every round face as facets.
 :::
 
 - Exports are of the part on screen. Export is turned off in an assembly; there is no assembly export yet.

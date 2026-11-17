@@ -3,7 +3,7 @@ title: Make toolpaths and G-code (Manufacture)
 summary: Set up stock and a work origin, choose tools, add face, pocket, contour, drill and chamfer operations by picking faces, finish the whole model in 3D (parallel, scallop), simulate the stock against the model for gouges and cycle time, and download G-code from one of the three built-in posts or one you edit yourself.
 section: tasks
 order: 140
-keywords: parallel, scallop, 3d finishing, finishing, ball nose, tool library, edit post, custom post, post editor, adaptive, adaptive clearing, constant engagement, trochoidal, hsm, high speed machining, manufacture, CAM, toolpath, G-code, NC, CNC, mill, milling, pocket, contour, profile, facing, drill, peck, G83, G81, G73, chamfer, stock, work offset, G54, post processor, GRBL, LinuxCNC, feeds and speeds, simulation, gouge, cycle time
+keywords: exact step, step for the shop, work coordinates, cam handoff, parallel, scallop, 3d finishing, finishing, ball nose, tool library, edit post, custom post, post editor, adaptive, adaptive clearing, constant engagement, trochoidal, hsm, high speed machining, manufacture, CAM, toolpath, G-code, NC, CNC, mill, milling, pocket, contour, profile, facing, drill, peck, G83, G81, G73, chamfer, stock, work offset, G54, post processor, GRBL, LinuxCNC, feeds and speeds, simulation, gouge, cycle time
 ---
 
 The Manufacture workspace turns the part into toolpaths for a 3-axis milling machine and writes them as G-code. Most operations are **2.5-axis**: the tool stays vertical, walls are cut straight down and floors flat. **Parallel** and **Scallop** finish curved surfaces in 3D (see [3D finishing](topic:finish-3d)); the tool still stays vertical (three axes, no tilting). It works on the named faces the mesh kernel gives the part (see [The mesh kernel](topic:solid-kernels)).
@@ -74,6 +74,12 @@ Choose the control under **Post** and press {{ui:Download G-code}} (or {{ui:Post
 Every file starts with comments for the program, stock, work offset and tools. Coordinates are in millimetres with 3 decimals. {{ui:Toolpath CSV}} and {{ui:Toolpath JSON}} export the moves themselves.
 
 **Check the output in your machine's own simulator before cutting, and run it in the air above the stock first.** The three built-in posts are starting points that follow the controls' documented behaviour; they have not been proven on any particular machine. A post you change is yours to prove. How to write one: [Post processors](topic:post-processors).
+
+## Exact STEP for the shop
+
+Under the G-code buttons on the **Operations** tab, {{ui:Exact STEP (work coordinates)}} downloads `<part>-work.step`: the part as an exact solid (true cylinders for holes and bosses, true circles for their edges) with its origin at this setup's work origin and Z along the tool axis. Those are the coordinates the G-code uses, so a shop's own CAM program or checker lines the model up with the program without moving it. The file holds the part only, not the stock or the toolpaths.
+
+{{ui:Export}} › {{ui:STEP AP242 (exact solid)}} writes the same solid in the part's own position (Z up): see [Export for printing, STEP and DXF](topic:export-files#for-other-cad-programs-step).
 
 ## Limits
 

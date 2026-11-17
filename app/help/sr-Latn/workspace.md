@@ -2,7 +2,7 @@
 title: Ekran PartCraft-a
 summary: Obilazak svake trake i panela: traka alata i kako se menja, istorija, podaci o delu, 3D prikaz, panel svojstava i statusna traka.
 keywords: ekran, raspored, traka alata, istorija, stablo elemenata, svojstva, panel, statusna traka, interfejs, ui, obilazak, ceo ekran
-from: 7394fc49
+from: 5b5bb843
 ---
 
 Ekran ima pet delova: traku alata na vrhu, istoriju levo, 3D prikaz u sredini, panel svojstava desno i statusnu traku duž dna. Iznad svih je traka aplikacije CadCraft.

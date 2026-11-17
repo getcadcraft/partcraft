@@ -1,127 +1,127 @@
 ---
 title: PartCraft မျက်နှာပြင်
-summary: Bar နှင့် panel တိုင်းအကြောင်း အကျဉ်းချုပ်: toolbar နှင့် ၎င်း၏ ပြောင်းလဲပုံ၊ history၊ part facts၊ 3D view၊ properties panel နှင့် status bar။
-keywords: မျက်နှာပြင်, layout, toolbar, history, feature tree, properties, panel, status bar, interface, ui, tour, full screen
-from: 7394fc49
+summary: toolbar နှင့် ၎င်း ပြောင်းလဲပုံ၊ သမိုင်း၊ အစိတ်အပိုင်း အချက်အလက်များ၊ 3D မြင်ကွင်း၊ properties panel နှင့် status bar အပါအဝင် bar နှင့် panel တိုင်း၏ လမ်းညွှန်။
+keywords: screen, layout, toolbar, history, feature tree, properties, panel, status bar, interface, ui, tour, full screen, မျက်နှာပြင်, toolbar, သမိုင်း, ဂုဏ်သတ္တိများ, panel, status bar, interface, ui, လမ်းညွှန်, မျက်နှာပြင်အပြည့်
+from: 5b5bb843
 ---
 
-မျက်နှာပြင်တွင် အပိုင်း ငါးပိုင်းရှိသည်: အပေါ်ဘက်ရှိ toolbar၊ ဘယ်ဘက်ရှိ history၊ အလယ်ရှိ 3D view၊ ညာဘက်ရှိ properties panel နှင့် အောက်ခြေရှိ status bar။ ၎င်းတို့အားလုံးအပေါ်တွင် CadCraft app bar ရှိသည်။
+မျက်နှာပြင်တွင် အပိုင်းငါးခု ရှိသည်: အပေါ်ဘက်ရှိ toolbar၊ ဘယ်ဘက်ရှိ သမိုင်း၊ အလယ်ရှိ 3D မြင်ကွင်း၊ ညာဘက်ရှိ properties panel နှင့် အောက်ဘက်ရှိ status bar။ ၎င်းတို့အားလုံးအပေါ်တွင် CadCraft app bar ရှိသည်။
 
 ## App bar
 
-အပေါ်ဆုံးရှိ ပါးလွှာသော bar သည် PartCraft ကိုယ်တိုင်မဟုတ်ဘဲ CadCraft site နှင့် သက်ဆိုင်သည်။ App အမည်နှင့် အလုပ်လုပ်သည့်နေရာ၊ version menu၊ **About PartCraft**၊ screen-mode ခလုတ်နှင့် Paper / Model theme ခလုတ်ကို ပြသည်။
+အပေါ်ဆုံးရှိ ပါးလွှာသော bar သည် PartCraft ကိုယ်တိုင် မဟုတ်ဘဲ CadCraft ဆိုဒ်ဖြစ်သည်။ အက်ပ်အမည်နှင့် ၎င်း ပြေးနေသည့်နေရာ၊ version menu၊ **About PartCraft**၊ မျက်နှာပြင်-ပုံစံခလုတ်နှင့် Paper / Model theme ခလုတ်ကို ပြသည်။
 
-- **Paper** သည် ဖြူသော စာရွက်ပေါ်ရှိ အမည်းရောင်မျဉ်းများ ဖြစ်သည်။ **Model** သည် မှောင်သော နောက်ခံပေါ်ရှိ အဖြူရောင်မျဉ်းများ ဖြစ်သည်။ Sketch အရောင်များသည် theme ကို လိုက်သည်။
-- {{ui:Settings}} (gear သို့မဟုတ် {{key:Mod+,}}) တွင် {{ui:PartCraft}} tab ရှိသည်: view ကို လှည့်သော mouse ခလုတ်၊ mouse wheel သို့မဟုတ် trackpad၊ နှင့် sketching အတွင်း relations။ See [PartCraft ဆက်တင်များ](topic:settings)။
-- Screen-mode ခလုတ် သို့မဟုတ် {{key:Ctrl+Shift+F}} သည် ပုံမှန်၊ full screen နှင့် bars ဝှက်ထားသော full screen အကြား ပြောင်းသည်။ Bars ဝှက်ထားချိန်တွင် pointer ကို အပေါ်အစွန်းသို့ ရွှေ့ပါ (သို့မဟုတ် ထိပါ) ၎င်းတို့ ပြန်ပေါ်လာမည်။ {{key:Esc}} က ပုံမှန်သို့ ပြန်သွားသည်။ ဤ key သည် Mac တွင်လည်း {{key:Ctrl+Shift+F}} ဖြစ်ပြီး ⌘ မဟုတ်ပါ။
+- **Paper** သည် အဖြူရောင်စာရွက်ပေါ် အမည်းမျဉ်းများ ဖြစ်သည်။ **Model** သည် အမည်းနောက်ခံပေါ် အဖြူမျဉ်းများ ဖြစ်သည်။ Sketch အရောင်များသည် theme ကို လိုက်သည်။
+- {{ui:ဆက်တင်များ}} (gear သို့မဟုတ် {{key:Mod+,}}) တွင် {{ui:PartCraft}} tab ရှိသည်: မြင်ကွင်းကို လှည့်သည့် mouse ခလုတ်၊ mouse wheel သို့မဟုတ် trackpad၊ နှင့် sketch ရေးစဉ် ဆက်စပ်မှုများ။ [PartCraft ဆက်တင်များ](topic:settings) ကို ကြည့်ပါ။
+- မျက်နှာပြင်-ပုံစံ ခလုတ် သို့မဟုတ် {{key:Ctrl+Shift+F}} သည် ပုံမှန်၊ မျက်နှာပြင်အပြည့်နှင့် bars များ ဖျောက်ထားသော မျက်နှာပြင်အပြည့် ကို ပတ်သည်။ bars ဖျောက်ထားလျှင် pointer ကို အပေါ်အစွန်းသို့ ရွှေ့ပါ (သို့မဟုတ် ထိုနေရာကို တို့ပါ) ထို့နောက် ပြန်ပေါ်လာသည်။ {{key:Esc}} သည် ပုံမှန်သို့ ပြန်သွားသည်။ ဤခလုတ်သည် Mac တွင်လည်း {{key:Ctrl+Shift+F}} ဖြစ်ပြီး ⌘ မဟုတ်ပါ။
 
 ## Toolbar
 
-Toolbar သည် အုပ်စုဖွဲ့ထားသည်။ သင်လုပ်နေသည့်အရာနှင့်အတူ ပြောင်းလဲပြီး တစ်တန်းတည်းတွင် ကိုက်ညီသည်:
+toolbar ကို အုပ်စုဖွဲ့ထားသည်။ သင်လုပ်နေသည့်အရာနှင့်အတူ ပြောင်းလဲပြီး တစ်အတန်းတည်းအတွက် ကိုက်ညီသည်:
 
 | အုပ်စု | ခလုတ်များ | ပြသချိန် |
 |---|---|---|
-| File | {{ui:New}}, {{ui:Open}}, {{ui:Save}}, {{ui:Export}} (menu) | အမြဲ |
-| Sketch | {{ui:Sketch}} | Sketch ဖွင့်မထားချိန် |
-| Sketch | {{ui:Exit}}, {{ui:Line}}, {{ui:Rectangle}}, {{ui:Circle}}, {{ui:Arc}}, {{ui:Point}}, {{ui:Centerline}}, {{ui:Fillet}}, {{ui:Dimension}}, {{ui:Construction}} | Sketch ဖွင့်နေချိန်သာ |
-| Features | {{ui:Extrude}}, {{ui:Cut}}, {{ui:Revolve}}, {{ui:Hole}}, {{ui:Linear}}, {{ui:Circular}}, {{ui:Mirror}}, {{ui:Fillet}}, {{ui:Chamfer}}, {{ui:Shell}}, {{ui:More}} (menu: Revolved cut, Plane, Axis, Point, Sweep, Loft, Draft) | Part ပေါ်တွင်၊ sketch သို့မဟုတ် drawing ဖွင့်မထားချိန်တွင်မဟုတ်။ Fillet နှင့် Chamfer သည် flat faces နှစ်ခုကြား straight edges တွင် အလုပ်လုပ်သည်; Shell နှင့် Draft သည် flat faces တွင်။ Sweep နှင့် Loft ကို ဤ version တွင် မတည်ဆောက်ရသေးပါ (exact kernel လိုအပ်သည်); တစ်ခုကို နှိပ်လျှင် ထိုသို့ ပြောပြသည် |
-| Features | {{ui:Done}} | Fillet, chamfer, shell သို့မဟုတ် draft အတွက် edges သို့မဟုတ် faces ရွေးနေချိန်သာ |
-| Drawing | {{ui:Drawing}} | Part ပေါ်တွင် (part တွင် solid ရှိပြီးနောက် အသုံးပြုနိုင်သည်) |
-| Drawing | {{ui:Datum}}, {{ui:Frame}}, {{ui:Finish}}, {{ui:Detail}}, {{ui:PDF}}, {{ui:Back}} | Drawing sheet ပေါ်တွင်သာ |
-| Assembly | {{ui:Assembly}} | Part ပေါ်တွင် (part တွင် solid ရှိပြီးနောက် အသုံးပြုနိုင်သည်) |
-| Assembly | {{ui:Add copy}}, {{ui:Insert}}, {{ui:Joint}}, {{ui:Clash}}, {{ui:Edit part}}, {{ui:Close}} | Assembly တွင်သာ |
-| Assembly | {{ui:Back}} | Assembly မှ part ကို တည်းဖြတ်နေချိန် |
-| Edit | {{ui:Undo}}, {{ui:Redo}}, {{ui:Copy}}, {{ui:Paste}}, {{ui:More}} (menu: Cut, Copy, Paste, Paste in place, Duplicate, Delete, Select all, Select none) | အမြဲ; တစ်ခုစီသည် သင်ရှိနေသော sketch၊ history သို့မဟုတ် assembly ပေါ်တွင် အလုပ်လုပ်သည် |
-| View | {{ui:Fit}}, {{ui:Normal to}}, {{ui:Views}} (menu: Measure, Mass properties, Section, Draft, Zebra, Curvature, {{ui:Base planes}}, ထို့နောက် Isometric, Front, Back, Top, Bottom, Right, Left) | အမြဲ |
+| ဖိုင် | {{ui:အသစ်}}, {{ui:ဖွင့်ရန်}}, {{ui:သိမ်းရန်}}, {{ui:ထုတ်ရန်}} (menu) | အမြဲ |
+| Sketch | {{ui:Sketch}} | sketch ဖွင့်မထားချိန်သာ |
+| Sketch | {{ui:ထွက်ရန်}}, {{ui:မျဉ်း}}, {{ui:ထောင့်မှန်}}, {{ui:စက်ဝိုင်း}}, {{ui:အဝိုင်းကွေး}}, {{ui:အမှတ်}}, {{ui:ဗဟိုမျဉ်း}}, {{ui:Fillet}}, {{ui:အတိုင်းအတာ}}, {{ui:ဆောက်လုပ်ရေး}} | sketch ဖွင့်ထားချိန်သာ |
+| Features | {{ui:Extrude}}, {{ui:ဖြတ်ရန်}}, {{ui:Revolve}}, {{ui:Hole}}, {{ui:Linear}}, {{ui:Circular}}, {{ui:Mirror}}, {{ui:Fillet}}, {{ui:Chamfer}}, {{ui:Shell}}, {{ui:နောက်ထပ်}} (menu: Revolved cut, Plane, Axis, Point, Sweep, Loft, {{ui:မူကြမ်း}}) | အစိတ်အပိုင်းပေါ်တွင်၊ sketch သို့မဟုတ် ပုံဆွဲ ဖွင့်မထားချိန်သာ။ Fillet နှင့် Chamfer သည် ပြား မျက်နှာနှစ်ခုကြား ဖြောင့်သော အစွန်းများတွင် အလုပ်လုပ်သည်; Shell နှင့် Draft သည် ပြား မျက်နှာများတွင်။ Sweep နှင့် Loft သည် ဤဗားရှင်းတွင် မတည်ဆောက်ရသေးပါ (exact kernel လိုအပ်သည်); တစ်ခုကို နှိပ်လျှင် ထိုသို့ ပြောသည် |
+| Features | {{ui:ပြီးပြီ}} | Fillet, Chamfer, Shell သို့မဟုတ် Draft အတွက် အစွန်း သို့မဟုတ် မျက်နှာများ ရွေးနေချိန်သာ |
+| ပုံဆွဲ | {{ui:ပုံဆွဲ}} | အစိတ်အပိုင်းပေါ်တွင် (အစိတ်အပိုင်းတွင် solid ရှိပြီးနောက် အသုံးပြုနိုင်) |
+| ပုံဆွဲ | {{ui:Datum}}, {{ui:ဘောင်}}, {{ui:မျက်နှာပြင်}}, {{ui:အသေးစိတ်}}, {{ui:PDF}}, {{ui:နောက်သို့}} | ပုံဆွဲစာရွက်ပေါ်တွင်သာ |
+| Assembly | {{ui:Assembly}} | အစိတ်အပိုင်းပေါ်တွင် (အစိတ်အပိုင်းတွင် solid ရှိပြီးနောက် အသုံးပြုနိုင်) |
+| Assembly | {{ui:မိတ္တူထည့်ရန်}}, {{ui:ထည့်ရန်}}, {{ui:Joint}}, {{ui:ထိုးဝင်မှု}}, {{ui:ပစ္စည်း ပြင်ရန်}}, {{ui:ပိတ်ရန်}} | assembly တစ်ခုတွင်သာ |
+| Assembly | {{ui:နောက်သို့}} | assembly မှ အစိတ်အပိုင်းကို တည်းဖြတ်နေချိန် |
+| ပြင်ဆင်ရန် | {{ui:ပြန်ဖျက်ရန်}}, {{ui:ပြန်လုပ်ရန်}}, {{ui:ကူးရန်}}, {{ui:ကူးထည့်ရန်}}, {{ui:နောက်ထပ်}} (menu: ဖြတ်ရန်, ကူးရန်, ကူးထည့်ရန်, နေရာတွင် ကူးထည့်ရန်, မိတ္တူ, ဖျက်ရန်, အားလုံးရွေးရန်, ဘာမှမရွေးရန်) | အမြဲ; ပါသည့် အရာတိုင်းသည် သင်ရှိနေသော sketch၊ သမိုင်း သို့မဟုတ် assembly ပေါ်တွင် လုပ်သည် |
+| မြင်ကွင်း | {{ui:Fit}}, {{ui:Normal to}}, {{ui:Views}} (menu: တိုင်းတာ, {{ui:Mass properties}}, အပိုင်းဖြတ်, {{ui:မူကြမ်း}}, Zebra, မျဉ်းကွေးမှု, {{ui:Base planes}}, ထို့နောက် Isometric, ရှေ့, နောက်, အပေါ်, အောက်, ညာ, ဘယ်) | အမြဲ |
 
-ခလုတ်တစ်ခုပေါ်တွင် hover လုပ်ပါက ၎င်းလုပ်ဆောင်ချက်နှင့် key ကို ပြသည်။ မီးခိုးရောင်ခလုတ်ကို ယခု အသုံးမပြုနိုင်ပါ: ဥပမာ sketch ဖွင့်နေစဉ် feature ခလုတ်များ၊ သို့မဟုတ် assembly တွင် ပစ္စည်းနှစ်ခု မရောက်မချင်း {{ui:Joint}}။
+ခလုတ်ကို hover လုပ်ပြီး ၎င်း ဘာလုပ်သည်နှင့် ၎င်း၏ key ကို ကြည့်ပါ။ မှိန်နေသော ခလုတ်ကို ယခု မသုံးနိုင်ပါ: ဥပမာ sketch ဖွင့်နေစဉ် feature ခလုတ်များ၊ သို့မဟုတ် အစိတ်အပိုင်းနှစ်ခု မရှိမချင်း {{ui:Joint}}။
 
-Edit အုပ်စုရှိ {{ui:More}} menu သည် တည်းဖြတ်ခြင်းလုပ်ဆောင်ချက်တစ်ခုစီကို key ဖြင့် စာရင်းပြုသည်။ Copy နှင့် paste က ဘာပေါ်တွင် လုပ်မည်ဆိုသည်မှာ သင်ရှိနေသည့်နေရာကို လိုက်သည်; see [Copy, paste နှင့် duplicate](topic:copy-paste)။ မီးခိုးရောင် item ၏ tooltip က ယခု မလုပ်နိုင်သည့် အကြောင်းကို ပြောပြသည်။
+Edit အုပ်စုရှိ {{ui:နောက်ထပ်}} menu သည် တည်းဖြတ်ခြင်း လုပ်ဆောင်ချက်တစ်ခုစီကို ၎င်း key ဖြင့် စာရင်းပြုသည်။ ကူးခြင်းနှင့် ကူးထည့်ခြင်းသည် သင် ရှိနေသည့်နေရာကို လိုက်သည်; [ကူးခြင်း၊ ကူးထည့်ခြင်းနှင့် မိတ္တူ](topic:copy-paste) ကို ကြည့်ပါ။ မှိန်နေသော item ၏ tooltip က ယခု မလုပ်နိုင်သည့် အကြောင်းကို ပြောသည်။
 
-{{ui:Export}} menu တွင် {{ui:STL, for 3D printing}}, {{ui:3MF, for 3D printing}}, {{ui:STEP AP242 (exact solid)}}, {{ui:STEP AP214 (exact solid)}}, {{ui:STEP (faceted, mesh kernel)}}, {{ui:STEP AP214 (faceted, mesh kernel)}}, {{ui:DXF of the sketch or flat face}} နှင့် {{ui:Drawing (PDF): views, section, detail, GD&T}} ရှိသည်။ Exact STEP နှစ်ခုသည် မှိန်ထားသည်: ၎င်းတို့ကို ဤ version တွင် မတည်ဆောက်ရသေးသဖြင့် {{ui:STEP (faceted, mesh kernel)}} ကို သုံးပါ။
+{{ui:ထုတ်ရန်}} menu တွင် {{ui:STL, for 3D printing}}, {{ui:3MF, for 3D printing}}, {{ui:STEP AP242 (exact solid)}}, {{ui:STEP AP214 (exact solid)}}, {{ui:STEP (faceted, mesh kernel)}}, {{ui:STEP AP214 (faceted, mesh kernel)}}, {{ui:DXF of the sketch or flat face}} နှင့် {{ui:Drawing (PDF): views, section, detail, GD&T}} ရှိသည်။ exact STEP items များသည် အဝိုင်းမျက်နှာများကို ၎င်းတို့၏ တိကျသော မျက်နှာပြင်များပေါ်တွင် ရေးသည်; faceted များက ပြား facets အဖြစ် ရေးသည်။
 
-## History (ဘယ်ဘက်)
+## သမိုင်း (ဘယ်)
 
-ဘယ်ဘက် panel သည် part ၏ feature history ဖြစ်ပြီး PartCraft က အပေါ်မှ အောက်သို့ ပြန်တည်ဆောက်သော စာရင်းဖြစ်သည်။
+ဘယ်ဘက်ရှိ panel သည် အစိတ်အပိုင်း၏ feature သမိုင်းဖြစ်ပြီး PartCraft ပြန်တည်ဆောက်သော စာရင်းဖြစ်သည်၊ အပေါ်မှ အောက်သို့။
 
-- ခေါင်းစဉ်သည် part ၏ အမည်ဖြစ်သည် ("Part1" ဖြစ်ပြီး အမည်မပြောင်းမချင်း)။
-- **ရှေ့ plane**, **အပေါ် plane** နှင့် **ညာဘက် plane** က ပထမဆုံး ရှိသည်။ တစ်ခုကို နှိပ်ပြီး ရွေးပါ; view တွင် မီးထိုးပြသည်။
-- ၎င်းတို့အောက်တွင် သင်ဆောက်ခဲ့သော features များကို ပြုလုပ်ခဲ့သည့် အစဉ်အတိုင်း ပြသည်။ Feature တစ်ခုက သုံးသော sketch ကို ထို feature အောက်တွင် indent ဖြင့် ပြသည်။
-- Row ၏ ညာဘက်အဆုံးရှိ အမှတ်အသားသည် ၎င်း၏ အခြေအနေကို ပြောပြသည်:
+- ခေါင်းစဉ်သည် အစိတ်အပိုင်း၏ အမည်ဖြစ်သည် ("Part1" သင်အမည်မပြောင်းမချင်း)။
+- **Front plane**၊ **Top plane** နှင့် **Right plane** က ဦးစွာ ပေါ်သည်။ တစ်ခုကို နှိပ်ပြီး ရွေးပါ; မြင်ကွင်းတွင် အလင်းပြသည်။
+- ၎င်းတို့အောက်တွင် သင်ဖန်တီးထားသော features များကို ဖန်တီးခဲ့သည့် အစဉ်လိုက် ပြသည်။ feature တစ်ခုက သုံးသော sketch ကို ထို feature အောက်တွင် ခေါင်းလှန်ပြသည်။
+- row ၏ ညာဘက်အဆုံးရှိ အလံသည် ၎င်း အခြေအနေကို ပြသည်:
 
-| အမှတ်အသား | အဓိပ္ပာယ် |
+| အလံ | အဓိပ္ပာယ် |
 |---|---|
-| (မရှိ) | တည်ဆောက်ပြီး sketch သည် အပြည့်အစုံ သတ်မှတ်ပြီး |
-| − | အပြည့်အစုံ မသတ်မှတ်ရသေးသော sketch (ရွေ့နိုင်ဆဲ) |
-| + | လွန်ကဲနေသော sketch |
-| ⚠ | တည်ဆောက်ပြီး သတိပေးချက်ရှိ (ဖတ်ရန် hover လုပ်ပါ) |
-| ⚠ error | Feature မအောင်မြင်ပါ။ အကြောင်းရင်းကို ကြည့်ရန် hover သို့မဟုတ် နှိပ်ပါ |
-| ⚠ not built | အခြား feature တစ်ခုကို လိုအပ်ပြီး ထို feature မအောင်မြင်ခြင်း သို့မဟုတ် ပိတ်ထားခြင်း |
-| off | Suppress လုပ်ထားသည် |
+| (မရှိ) | တည်ဆောက်ပြီး sketch ပြည့်စုံစွာ သတ်မှတ်ထား |
+| − | အပြည့်မဟုတ်သော sketch (ရွေ့နိုင်သေး) |
+| + | အလွန်အကျွံ သတ်မှတ်ထားသော sketch |
+| ⚠ | တည်ဆောက်ပြီး သတိပေးချက်ပါ (ဖတ်ရန် hover) |
+| ⚠ error | feature မအောင်မြင်သည်။ အဘယ်ကြောင့်ဆိုသည်ကို ဖတ်ရန် hover သို့မဟုတ် နှိပ်ပါ |
+| ⚠ not built | မအောင်မြင်သော သို့မဟုတ် ပိတ်ထားသော အခြား feature တစ်ခု လိုအပ်သည် |
+| off | ပိတ်ထား (suppressed) |
 
-- Feature တစ်ခုစီသည် ၎င်း၏ အမည်နောက်တွင် အဓိက ဂဏန်းကို ပြသည်၊ ဥပမာ Extrude အတွက် "25 mm" သို့မဟုတ် အပေါက်အတွက် "Ø6.6 thru"။ ဂဏန်းကို နှစ်ချက်နှိပ်ပါ၊ သို့မဟုတ် row ပေါ်တွင် {{key:F2}} ကို နှိပ်ပြီး ထို နေရာတွင် ပြောင်းပါ။ See [အရွယ်အစားများ ပြောင်းခြင်း](topic:change-sizes)။
-- Feature ကို နှိပ်လျှင် ညာဘက်တွင် တည်းဖြတ်နိုင်သည်။ Sketch ကို နှစ်ချက်နှိပ်လျှင် ဖွင့်သည်။
-- Rollback လုပ်သောအခါ **Rollback bar · roll forward** row သည် စာရင်းတွင် ပေါ်လာသည်။ ၎င်းအောက်ရှိ features များသည် မီးခိုးရောင်ဖြစ်ပြီး မတည်ဆောက်ရသေးပါ။
-- Row တစ်ခုကို focus ထားစဉ် {{key:Up}} နှင့် {{key:Down}} ဖြင့် row များကြား ရွှေ့ပြီး {{key:Alt+Up}} / {{key:Alt+Down}} ဖြင့် history ခွင့်ပြုသလို feature ကိုယ်တိုင်ကို ရွှေ့နိုင်သည်။
+- Feature တစ်ခုစီသည် အမည်နောက်တွင် ၎င်း၏ အဓိက ဂဏန်းကို ပြသည်၊ ဥပမာ Extrude အတွက် "25 mm" သို့မဟုတ် အပေါက်အတွက် "Ø6.6 thru"။ ဂဏန်းကို နှစ်ချက်နှိပ်ပါ၊ သို့မဟုတ် row ပေါ်တွင် {{key:F2}} နှိပ်ပြီး ထိုနေရာတွင် ပြောင်းပါ။ [အရွယ်အစားများ ပြောင်းခြင်း](topic:change-sizes) ကို ကြည့်ပါ။
+- feature တစ်ခုကို နှိပ်ပါက ညာဘက်တွင် တည်းဖြတ်သည်။ sketch ကို နှစ်ချက်နှိပ်ပါက ဖွင့်သည်။
+- rollback လုပ်လျှင် စာရင်းတွင် **Rollback bar · roll forward** အတန်း ပေါ်လာသည်။ ထို အောက်ရှိ features များသည် မှိန်ပြီး မတည်ဆောက်ရသေးပါ။
+- row တစ်ခုကို အာရုံစိုက်ထားစဉ် {{key:Up}} နှင့် {{key:Down}} က row များအကြား ရွှေ့သည်၊ {{key:Alt+Up}} / {{key:Alt+Down}} က သမိုင်း ခွင့်ပြုသည့်အခါ feature ကိုယ်တိုင်ကို ရွှေ့သည်။
 
-Assembly တွင် ဤ panel သည် **Parts** (ပထမတစ်ခုကို "grounded" ဟု အမှတ်အသားပြုသည်) နှင့် **Joints** ကို ပြသည်။
+assembly တွင် ဤ panel သည် **Parts** (ပထမတစ်ခုကို "grounded" ဟု အမှတ်အသား) နှင့် **Joints** ကို အစားထိုးပြသည်။
 
-### Part facts
+### အစိတ်အပိုင် အချက်အလက်များ
 
-History အောက်တွင် **Part** box က solid ၏ **Volume** (ထုထည်), **Surface area** (မျက်နှာပြင် ဧရိယာ), **Size (X × Y × Z)** (အရွယ်အစား), **Through holes** (ဖောက်ထားသော အပေါက်များ), **Bodies** (ပစ္စည်းခန္ဓာများ), **Triangles** (တြိဂံများ), **Features** အရေအတွက်နှင့် **Failing** (ပျက်နေသော အရေအတွက်) ကို စာရင်းပြုသည်။ ထုထည်နှင့် ဧရိယာသည် mesh kernel က တည်ဆောက်သော faceted solid ၏ ဖြစ်ပြီး လုံးဝန်းသော ပုံသဏ္ဌာန်များအတွက် အမှန်တန်ဖိုးထက် အနည်းငယ်နည်းသည် (see [Features နှင့် ၎င်းတို့၏ ရွေးချယ်စရာများ](topic:features#curves-resolution))။
+သမိုင်းအောက်တွင် **Part** အကွက်သည် solid ၏ **Volume** (ထုထည်)၊ **Surface area** (မျက်နှာပြင် ဧရိယာ)၊ **Size (X × Y × Z)**၊ **Through holes** (ဖောက်ထားသော အပေါက်များ)၊ **Bodies** (ကိုယ်ထည်များ)၊ **Triangles** (တြိဂံများ)၊ **Features** အရေအတွက်နှင့် **Failing** (မအောင်မြင်သော) အရေအတွက်ကို စာရင်းပြုသည်။ ထုထည်နှင့် ဧရိယာများသည် mesh kernel မှ တည်ဆောက်သော faceted solid ၏ တန်ဖိုးဖြစ်ပြီး အဝိုင်းပုံသဏ္ဍာန်များအတွက် အမှန်တန်ဖိုးထက် အနည်းငယ် နည်းသည် ([Features နှင့် ၎င်းတို့၏ ရွေးချယ်စရာများ](topic:features#curves-resolution) ကို ကြည့်ပါ)။
 
-Assembly တွင် box ခေါင်းစဉ်သည် **Assembly** ဖြစ်ပြီး Parts, Instances, Joints, Not joined နှင့် Interference ကို ပြသည်။
+assembly တွင် အကွက်ခေါင်းစဉ်သည် **Assembly** ဖြစ်ပြီး Parts, Instances (ပုံတူများ), Joints, Not joined (မချိတ်ဆက်ရသေး) နှင့် Interference (ထိုးဝင်မှု) ပါသည်။
 
-## 3D view (အလယ်)
+## 3D မြင်ကွင်း (အလယ်)
 
-View တွင် solid, base planes နှင့် feature မသုံးရသေးသော sketch ကို ပြသည်။
+မြင်ကွင်းသည် solid၊ base planes နှင့် feature တစ်ခုက မသုံးရသေးသော sketch ကို ပြသည်။
 
-Part ထဲတွင် solid မရှိသေးချိန်တွင် base planes ကို အပြည့်ဆွဲသည်။ Solid ရှိပြီးနောက် ၎င်းတို့သည် နောက်သို့ ဆုတ်သည်: မှိန်စွာ ဆွဲထားသဖြင့် part ကို မဖုံးပါ၊ နှိပ်ချက်များသည် ၎င်းတို့ကို ဖြတ်ပြီး part သို့ ရောက်သည်။ Sketch ဘယ်မှာ ဆွဲမည်ကို ရွေးနေချိန် ({{ui:Sketch}} ကို ဘာမျှမရွေးဘဲ) နှင့် history တွင် တစ်ခုကို ရွေးချိန်တွင် ၎င်းတို့ အပြည့်ပြန်ပေါ်လာသည်။ {{ui:Views}} › {{ui:Base planes}} သည် ၎င်းတို့ကို လုံးဝဝှက်သည်; ဘယ်မှာ sketch ဆွဲမည်ကို ရွေးနေစဉ် ၎င်းတို့ ဆက်ပေါ်နေသည်။ PartCraft သည် ဤရွေးချယ်မှုကို မှတ်ထားသည်။
+Base planes များသည် အစိတ်အပိုင်း ဗလာဖြစ်သည့်အခါ အပြည့်ဆွဲသည်။ solid ရှိပြီးနောက် ၎င်းတို့ နောက်ဆုတ်သည်: မှိန်ဆွဲ၍ အစိတ်အပိုင်းကို မဖုံးစေဘဲ နှိပ်မှုများသည် ၎င်းတို့ကို ဖြတ်ပြီး အစိတ်အပိုင်းသို့ ရောက်သည်။ ၎င်းတို့ ပြန်ပေါ်လာသည် sketch ဘယ်မှာ ရွေးနေစဉ် ({{ui:Sketch}} ကို ဘာမှ မရွေးဘဲ) နှင့် သမိုင်းတွင် တစ်ခုကို ရွေးလျှင်။ {{ui:Views}} › {{ui:Base planes}} သည် ၎င်းတို့ကို လုံးဝဖျောက်သည်; sketch ဘယ်မှာ ရွေးနေစဉ် ၎င်းတို့ ဆက်ပေါ်သည်။ PartCraft သည် ထိုရွေးချယ်မှုကို မှတ်ထားသည်။
 
-- Part ကို လှည့်ရန် ဆွဲပါ၊ view ကို ရွှေ့ရန် right-drag သို့မဟုတ် middle-drag လုပ်ပါ၊ zoom လုပ်ရန် wheel ကို pointer ပေါ်တွင် လှည့်ပါ။ အသေးစိတ်ကို [Keys နှင့် mouse](topic:keyboard) တွင် ကြည့်ပါ။
-- Face, edge သို့မဟုတ် plane ပေါ်တွင် hover လုပ်လျှင် မီးထိုးပြသည်။ နှိပ်ပြီး ရွေးပါ။ Faces များကို တစ်ခုလုံး မီးထိုးပြပြီး edges များကို တစ်ခုလုံး ဆွဲပြီး ရွေးသည်။ {{key:Shift}}+နှိပ်ခြင်းဖြင့် edges သို့မဟုတ် faces အများအပြား စုဆောင်းနိုင်သည်။ ၎င်းတို့ အမှတ်အသား ပါနေဆဲ ဖြစ်သည်။
-- ညာဘက်အပေါ်ရှိ view cube သည် part နှင့်အတူ လှည့်သည်: face, edge သို့မဟုတ် corner ကို နှိပ်ပြီး ထိုနေရာမှ ကြည့်ပါ၊ လှည့်ရန် ဆွဲပါ၊ house ခလုတ်က စတင်သည့်နေရာသို့ ပြန်သွားသည်။ See [View cube](topic:view-cube)။
-- ရွေးထားသော Extrude သည် ၎င်း၏ အဆုံး face ပေါ်တွင် လိမ်းသော အဝါရောင် မြား ပြသည်၊ Revolve တွင် လှည့်သည့်အဆုံးတွင် ကွေးသော မြား ပြသည်: နက်ရှိုင်းမှု သို့မဟုတ် ထောင့်ကို ပြောင်းရန် ဆွဲပါ၊ သို့မဟုတ် ၎င်းဘေးရှိ ကွက်ထဲတွင် ရိုက်ပါ။ See [အရွယ်အစားများ ပြောင်းခြင်း](topic:change-sizes#drag-it-in-the-view)။
-- Part ကို အလွတ်ဖြစ်နေချိန်တွင် **Start a part** ခေါင်းစဉ်ရှိ box က ပထမဆုံး အဆင့်များကို စာရင်းပြုသည်။
-- `.partcraft.json` သို့မဟုတ် `.partcraft-asm.json` ဖိုင်ကို view ၏ နေရာတစ်ခုရာတွင် ချပြီး ဖွင့်ပါ။ `.step`, `.stp`, `.stl`, `.obj`, `.3mf` သို့မဟုတ် `.3dm` ဖိုင်ကို ထိုနေရာတွင် ချလျှင် solid body အဖြစ် ဖွင့်သည်။
+- အစိတ်အပိုင်းကို လှည့်ရန် ဆွဲပါ၊ ညာဘက် ခလုတ် သို့မဟုတ် အလယ် ခလုတ် ဆွဲ၍ ရွှေ့ပါ၊ wheel ကို လှိမ့်ပြီး pointer ထံ ဇူးမ်ပါ။ အသေးစိတ်ကို [ခလုတ်များနှင့် mouse](topic:keyboard) တွင် ကြည့်ပါ။
+- မျက်နှာ၊ အစွန်း သို့မဟုတ် plane ကို hover လုပ်လျှင် လင်းသည်။ ရွေးရန် နှိပ်ပါ။ မျက်နှာများ အပြည့်လင်းပြီး အစွန်းများကို အပြည့်ဆွဲပြီး အပြည့် ရွေးနိုင်သည်။ {{key:Shift}}+နှိပ်ခြင်းဖြင့် အစွန်း သို့မဟုတ် မျက်နှာ အများအပြား စုနိုင်သည်။ ၎င်းတို့သည် အမှတ်အသားပြုထားသည်။
+- ညာဘက်အပေါ် ကုဗ်သည် အစိတ်အပိုင်းနှင့်အတူ လှည့်သည်: မျက်နှာ၊ အစွန်း သို့မဟုတ် ထောင့်ကို နှိပ်ပြီး ထိုနေရာမှ ကြည့်ပါ၊ ဆွဲ၍ လှည့်ပါ၊ အိမ်ခလုတ်က စတင်နေရာသို့ ပြန်သွားသည်။ [မြင်ကွင်းကုဗ်](topic:view-cube) ကို ကြည့်ပါ။
+- Extrude ကို ရွေးလျှင် ၎င်း၏ အဆုံးမျက်နှာပေါ်တွင် လိမ္မော်ရောင် မြားတစ်ခု ပေါ်လာသည်၊ Revolve တွင် ၎င်း လည်ပတ်မှု အဆုံးတွင် မျဉ်းကွေးမြားတစ်ခု ပေါ်လာသည်: depth သို့မဟုတ် angle ကို ပြောင်းရန် ဆွဲပါ၊ သို့မဟုတ် ဘေးရှိ အကွက်တွင် ရိုက်ထည့်ပါ။ [အရွယ်အစားများ ပြောင်းခြင်း](topic:change-sizes#drag-it-in-the-view) ကို ကြည့်ပါ။
+- အစိတ်အပိုင်း ဗလာဖြစ်သည့်အခါ **Start a part** ဟု ခေါင်းစဉ်ရှိ ဘောက်စ်က ပထမအဆင့်များကို စာရင်းပြုသည်။
+- `.partcraft.json` သို့မဟုတ် `.partcraft-asm.json` ဖိုင်ကို မြင်ကွင်းတစ်နေရာရာသို့ ချပြီး ဖွင့်ပါ။ `.step`, `.stp`, `.stl`, `.obj`, `.3mf` သို့မဟုတ် `.3dm` ဖိုင်ကို ထိုနေရာသို့ ချလျှင် solid body အဖြစ် ဖွင့်သည်။
 
-### Edges သို့မဟုတ် faces ရွေးနေစဉ်
+### အစွန်း သို့မဟုတ် မျက်နှာများ ရွေးနေစဉ်
 
-Fillet, Chamfer သို့မဟုတ် Shell ကို ဘာမျှမရွေးဘဲ ရွေးလျှင် (သို့မဟုတ် ထို feature ပေါ်ရှိ {{ui:Pick edges}}) part သည် ထို feature မတိုင်မီ ပုံစံအတိုင်း ပြသည်။ Edges သို့မဟုတ် faces များကို နှိပ်ပြီး ထည့်ခြင်း သို့မဟုတ် ဖယ်ခြင်း ပြုလုပ်ပါ; ၎င်းတို့၏ အမှတ်အသားက ဘာပါနေသလဲ ပြသည်။ {{ui:Done}} သို့မဟုတ် {{key:Esc}} က ပြီးဆုံးစေသည်။ See [Round, bevel နှင့် hollow](topic:fillet-chamfer-shell)။
+{{ui:Fillet}}, {{ui:Chamfer}} သို့မဟုတ် {{ui:Shell}} ကို ဘာမျှ မရွေးဘဲ နှိပ်ပြီးနောက် (သို့မဟုတ် ထို feature ပေါ်ရှိ {{ui:Pick edges}}) အစိတ်အပိုင်းသည် ထို feature မတိုင်မီ ပုံစံအတိုင်း ပြသည်။ အစွန်းများ သို့မဟုတ် မျက်နှာများကို နှိပ်ပြီး ထည့်ခြင်း သို့မဟုတ် ဖယ်ခြင်း; ၎င်းတို့၏ အမှတ်အသားများက ဘာပါဝင်သည်ကို ပြသည်။ {{ui:ပြီးပြီ}} သို့မဟုတ် {{key:Esc}} က ပြီးဆုံးစေသည်။ [အဝိုင်းလုပ်ခြင်း၊ ဖြတ်ခြင်းနှင့် အတွင်းပိုင်း ဖောက်ခြင်း](topic:fillet-chamfer-shell) ကို ကြည့်ပါ။
 
-### Drawing sheet ပေါ်တွင်
+### ပုံဆွဲစာရွက်ပေါ်တွင်
 
-{{ui:Drawing}} သည် 3D view ကို A3 drawing sheet ဖြင့် အစားထိုးသည်။ Wheel ဖြင့် zoom လုပ်၊ right သို့မဟုတ် middle drag ဖြင့် pan လုပ်၊ {{key:F}} က fit လုပ်သည်။ See [Drawing ဆွဲခြင်း](topic:drawing-pdf)။
+{{ui:ပုံဆွဲ}} သည် 3D မြင်ကွင်းကို A3 ပုံဆွဲစာရွက်ဖြင့် အစားထိုးသည်။ wheel က ဇူးမ်လုပ်သည်၊ ညာ သို့မဟုတ် အလယ် ဆွဲခြင်းက ရွှေ့သည်၊ {{key:F}} က fit လုပ်သည်။ [ပုံဆွဲတစ်ခု ပြုလုပ်ခြင်း](topic:drawing-pdf) ကို ကြည့်ပါ။
 
-### Sketch ဖွင့်နေစဉ်
+### sketch ဖွင့်နေစဉ်
 
-View သည် sketch plane ကို တိုက်ရိုက်ကြည့်ရန် လှည့်ပြီး 2D sketch layer တစ်ခု အပေါ်တွင် ပေါ်လာသည်။ Part က ဤ sketch မတိုင်မီ ဆောက်ထားသော features များကိုသာ ပြသည်။ ဘယ်ဘက်အပေါ်ရှိ strip က sketch ၏ state chip ("အပြည့်အစုံ သတ်မှတ်ပြီး", "မပြည့်စုံသေး · 3 degrees of freedom" စသည်) နှင့် "Sketch2 on a face of Extrude1" ကဲ့သို့ အမည်ကို ပြသည်။
+မြင်ကွင်းသည် sketch plane ကို တိုက်ရိုက် ကြည့်ရန် လှည့်ပြီး 2D sketch အလွှာ အပေါ်တွင် ပေါ်လာသည်။ အစိတ်အပိုင်းသည် ဤ sketch မတိုင်မီ ပြုလုပ်ထားသော features များကိုသာ ပြသည်။ ဘယ်ဘက်အပေါ်ရှိ အကွက်ငယ်က sketch ၏ အခြေအနေ ချစ် ("Fully defined", "Under defined · 3 degrees of freedom" စသည်) နှင့် ၎င်း အမည်၊ ဥပမာ "Sketch2 on a face of Extrude1" ကို ပြသည်။
 
-## Properties panel (ညာ)
+## properties panel (ညာ)
 
-ညာဘက် panel သည် ရွေးထားသည့်အရာကို ပြသပြီး ၎င်း၏ ခေါင်းစဉ်က အမည်ပေးသည်:
+ညာဘက် panel သည် ရွေးထားသည့် အရာကို ပြသပြီး ခေါင်းစဉ်က ၎င်းကို အမည်ပေးသည်:
 
-- **Part** (ဘာမျှမရွေးထား): part ၏ **Name** နှင့် **Curves** ဆက်တင်။
-- Plane: {{ui:Sketch on it}} ခလုတ်။
-- **Face**: အမျိုးအစား (Flat face, Cylinder ၏ radius နှင့် axis, Cone, Sphere သို့မဟုတ် Torus)၊ ဧရိယာ၊ မည်သည့် feature က ဖန်တီးခဲ့သလဲ၊ နှင့် flat face အတွက် {{ui:Sketch on this face}}, {{ui:Normal to}}, {{ui:Export face as DXF}}, {{ui:Extrude from it}}, {{ui:Cut into it}} နှင့် {{ui:Hole here}} (see [face တစ်ခုလုံးကို ဆွဲ သို့မဟုတ် တွန်းခြင်း](topic:extrude-and-cut#pull-or-push-a-whole-face))။
-- **Edge**: အမျိုးအစား (straight, ဗဟိုနှင့် radius ပါသော စက်ဝိုင်း သို့မဟုတ် curve), အရှည်နှင့် ၎င်းနှစ်ဖက်ကြားရှိ faces နှစ်ခု (ဥပမာ "Extrude1 end face and Extrude1 side"), နှင့် {{ui:Fillet}} နှင့် {{ui:Chamfer}} ခလုတ်များ။
-- {{key:Shift}} ဖြင့် edges သို့မဟုတ် faces အများအပြား ရွေးထားသည်: အရေအတွက်၊ edges အတွက် {{ui:Fillet}} နှင့် {{ui:Chamfer}}၊ နှင့် {{ui:Clear}}။
-- Feature: ၎င်း၏ ဂဏန်းများနှင့် ရွေးချယ်စရာများ၊ sketch ၏ အရွယ်အစားများ၊ ထို့နောက် {{ui:Suppress}}, {{ui:Roll back to here}}, {{ui:Move up}}, {{ui:Move down}}, {{ui:Delete}} နှင့် ၎င်း၏ **Name**။
-- ဖွင့်ထားသော sketch: ၎င်း၏ state၊ ရွေးထားသည်များသို့ ထည့်နိုင်သော relations၊ relations နှင့် dimensions စာရင်း၊ **Add by coordinates** နှင့် {{ui:Exit sketch}}, {{ui:Fit}} နှင့် {{ui:Export as DXF}}။
-- Drawing sheet ပေါ်တွင်: section နှင့် detail ဆက်တင်များ သို့မဟုတ် ရွေးထားသော GD&T သင်္ကေတ။
-- Assembly တွင်: assembly, ရွေးထားသော part သို့မဟုတ် ရွေးထားသော joint။
+- **Part** (ဘာမျှ မရွေး): အစိတ်အပိုင်း၏ **Name** နှင့် **Curves** ဆက်တင်။
+- plane: {{ui:Sketch on it}} ခလုတ်။
+- **Face**: အမျိုးအစား (Flat face, Cylinder ၏ radius နှင့် axis, Cone, Sphere သို့မဟုတ် Torus)၊ ဧရိယာ၊ မည်သည့် feature က ဖန်တီးခဲ့သည်၊ နှင့် ပြား မျက်နှာအတွက် {{ui:Sketch on this face}}, {{ui:Normal to}}, {{ui:Export face as DXF}}, {{ui:Extrude from it}}, {{ui:Cut into it}} နှင့် {{ui:Hole here}} ([မျက်နှာတစ်ခုလုံးကို ဆွဲ သို့မဟုတ် တွန်းခြင်း](topic:extrude-and-cut#pull-or-push-a-whole-face) ကို ကြည့်ပါ)။
+- **Edge**: အမျိုးအစား (ဖြောင့်၊ ဗဟိုနှင့် radius ပါသော စက်ဝိုင်း၊ သို့မဟုတ် မျဉ်းကွေး)၊ အလျား၊ နှင့် ၎င်းကြားရှိ မျက်နှာနှစ်ခု ("Extrude1 end face and Extrude1 side" ကဲ့သို့)၊ {{ui:Fillet}} နှင့် {{ui:Chamfer}} ခလုတ်များဖြင့်။
+- Shift ဖြင့် အစွန်း သို့မဟုတ် မျက်နှာ အများအပြား ရွေးထားလျှင်: အရေအတွက်၊ အစွန်းများအတွက် {{ui:Fillet}} နှင့် {{ui:Chamfer}}၊ နှင့် {{ui:Clear}}။
+- **Feature**: ၎င်း၏ ဂဏန်းများနှင့် ရွေးချယ်စရာများ၊ sketch ၏ အတိုင်းအတာများ၊ ထို့နောက် {{ui:Suppress}}, {{ui:Roll back to here}}, {{ui:Move up}}, {{ui:Move down}}, {{ui:Delete}} နှင့် ၎င်း **Name**။
+- ဖွင့်ထားသော sketch: ၎င်း အခြေအနေ၊ ရွေးထားသည်တွင် ထည့်နိုင်သော ဆက်စပ်မှုများ၊ ဆက်စပ်မှုနှင့် အတိုင်းအတာ စာရင်း၊ **Add by coordinates**၊ နှင့် {{ui:Exit sketch}}, {{ui:Fit}} နှင့် {{ui:Export as DXF}}။
+- ပုံဆွဲစာရွက်ပေါ်တွင်: section နှင့် detail ဆက်တင်များ၊ သို့မဟုတ် ရွေးထားသော GD&T သင်္ကေတ။
+- assembly တွင်: assembly၊ ရွေးထားသော အစိတ်အပိုင်း၊ သို့မဟုတ် ရွေးထားသော joint။
 
-အရွယ်အစား ဂဏန်းကွက်တိုင်းသည် {{key:Enter}} သို့မဟုတ် {{key:Tab}} ကို နှိပ်လျှင်၊ သို့မဟုတ် အပြင်သို့ နှိပ်လျှင် ထိရောက်သည်။ Part ချက်ချင်း ပြန်တည်ဆောက်သည်; OK ခလုတ် မရှိပါ။ နောက်ပြန်သွားရန် {{key:Mod+Z}} ကို သုံးပါ။
+ဂဏန်းအကွက်တိုင်းသည် {{key:Enter}} သို့မဟုတ် {{key:Tab}} နှိပ်သည့်အခါ၊ သို့မဟုတ် အပြင်ဘက် နှိပ်သည့်အခါ အကျိုးသက်ရောက်သည်။ အစိတ်အပိုင်းသည် ချက်ချင်း ပြန်တည်ဆောက်သည်; OK ခလုတ် မရှိပါ။ နောက်သို့ ပြန်ရန် {{key:Mod+Z}} ကို သုံးပါ။
 
-## Status bar (အောက်ခြေ)
+## status bar (အောက်)
 
-- ဘယ်ဘက်တွင် sketch အတွင်း pointer ၏ coordinates (sketch ဖွင့်နေချိန်သာ)။
-- အလယ်တွင် message များ: နောက်ဆက်တွဲ လုပ်ရမည်များနှင့် ဘာကြောင့် ငြင်းပယ်ခံရသလဲ။ ဘာမျှ မဖြစ်သလိုရှိလျှင် ဖတ်ပါ။
-- ညာဘက်နားတွင် kernel chip: ဤ version တွင် အမြဲ "Mesh kernel"။ ၎င်းအဓိပ္ပာယ်ကို hover လုပ်ကြည့်ပါ။ See [Mesh kernel](topic:solid-kernels)။
-- ညာဘက်တွင် chip: part ပြန်တည်ဆောက်နေစဉ် "Rebuilding…" ဖြစ်ပြီး၊ အားလုံးကောင်းလျှင် "… ms အတွင်း ပြန်တည်ဆောက်ပြီး" သို့မဟုတ် "1 feature failing"။ Assembly တွင် "… ms အတွင်း နေရာချပြီး" ဟု ပြသည် သို့မဟုတ် joint ပြဿနာများကို ရေတွက်သည်။
+- ဘယ်ဘက်တွင် sketch ထဲ pointer ၏ သြဒိနိတ်များ (sketch ဖွင့်ထားစဉ်သာ)။
+- အလယ်တွင် စာတိုများ: နောက်ဆက်လုပ်ရန်နှင့် ငြင်းပယ်ခြင်း အကြောင်းရင်း။ တစ်ခုမျှ မဖြစ်သလိုရှိလျှင် ဖတ်ပါ။
+- ညာဘက်အနီးတွင် kernel chip: ဤဗားရှင်းတွင် အမြဲ "Mesh kernel"။ ၎င်းသည် ဘာကိုဆိုလိုသည်ကို hover လုပ်ပါ။ [mesh kernel](topic:solid-kernels) ကို ကြည့်ပါ။
+- ညာဘက်တွင် chip: အစိတ်အပိုင် ပြန်တည်ဆောက်နေစဉ် "Rebuilding…"၊ ထို့နောက် အရာအားလုံး ကောင်းသည့်အခါ "Rebuilt in … ms" သို့မဟုတ် "1 feature failing"။ assembly တွင် "Placed in … ms" သို့မဟုတ် joint ပြဿနာ အရေအတွက် ပြသည်။
 
-ထို့အပြင် [Illustrate တွင် manual စတင်ခြင်း](topic:illustrate) ကို ကြည့်ပါ: သင့် parts နှင့် assemblies မှ assembly manuals ဖန်တီးသော workspace ဖြစ်သည်။
+လက်စွဲများ ပြုလုပ်သည့် workspace [Illustrate တွင် လက်စွဲစတင်ခြင်း](topic:illustrate) ကိုလည်း ကြည့်ပါ။
 
-## ကျဉ်းသော screen တွင်
+## မျက်နှာပြင် ကျဉ်းသောအခါ
 
-760 pixels အထိ ကျယ်သော screen (ဥပမာ ဖုန်း) တွင် view သည် screen ကို ထိန်းထားသည်: toolbar သည် ဘေးသို့ scroll လုပ်သော တစ်တန်းတည်း ဖြစ်ပြီး panels များသည် အောက်ခြေ bar မှ sheet အဖြစ် ဖွင့်သည်။ {{ui:Tools}} သည် toolbar ကို ဝှက်ပြီး {{ui:Move}} သည် ၎င်းကို အောက်ခြေသို့ ရွှေ့သည်။ See [Trackpad, touch နှင့် သေးငယ်သော screen များ](topic:trackpad-and-touch)။
+အကျယ် 760 pixels အထိ၊ ဖုန်းကဲ့သို့ နေရာတွင်၊ မြင်ကွင်းက စခရင်ကို ထိန်းသည်: toolbar သည် ဘေးသို့ scroll လုပ်နိုင်သော အတန်းတစ်ခုဖြစ်ပြီး panels များသည် အောက်ခြေ bar မှ စာရွက်များအဖြစ် ဖွင့်သည်။ {{ui:Tools}} က toolbar ကို ဖျောက်ပြီး {{ui:Move}} က အောက်ခြေသို့ ထားသည်။ [Trackpad, touch နှင့် သေးငယ်သော မျက်နှာပြင်များ](topic:trackpad-and-touch) ကို ကြည့်ပါ။

@@ -2,7 +2,7 @@
 title: Màn hình PartCraft
 summary: Tham quan mọi thanh và bảng: thanh công cụ và cách nó thay đổi, lịch sử, thông tin chi tiết, khung nhìn 3D, bảng thuộc tính và thanh trạng thái.
 keywords: màn hình, bố cục, thanh công cụ, lịch sử, cây đặc trưng, thuộc tính, bảng, thanh trạng thái, giao diện, ui, tham quan, toàn màn hình
-from: 7394fc49
+from: 5b5bb843
 ---
 
 Màn hình có năm phần: thanh công cụ ở trên, lịch sử ở bên trái, khung nhìn 3D ở giữa, bảng thuộc tính ở bên phải và thanh trạng thái ở dưới cùng. Phía trên tất cả là thanh ứng dụng CadCraft.

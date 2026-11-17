@@ -2,7 +2,7 @@
 title: PartCraft ekranı
 summary: Her çubuğa ve panele bir bakış: araç çubuğu ve nasıl değiştiği, geçmiş, parça bilgileri, 3B görünüm, özellikler paneli ve durum çubuğu.
 keywords: ekran, düzen, araç çubuğu, geçmiş, özellik ağacı, özellikler, panel, durum çubuğu, arayüz, tur, tam ekran
-from: 7394fc49
+from: 5b5bb843
 ---
 
 Ekran beş bölümden oluşur: üstte araç çubuğu, solda geçmiş, ortada 3B görünüm, sağda özellikler paneli ve altta durum çubuğu. Hepsinin üstünde CadCraft uygulama çubuğu durur.

@@ -1,0 +1,84 @@
+---
+title: Ubuso obukhululekile (NURBS)
+summary: Amajika nobuso obubushelelezi ngaphandle kwengxenye — loft, sweep, amanethiwekhi amajika, amapetshi amaphethelo amane, ukuxuba, ukusika — nokuvumelana kwe-G0, G1 kanye ne-G2 okulinganiswe ebusweni obuqondile, ama-solid anokuhlanganisa, ukususa nokuhlangana aphekwe engxenyeni, imibono ye-zebra nokugoqeka kwamajika, nobuso obufakwe kusikeni nephutha elilinganiswe, namafayela e-STEP noma e-IGES. Kugcinwa efayelini lengxenye.
+keywords: nurbs, skena, ukuhlaziya okuphambene, fit, mesh to surface, point cloud, stl, trim, trimmed, imbobo, sika, solid, solids, boolean, union, subtract, intersect, difference, sew, closed, bake, freeform, free-form, surface, surfaces, b-spline, bspline, curve, spline, loft, sweep, rail, network, coons, patch, blend, match, continuity, g0, g1, g2, tangent, curvature, zebra, control points, knots, degree, step, iges, class a, hull, fairing
+from: 64ed5196
+---
+
+Indawo yokusebenza ethi **Ubuso** yenza amajika nobuso obubushelelezi bohlobo olusetshenziswa ezigqoko zomkhiqizo, izakhiwo zezimoto nezinqamu zemikhumbi: NURBS, izibalo ezifanayo nabanye abenzi bobuso. Konke kulinganiswa ebusweni eliqondile, hhayi ezinxantathu obuzibona. Usayizi ungamamilimitha, njengakwezinye zePartCraft.
+
+Khetha **Ubuso** ebhokisini le-**Indawo yokusebenza**. Ithuluzi lisinika {{ui:Igoqekile}}, {{ui:Loft}}, {{ui:Sweep}}, {{ui:Hambisana}} kanye {{ui:Zebra}}; yonke imiyalo isephaneli esekudla. Umyalo ngamunye ukhomba okudingayo: chofoza amajika noma ubuso kumbono (eduze komphetho noma ekugcineni uma ucelwa lowo) noma ukhethe ohlwini; thayipha amaphoyinti, noma uwachofoze ebusweni bengxenye (ngaphandle kwengxenye ahlala endizeni yomhlabathi), bese ucindezela Enter.
+
+Amajika nobuso kugcinwa efayelini lengxenye eceleni kwe-solid. Awashintshi izici zengxenye: ephaneli inayo yayo i-**Hlehlisa** ne-**Phinda wenze**, isinyathelo esisodwa ngomyalo ngamunye.
+
+## Amajika
+
+- **Ijika eledlula kumaphoyinti** ledlula kuwo wonke amaphoyinti ochofozayo. **Ijika ngamaphoyinti okulawula** ilandela ikheshi lamaphoyinti kunalokho.
+- **Faka isiphethu**, **Phakamisa idigri** kanye **Ehlisa idigri** zishintsha indlela ijika elichazwa ngayo ngaphandle kokulinyakazisa (ukwehlisa kwenqatshwa uma ijika lingalinyazwa ngaphezu kwetholerensi). **Akha kabusha ijika** linika inani elisha lamaphoyinti okulawula bese lisho ukuthi ilinyazwe kangakanani.
+  **Ijika elihambisanayo** lenza umphetho wijika elodwa ludlule kolunye ngo-G0 (ukuthintana), G1 (indlela efanayo) noma G2 (futhi ukugoqeka okufanayo). **Ijika elixubile** lengeza ijika elisha phakathi kwemiphetho emibili, G1 noma G2.
+
+## Ubuso
+
+- **Loft** ngaphezu kwamajika amabili noma ngaphezulu, **Ubuso oluyisigaxa** phakathi kwamabili, **Phuma ijika**, **Jikeleza ijika**.
+- **Sweep ngerela elilodwa** ithwala iphrofayili ngendlela ngaphandle kokuyigoqa, **Sweep ngamarela amabili** igcina izinsipha zeprofayili ezindlini zombili. Ama-sweep ayalinganiswa: umphumela utshela ukuthi uhlale eduze kangakanani nesweep langempela.
+- **Ubuso kusuka kunethiwekhi yamajika** lidlula ngegridi yamajika (ngalinye liwela kwelinye ngalinye kanye). **Ipetshi kusuka emaphethelweni amane**ligcwalisa amajika amane ahlangana ezikhonweni zawo.
+- **Match surface** yenza umphetho wobuso uhlangane nomakhelwane nge-G0, G1 noma G2; **Blend surface** yengeza ubuso phakathi kwemiphetho emibili.
+- **Offset surface**, **Extend surface** (ubuso buqhubeka njengoba bebehamba), **Rebuild surface**.
+
+## Ukuhlola ikhwalithi
+
+Ithebula **Imiphetho ehlanganyelwe** libala yonke imiphetho ezimbili zobuso ezihlanganyelwa yona, nesikhala (mm), i-engeli phakathi kwazo (°) nokuhlehla kokugoqeka (1/mm), kanye nokuthi lokho kwenza yini i-G0, G1 noma G2. Umphetho owedlula okucelile uvela ku-**Izinkinga** ne-fix ethi **Hambisana**. Imigqa ye-**Zebra** nemibala ye-**curvature** ivela kubuso obuqondile: imigqa engaphuli phezu komphetho isho i-G1; imigqa egcina nobubanzi bayo isho i-G2.
+
+I-G0–G2 iyalinganiswa, ngamaphoyinti angu-33 ngomphetho ngamunye. **I-G3 nekhwalithi "class A" akulinganiswa** futhi akuthathwa njengokufakazelwe.
+
+## Sika ubuso
+
+Iqembu le-**Sika** lisika ubuso ngaphandle kokushintsha isimo sawo: ubuso ugcina wonke amaphoyinti awo okulawula, kuboniswa, kubalwe kanye kubhalwe ingxenye kuphela ngaphakathi komugqa. **Sika ngesikwele** kanye **Sika ngesiyingi** zisebenza ngesabelo (0 kuya ku-1) sobuso kuyo yonke indlela, ngakho azidingi ukukhethwa kumbono; **Sika ngejika** ithatha ijika elivaliwe elilele ebusweni (liyaprojektwa libe ebusweni, futhi lenqatshwa ngamazwi uma livulekile noma likude ngaphezu kwetholerensi). Faka i-**Sika imbobo** ukuze ususe ingaphakathi komugqa; uyishiye ukuze ugcine ingaphakathi kuphela. Ubuso bungaba nomugqa oyodwa ogcinwayo namanye amanani embobo; umugqa ohlanganayo nomunye unqatshwa. **Susa ukusika** ibonisa ubuso bonke futhi. I-Undo yephaneli ithatha ukusika njengesinye isinyathelo.
+
+I-STEP ithwala ukusika njengemingcele yobuso kanti i-IGES njengobuso obusikiwe (entity 144); zombili ziyakufunda.
+
+## Ama-solid nama-Boolean
+
+Iqembu le-**Amasolid** liguqula ubuso bube yimizimba evaliwe futhi lihlanganise. I-solid lapha isethi yobuso bephaneli ehlangene evala ivolumu; ubuso bayo bugcina bungu-NURBS oqinile ngemingcele yabo.
+
+- **Box solid**, **Cylinder solid** kanye **Sphere solid** zenza enye ngosayizi abhalwe (ku-mm): ibhokisi lobuso obucaba eyisithupha, isilinda sohlangothi oluzungezile namaphethelo amabili acaba asikwe ngomjikelezo, nebhola lobuso obuyodwa oluhlehliswe.
+- **Solid kusuka kubuso** ihlanganisa ubuso owenzile wena. Khetha, noma ungakhethi lutho ukuze usebenzise bonke ubuso obubonakalayo okungekho ku-solid. Bahlanganiswa ngaphakathi kwetholerensi: uma bengavali, akukho lutho olushintshayo futhi iphaneli ithi izinkinga zamaphethelo angaphansi zingaki nokuthi kufanele zihlangane kanjani.
+- **Union**, **Subtract** (i-solid yesibili ithathwa kowokuqala) kanye **Intersect** (kuphela okwabelwana ngakho bobabili) zithatha ama-solid amabili: chofoza ubuso ngalunye kumbono, noma cindezela **Khetha** ohlwini lwe-**Amasolid**. Faka **Gcina ama-solid amabili** ukuze uwagcine eceleni komphumela.
+
+I-Boolean igcina bonke ubuso ebusweni balo eliqondile futhi iyasika ngemigqa emisha yokusika ngokuhlangana. Umugqa womphumela unikeza izinombolo ezilinganisiwe: ukuthi amaphoyinti e-solid engine adinga ukunyakaza kangakanani ukuze ahlale ebusweni eliqondile (ngaphezu kwetholerensi), ukuthi amaphoyinti okuhlangana ahlale eduze kangakanani kubobabili ubuso (ngokuvamile amaphesenti ezigidi zomilimitha), ivolumu, nokuthi ubuso obusha buyavala yini uma buhlanganiswa kabusha kusuka ebusweni baleyo ngqo. Amavolumu alinganiswa ezinxantathu ngaphakathi kwetholerensi (0.05 mm ngaphandle uma usetha enye), ngakho ivolumu yebhola noma yesilinda ifundeka ngaphansi kancane kwe-eyeqondile: ithole elincane liyasondela. I-Boolean engenziwa ngokuhlanzekile (ama-solid awabelani lutho, umugqa ungaziqanda) inqatshwa ngamazwi futhi ayishintshi lutho. I-Boolean eyodwa iyisinyathelo esisodwa se-**Undo** yephaneli.
+
+Ohlwini lwe-**Amasolid**, **Ungroup** igcina ubuso njengobuso obujwayelekile; ibhini liyasusa i-solid kanye nobuso bayo.
+
+## Ama-fillet nokujiyisa
+
+**Fillet between faces** ijikeleza umphetho lapho izinhlangothi ezimbili ze-solid eyodwa zihlangana: khetha izinhlangothi ezimbili (embonweni, noma nge-**Khetha** ohlwini), thayipha **iradiyasi** kanye, uma iradiyasi ishintsha ngomphetho, **iradiyasi ekugcineni** (0 igcina iradiyasi eyodwa). Ibhola lale radiyasi liyagudluzwa ngomphetho lithinta zombili izinhlangothi; i-fillet iwumjikelezo oqondile okusala kuwo wonke amaphoyinti, uhlanganiswe ube bubuso bodwa, nezinhlangothi zombili zisikwe lapho ibhola lithinta khona. Umphetho wangaphandle ulahlekelwa yimpahla, ikhona yangaphakathi iyanda. Umugqa womphumela unikeza okwalinganiswa: ubuso be-fillet bukude kangakanani nebhola elishayelayo phakathi kwamaphoyinti okwakhiwa kuwo (amaphoyinti ayengezwa uze ufike ku-quarter yetholerensi), i-engeli enkulu kakhulu phakathi kwe-fillet nakuyo yonke inhlangothi emigqeni yokuthinta, nezinombolo ezifanayo nakwe-Union. Iradiyasi engafaneli (ibhola lingashiya inhlangothi, noma inhlangothi igoqa ngaphezu kwe-radius) inqatshwa ngokubiza inhlangothi, futhi ayishintshi lutho.
+
+**Fillet several edges** ijikeleza imiphetho eminingi ngesinyathelo esisodwa: khetha izinhlangothi ezimbili zomphetho wokuqala, bese izinhlangothi ezimbili zomphetho olandelayo, njalo njalo (inhlangothi ingaba ezinhlanganisweni eziningi, njengohlangothi lwaphezulu lwebhokisi ezine kuzo); yonke imiphetho ithola iradiyasi oyithayipha. Ukujikeleza ngakunye kwenziwa ku-solid njengoba kwakunjalo, bese kusikwa ngolandelelwano, ngakho i-odolo ayibaluleki. Lapho imiphetho emibili egoqiwe ihlangana esikhonweni lapho eminye imiphetho ihlala ibukhali, ama-fillet amabili ayahlangana ngomjikelezo wokuhlangana kwawo (i-crease). Lapho imiphetho yangaphandle emithathu egoqiwe yezinhlangothi ezintathu ezicaba ezihlangana ngesikwele ngeradiyasi eyodwa, isikhonco sibe yi-**sphere patch** ethintana nazo zonke ntathu ama-fillet (susa ukumaka **Izikhonco** ukuze uthole isikhonco esinamawele esikhundleni salo); umphetho kumele ube ude okungenani kabili iradiyasi lapho zombili izinhlangothi zawo zingala sikhonco esinjalo. Umugqa womphumela ushho ukuthi imiphetho emingaki igoqwe nokuthi izikhonco zaphuma kanjani. Imiphetho yangaphakathi nayo ingagoqwa ndawonye, kodwa umphumela ongavali kabusha udlulisa umlayezo kuphela (umugqa uyashoma), ngakho uhlole.
+
+**Thicken into a solid** inika ubuso ukuqina: khetha lo buso, thayipha **ukuqina**, futhi ufake **Enye uhlangothi** ukuze ukhule ngenye indlela. Ubuso obusukile buyafakwa busuka kubuso futhi buyalinganiswa nakho (umugqa womphumela unikeza umehluko omkhulu kakhulu kusuka kokuqina); izindonga zilandela yonke imiphetho nayo yonke imigqa yokusika. Uma ubuso bugoqa ngaphezu kokuqina kulolo hlangothi, noma enye ingxenye yabo ilele eduze kunokuqina, iyanqatshwa, ibize ubuso nendawo, futhi ayishintshi lutho.
+
+## Gcina i-solid engxenyeni
+
+**Bake** (kwithuluzi le-Ubuso), noma **Gcina engxenyeni** ohlwini lwe-**Amasolid**, yenza i-solid umzimba wengxenye, njengoba i-STL evuliwe iba yiyo: khetha i-solid, ukuthi **yengeziwe** engxenyeni, **isikiwe** kuyo noma **ihlanganiswe** nayo, kanye netholerensi (ukuthi izinxantathu zingakhashelwa kangakanani ebusweni eliqondile). Iyisinyathelo esisodwa se-Undo yengxenye bese ivela ohlwini lwezici njengokungeniswa okuqanjwe ngegama le-solid. Ingxenye igcina izinxantathu, ngakho ivulwa futhi yakhiwe kabusha ngaphandle kobuso; i-solid eqondile ihlala ku-Ubuso, ngakho ungayibhaka futhi emva kokushintsha.
+
+## Amafayela
+
+Thumela i-**STEP** (AP242) noma i-**IGES** namajika nobuso ngendlela eqondile (amajika e-B-spline nobuso, kungabi kube izinxantathu). Ubuso ngalunye buyinhlangothi yalo, nokusika kwalo; i-solid ibhalwa njengegobolo elilodwa elivaliwe, umphetho ngamunye wabelwana ngabo bobabili ubuso njengoba ezinye izinhlelo ze-CAD zilindele (umugqa wesimo ukhomba ukuthi ama-solid angaki aphumile ngale ndlela). Ku-IGES leyo solid ingumzimba omunye we-B-rep oqinile (entity 186 kuqhubeka igobolo elivaliwe 514, ubuso 510, amalupu 508, uhlu lwemiphetho 504 kanye nohlu lwamaphoyinti 502); i-solid engabhangqi ubuso bayo ngomphetho ngomphetho ibhalwa njengobuso obuhlukene, nomugqa uyakushoma. Ku-**Ngenisa…** ifunda i-solid efana nalokho njenge-solid, kusuka ku-STEP nasku-IGES.
+
+## Iphrofayili yesikhumba somkhumbi
+
+**Fair** (kwithuluzi le-Ubuso) ilinganisa wonke amajika ngesimo sawo eqondile: izimpendulo (lapho ishintsha ukugoba kwenye indlela iye kwenye), ukugoqeka okukhulu kakhulu, ukuhlehla kokugoqeka emaphuzwini awo okuphula kanye nokuqina kwawo — bese ibuyisela amajika anezimpendulo noma ukuhlehla ngamaphoyinti okulawula amancane ahlala ngaphakathi kwetholerensi oyinikezayo futhi angeqi kukho umpendulo. Dweba izitishi, amanzi nama-buttock njengamajika, awenze ahlanzeke ngokuthi **Fair**, bese **Loft** isikhumba ngezitishi bese uhlola ngo-**Zebra**. Amajika angahlanzekile avela futhi ku-**Izinkinga** nge-fix ethi **Lungisa leli jika**. Ijika elifanele ukushintsha isiqondiso (isigaba esinomumo we-S) ligcina lowo mpendulo oyodwa. Ukuzinza, izikhungo nama-righting arms wesikhumba kusuka engxenyeni ye-solid: bona ithuluzi le-hydrostatics.
+
+## Ubuso kusuka ekuskeneni (ukuhlaziya okuphambene)
+
+Vula ingxenye enomesh oskenwe (i-STL evuliwe noma umzimba obhakiwe), khetha **Ubuso** ebhokisini le-**Indawo yokusebenza**, bese kuqembu le-**Scan** khetha **Fit surfaces to the scan**; umesh owakhiwe yingxenye uyiskena. Ithuluzi lifuna **izindiza**, **amasilinda**, **amabhola** namakhoni (ubuso obuqondile okwakhiwa ngabo ingxenye emshinini; ngayinye ibonisa iradiyasi noma i-engeli ehhafu ayifumanile), lithole **ama-fillet** (imiphetho nezikhonco ezigoqiwe: isilinda esincane noma ibhola elithinta ngokuthintana kwezinhlangothi ezimbili noma ngaphezulu, eliboniswa ngeradiyasi nezinhlangothi elizihlanganisayo), **ama-fillet emaphethelweni** (i-torus: umphetho ogoqiwe lapho inhlangothi ecaba ihlangana nesilinda noma ikhoni, eboniswa ngeradiyasi yayo nangeradiyasi yesiyingi sayo) kanye **ama-fillet ashintshayo** (umphetho ogoqiwe lapho iradiyasi ishintsha khona, eboniswa ngeradiyasi kokubili amaphethelo), ifake **ipetshi lobuso oluyodwa obubushelelezi** endaweni ebushelelezi, enamafinyila amancane, futhi isike yonke inhlangothi ngomugqa wengxenye yokuskena eyavela kuyo, ngakho imingxunyeni nezikhonco kuyahlala. Izinketho: **itholerensi** (ukuthi ingakanani ngamamilimitha ipoyinti lokuskena elingaba kude nendiza noma isilinda futhi lisabe lawo, nento ehlosiwe yepetshi lobuso oluhle), **ingxenye encane kakhulu** (isabelo sendawo yobuso) kanye **nobuso obuningi kakhulu**. Ukuskena okufanayo nezinketho ezifanayo zinikeza ubuso obufanayo njalo.
+
+Umphumela uyithebula, umugqa owodwa ngobuso ngabunye: uhlobo lwalo, izinxantathu ezivela kuzo, nephutha **elilinganiswa ukusuka kokuskenwe kuya ebusweni** (i-rms, eyona enkulu, nesabelo samaphoyinti angaphakathi kwetholerensi). Amaphoyinti alinganiswayo ngamaphoyinti okuskena nephakathi kwenxantathu ngayinye. Iphutha alilinganiswa ngakolunye uhlangothi (ubuso kuya ekuskeneni), ngakho ubuso obudlula ekuskeneni ngeke buvele. Inothi ngaphansi kwethebula lishoma nokuthi yingakanani indawo eyayincane kakhulu ukuthi ingalingana. Ebonweni, amaphoyinti okuskena anemibala ngemephu yawo **yokukhuba**: eluhlaza emsebenzini, eluhlaza okotshani emaphakathi kwetholerensi, ebomvu etholerensini noma ngaphezulu (ukhetha **Bonisa imephu yokukhuba** ukuze uyifihle). Izingxenye ezigoqeka emuva kwazo (ithubu evaliwe efakwe ngamapetshi obuso obubushelelezi, njengesibonelo) zidweshwa njengezingafakiwe, azikaphoqwa ibe yiyodwa ibe yiyodwa ubuso.
+
+**Stitch the surfaces to a solid** isebenza zonke izindawo ezibonakalayo ezingasesolidini ibe yisolid evaliwe eyodwa. Ubuso oskenwe buhlangana kuphela ngaphakathi kwephutha lokuskena ngokwalo, ngakho izama umkhawulo omncane wokuhlangana ovala (ungaphezu kwe-**stitch distance** osethe kuwo) futhi inqaba ngamazwi lapho ubuso bungavali. Ayikaze ihlanganise igebe. I-**bokisi** enamaphethelo agoqiwe iyahlanganiswa uma ama-fillet ayo atholakala njengobuso bawo; umkhawulo wokuhlanganisa owavala uvela emphumeni. Isolid isebenza ngoku-Union, Subtract, Intersect no-**Bake into the part**.
+
+Okungakwenzi: **ama-fillet emaphethelweni** (i-torus) afunwa kuphela ezungeze i-axis yesilinda noma ikhoni esele litholakele, kanti **ama-fillet ashintshayo** kuphela ngomphetho omuncu ngokuqondile (izigaxa zawo zisikwa zingazuzanga ngokuqondile kwenye indlela); ezinye izindawo ziphuma njengamapetshi obuso obubushelelezi uma ebushelelezi ngokwanele, futhi zishiywe uma zingenjalo; izindawo, amakhoni nama-fillet afunwa ngokukhetha okungahleliwe, ngakho okuncane kakhulu (izinxantathu ezimbalwa) kungaphuthelwa; imephu yokukhuba ikhombisa ibanga kusukela ekuskeneni kuya ebusweni, hhayi okulandelayo; izikena ezinkulu kakhulu (ngaphezu kwezinxantathu ezingu-300,000) zenqatshwa lapha. Ubuso besilinda esijikeleza ngokuphelele busikwa buzungeze izimbobo, nosiko ubekwe lapho kungekho mbobo. Hlola bonke ubuso ngokuskena kwakho ngaphambi kokuthembela kukho.
+
+## Akukakwakhiwa
+
+Ukugoqa imiphetho ehlangana esikhonweni sobuso obujikelezayo noma ngamaradiyasi ahlukene (ukuxuba kwamaphoyinti), i-fillet phakathi kobuso obungahlanganisi, i-fillet yangaphakathi ephela kubuso oluthambekile noma olujikelezayo, ama-Boolean nama-fillet abalwa ebusweni ngaphandle kwezinxantathu (lapha i-solid engine isebenza ngezinxantathu ngaphakathi kwetholerensi, bese kuthi wonke amaphoyinti abuyiselwe ebusweni eliqondile), umzimba obhakiwe olandela ubuso uma lushintsha, ukusika ubuso ngobunye ubuso ngaphandle kwe-Boolean, ukugcwalisa izimbobo ezinezinhlangothi ezingaphezu kwezine, ukuprojekthela amajika ebusweni.

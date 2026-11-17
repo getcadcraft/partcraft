@@ -17,8 +17,9 @@
  *   import   'flat' + plane number for each flat face of a body made from a mesh (meshimport.js planarRegions, D7.49)
  * Normals point out of the finished body (a cut's floor faces back up).
  *
- *   regenerate(part, M, { upTo }) → { results: Map(id → result), mesh, stats, frames, candidates, axes }
+ *   regenerate(part, M, { upTo, progress }) → { results: Map(id → result), mesh, stats, frames, candidates, axes }
  *     upTo: build only the first n features (sketch editing shows the part as the sketch sees it)
+ *     progress(fraction): called before each feature is built (0.10 PERF.39: mesh-kernel-worker.js reports it to the page)
  *   result = { status: 'ok'|'error'|'skipped'|'suppressed'|'rolled', message?, warning?, solve? }
  */
 import * as V from './vec.js';
@@ -765,8 +766,17 @@ function meshImport(f, ctx) {
   for (let i = 0; i < P.length; i += 3) { const q = at(P[i], P[i + 1], P[i + 2]); vp[i] = q[0]; vp[i + 1] = q[1]; vp[i + 2] = q[2]; }
   const { triPlane, planes } = src.flats;
   const K = planes.length, nt = src.indices.length / 3;
+  // 0.9.1: a STEP file's faces keep their exact surface (meshimport.js round): numbered after the flat faces, so the flat
+  // faces' numbers (which sketches refer to) stay what they were. A round surface wins over a flat region (one flat facet of
+  // a coarse cylinder is not a flat face).
+  const round = src.round || null, C = round ? round.surfs.length : 0;
   const faceID = new Uint32Array(nt);
-  for (let ti = 0; ti < nt; ti++) faceID[ti] = triPlane[ti] >= 0 ? triPlane[ti] : K + ti;
+  for (let ti = 0; ti < nt; ti++) {
+    const j = round ? round.triSurf[ti] : -1;
+    // a round surface first; then the flat face found in the mesh (the name sketches use); then the file's own plane (a flat
+    // face whose border runs smoothly into fillets, a beam's web, is not found as a flat face of the mesh)
+    faceID[ti] = j >= 0 && round.surfs[j].type !== 'plane' ? K + j : triPlane[ti] >= 0 ? triPlane[ti] : j >= 0 ? K + j : K + C + ti;
+  }
   const oid = ctx.M.Manifold.reserveIDs(1);
   let m;
   try {
@@ -784,7 +794,15 @@ function meshImport(f, ctx) {
     cands.push({ ref: { face: 'flat', entity: String(k) }, frame: V.frameFor(V.mul(n, out), o) });
   });
   ctx.candidates.set(f.id, cands);
-  return { tools: [{ m, op, surfs, oid, faceHint: K }] };
+  for (let j = 0; j < C; j++) {
+    const q = round.surfs[j], nm = `${f.id}.surf:${j}`;   // i18n-ignore: a face name (identifier)
+    const sf = q.type === 'plane' ? MF.plane(nm, dir(...q.n), at(...q.o)) : q.type === 'cylinder' ? MF.cylinder(nm, at(...q.o), dir(...q.d), q.r * s)
+      : q.type === 'cone' ? MF.cone(nm, at(...q.o), dir(...q.d), q.k)
+        : q.type === 'sphere' ? MF.sphere(nm, at(...q.c), q.r * s)
+          : MF.torus(nm, at(...q.c), dir(...q.d), q.R * s, q.r * s);
+    surfs.push({ ...sf, noSpread: true });
+  }
+  return { tools: [{ m, op, surfs, oid, faceHint: K + C }] };
 }
 
 function seedTools(f, ctx) {
@@ -884,7 +902,7 @@ export function regenerate(part, M, opts = {}) {
   return build(part, M, opts, opts.batch !== false) || build(part, M, opts, false);   // null = the batched build met something it cannot match: build one at a time
 }
 
-function build(part, M, { upTo = null, checkpoints = true } = {}, batch = true) {
+function build(part, M, { upTo = null, checkpoints = true, progress = null } = {}, batch = true) {
   const live = [];
   let bodyNow = null, aborted = false;
   const pending = [];   // batch: add / cut tools waiting to be applied to bodyNow (see flushPending)
@@ -971,6 +989,7 @@ function build(part, M, { upTo = null, checkpoints = true } = {}, batch = true) 
   }
   part.features.forEach((f, i) => {
     if (i < first) return;
+    if (progress && built) progress(Math.min(1, i / built));   // 0.10 PERF.39: how far a long rebuild is (the worker's busy chip)
     const r = { status: 'ok' };
     ctx.results.set(f.id, r);
     if (i >= built) { r.status = 'rolled'; return; }

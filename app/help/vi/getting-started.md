@@ -2,7 +2,7 @@
 title: Bắt đầu với PartCraft
 summary: PartCraft hiện làm được gì, trình duyệt của bạn cần gì, và chi tiết đầu tiên trong mười phút, từ phác thảo đến tệp đã lưu.
 keywords: bắt đầu, lần chạy đầu tiên, khởi đầu nhanh, giới thiệu, hướng dẫn, chi tiết đầu tiên, tấm, tham số, phần mềm mô hình chi tiết
-from: 5f0a668d
+from: 7d43283f
 ---
 
 PartCraft là ứng dụng chi tiết và lắp ráp tham số của họ CadCraft. Bạn vẽ một phác thảo 2D, cố định nó bằng các quan hệ và kích thước, biến nó thành khối đặc bằng các đặc trưng như đùn, quay tròn và lỗ, và đổi bất kỳ con số nào sau đó: chi tiết được dựng lại từ lịch sử của nó. Các chi tiết sau đó vào các lắp ráp, nơi các khớp đặt chúng và cho bạn kiểm tra chuyển động.

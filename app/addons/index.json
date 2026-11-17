@@ -6,6 +6,7 @@
     "magnetics",
     "factory",
     "fem-solid",
+    "open-solvers",
     "print3d",
     "slicer-kiri",
     "slicer-prusaslicer",

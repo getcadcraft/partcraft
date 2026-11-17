@@ -675,7 +675,7 @@ export function composeSheet(data, { name = t('model.drawing.default_name'), dat
   texts.push({ x: nx, y: by + 4.6, size: 2, text: fitText(t('drawing.tb.units') + (data.exact ? ' ' + t('drawing.tb.exact') : ' ' + t('drawing.tb.facets')), 122, 2), anchor: 'start' });
   texts.push({ x: nx, y: by + 1.4, size: 2, text: fitText(t('drawing.tb.made') + (data.exact ? ' ' + t('drawing.tb.occt') : ''), 122, 2), anchor: 'start' });
   // general tolerance and finish, when given: a line above the title block
-  const general = [tt.tolerance ? t('drawing.tb.tolerance', { v: tt.tolerance }) : '', tt.finish ? t('drawing.tb.finish', { v: tt.finish }) : ''].filter(Boolean);
+  const general = [tt.projectLine || '', tt.tolerance ? t('drawing.tb.tolerance', { v: tt.tolerance }) : '', tt.finish ? t('drawing.tb.finish', { v: tt.finish }) : ''].filter(Boolean);   // projectLine: the project and client of a host's export set (SC.7), on the line above the block
   const threadsY = by + tbH + 4 + (general.length ? 5 : 0);
   if (general.length) texts.push({ x: bx, y: by + tbH + 4, size: 3, text: fitText(general.join('   '), tbW, 3), anchor: 'start' });
   // tapped holes: the thread is cosmetic in the model, so its callout is a note above the title block

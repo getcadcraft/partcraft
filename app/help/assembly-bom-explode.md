@@ -49,7 +49,7 @@ Select a joint that moves and, under **Limits**, tick **Hold … between limits*
 
 In an assembly the **Export** menu writes the whole assembly with every part where it is placed:
 
-- **STEP AP242 / AP214** and **Drawing (PDF)** are not built yet in this version: they need an exact kernel, so they are grayed. Export each part's faceted STEP from the part instead.
+- **STEP AP242 / AP214** and **Drawing (PDF)** are not built yet in this version: they need an exact kernel, so they are grayed. Export each part's STEP (exact solid) from the part instead.
 - **STL**: one mesh of all the parts. **3MF**: each part once, placed once per copy.
 - **Bill of materials (CSV)**.
 

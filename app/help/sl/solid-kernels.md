@@ -1,37 +1,37 @@
 ---
 title: Jedro mreže
-summary: Ta različica PartCraft vsak del gradi z jedrom mreže, ki teče v vašem brskalniku. Kaj to pomeni za okrogle ploskve, prostornine in datoteke, kako prepoznati, da deluje, in katere značilke čakajo na točno jedro.
-keywords: jedro, mreža, manifold, točno, b-rep, fasetirano, krivulje, opencascade, occt, zaobljenje potrebuje točno jedro, ni izdelano, brez povezave, webassembly
-from: 68d32d16
+summary: Ta različica PartCraft zgradi vsak del z mrežnim jedrom, ki teče v vašem brskalniku. Kaj to pomeni za okrogle ploskve, prostornine in datoteke, kako ugotoviti, da deluje, in katere značilke čakajo na natančno jedro.
+keywords: jedro, mreža, manifold, natančno, b-rep, fasetirano, krivulje, opencascade, occt, zaobljenje potrebuje natančno, še ni izdelano, brez povezave, webassembly
+from: f931645c
 ---
 
-Geometrijsko jedro je motor, ki vašo zgodovino spremeni v trdno telo. Ta različica PartCraft ga ima: **jedro mreže** (manifold-3d). Teče na vašem računalniku kot majhen program WebAssembly in je pripravljeno trenutek po odprtju aplikacije. Nič o vašem delu ne gre nikamor.
+Geometrijsko jedro je motor, ki zgodovino pretvori v trdno snov. Ta različica PartCraft ima enega: **mrežno jedro** (manifold-3d). Teče na vašem računalniku kot majhen program WebAssembly in je pripravljeno trenutek po odprtju aplikacije. Nič o vašem delu ni poslano nikamor.
 
-| | Jedro mreže |
+| | Mrežno jedro |
 |---|---|
-| Okrogle oblike | Ravne fasete. **Krivulje** v podoknu dela določa, kako fine so |
-| Prostornine in površine | Fasetiranega trdnega telesa, nekoliko nižje pri okroglih delih |
-| Skice, iztiskanje, izrez, zavrtitev, izvrtine, vzorci, zrcaljenje, referenčne ravnine | Da |
-| Zaobljenje in posnetje | Na ravnih robovih med ravnimi ploskvami; zaobljeni robovi, ki se srečajo, so poševno zrezani |
-| Lupina in nagib | Lupina odpre ravne ploskve (točna debelina stene); nagib nagne ravne ploskve |
-| Izvozi | STL, 3MF, STEP (fasetiran), PDF risba in DXF |
-| Pogledi na risbi | Narisani iz faset, vključno s prerezi |
-| Ploskve in robovi | Imenovani in prepoznani po vrsti (ravna, valj, stožec, krogla, torus; ravna, krožnica), vzeti iz skic: delovna okolja Simulacija, Generativno in Izdelava, Meri, izbor in tabela izvrtin jih uporabljajo |
+| Okrogle oblike | Ravne fasete. **Krivulje** v podoknu dela določijo, kako fine so |
+| Prostornine in površine | Fasetirane trdne snovi, nekoliko nižje pri okroglih delih |
+| Skice, iztisni, izreži, zavrti, izvrtine, vzorci, zrcali, referenčne ravnine | Da |
+| Zaobljenje in posnetje | Na ravnih robovih med ravnimi ploskvami; stiki zaobljenj so pokošeni |
+| Lupina in nagib | Lupina odpre ravne ploskve (natančna debelina stene); nagib nagne ravne ploskve |
+| Izvozi | STL, 3MF, STEP (natančen: okrogle ploskve zapisane na pravih površinah; ali fasetiran), risba PDF in DXF |
+| Pogledi risbe | Narisani iz faset, vključno s prereznimi pogledi |
+| Ploskve in robovi | Poimenovani in prepoznani po vrsti (ravna, valj, stožec, krogla, torus; ravna, krožnica), vzeti iz skic; uporabljajo jih delovna okolja Simulacija, Generativno in Izdelava, Meri, izbira in tabela izvrtin |
 
-Oznaka ob desnem koncu vrstice stanja pravi **Jedro mreže**, medtem ko gradi vaš del.
+Čip blizu desnega konca vrstice stanja pove **Mrežno jedro**, medtem ko gradi vaš del.
 
-## Kaj čaka na točno jedro
+## Kaj čaka na natančno jedro
 
-Točno (B-rep) jedro ohranja prave krožnice, valje in stožce ter gladka zaobljenja na poljubnem robu; nanj so zgrajeni potegovanje po poti, prehodi, površine, pločevina, rebra, več teles, uvoz STEP in točen izvoz STEP. Predhodne laboratorijske izdaje PartCraft so za to uporabljale OpenCascade. Njegova licenca (LGPL) se ne ujema s to izdajo, kjer je vsaka aplikacija Apache-2.0 in uporablja samo knjižnice s permisivno licenco, zato ni vključena. Za to še ni datuma.
+Natančno (B-rep) jedro ohrani prave krožnice, valje in stožce ter gladka zaobljenja na katerem koli robu; na njem so zgrajeni potegni po poti, prehodi, površine, pločevina, rebra, več teles in uvoz STEP s krivimi ploskvami, ohranjenimi natančno. (Natančen izvoz STEP ne čaka nanj: mrežno jedro pozna pravo površino vsake ploskve iz skice, izvoz pa jo zapiše.) Prejšnje laboratorijske različice PartCraft so za to uporabljale OpenCascade. Njena licenca (LGPL) ne ustreza tej izdaji, kjer je vsaka aplikacija Apache-2.0 in uporablja samo knjižnice z dovoljenimi licencami, zato ni vključena. Nič tu nima datuma.
 
-Do takrat te značilke ob izbiri pokažejo **Še ni izdelano**: vrstica stanja navede razlog, njihovi opisi gumbov pa se končajo z „še ni izdelano (potrebuje točno jedro)“. [Kaj še ni izdelano](topic:not-built-yet) našteje vsako posebej z opisom, kaj storiti namesto tega.
+Do takrat te značilke ob izbiri pišejo **Še ni izdelano**: vrstica stanja navede razlog, namigi gumbov pa se končajo z „še ni izdelano (potrebuje natančno jedro)“. [Kaj še ni izdelano](topic:not-built-yet) navaja vsako posebej in kaj storiti namesto tega.
 
-Del, narejen z njimi v predhodni izdaji, se še vedno odpre. Te značilke ostanejo v zgodovini označene kot še ni izdelano (za razlog se zadržite s kazalcem nad njo), preostali del se izdela, shranjevanje pa jih ohrani nespremenjene.
+Del, narejen z njimi v prejšnji različici, se še vedno odpre. Te značilke ostanejo v zgodovini označene kot neizdelane (za razlog se postavite nad eno od njih), preostanek dela se zgradi, shranjevanje pa jih ohrani nespremenjene.
 
-## Okrogle ploskve in Krivulje
+## Okrogle ploskve in krivulje
 
-Jedro mreže nariše krožnico kot mnogokotnik. **Krivulje** v podoknu dela določa, koliko stranic dobi polni krog; več stranic je gladkejših in bolj približanih pravi vrednosti, vendar traja dlje, da se izdela. Prostornine, površine in razdalje iz {{ui:Meri}} so tega fasetiranega telesa: pri izvrtini ali izboklini so nekoliko manjše kot pri okrogli obliki.
+Mrežno jedro krožnico nariše kot mnogokotnik. **Krivulje** v podoknu dela določijo, koliko stranic ima polni krog; več stranic izgleda gladkeje in se bolj približa pravi vrednosti, gradnja pa traja dlje. Prostornine, površine in razdalje iz {{ui:Meri}} so te fasetirane trdne snovi: pri izvrtini ali izboklini so nekoliko manjše od okrogle oblike.
 
-## Na spletu in brez povezave
+## Brez povezave in na spletu
 
-Jedro mreže je del lastnega prenosa aplikacije. Za delo brez kakršne koli povezave shranite PartCraft za uporabo brez povezave, medtem ko ste na spletu: v vrstici aplikacije izberite {{ui:Shrani za delo brez povezave}} in počakajte, dokler ne piše **Pripravljeno za delo brez povezave**. Podrobnosti: [Delo brez povezave](common:offline).
+Mrežno jedro je del lastnega prenosa aplikacije. Za delo brez povezave shranite PartCraft za uporabo brez povezave, medtem ko ste na spletu: v vrstici aplikacije izberite {{ui:Shrani za delo brez povezave}} in počakajte, da piše **Pripravljeno za delo brez povezave**. Podrobnosti: [Delo brez povezave](common:offline).

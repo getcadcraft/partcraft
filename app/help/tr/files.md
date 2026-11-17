@@ -2,7 +2,7 @@
 title: Dosyalar: açma, kaydetme ve dışa aktarma
 summary: PartCraft'ın açtığı ve kaydettiği parça ve montaj dosyaları, her dışa aktarma biçimi ve neyi koruduğu, dosyaların gittiği yer ve çevrimdışı ya da tarayıcılar arasında nelerin değiştiği.
 keywords: aç, kaydet, dışa aktar, indir, dosya, partcraft.json, montaj dosyası, stl, 3mf, step, dxf, pdf, dosyalarım nerede, çevrimdışı, farklı kaydet
-from: c15c2c48
+from: e5fbc7e3
 ---
 
 PartCraft bilgisayarınızdaki dosyalar üzerinde çalışır. Bir parçayı asla yüklemez ve hesap ya da bulut depolama söz konusu değildir. Bulutta kaydetme henüz yok.

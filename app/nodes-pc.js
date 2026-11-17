@@ -27,6 +27,7 @@ async function ensure(host) {
   S.loading ??= import('/assets/js/app-nodes.js').then(({ openNodesWindow }) => {
     S.root = new THREE.Group(); S.root.name = 'nodes';
     S.win = openNodesWindow({
+      isSwipe: (e) => !e.ctrlKey && !!S.host.view.isPad?.(e),   // D7.56: PartCraft's own trackpad rule (Settings › PartCraft › Scrolling)
       parent: host.view.canvas.parentElement, E, N, THREE, scene: S.root, scale: 1, t, problemsId: 'partcraft.nodes',
       store: {
         get: () => S.host.part?.studies?.[KEY] || null,

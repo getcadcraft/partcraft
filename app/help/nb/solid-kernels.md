@@ -1,37 +1,37 @@
 ---
 title: Nettkjernen
-summary: Denne versjonen av PartCraft bygger hver del med en nettkjerne som kjører i nettleseren din. Hva det betyr for runde flater, volumer og filer, hvordan du ser at den virker, og hvilke funksjoner som venter på en eksakt kjerne.
-keywords: kjerne, nett, manifold, eksakt, b-rep, fasettert, kurver, opencascade, occt, avrunding trenger eksakt, ikke bygget, frakoblet, webassembly
-from: 68d32d16
+summary: Denne versjonen av PartCraft bygger hver del med en nettkjerne som kjører i nettleseren. Hva dette betyr for runde flater, volumer og filer, hvordan det sees at den fungerer, og hvilke funksjoner som venter på en eksakt kjerne.
+keywords: kjerne, nett, manifold, eksakt, b-rep, fasettert, kurver, opencascade, occt, avrunding krever eksakt, ikke bygget, frakoblet, webassembly
+from: f931645c
 ---
 
-En geometrikjerne er motoren som gjør historikken din om til et volumlegeme. Denne versjonen av PartCraft har én: **nettkjernen** (manifold-3d). Den kjører på datamaskinen din som et lite WebAssembly-program og er klar et øyeblikk etter at appen åpnes. Ingenting om delen din sendes noe sted.
+En geometrikjerne er motoren som gjør historikken om til et volumlegeme. Denne versjonen av PartCraft har én: **nettkjernen** (manifold-3d). Den kjører på datamaskinen som et lite WebAssembly-program og er klar et øyeblikk etter at appen åpnes. Ingen data om delen sendes noe sted.
 
 | | Nettkjerne |
 |---|---|
-| Runde former | Plane fasetter. **Kurver** i delpanelet angir hvor fine |
-| Volumer og areal | Av det fasetterte volumlegemet, litt lave på runde deler |
-| Skisser, ekstruder, skjær, roter, hull, mønstre, speil, referanseplan | Ja |
-| Avrunding og fasing | På rette kanter mellom plane flater; avrundinger som møtes, gjæres |
-| Skall og trekkvinkel | Skall åpner plane flater (eksakt veggtykkelse); trekkvinkel heller plane flater |
-| Eksport | STL, 3MF, STEP (fasettert), tegnings-PDF og DXF |
-| Tegningsvisninger | Tegnet fra fasettene, snittvisninger inkludert |
-| Flater og kanter | Navngitt og kjent etter type (plan, sylinder, kjegle, kule, torus; rett, sirkel), hentet fra skissene: arbeidsområdene Simulering, Generativ og Produksjon, Mål, valg og hulltabellen bruker dem |
+| Runde former | Flate fasetter. **Kurver** i delpanelet bestemmer hvor fine de er |
+| Volumer og arealer | Av det fasetterte volumlegemet, litt lavt på runde deler |
+| Skisser, ekstruder, kutt, roter, hull, mønstre, speil, referanseplan | Ja |
+| Avrunding og fasing | På rette kanter mellom flate flater; avrundinger som møtes, blir geret |
+| Skall og trekk | Skall åpner flate flater (eksakt veggtykkelse); trekkvinkel vipper flate flater |
+| Eksport | STL, 3MF, STEP (eksakt: runde flater skrives på sine sanne overflater; eller fasettert), tegning som PDF og DXF |
+| Tegningsvisninger | Tegnet fra fasettene, også snittvisninger |
+| Flater og kanter | Navngitt og kjent etter type (flat, sylinder, kjegle, kule, torus; rett, sirkel), hentet fra skissene: arbeidsområdene Simulering, Generativ og Produksjon, Mål, valg og hulltabellen bruker dem |
 
-Brikken nær høyre ende av statuslinjen sier **Nettkjerne** mens den bygger delen din.
+Brikken nær høyre ende av statuslinjen sier **Nettkjerne** mens delen bygges.
 
 ## Hva som venter på en eksakt kjerne
 
-En eksakt (B-rep) kjerne beholder ekte sirkler, sylindre og kjegler, og glatte avrundinger på en hvilken som helst kant; sveip, loft, overflater, plateverk, ribber, flere legemer, STEP-import og eksakt STEP-eksport bygger alle på en slik. Tidligere lab-versjoner av PartCraft brukte OpenCascade til det. Lisensen (LGPL) passer ikke til denne utgivelsen, der hver app er Apache-2.0 og bruker bare bibliotek med tillatende lisens, så den er ikke med. Ingenting her har en dato.
+En eksakt (B-rep)-kjerne beholder ekte sirkler, sylindre og kjegler, og glatte avrundinger på hvilken som helst kant. Sveip, lofter, overflater, plateverk, ribber, flere legemer og STEP-import med buede flater som beholdes eksakt, bygges på en slik. (Eksakt STEP-eksport venter ikke på den: nettkjernen kjenner hver flates sanne overflate fra skissen, og eksporten skriver dem.) Tidligere labbversjoner av PartCraft brukte OpenCascade til dette. Lisensen (LGPL) passer ikke til denne utgivelsen, der hver app er Apache-2.0 og bare bruker tillatt lisensierte biblioteker, så den er ikke med. Ingenting her har en dato.
 
-Inntil videre sier disse funksjonene **Ikke bygget ennå** når du velger dem: statuslinjen gir grunnen, og verktøytipsene til knappene deres slutter med «ikke bygget ennå (trenger en eksakt kjerne)». [Hva som ikke er bygget ennå](topic:not-built-yet) lister hver av dem med hva du kan gjøre i stedet.
+Inntil da sier disse funksjonene **Ikke bygget ennå** når de velges: statuslinjen gir årsaken, og knappenes verktøytips ender med «ikke bygget ennå (krever en eksakt kjerne)». [Hva som ikke er bygget ennå](topic:not-built-yet) lister opp hver enkelt med hva som kan gjøres i stedet.
 
-En del laget med dem i en tidligere versjon åpnes fortsatt. Disse funksjonene blir stående i historikken merket som ikke bygget (hold pekeren over en for å se grunnen), resten av delen bygges, og lagring beholder dem uendret.
+En del laget med dem i en tidligere versjon åpnes fortsatt. Disse funksjonene blir stående i historikken merket som ikke bygget (hold musepekeren over en for årsaken), resten av delen bygges, og lagring beholder dem uendret.
 
-## Runde flater og Kurver
+## Runde flater og kurver
 
-Nettkjernen tegner en sirkel som en mangekant. **Kurver** i delpanelet angir hvor mange sider en hel sirkel får; flere sider ser glattere ut og måler nærmere den sanne verdien, og tar lengre tid å bygge. Volumer, areal og avstander fra {{ui:Mål}} er av dette fasetterte volumlegemet: for et hull eller en tapp er de litt mindre enn for den runde formen.
+Nettkjernen tegner en sirkel som en mangekant. **Kurver** i delpanelet bestemmer hvor mange sider en full sirkel får; flere sider ser glattere ut og måler nærmere den sanne verdien, og tar lengre tid å bygge. Volumer, arealer og avstander fra {{ui:Mål}} er av det fasetterte volumlegemet: for et hull eller en opphøyning er de litt mindre enn for den runde formen.
 
 ## Tilkoblet og frakoblet
 
-Nettkjernen er en del av appens egen nedlasting. For å arbeide uten tilkobling lagrer du PartCraft for frakoblet bruk mens du er tilkoblet: velg {{ui:Lagre for frakoblet bruk}} i applinjen og vent til den sier **Klar frakoblet**. Detaljer: [Arbeide frakoblet](common:offline).
+Nettkjernen er en del av appens egen nedlasting. For å arbeide uten forbindelse lagres PartCraft for frakoblet bruk mens det er tilkoblet: velg {{ui:Lagre for frakoblet bruk}} i appfeltet og vent til det står **Frakoblet klar**. Detaljer: [Arbeid frakoblet](common:offline).

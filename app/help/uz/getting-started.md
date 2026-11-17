@@ -2,7 +2,7 @@
 title: PartCraft bilan boshlash
 summary: PartCraft hozir nimani qiladi, brauzeringizga nima kerak va oʻn daqiqada birinchi detal: eskizdan saqlangan faylgacha.
 keywords: boshlash, birinchi ishga tushirish, tezkor boshlash, kirish, qoʻllanma, birinchi detal, plastina, parametrik, detal modelleri
-from: 5f0a668d
+from: 7d43283f
 ---
 
 PartCraft CadCraft oilasining parametrik detal va yigʻma ilovasi. Siz 2D eskiz chizasiz, uni bogʻlanishlar va oʻlchamlar bilan mahkamlaysiz, ekstruziya, aylantirish va teshik kabi elementlar bilan yaxlit jismga aylantirasiz va istalgan vaqtda istalgan sonni oʻzgartirasiz: detal oʻz tarixidan qayta quriladi. Keyin detallar yigʻmalarga joylanadi, u yerda birikmalar ularni joylashtiradi va harakatni tekshirish imkonini beradi.

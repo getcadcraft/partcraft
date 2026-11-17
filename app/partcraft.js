@@ -37,7 +37,7 @@ import { regenerate, faceRefAt, planeFrame, MESH_BUILT } from './kernel.js';
 import * as X from './export.js';
 import { partIfc } from './ifc-export.js';
 import { evaluateVars } from './params.js';
-import { faceLoops2D } from './faces.js';
+import { faceLoops2D, loopCircles } from './faces.js';
 import { composeSheet, meshViews, toPdf as drawingPdf, scaleLabel, sheetLabel, nextRevision, partHoles } from './drawing.js';
 import { MATERIALS, presetOf } from './bom.js';
 import { ExactKernel, exactKernelUrl } from './exact-client.js';
@@ -58,6 +58,7 @@ import { installRibUI, RIB_TYPES, RIB_MENU, RIB_ICONS } from './rib-ui.js';
 import { installWeldUI, WELD_TYPES, WELD_ICONS } from './weld-ui.js';   // 0.7 D7.50: structural members
 import { simEnvProblems } from './sim.js';
 import './fem-solid-study.js';   // 0.9 SU.908c: the settings of the Solid FEM add-on in the file (part.studies['fem-solid'])
+import './open-solvers-study.js';   // 0.9.1 (suggestion 1309): the settings of the Open solver cases add-on in the file (part.studies['open-solvers'])
 import { studyProblemsNow } from './study-ui.js';
 import { pcProblems, SRC_ID as PROBLEMS_SRC } from './problems-partcraft.js';   // 0.8 CE.6: the shell's Problems
 import { installGenUI, GEN_TYPES, GEN_ICONS } from './gen-ui.js';   // 0.8 CE.3: a script that adds a body (Generated)
@@ -67,6 +68,7 @@ import { PARAM_FIELDS, linkOf } from './params-part.js';
 import { treeValue } from './tree-value.js';   // 0.6 PU.5: the main value in a history row
 import * as FA from './face-actions.js';   // 0.6 PU.3: Extrude from it, Cut into it, Hole here
 import * as HM from './handle-math.js';   // 0.6 PU.2: drag handles on features
+import { mountBimLink } from './part-link-pc.js';   // 0.10 BK.179 / SU.1814: Send to PartCraft from BimCraft, Save back to BimCraft
 import * as MI from './meshimport.js';   // 0.7 D7.49: STL / OBJ / 3MF opened as solid bodies
 import { FeatureHandles } from './handles.js';
 import { startAddons } from './addons/partcraft-api.js';
@@ -103,7 +105,10 @@ import { dockEditor, undockEditor } from './ws-script.js';
 import { mountViewCube, mountAxisIcon } from './viewcube.js';
 import { threeCubeOptions } from './viewcube-three.js';
 import { Autosave } from "./app-autosave.js";
+import { followJournal, recoverState } from "./history/index.js";   // 0.10 PERF.24: autosave that writes what changed
 import { getHost } from "./host.js";
+import { mountDrawingExport } from './drawing-export-ui.js';
+import { mountProps } from './props-ui.js';
 
 const root = document.querySelector('[data-partcraft]');
 if (root) init(root);
@@ -139,6 +144,7 @@ function init(root) {
   const hist = new P.History();
   mountUndoHook({ hist, undoOne: () => undoRedo(true) });   // 0.8 EG.77: tells Studio each finished step
   let dirty = false;
+  let bimLink = null;   // 0.10 SU.1814: part-link-pc.js, mounted at the end
   let sel = null;             // { kind:'feature', id } | { kind:'plane', name }
   let pick = null;            // picked geometry in the 3D view (face / edge)
   let mode = 'model';         // 'model' | 'sketch' | 'pick' (references of a fillet/chamfer/shell) | 'drawing' | 'assembly'
@@ -346,10 +352,27 @@ function init(root) {
   const editingFeature = () => (editing ? P.featureById(part, editing) : null);
   const currentFrame = () => (editing && regen ? regen.frames.get(editing) || planeFrame(editingFeature().plane, regen, part) : null);
 
-  // Rebuilds: synchronous with manifold; with the exact kernel a request goes to the worker and the
-  // newest one wins (a rebuild asked for while one runs is sent when it returns). built() resolves
+  // Rebuilds: synchronous with manifold for a quick part; with the exact kernel, or a mesh-kernel part whose last build took
+  // MESH_WORKER_MS or more (0.10 PERF.39), a request goes to a worker and the newest one wins (a rebuild asked for while one
+  // runs is sent when it returns; one that has run STALE_MS already is stopped and the newest sent at once). built() resolves
   // once the part on screen matches the part in memory.
   let inflight = false, again = false;
+  const MESH_WORKER_MS = 80, MESH_WORKER_TOOLS = 150, STALE_MS = 1500;
+  let meshMs = 0, meshMsPart = null, meshWorker = null, meshWorkerOk = true, meshSent = 0;
+  /** About how many solids a build applies: one per feature, a pattern's copies of its seeds (count × count2), a mirror two. */
+  const toolsEstimate = (p) => {
+    const n = new Map();
+    let all = 0;
+    for (const f of p.features) {
+      const seeds = Array.isArray(f.seeds) ? f.seeds.reduce((a, id) => a + (n.get(id) || 1), 0) : 0;
+      const k = seeds ? seeds * (f.type === 'mirror' ? 2 : Math.max(1, Math.min(1e5, f.count | 0)) * Math.max(1, Math.min(1e5, f.count2 | 0))) : 1;
+      n.set(f.id, k); all += k;
+    }
+    return all;
+  };
+  /** The mesh kernel's rebuild goes to its worker: this part's last build was slow, or (not built yet: a file just opened) it looks big. */
+  const meshInWorker = () => meshWorkerOk && typeof Worker === 'function'
+    && (meshMsPart === part ? meshMs >= MESH_WORKER_MS : toolsEstimate(part) >= MESH_WORKER_TOOLS);
   const waiters = [];
   const upToNow = () => (mode === 'sketch' && editing ? P.indexOf(part, editing) + 1 : mode === 'pick' && editing ? P.indexOf(part, editing) : null);
   function rebuild() {
@@ -359,8 +382,42 @@ function init(root) {
     if (mode === 'sketch' && editing && editingFeature()) { lastSolve = solveSketch(editingFeature().sketch); showSketchState(); }
     if (mode === 'drawing') { drawingRefresh(); }
     if (useExact) { requestExact(); return; }
+    if (meshInWorker()) { requestMesh(); return; }
+    if (inflight) { again = true; return; }   // a worker build is still out: its answer is old, the next build comes after it
     const t0 = performance.now();
-    applyRegen(regenerate(part, M, { upTo: upToNow() }), performance.now() - t0);
+    const r = regenerate(part, M, { upTo: upToNow() });
+    meshMs = performance.now() - t0; meshMsPart = part;
+    applyRegen(r, meshMs);
+  }
+  /** 0.10 PERF.39: the mesh kernel in mesh-kernel-worker.js; the page shows the part it has until the new one lands. */
+  function requestMesh() {
+    if (inflight) {
+      again = true;
+      // a long build of a part that has changed since: its answer would be thrown away, so stop it and send the newest now
+      if (performance.now() - meshSent > STALE_MS && meshWorker) { meshWorker.terminate(); meshWorker = null; }
+      return;
+    }
+    inflight = true;
+    for (const f of part.features) if (f.type === 'sketch') solveSketch(f.sketch);   // the worker builds the part as the page has it solved
+    const t0 = meshSent = performance.now(), sentPart = part;
+    ui.build.textContent = t('app.build.rebuilding'); ui.build.className = 'pc-chip is-busy';
+    if (!meshWorker) meshWorker = computeWorker(['mesh-kernel-worker.js'], { name: 'PartCraft mesh kernel' });   // i18n-ignore: a worker's name for developer tools
+    const w = meshWorker;
+    w.call('meshRegen', { part, upTo: upToNow(), manifoldUrl: import.meta.resolve('manifold-3d') }, {
+      onProgress: (f) => { if (inflight && !again) ui.build.textContent = t('app.build.rebuilding_pct', { pct: Math.round(f * 100) }); },
+    }).then((r) => {
+      inflight = false;
+      meshMs = performance.now() - t0; meshMsPart = sentPart;
+      if (again) { again = false; rebuild(); return; }
+      applyRegen(r, meshMs);
+    }, (err) => {
+      inflight = false;
+      if (again) { again = false; rebuild(); return; }   // stopped for a newer part (terminate)
+      // the worker could not start or failed: build here from now on, as before 0.10
+      console.warn('mesh kernel worker failed; building on the page', err);
+      meshWorkerOk = false; meshWorker = null;
+      rebuild();
+    });
   }
   function requestExact() {
     if (inflight) { again = true; return; }
@@ -381,7 +438,9 @@ function init(root) {
       for (const w of waiters.splice(0)) w();
     });
   }
-  const built = () => new Promise((res) => { if (!inflight && !again) res(); else waiters.push(res); });
+  // FX.239: a file can be opened before the solid kernel has loaded (SuperCad Studio hands the Parts view its project file at once). rebuild() does
+  // nothing until then, so "built" first waits for the kernel, whose arrival rebuilds the part that is open by then.
+  const built = () => ready.then(() => new Promise((res) => { if (!inflight && !again) res(); else waiters.push(res); }));
 
   /** 0.8 DC.117: the display bodies add-ons placed (part.addonBodies) drawn as scene overlays; called after every rebuild, undo, open and workspace change. */
   const bodyOverlays = new Set();
@@ -982,11 +1041,14 @@ function init(root) {
   function announcePick() {
     try { window.dispatchEvent(new CustomEvent('cc-pick', { detail: { app: 'partcraft', ids: sel && sel.kind === 'feature' ? [String(sel.id)] : [] } })); } catch { /* no window */ }
   }
-  window.ccPickApply = (refs) => {
+  const pickApply = (refs) => {
     const r = (refs || []).find((x) => P.featureById(part, x.id) || P.featureById(part, Number(x.id)));
     if (!r) return false;
     selectFeature(P.featureById(part, r.id) ? r.id : Number(r.id)); return true;
   };
+  window.ccPickApply = pickApply;
+  // SC.5 (sc-r5-select): the same adapter by app name (several apps share one page in Super), with a clear (the app's own Select none, in the model only)
+  (window.ccPickers = window.ccPickers || {}).partcraft = { apply: pickApply, get: () => ({ ids: sel && sel.kind === 'feature' ? [String(sel.id)] : [] }), clear: () => { if (mode === 'model' && sel?.kind === 'feature') modelEdit('select-none'); return true; } };
 
   /** Edit a feature's main value in its history row (0.6 PU.5): a box over the row's value; Enter (or leaving it) hands the
    *  text to the feature's main box in the properties panel — the same limits, =expressions and one undo step — Esc keeps
@@ -1084,45 +1146,36 @@ function init(root) {
     i.addEventListener('change', () => onchange(i.checked));
     return el('label', { className: 'pc-check span' }, i, label);
   };
-  /** 0.8 PANEL-COMPACT: label + control pairs (what field() / check() make) as the shared property grid (window.ccPropGrid); any other node, and a
-   *  field driven by an equation (its ƒ button needs the label), is kept as DOM in a block under it. The grid's box stands in for the old control: a
-   *  change is written to that control and its own change handler runs (the same setFeature / paramsUI code path, the same undo step), and the box
-   *  carries the control's data-* (data-param-key: the digit-typing and tree-editing shortcuts find it) so nothing else changes. Without the grid the
-   *  old block is returned. */
-  function propGridBlock(items, key, category) {
-    const flat = items.filter(Boolean);
-    if (!window.ccPropGrid) return [el('div', { className: 'pc-props' }, ...flat)];
-    const rows = [], bind = new Map(), rest = [];
-    const ctl = (x) => x && ((x.tagName === 'INPUT' && (x.type === 'text' || x.type === 'number')) || x.tagName === 'SELECT');
-    for (let i = 0; i < flat.length; i++) {
-      const a = flat[i], b = flat[i + 1], id = 'r' + rows.length;
-      if (a.tagName === 'LABEL' && !a.classList.contains('pc-check') && ctl(b) && !b.classList.contains('is-driven')) {
-        const label = a.textContent.trim() || '?';
-        if (b.tagName === 'SELECT') rows.push({ id, category, label, type: 'select', value: b.value, readonly: b.disabled, options: [...b.options].map((o) => ({ value: o.value, label: o.textContent })) });
-        else rows.push({ id, category, label, type: 'text', value: b.value, readonly: b.disabled || b.readOnly });
-        bind.set(id, { el: b, orig: b.value, kind: 'value' });
-        i++;
-      } else if (a.tagName === 'LABEL' && a.classList.contains('pc-check') && a.querySelector('input[type="checkbox"]')) {
-        const cb = a.querySelector('input[type="checkbox"]');
-        rows.push({ id, category, label: a.textContent.trim() || '?', type: 'checkbox', value: cb.checked, readonly: cb.disabled });
-        bind.set(id, { el: cb, orig: cb.checked, kind: 'check' });
-      } else if (a.tagName === 'SPAN' && a.classList.contains('k') && b && b.tagName === 'SPAN' && b.classList.contains('v')) {
-        rows.push({ id, category, label: a.textContent.trim() || '?', type: 'readonly', value: b.textContent });
-        i++;
-      } else rest.push(a);
-    }
-    if (!rows.length) return [el('div', { className: 'pc-props' }, ...flat)];
-    const host = el('div', { className: 'pc-grid' });
-    const g = ccPropGrid.create(host, { label: t('app.grid.label'), key, rows, onChange: (id, v) => {
-      const b = bind.get(id); if (!b) return;
-      if (b.kind === 'check') b.el.checked = !!v; else b.el.value = String(v);
-      b.el.dispatchEvent(new Event('change', { bubbles: true }));
-      // refused (out of range, an unknown name): the panel does not rebuild, so the box goes back to what the model holds
-      setTimeout(() => { if (host.isConnected && b.kind === 'value') g.setValue(id, b.orig); }, 400);
-    } });
-    for (const [id, b] of bind) { const n = host.querySelector('[data-pg-row="' + id + '"]'); if (n) for (const k of Object.keys(b.el.dataset)) n.dataset[k] = b.el.dataset[k]; }
-    return [host, ...(rest.length ? [el('div', { className: 'pc-props' }, ...rest)] : [])];
-  }
+  const { addonSections, partProps, faceProps, featureProps, faceWords, refList, sketchProps, entityName } = mountProps({
+    hist, editor, tokens, status, exact, exactOff, named, exactWhy, editingFeature, built, commit, describeC, showMarks, startPick, endPick, startSketchOn, editSketch, exitSketch, planeLabel, newFeature, setFeature, deleteSelected, moveSelected, rollTo, sketchStateWord, field, numInput, selectInput, check, renderProps, numericEntry, constraintList, renderAll,
+    get addons() { return addons; },
+    get sel() { return sel; }, set sel(v) { sel = v; },
+    get part() { return part; },
+    get dirty() { return dirty; }, set dirty(v) { dirty = v; },
+    get useExact() { return useExact; },
+    get BUI() { return BUI; },
+    get pick() { return pick; }, set pick(v) { pick = v; },
+    get btn() { return btn; },
+    get view() { return view; },
+    get exportDxf() { return exportDxf; },
+    get mode() { return mode; },
+    get regen() { return regen; },
+    get multi() { return multi; }, set multi(v) { multi = v; },
+    get msg() { return msg; },
+    get editing() { return editing; },
+    get SH() { return SH; },
+    get GU() { return GU; },
+    get WU() { return WU; },
+    get RB() { return RB; },
+    get TU() { return TU; },
+    get SUI() { return SUI; },
+    get DUI() { return DUI; },
+    get lastSolve() { return lastSolve; },
+    get f3() { return f3; },
+    get FACE_PICKERS() { return FACE_PICKERS; },
+    get PICK_ON_MESH() { return PICK_ON_MESH; },
+    get SOLID() { return SOLID; },
+  });
   const btn = (label, onclick, cls = 'pc-btn', extra = {}) => el('button', { type: 'button', className: cls, onclick, ...extra }, label);
   const msg = (text, kind = '') => el('div', { className: 'pc-msg ' + kind }, el('p', {}, text));
   // the Design features' panels and reference picking (design-ui.js): it reads this page's state through getters
@@ -1231,380 +1284,17 @@ function init(root) {
     swapChildren(ui.props, out);
   }
 
-  /** Add-ons' Properties sections for the selection (heading + rows; a field with edit() gets a box whose change calls it). */
-  function addonSections() {
-    const out = [];
-    for (const sct of addons?.propsSections(sel, part) || []) {
-      const rows = [];
-      for (const fl of sct.fields) {
-        if (fl.edit) {
-          const inp = el('input', { type: 'text', className: 'pc-input', value: fl.value });
-          inp.addEventListener('change', () => { try { fl.edit(inp.value); } catch (e) { status(e && e.message ? e.message : String(e)); } });
-          rows.push(...field(fl.label, inp));
-        } else rows.push(el('span', { className: 'k' }, fl.label), el('span', { className: 'v' }, fl.value));
-      }
-      out.push(el('div', { className: 'pc-block', dataset: { addonSection: sct.key } }, el('p', { className: 'pc-props-sub', style: 'margin-top:0' }, sct.label), el('div', { className: 'pc-props' }, ...rows)));
-    }
-    return out;
-  }
 
-  function partProps() {
-    const name = el('input', { type: 'text', className: 'pc-input', id: 'pc-part-name', value: part.name, maxLength: 120 });
-    name.addEventListener('change', () => { const v = name.value.replace(/[\u0000-\u001f]/g, '').trim().slice(0, 120); if (v) commit(t('app.undo.rename_part'), () => { part.name = v; }); });
-    const matSel = selectInput([['', t('part.material.none')], ...MATERIALS.map((m, i) => [String(i), t('part.material.option', { name: m.name, d: m.density })])], presetOf(part.material) >= 0 ? String(presetOf(part.material)) : '', (v) => {
-      const m = v === '' ? null : MATERIALS[Number(v)];
-      hist.push(part, t('part.material.undo')); if (m) part.material = { name: m.name, density: m.density }; else delete part.material; dirty = true; renderAll();
-    });
-    matSel.dataset.partMaterial = '1';
-    const res = selectInput([['32', t('app.part.res_coarse')], ['64', t('app.part.res_normal')], ['128', t('app.part.res_fine')], ['256', t('app.part.res_very_fine')]], String(part.resolution), (v) => commit(t('app.undo.resolution'), () => { part.resolution = Number(v); }));
-    return [
-      ...propGridBlock([...field(t('app.props.name'), name), ...field(t('part.material'), matSel), ...field(t('app.part.curves'), res)], 'part', t('app.grid.part')),
-      el('p', { className: 'pc-note' }, useExact ? t('app.part.note_exact') : exactOff() ? t('kernel.part.note') : exact.state === 'loading' ? t('app.part.note_mesh_loading') : t('app.part.note_mesh_off')),
-      el('p', { className: 'pc-note' }, t('app.part.start_note')),
-      BUI.bodiesBlock(),
-    ].filter(Boolean);
-  }
 
-  function faceProps() {
-    const out = [];
-    const d = el('dl', { className: 'pc-dl' });
-    const owner = pick.feature ? P.featureById(part, pick.feature) : null;
-    const fi = pick.info;
-    if (fi) {
-      const kind = { plane: () => t('app.face.flat'), cylinder: () => t('app.face.cylinder'), cone: () => t('app.face.cone'), sphere: () => t('app.face.sphere'), torus: () => t('app.face.torus'), spline: () => t('app.face.spline') }[fi.type]?.() || t('app.face.curved');
-      const maker = fi.name ? P.featureById(part, nameFeatures(fi.name)[0]) : null;
-      fillDl(d, [[t('app.props.kind'), t('app.props.exact', { kind })], [t('app.props.radius'), fi.r ? f3(fi.r) + ' mm (⌀' + f3(2 * fi.r) + ')' : ''], [t('app.props.area'), f3(fi.area) + ' mm²'], [t('app.props.made_by'), maker ? maker.name : ''], [t('app.props.face'), fi.name ? faceWords(fi.name) : ''],
-        [t('app.props.normal'), fi.type === 'plane' ? fi.n.map((v) => V.fmt(v, 4)).join(', ') : ''], [t('app.props.axis'), fi.axis ? fi.axis.d.map((v) => V.fmt(v, 4)).join(', ') : ''],
-        [t('app.props.reference'), fi.type === 'plane' ? (pick.ref.kind === 'face' ? t('app.face.follows', { name: maker ? maker.name : t('app.face.its_feature') }) : t('app.face.fixed_where_picked')) : '']]);
-    } else fillDl(d, [[t('app.props.kind'), pick.flat ? t('app.face.flat') : t('app.face.curved_faceted')], [t('app.props.made_by'), owner ? owner.name : ''], [t('app.props.normal'), pick.normal.map((v) => V.fmt(v, 4)).join(', ')],
-      [t('app.props.reference'), pick.flat ? (pick.ref.kind === 'face' ? t('app.face.follows', { name: owner ? owner.name : t('app.face.its_feature') }) : t('app.face.fixed_where_picked')) : '']]);
-    out.push(d);
-    if (fi && fi.name) out.push(el('div', { className: 'pc-actions', style: 'margin-bottom:.5rem' }, btn(t('app.face.shell_opening'), () => newFeature('shell', {}), 'pc-btn')));
-    if (pick.flat) {
-      out.push(el('div', { className: 'pc-actions' },
-        btn(t('app.face.sketch_on'), () => startSketchOn(pick.ref), 'pc-btn is-primary'),
-        btn(t('app.face.normal_to'), () => { const fr = V.frameFor(pick.normal, pick.point); view.normalTo(fr); }),
-        btn(t('app.face.export_dxf'), () => exportDxf())));
-      // one click from the face to the feature (0.6 PU.3)
-      const fb = (key, kind) => { const b = btn(t(key), () => faceAction(kind)); b.title = t(key + '.title'); b.dataset.faceAction = kind; return b; };
-      out.push(el('div', { className: 'pc-actions', style: 'margin-top:.4rem' }, fb('app.face.extrude_from', 'extrude'), fb('app.face.cut_into', 'cut'), fb('app.face.hole_here', 'hole')));
-      if (pick.ref.kind === 'fixed') out.push(el('p', { className: 'pc-note' }, t('app.face.fixed_note')));
-    }
-    return out;
-  }
 
-  /** The picked flat face's one-click features (0.6 PU.3): 'extrude' pulls the face out and 'cut' pushes it in (a sketch on the
-   *  face holding its outline, face-actions.js, then an Extrude), 'hole' drills where it was clicked (a sketch with one point,
-   *  then a Hole through). The sketch and the feature are one undo step; the feature is selected, so a typed number goes into
-   *  its main box. An outline with curves that can't be copied opens the sketch to finish by hand instead. */
-  function faceAction(kind) {
-    if (mode !== 'model' || pick?.kind !== 'face' || !pick.flat || !regen?.mesh) return;
-    document.activeElement?.blur();   // the button goes with the panel: no box should inherit its focus, so a typed number reaches the feature
-    const ref = pick.ref, frame = planeFrame(ref, regen, part), name = pick.info?.name;
-    if (!frame) { status(t('app.sketch.no_plane')); return; }
-    const sk = S.newSketch();
-    if (kind === 'hole') FA.pointAt(sk, frame, pick.point);
-    else {
-      const r = name && regen.edges ? FA.faceOutline(sk, frame, regen.edges, name) : { made: 0, skipped: 0 };
-      if (!r.made && !r.skipped) { status(t('app.face.no_outline')); return; }
-      if (r.skipped || S.profile(sk).error) {
-        const f = commit(t('app.undo.new_sketch'), () => P.addFeature(part, 'sketch', { plane: ref, sketch: sk }));
-        editSketch(f.id);
-        status(t('app.face.outline_open', { n: r.skipped || 1 }), true);
-        return;
-      }
-    }
-    const depth = kind === 'cut' ? FA.cutDepth(regen.stats?.bbox, frame.n) : 10;
-    let s = null;
-    const f = commit(t({ extrude: 'app.undo.face_extrude', cut: 'app.undo.face_cut', hole: 'app.undo.face_hole' }[kind]), () => {
-      s = P.addFeature(part, 'sketch', { plane: ref, sketch: sk });
-      return kind === 'hole' ? P.addFeature(part, 'hole', { sketch: s.id, through: true }) : P.addFeature(part, 'extrude', { sketch: s.id, op: kind === 'cut' ? 'cut' : 'add', end: 'blind', depth });
-    });
-    sel = { kind: 'feature', id: f.id }; pick = null; multi = []; view.setHighlight(null); showMarks();
-    renderAll();
-    built().then(() => {
-      const r = regen.results.get(f.id);
-      status(r?.status === 'error' ? t('app.feature.error', { name: f.name, error: r.message })
-        : kind === 'hole' ? t('app.face.added_hole', { name: f.name, sketch: s.name }) : t(kind === 'cut' ? 'app.face.added_cut' : 'app.face.added_extrude', { name: f.name, depth: f3(depth) }), true);
-    });
-  }
 
-  function sketchDimsBlock(sf, title = t('app.dims.driving')) {
-    const dims = sf.sketch.constraints.filter((c) => S.CONSTRAINTS[c.type].dim);
-    if (!dims.length) return null;
-    const rows = dims.map((c) => {
-      const label = S.CONSTRAINTS[c.type].label + (c.type === 'angle' ? ' (°)' : '');
-      const i = numInput(c.value, (v) => {
-        if ((c.type === 'radius' || c.type === 'diameter') && v <= 0) { status(t('app.dims.radius_positive')); renderProps(); return; }
-        if (c.type === 'angle' && v > 180) { status(t('app.dims.angle_range')); renderProps(); return; }
-        commit(t('app.undo.change_dimension'), () => { const k = sf.sketch.constraints.find((q) => q.id === c.id); if (k) k.value = v; });
-        built().then(() => { const r = regen.results.get(sf.id); if (r?.status === 'error') status(t('app.feature.error', { name: sf.name, error: r.message })); });
-      }, { min: 0, key: sf.id + '.' + c.id });
-      i.setAttribute('aria-label', label + ' ' + c.id);
-      return el('div', { className: 'pc-dimrow' }, el('label', { htmlFor: i.id }, label), i);
-    });
-    return el('div', { className: 'pc-block' }, el('p', { className: 'pc-props-sub', style: 'margin-top:0' }, t('app.dims.title', { title, name: sf.name })), el('div', { className: 'pc-checks' }, ...rows));
-  }
 
-  const GRID_FEATURES = new Set(['extrude', 'revolve', 'hole', 'fillet', 'chamfer', 'shell']);
-  function featureProps(f) {
-    const out = [];
-    const r = regen?.results.get(f.id) || { status: 'ok' };
-    if (r.status === 'error') out.push(msg(r.message, 'is-error'));
-    else if (r.status === 'skipped') out.push(msg(t('app.feature.not_built', { reason: r.message }), 'is-error'));
-    else if (r.status === 'suppressed') out.push(msg(t('app.feature.suppressed_msg')));
-    else if (mode === 'pick' && editing === f.id) out.push(msg(t(FACE_PICKERS.has(f.type) ? 'app.feature.picking_faces' : 'app.feature.picking_edges', { name: f.name }), 'is-ok'));
-    else if (r.status === 'rolled') out.push(msg(t('app.feature.rolled_msg')));
-    if (r.warning) out.push(msg(r.warning));
-    const grid = [];
-    const set = (label, fn) => setFeature(f.id, label, fn);
-    const core = !!window.ccPropGrid && GRID_FEATURES.has(f.type);   // 0.8 PANEL-COMPACT: these features' numbers and choices (and the name) are one property grid
-    const nameIn = el('input', { type: 'text', className: 'pc-input', id: 'pc-feat-name', value: f.name, maxLength: 60 });
-    nameIn.addEventListener('change', () => { const v = nameIn.value.replace(/[\u0000-\u001f]/g, '').trim().slice(0, 60); if (v) setFeature(f.id, t('app.undo.rename'), (g) => { g.name = v; }); });
-    if (core) grid.push(...field(t('app.props.name'), nameIn));
-    const gridOut = (key) => (core ? propGridBlock(grid, key, t('app.grid.parameters')) : [el('div', { className: 'pc-props' }, ...grid)]);
-    const sketchRow = (id) => { const s = P.featureById(part, id); return [el('span', { className: 'k' }, t('app.props.sketch_row')), el('span', { className: 'v' }, s ? s.name : t('app.props.gone'))]; };
-    if (f.type === 'sketch') {
-      const dl = el('dl', { className: 'pc-dl' });
-      fillDl(dl, [[t('app.props.plane'), planeLabel(f.plane)], [t('app.props.state'), r.solve ? sketchStateWord(r.solve) : ''], [t('app.props.geometry'), t('app.props.geometry_value', { curves: f.sketch.entities.filter((e) => e.type !== 'point').length, points: S.loosePoints(f.sketch).length })], [t('app.props.relations'), f.sketch.constraints.length]]);
-      out.push(dl, el('div', { className: 'pc-actions', style: 'margin-top:.6rem' }, btn(t('app.btn.edit_sketch'), () => editSketch(f.id), 'pc-btn is-primary'), btn(t('app.btn.export_dxf'), () => exportDxf(f))));
-      const d = sketchDimsBlock(f);
-      if (d) out.push(d);
-    } else if (f.type === 'extrude') {
-      grid.push(...sketchRow(f.sketch));
-      grid.push(...field(t('app.props.operation'), selectInput([['add', t('app.op.add')], ['cut', t('app.op.cut')], ['intersect', t('app.op.intersect')], ['new', t('app.op.new')]], f.op, (v) => set(t('app.undo.operation'), (g) => { g.op = v; if (v !== 'cut' && g.end === 'through') g.end = 'blind'; }))));
-      grid.push(...field(t('app.props.end'), selectInput(EXTRUDE_END_OPTIONS, f.end, (v) => set(t('app.undo.end_condition'), (g) => { g.end = v; if (['upto', 'offset'].includes(v) && !g.upto && pick?.kind === 'face' && pick.flat) g.upto = pick.ref; if (v !== 'blind') delete g.two; if (v === 'mid') delete g.taper; }))));
-      if (f.end === 'blind' || f.end === 'mid') grid.push(...field(t('app.props.depth_mm'), numInput(f.depth, (v) => set(t('app.undo.depth'), (g) => { g.depth = v; }), { min: 0.000001, key: f.id + '.depth' })));
-      if (f.end !== 'mid') grid.push(check(t('app.props.reverse'), f.reverse, (v) => set(t('app.undo.reverse'), (g) => { g.reverse = v; })));
-    } else if (f.type === 'revolve') {
-      grid.push(...sketchRow(f.sketch));
-      grid.push(...field(t('app.props.operation'), selectInput([['add', t('app.op.add')], ['cut', t('app.op.cut')], ['intersect', t('app.op.intersect')], ['new', t('app.op.new')]], f.op, (v) => set(t('app.undo.operation'), (g) => { g.op = v; }))));
-      grid.push(...field(t('app.props.angle_deg'), numInput(f.angle, (v) => set(t('app.undo.angle'), (g) => { g.angle = v; }), { min: 0.001, max: 360, key: f.id + '.angle' })));
-      const sk = P.featureById(part, f.sketch)?.sketch;
-      if (sk) {
-        const lines = sk.entities.filter((e) => e.type === 'line');
-        const opts = [['', t('app.revolve.first_centerline')], ...lines.map((l, i) => [l.id, t(l.construction ? 'app.revolve.centerline_n' : 'app.revolve.line_n', { n: i + 1, id: l.id })])];
-        for (const g of part.features.slice(0, P.indexOf(part, f.id))) if (g.type === 'axis') opts.push(['ref:' + g.id, t('app.revolve.axis_feature', { name: g.name })]);
-        const curAx = f.axis && typeof f.axis === 'object' ? (f.axis.kind === 'ref' ? 'ref:' + f.axis.feature : 'obj') : f.axis || '';
-        if (curAx === 'obj') opts.push(['obj', t('app.revolve.picked_axis')]);
-        grid.push(...field(t('app.props.axis'), selectInput(opts, curAx, (v) => { if (v !== 'obj') set(t('app.undo.axis'), (g) => { g.axis = v.startsWith('ref:') ? { kind: 'ref', feature: v.slice(4) } : v || null; }); })));
-      }
-    } else if (f.type === 'hole') {
-      grid.push(...sketchRow(f.sketch));
-      grid.push(el('span', { className: 'k' }, t('app.hole.holes')), el('span', { className: 'v' }, t('app.hole.count', { n: String(r.count ?? S.loosePoints(P.featureById(part, f.sketch)?.sketch || S.newSketch()).length) })));
-      grid.push(...field(t('app.hole.type'), selectInput(HOLE_TYPE_OPTIONS, f.kind, (v) => set(t('app.undo.hole_type'), (g) => { g.kind = v; if ((v === 'csink' || v === 'tapped') && !g.size) Object.assign(g, { csinkD: Math.max(12, g.d * 2), csinkAngle: 90, size: 'M6', threadDepth: null }); }))));
-      grid.push(...field(t('app.hole.diameter_mm'), numInput(f.d, (v) => set(t('app.undo.diameter'), (g) => { g.d = v; }), { min: 0.000001, key: f.id + '.d' })));
-      grid.push(check(t('app.hole.through_all'), f.through, (v) => set(t('app.hole.through_all'), (g) => { g.through = v; })));
-      if (!f.through) grid.push(...field(t('app.props.depth_mm'), numInput(f.depth, (v) => set(t('app.undo.depth'), (g) => { g.depth = v; }), { min: 0.000001, key: f.id + '.depth' })));
-      if (f.kind === 'cbore') {
-        grid.push(...field(t('app.hole.cbore_d'), numInput(f.cboreD, (v) => set(t('app.undo.cbore_d'), (g) => { g.cboreD = v; }), { min: 0.000001, key: f.id + '.cboreD' })));
-        grid.push(...field(t('app.hole.cbore_depth'), numInput(f.cboreDepth, (v) => set(t('app.hole.cbore_depth'), (g) => { g.cboreDepth = v; }), { min: 0.000001, key: f.id + '.cboreDepth' })));
-      }
-      grid.push(check(t('app.props.reverse'), f.reverse, (v) => set(t('app.undo.reverse'), (g) => { g.reverse = v; })));
-    } else if (f.type === 'lpattern' || f.type === 'cpattern') {
-      grid.push(...seedsField(f));
-      if (f.type === 'lpattern') {
-        grid.push(...field(t('app.pattern.direction'), dirSelect(f, 'dir')));
-        grid.push(...field(t('app.pattern.spacing_mm'), numInput(f.spacing, (v) => set(t('app.undo.spacing'), (g) => { g.spacing = v; }), { key: f.id + '.spacing' })));
-      } else {
-        grid.push(...field(t('app.props.axis'), dirSelect(f, 'axis')));
-        grid.push(...field(t('app.props.angle_deg'), numInput(f.angle, (v) => set(t('app.undo.angle'), (g) => { g.angle = v; }), { min: 0.001, max: 360, key: f.id + '.angle' })));
-        grid.push(el('span', { className: 'span pc-muted' }, f.angle === 360 ? t('app.pattern.full_circle') : t('app.pattern.spread')));
-      }
-      grid.push(...field(t('app.pattern.count'), numInput(f.count, (v) => set(t('app.pattern.count'), (g) => { g.count = Math.max(1, Math.min(1000, Math.round(v))); }), { min: 1, max: 1000, step: 1, key: f.id + '.count' })));
-      grid.push(check(t('app.props.reverse'), f.reverse, (v) => set(t('app.undo.reverse'), (g) => { g.reverse = v; })));
-    } else if (f.type === 'mirror') {
-      grid.push(...seedsField(f, true));
-      grid.push(...field(t('app.mirror.plane'), planeSelect(f)));
-    } else if (f.type === 'fillet' || f.type === 'chamfer') {
-      const key = f.type === 'fillet' ? 'r' : 'd';
-      grid.push(...field(f.type === 'fillet' ? t('app.fillet.radius_mm') : t('app.chamfer.distance_mm'), numInput(f[key], (v) => set(f.type === 'fillet' ? t('app.props.radius') : t('app.undo.distance'), (g) => { g[key] = v; }), { min: 0.000001, key: f.id + '.' + key })));
-      grid.push(el('span', { className: 'k' }, t('app.fillet.edges')), el('span', { className: 'v' }, String(f.edges.length)));
-      out.push(...gridOut('feature'));
-      grid.length = 0;
-      out.push(refList(f, 'edges'));
-    } else if (f.type === 'shell') {
-      grid.push(...field(t('app.shell.wall_mm'), numInput(f.t, (v) => set(t('app.undo.wall'), (g) => { g.t = v; }), { min: 0.000001, key: f.id + '.t' })));
-      grid.push(check(t('app.shell.outward'), f.outward, (v) => set(t('app.undo.shell_direction'), (g) => { g.outward = v; })));
-      grid.push(el('span', { className: 'k' }, t('app.shell.open_faces')), el('span', { className: 'v' }, String(f.faces.length)));
-      out.push(...gridOut('feature'));
-      grid.length = 0;
-      out.push(refList(f, 'faces'));
-    } else if (SHEET_TYPES.has(f.type)) {
-      SH.panel(f, grid, out);
-    } else if (GEN_TYPES.has(f.type)) {
-      GU.panel(f, grid, out);
-    } else if (WELD_TYPES.has(f.type)) {
-      WU.panel(f, grid, out);
-    } else if (RIB_TYPES.has(f.type)) {
-      RB.panel(f, grid, out);
-    } else if (f.type === 'thread') {
-      TU.panel(f, grid, out);
-      out.push(refList(f, 'faces'));
-    } else if (BODY_TYPES.has(f.type)) {
-      BUI.panel(f, grid, out);
-    } else if (SURFACE_TYPES.has(f.type)) {
-      SUI.panel(f, grid, out);
-    } else if (DESIGN_TYPES.has(f.type)) {
-      DUI.panel(f, grid, out);
-    } else if (f.type === 'import' && f.mesh) {
-      // a body from a mesh (D7.49): what it was made from, what the import repaired; units, up axis and operation stay editable
-      const dl = el('dl', { className: 'pc-dl' });
-      const fmt = (/\.(stl|obj|3mf|step|stp|3dm)$/i.exec(f.file || '')?.[1] || 'stl').toUpperCase().replace('STP', 'STEP');   // a STEP read as triangles (D7.26) is a mesh body too
-      const fixed = f.report ? MI.reportLines(f.report).filter((l) => !(fmt === 'STEP' && l.key === 'mesh.rep.welded')).map((l) => t(l.key, l.vars)) : [];
-      fillDl(dl, [[t('app.import.file'), f.file || fmt], [t('app.import.made_from'), t('app.import.mesh_value', { fmt, n: f.mesh.nt })], [t('app.import.repaired'), fixed.length ? fixed.join(' ') : t('app.import.repaired_none')]]);
-      out.push(dl);
-      grid.push(...field(t('app.mesh.units'), selectInput(Object.keys(MI.UNITS).map((u) => [u, t('app.mesh.unit.' + u)]), f.units, (v) => set(t('app.mesh.units'), (g) => { g.units = v; }))));
-      grid.push(...field(t('app.import.up_in_file'), selectInput([['z', t('app.import.z_up')], ['y', t('app.import.y_up')]], f.up, (v) => set(t('app.import.up_axis'), (g) => { g.up = v; }))));
-      grid.push(...field(t('app.mesh.op'), selectInput(['add', 'cut', 'intersect'].map((o) => [o, t('app.mesh.op.' + o)]), f.op || 'add', (v) => set(t('app.mesh.op'), (g) => { g.op = v; }))));
-    } else if (f.type === 'import') {
-      const dl = el('dl', { className: 'pc-dl' });
-      fillDl(dl, [[t('app.import.file'), f.file || 'STEP'], [t('app.import.size'), t('app.import.size_value', { kb: (f.step.length / 1024).toFixed(0) })], [t('app.import.up_axis'), f.up === 'y' ? t('app.import.up_y') : t('app.import.up_z')]]);
-      out.push(dl);
-      grid.push(...field(t('app.import.up_in_file'), selectInput([['z', t('app.import.z_up')], ['y', t('app.import.y_up')]], f.up, (v) => set(t('app.import.up_axis'), (g) => { g.up = v; }))));
-    }
-    if (!DESIGN_TYPES.has(f.type)) DUI.extra(f, grid);
-    TU.holeExtra(f, grid);   // a tapped hole's modelled thread (thread-ui.js)
-    BUI.extra(f, grid);   // linear / circular patterns: copy bodies (bodies-ui.js)
-    if (grid.length) out.push(...gridOut('feature'));
-    if (typeof f.sketch === 'string') { const sf = P.featureById(part, f.sketch); const d = sf && sketchDimsBlock(sf, t('app.dims.sketch')); if (d) out.push(d); }
-    // history actions
-    const i = P.indexOf(part, f.id);
-    out.push(el('div', { className: 'pc-block' }, el('div', { className: 'pc-actions' },
-      btn(f.suppressed ? t('app.history.unsuppress') : t('app.history.suppress'), () => setFeature(f.id, f.suppressed ? t('app.history.unsuppress') : t('app.history.suppress'), (g) => { if (g.suppressed) delete g.suppressed; else g.suppressed = true; })),
-      btn(t('app.history.roll_here'), () => rollTo(i), 'pc-btn', { title: t('app.history.roll_here_title') }),
-      btn(t('app.history.move_up'), () => moveSelected(-1), 'pc-btn', { disabled: !P.canMove(part, f.id, i - 1).ok, title: P.canMove(part, f.id, i - 1).reason || t('app.history.move_up_title') }),
-      btn(t('app.history.move_down'), () => moveSelected(1), 'pc-btn', { disabled: !P.canMove(part, f.id, i + 1).ok, title: P.canMove(part, f.id, i + 1).reason || t('app.history.move_down_title') }),
-      btn(t('app.btn.delete'), () => deleteSelected(), 'pc-btn is-danger'),
-    )));
-    if (!core) out.push(el('div', { className: 'pc-block pc-props' }, ...field(t('app.props.name'), nameIn)));
-    return out;
-  }
 
-  /** A face name (brep.js) in words: "Extrude1 end face", "Hole1 wall (copy 3 of CirPattern1)". */
-  function faceWords(name) {
-    const m = /^(f\d+)\.([a-z]+)(?::([^@~]+))?/.exec(name || '');
-    if (!m) return '?';
-    const g = P.featureById(part, m[1]);
-    const FACE_KINDS = ['start', 'end', 'side', 'wall', 'floor', 'cbore', 'cfloor', 'top', 'blend', 'corner', 'bevel', 'face', 'draft', 'csink', 'far', 'thread', 'tend'];
-    const kind = FACE_KINDS.includes(m[2]) ? t('app.face.kind.' + m[2]) : m[2];
-    let out = t('app.face.words', { feature: g ? g.name : t('app.plane.deleted_feature'), kind }) + (m[2] === 'face' && m[3] ? ' ' + m[3].split('_').map((x) => Number(x) + 1).join('.') : '');
-    for (const k of String(name).matchAll(/([@~])(f\d+)(?:#(\d+|m))?/g)) {
-      const h = P.featureById(part, k[2]);
-      out += k[1] === '~' ? t('app.face.inside_of', { name: h ? h.name : t('app.face.a_shell') }) : k[3] === 'm' ? t('app.face.mirrored_by', { name: h ? h.name : '?' }) : t('app.face.copy_of', { n: k[3], name: h ? h.name : '?' });
-    }
-    return out;
-  }
 
-  /** The edges or faces a fillet / chamfer / shell uses, each named by the faces it lies between. */
-  function refList(f, key) {
-    const desc = (name) => faceWords(name);
-    const items = f[key].map((r, i) => {
-      const gone = named() && (key === 'edges' ? findEdge(regen.edges, r) : findFace(regen.faces, r)) < 0 && mode === 'pick';
-      const label = key === 'edges' ? t('app.refs.edge_n', { n: i + 1, a: desc(r.faces[0]), b: desc(r.faces[1]) }) : t('app.refs.face_n', { n: i + 1, name: desc(r.name) });
-      return el('li', {}, el('span', { className: 'grow' + (gone ? ' is-bad' : ''), title: key === 'edges' ? r.faces.join(' × ') : r.name }, label),
-        btn(t('app.btn.remove'), () => setFeature(f.id, key === 'edges' ? t('app.undo.drop_edge') : t('app.undo.drop_face'), (g) => { g[key].splice(i, 1); }), 'pc-linkbtn'));
-    });
-    const picking = mode === 'pick' && editing === f.id;
-    return el('div', { className: 'pc-block' },
-      el('p', { className: 'pc-note' }, key === 'edges' ? t('app.refs.edges_note') : t('app.refs.faces_note')),
-      items.length ? el('ul', { className: 'pc-list' }, ...items) : el('p', { className: 'pc-muted' }, key === 'edges' ? t('app.refs.no_edges') : t('app.refs.no_faces')),
-      el('div', { className: 'pc-actions' }, picking ? btn(t('app.refs.done_picking'), () => endPick(), 'pc-btn is-primary') : btn(key === 'edges' ? t('app.refs.pick_edges') : t('app.refs.pick_faces'), () => startPick(f.id), 'pc-btn is-primary', { disabled: !useExact && !(PICK_ON_MESH.has(f.type) && named()), title: useExact || (PICK_ON_MESH.has(f.type) && named()) ? '' : exactWhy(t('kernel.what.pick'), t('app.refs.needs_exact')) })));
-  }
 
-  function seedsField(f, allowBody = false) {
-    const i = P.indexOf(part, f.id);
-    const earlier = part.features.slice(0, i).filter((g) => SOLID.has(g.type));
-    const boxes = [];
-    if (allowBody) boxes.push(check(t('app.seeds.whole_body'), f.seeds === 'body', (v) => setFeature(f.id, t('app.undo.mirror_body'), (g) => { g.seeds = v ? 'body' : earlier.slice(-1).map((x) => x.id); })));
-    if (f.seeds !== 'body') {
-      for (const g of earlier) boxes.push(check(g.name, f.seeds.includes(g.id), (v) => setFeature(f.id, t('app.seeds.to_copy'), (h) => { h.seeds = v ? [...h.seeds, g.id] : h.seeds.filter((x) => x !== g.id); })));
-    }
-    return [el('span', { className: 'pc-props-sub' }, allowBody ? t('app.seeds.mirror') : t('app.seeds.to_copy')), el('div', { className: 'pc-checks' }, ...boxes)];
-  }
 
-  function dirSelect(f, key) {
-    const ref = f[key];
-    const i = P.indexOf(part, f.id);
-    const opts = [['world:x', t('app.dir.x')], ['world:y', t('app.dir.y')], ['world:z', t('app.dir.z')]];
-    for (const g of part.features.slice(0, i)) {
-      if (g.type === 'revolve') opts.push(['axis:' + g.id, t('app.dir.axis_of', { name: g.name })]);
-      if (g.type === 'axis') opts.push(['ref:' + g.id, g.name]);
-      if (g.type === 'plane') opts.push(['ref:' + g.id, t('app.dir.plane_normal', { name: g.name })]);
-      if (g.type === 'sketch') g.sketch.entities.filter((e) => e.type === 'line').slice(0, 30).forEach((l, k) => opts.push(['line:' + g.id + ':' + l.id, t(l.construction ? 'app.dir.centerline_of' : 'app.dir.line_of', { name: g.name, n: k + 1 })]));
-    }
-    if (ref.kind === 'fixed') opts.push(['fixed', t('app.dir.picked_fixed')]);
-    if (pick?.kind === 'edge') opts.push(['pick', t('app.dir.picked_now')]);
-    const cur = ref.kind === 'world' ? 'world:' + ref.axis : ref.kind === 'axis' ? 'axis:' + ref.feature : ref.kind === 'ref' ? 'ref:' + ref.feature : ref.kind === 'line' ? 'line:' + ref.sketch + ':' + ref.entity : 'fixed';
-    return selectInput(opts, cur, (v) => {
-      let nr;
-      if (v === 'pick') nr = { kind: 'fixed', o: pick.a, d: V.norm(V.sub(pick.b, pick.a)) };
-      else if (v === 'fixed') return;
-      else { const [k, a, b] = v.split(':'); nr = k === 'world' ? { kind: 'world', axis: a } : k === 'axis' ? { kind: 'axis', feature: a } : k === 'ref' ? { kind: 'ref', feature: a } : { kind: 'line', sketch: a, entity: b }; }
-      setFeature(f.id, key === 'dir' ? t('app.pattern.direction') : t('app.undo.axis'), (g) => { g[key] = nr; });
-    });
-  }
 
-  function planeSelect(f) {
-    const ref = f.plane;
-    const opts = [['base:front', t('app.mirror.front')], ['base:top', t('app.mirror.top')], ['base:right', t('app.mirror.right')]];
-    for (const g of part.features.slice(0, P.indexOf(part, f.id))) if (g.type === 'plane') opts.push(['ref:' + g.id, g.name]);
-    if (ref.kind !== 'base' && ref.kind !== 'ref') opts.push(['cur', ref.kind === 'face' ? t('app.mirror.a_face_of', { name: P.featureById(part, ref.feature)?.name || '?' }) : t('app.mirror.a_fixed_plane')]);
-    if (pick?.kind === 'face' && pick.flat) opts.push(['pick', t('app.mirror.picked_face')]);
-    const cur = ref.kind === 'base' ? 'base:' + ref.name : ref.kind === 'ref' ? 'ref:' + ref.feature : 'cur';
-    return selectInput(opts, cur, (v) => {
-      if (v === 'cur') return;
-      const nr = v === 'pick' ? pick.ref : v.startsWith('ref:') ? { kind: 'ref', feature: v.slice(4) } : { kind: 'base', name: v.split(':')[1] };
-      setFeature(f.id, t('app.mirror.plane'), (g) => { g.plane = nr; });
-    });
-  }
 
-  // ---- sketch panel
-  function sketchProps() {
-    const f = editingFeature();
-    if (!f) return [];
-    const sk = f.sketch;
-    const out = [];
-    const s = lastSolve;
-    if (s) {
-      const bad = [...new Set([...s.conflicts, ...s.redundant])];
-      const text = s.status === 'over' ? t(s.conflicts.length ? 'app.sketch.msg_over_conflict' : 'app.sketch.msg_over_redundant', { list: bad.map((id) => describeC(sk, id)).join(', ') })
-        : s.status === 'full' ? t('app.sketch.msg_full') : s.status === 'empty' ? t('app.sketch.msg_empty') : t('app.sketch.msg_under', { n: s.dof });
-      out.push(msg(text, s.status === 'over' ? 'is-error' : s.status === 'full' ? 'is-ok' : ''));
-    }
-    const legend = el('div', { className: 'pc-legend' });
-    const T = tokens();
-    for (const [c, l] of [[T.under, t('app.sketch.legend_under')], [T.full, t('app.sketch.state_full')], [T.over, t('app.sketch.state_over')], [T.sel, t('app.sketch.legend_selected')]]) legend.append(el('span', {}, el('i', { style: 'background:' + c }), l));
-    out.push(legend);
-    const picked = [...editor.sel];
-    const ents = picked.filter((id) => S.byId(sk, id));
-    const cons = picked.filter((id) => sk.constraints.some((c) => c.id === id));
-    if (ents.length) {
-      const names = ents.map((id) => entityName(sk, id));
-      out.push(el('div', { className: 'pc-block' }, el('p', { className: 'pc-props-sub', style: 'margin-top:0' }, t('app.sketch.selected', { names: names.join(', ') }))));
-      const app = S.applicable(sk, ents);
-      const rel = app.filter((ty) => S.RELATIONS.includes(ty));
-      const dims = app.filter((ty) => S.DIMENSIONS.includes(ty));
-      if (rel.length) out.push(el('div', { className: 'pc-actions' }, ...rel.map((ty) => btn(S.CONSTRAINTS[ty].glyph + ' ' + S.CONSTRAINTS[ty].label, () => editor.addRelation(ty, ents)))));
-      if (dims.length) out.push(el('div', { className: 'pc-actions', style: 'margin-top:.4rem' }, ...dims.map((ty) => btn(S.CONSTRAINTS[ty].label, () => { editor.addRelation(ty, ents); const c = editingFeature().sketch.constraints.at(-1); if (c && c.type === ty) editor.editDimension(c.id); }))));
-      if (!rel.length && !dims.length) out.push(el('p', { className: 'pc-note' }, t('app.sketch.no_relation_fits')));
-      const geoActions = [];
-      if (ents.some((id) => { const e = S.byId(sk, id); return e && e.type !== 'point'; })) geoActions.push(btn(t('app.sketch.construction_toggle'), () => editor.toggleConstruction()));
-      geoActions.push(btn(t('app.btn.delete'), () => editor.deleteSelection(), 'pc-btn is-danger'));
-      out.push(el('div', { className: 'pc-actions', style: 'margin-top:.6rem' }, ...geoActions));
-      const mine = sk.constraints.filter((c) => ents.some((id) => c.refs.includes(id)));
-      if (mine.length) out.push(constraintList(sk, mine, t('app.sketch.relations_on_selection')));
-    } else if (cons.length) {
-      out.push(el('div', { className: 'pc-block' }, el('p', { className: 'pc-props-sub', style: 'margin-top:0' }, t('app.sketch.selected_relations')), el('div', { className: 'pc-actions' }, btn(t('app.btn.delete'), () => editor.deleteSelection(), 'pc-btn is-danger'))));
-      out.push(constraintList(sk, sk.constraints.filter((c) => cons.includes(c.id)), ''));
-    } else {
-      out.push(el('p', { className: 'pc-note' }, t('app.sketch.panel_note')));
-      if (sk.constraints.length) out.push(constraintList(sk, sk.constraints, t('app.sketch.relations_dims')));
-    }
-    out.push(numericEntry());
-    out.push(el('div', { className: 'pc-block pc-actions' }, btn(t('app.sketch.exit'), () => exitSketch(), 'pc-btn is-primary'), btn(t('app.sketch.fit'), () => editor.fit()), btn(t('app.btn.export_dxf'), () => exportDxf(f))));
-    return out;
-  }
 
   /** Add geometry by typing coordinates (sketch units, mm): works without a pointer. */
   let numKind = 'line';
@@ -1633,13 +1323,6 @@ function init(root) {
     return el('div', { className: 'pc-block' }, el('p', { className: 'pc-props-sub', style: 'margin-top:0' }, t('app.num.title')), form);
   }
 
-  function entityName(sk, id) {
-    if (id === S.ORIGIN) return t('app.entity.origin');
-    const e = S.byId(sk, id);
-    if (!e) return id;
-    const kind = e.type === 'point' ? t('app.entity.point') : e.type === 'line' ? (e.construction ? t('app.entity.centerline') : t('app.entity.line')) : e.type === 'circle' ? t('app.entity.circle') : e.type === 'arc' ? t('app.entity.arc') : e.type === 'spline' ? t('app.entity.spline') : e.type;
-    return t('app.entity.named', { kind, id });
-  }
 
   const openRelGroups = new Set();   // relation kinds whose group the person opened (0.6 PU.6), kept across redraws
   function constraintList(sk, list, title) {
@@ -1727,6 +1410,7 @@ function init(root) {
     syncPlanes(); syncHandles();
     shellKit?.selChanged();
     renderTree(); renderProps(); renderFacts(); updateTools(); show3DSketches(); ui.hint.hidden = ws !== WS.DESIGN || mode === 'sketch' || mode === 'drawing' || part.features.length > 0;
+    bimLink?.sync();
   }
 
   // ---------------------------------------------------------------- toolbar
@@ -1789,7 +1473,7 @@ function init(root) {
       else if (['fillet', 'chamfer', 'shell', 'sweep', 'loft', 'draft', ...SURFACE_MENU, ...BODY_MENU, ...SHEET_MENU, ...RIB_MENU].includes(c) && exactOff()) { dis = dis || inSk || inDr; b.title = (b.title.replace(/ — .*$/, '') || b.textContent.trim()) + ' — ' + t('kernel.not_built.short'); b.dataset.notBuilt = ''; }
       else if (['fillet', 'chamfer', 'shell', 'sweep', 'loft', 'draft', ...SURFACE_MENU, ...BODY_MENU, ...SHEET_MENU, ...RIB_MENU].includes(c)) { dis = dis || inSk || inDr || !useExact; const base = b.dataset.exactBase ?? (b.dataset.exactBase = b.title.replace(/ — needs.*$/, '')); b.title = useExact ? base : t(exact.state === 'loading' ? 'app.tools.needs_exact_loading' : 'app.tools.needs_exact_off', { title: base }); }
       if (c === 'drawing') dis = dis || inSk || !regen?.mesh;
-      if (/^export-step(214)?$/.test(c)) { dis = dis || !useExact; if (exactOff()) b.title = (b.title.replace(/ — .*$/, '') || b.textContent.trim()) + ' — ' + t('kernel.not_built.short'); }
+      if (/^export-step(214)?$/.test(c)) { dis = dis || inSk || !regen?.mesh; b.title = b.title.replace(/ — .*$/, '') || b.textContent.trim(); }   // 0.9.1: exact STEP is written from the mesh kernel too (step-exact.js)
       if (c === 'asm-new') dis = dis || inDr || inPick;
       if (c === 'undo') dis = !hist.undoStack.length;
       if (c === 'redo') dis = !hist.redoStack.length;
@@ -1908,6 +1592,7 @@ function init(root) {
     if (ARC_CMDS[cmd]) { if (mode === 'sketch') { editor.setArcMethod(ARC_CMDS[cmd]); editor.setTool('arc'); updateTools(); } focusStage(); return; }   // 0.9 FX.137
     if (SKETCH_TOOLS[cmd]) { if (mode === 'sketch') editor.setTool(editor.tool === SKETCH_TOOLS[cmd] ? 'select' : SKETCH_TOOLS[cmd]); focusStage(); return; }
     if (exactOff() && P.EXACT_ONLY.has(cmd) && !MESH_BUILT.has(cmd)) { status(t('kernel.not_built', { what: P.FEATURE_LABELS[cmd] }), true); return; }
+    if (cmd === 'link-save-back') return bimLink?.saveBack();   // 0.10 SU.1814
     switch (cmd) {
       case 'new': return newPart();
       case 'std-part': return openStandardPart();
@@ -2089,7 +1774,7 @@ function init(root) {
 
   async function modelEdit(cmd) {
     if (cmd === 'delete') return deleteSelected();
-    if (cmd === 'select-none') { pick = null; sel = null; multi = []; pendingSketch = false; showMarks(); view.setHighlight(null); view.setPlaneState(null, null); renderAll(); return; }
+    if (cmd === 'select-none') { pick = null; sel = null; multi = []; pendingSketch = false; showMarks(); view.setHighlight(null); view.setPlaneState(null, null); renderAll(); announcePick(); return; }
     if (cmd === 'paste' || cmd === 'paste-in-place') {
       let out = null;
       try { out = commit(cmd === 'paste' ? t('app.undo.paste') : t('app.undo.paste_in_place'), () => C.pasteFeatures(part, clip)); } catch (err) { status(t('app.clip.paste_failed', { error: err.message })); return; }
@@ -2167,7 +1852,8 @@ function init(root) {
     await openVariantPack({
       ask, status, download: (data, name, mime) => download(data, name, mime), part: () => part, fileBase: () => fileBase(),
       buildPart: (p) => buildPart(p),
-      stepFor: useExact ? (p) => exact.call('step', { part: p, schema: 'AP242' }).then((r) => r.text) : null,
+      stepFor: useExact ? (p) => exact.call('step', { part: p, schema: 'AP242' }).then((r) => r.text)
+        : (p, r) => import('./step-exact.js').then((SE) => SE.stepExact(r, p.name || 'part', { segments: p.resolution || 64 }).text),   // 0.9.1: exact STEP from the mesh kernel
     });
   }
   let asmSeq = 0, asmFit = false;
@@ -2629,273 +2315,39 @@ function init(root) {
     },
     fit() { const o = over3d(); if (o) o.fit(); else view.fit(); },
   });
-  const drawingOf =(p = part) => p.drawing || { section: null, detail: null, notes: [] };
+  const { enterDrawing, leaveDrawing, drawingRefresh, composeShow, commitDrawing, drawingTool, drawingClick, renderDrawingProps, deleteNote, exportMesh, checkPrint, exportIfc, exportUsd, exportDrawing, exportForSw, exportStep, exportDxf, exportSet, importStep, importKicadBoard, importMesh } = mountDrawingExport({
+    ui, hist, settings, looksLikePad, status, exact, exactOff, named, exactWhy, editingFeature, built, keepFocus, commit, endPick, exitSketch, field, numInput, textInput, selectInput, check, btn, msg, renderProps, renderAll, updateTools, download, openText, confirmDiscard, ask, focusStage, notInDesign,
+    get part() { return part; }, set part(v) { part = v; },
+    get regen() { return regen; },
+    get mode() { return mode; }, set mode(v) { mode = v; },
+    get section() { return section; },
+    get drawingState() { return drawingState; }, set drawingState(v) { drawingState = v; },
+    get pick() { return pick; }, set pick(v) { pick = v; },
+    get multi() { return multi; }, set multi(v) { multi = v; },
+    get view() { return view; },
+    get sheetView() { return sheetView; }, set sheetView(v) { sheetView = v; },
+    get useExact() { return useExact; },
+    get M() { return M; },
+    get dirty() { return dirty; }, set dirty(v) { dirty = v; },
+    get fileBase() { return fileBase; },
+    get asmTools() { return asmTools; },
+    get sel() { return sel; }, set sel(v) { sel = v; },
+    get f3() { return f3; },
+  });
 
-  /** The part's holes for the drawing's hole table (drawing.js partHoles; 0.4 P23); null with the mesh kernel. */
-  const drawingHoles = () => partHoles(part, regen);
-  /** A sheet view's name in words (front, top, right, section, iso, detail). */
-  const viewWord = (k) => (['front', 'top', 'right'].includes(k) ? t('drawing.view.' + k) : ['section', 'iso', 'detail'].includes(k) ? t('app.drawing.view_' + k) : k);
 
-  async function enterDrawing() {
-    if (notInDesign()) return;
-    if (mode === 'sketch') exitSketch();
-    if (mode === 'pick') endPick();
-    if (mode === 'assembly') return;
-    await built();
-    if (!regen?.mesh) { status(t('app.drawing.build_first')); return; }
-    section?.stop();
-    mode = 'drawing';
-    drawingState = { data: null, key: null, sheet: null, tool: null, sel: null, drag: null };
-    pick = null; multi = []; view.setHighlight(null); view.setMarks(null);
-    if (!sheetView) sheetView = new SheetView(ui.sheet, {
-      isPad: (e) => looksLikePad(e),   // 0.8 D7.56: a trackpad swipe pans the sheet
-      onClick: (x, y) => drawingClick(x, y),
-      onNoteDown: (id) => { drawingState.sel = id; drawingState.tool = null; composeShow(); renderAll(); },
-      onNoteDrag: (id, dx, dy) => { drawingState.drag = { id, dx, dy }; composeShow(); },
-      onNoteDrop: (id, dx, dy) => { drawingState.drag = null; commitDrawing(t('app.undo.move_note'), (d) => { const n = d.notes.find((q) => q.id === id); if (n) n.off = [+(n.off[0] + dx).toFixed(2), +(n.off[1] + dy).toFixed(2)]; }); },
-      onHover: (id) => { if (drawingState && drawingState.hover !== id) { drawingState.hover = id; composeShow(); } },
-    });
-    ui.sheet.hidden = false;
-    renderAll();
-    status(t('app.drawing.making_views'), true);
-    await drawingRefresh();
-    if (mode !== 'drawing') return;
-    status(useExact ? t('app.drawing.status_exact') : exactOff() ? t('kernel.drawing.status') : t('app.drawing.status_mesh'), true);
-    sheetView.svg.focus({ preventScroll: true });
-  }
 
-  function leaveDrawing() {
-    if (mode !== 'drawing') return;
-    mode = 'model'; drawingState = null;
-    ui.sheet.hidden = true;
-    renderAll(); status('');
-    focusStage();
-  }
 
-  async function drawingViewsNow(d) {
-    if (useExact) return exact.call('drawing', { part, drawing: { section: d.section } });
-    await built();
-    return { ...meshViews(regen.mesh, { M, section: d.section }), threads: threadNotes(regen.threads) };   // the mesh kernel's own section view (0.4 K.3); thread callouts (0.5 WL.29)
-  }
 
-  async function drawingRefresh() {
-    if (mode !== 'drawing' || !drawingState) return;
-    const d = drawingOf();
-    const key = (useExact ? 'x' : 'm') + JSON.stringify(part.features) + '|' + JSON.stringify(d.section) + '|' + part.resolution;
-    if (drawingState.key !== key) {
-      drawingState.key = key;
-      try { drawingState.data = await drawingViewsNow(d); } catch (err) { status(t('app.drawing.views_failed', { error: err.message }), true); drawingState.data = null; }
-      if (mode !== 'drawing' || drawingState.key !== key) return;
-    }
-    composeShow();
-    renderProps();
-  }
 
-  function composeShow() {
-    if (!drawingState?.data) return;
-    const d = drawingOf();
-    let notes = d.notes;
-    const dr = drawingState.drag;
-    if (dr) notes = notes.map((n) => (n.id === dr.id ? { ...n, off: [n.off[0] + dr.dx, n.off[1] + dr.dy] } : n));
-    drawingState.sheet = composeSheet(drawingState.data, { name: part.name, drawing: { ...d, notes }, annotate: G.annotationGeometry, material: part.material?.name, holes: drawingHoles() });
-    sheetView.show(drawingState.sheet, { selected: drawingState.sel, hover: drawingState.hover });
-  }
 
-  function commitDrawing(label, fn, { refetch = false } = {}) {
-    hist.push(part, label);
-    if (!part.drawing) part.drawing = { section: null, detail: null, notes: [] };
-    fn(part.drawing);
-    dirty = true;
-    updateTools();
-    if (refetch) drawingRefresh(); else { composeShow(); keepFocus(() => renderProps()); }
-  }
 
-  function drawingTool(tool) {
-    if (mode !== 'drawing') return;
-    drawingState.tool = drawingState.tool === tool ? null : tool;
-    drawingState.sel = null;
-    composeShow(); updateTools(); renderProps();
-    status(drawingState.tool ? { datum: () => t('app.drawing.click_datum'), fcf: () => t('app.drawing.click_fcf'), finish: () => t('app.drawing.click_finish'), detail: () => t('app.drawing.click_detail') }[tool]() : '', true);
-    sheetView.svg.focus({ preventScroll: true });
-  }
 
-  /** Which view a sheet point is on, and its view coordinates (snapped to the nearest drawn line within 2.5 mm). */
-  function viewAt(x, y) {
-    const sh = drawingState.sheet;
-    for (const [k, p] of Object.entries(sh.place)) {
-      const w = (p.box.u1 - p.box.u0) * p.s, h = (p.box.v1 - p.box.v0) * p.s;
-      if (x < p.x - 3 || x > p.x + w + 3 || y < p.y - 3 || y > p.y + h + 3) continue;
-      let u = p.box.u0 + (x - p.x) / p.s, v = p.box.v0 + (y - p.y) / p.s;
-      const src = k === 'detail' ? null : drawingState.data.views[k];
-      if (src) {
-        let best = 2.5 / p.s, at = null;
-        for (const g of [...src.visible, ...(src.cut || [])]) {
-          const dx = g[2] - g[0], dy = g[3] - g[1], L = dx * dx + dy * dy;
-          const t = L > 0 ? Math.max(0, Math.min(1, ((u - g[0]) * dx + (v - g[1]) * dy) / L)) : 0;
-          const qx = g[0] + dx * t, qy = g[1] + dy * t, dd = Math.hypot(u - qx, v - qy);
-          if (dd < best) { best = dd; at = [qx, qy]; }
-        }
-        if (at) [u, v] = at;
-      }
-      return { view: k, at: [+u.toFixed(4), +v.toFixed(4)] };
-    }
-    return null;
-  }
 
-  function drawingClick(x, y) {
-    const tool = drawingState.tool;
-    if (!tool) { if (drawingState.sel) { drawingState.sel = null; composeShow(); renderProps(); } return; }
-    const hit = viewAt(x, y);
-    if (!hit) { status(t('app.drawing.click_on_view'), true); return; }
-    if (tool === 'detail') {
-      if (hit.view === 'detail' || hit.view === 'iso') { status(t('app.drawing.detail_from'), true); return; }
-      const b = drawingState.sheet.place[hit.view].box;
-      const r = +(Math.max(b.u1 - b.u0, b.v1 - b.v0) / 8).toFixed(2);
-      commitDrawing(t('app.undo.detail_view'), (d) => { d.detail = { of: hit.view, at: hit.at, r, scale: 2 }; });
-      drawingState.tool = null; updateTools();
-      status(t('app.drawing.detail_taken', { view: viewWord(hit.view) }));
-      return;
-    }
-    const used = new Set(drawingOf().notes.map((n) => n.id));
-    let k = 1; while (used.has('g' + k)) k++;
-    const letters = drawingOf().notes.filter((n) => n.kind === 'datum').map((n) => n.letter);
-    const props = { id: 'g' + k, view: hit.view, at: hit.at };
-    if (tool === 'datum') props.letter = G.DATUM_LETTERS.find((L) => !letters.includes(L)) || 'A';
-    const note = G.newAnnotation(tool, props);
-    commitDrawing({ datum: () => t('app.undo.add_datum'), fcf: () => t('app.undo.add_fcf'), finish: () => t('app.undo.add_finish') }[tool](), (d) => { d.notes.push(note); });
-    drawingState.sel = note.id; drawingState.tool = null;
-    composeShow(); updateTools(); renderProps();
-    status({ datum: () => t('app.drawing.placed_datum'), fcf: () => t('app.drawing.placed_fcf'), finish: () => t('app.drawing.placed_finish') }[tool]());
-  }
 
-  function renderDrawingProps() {
-    const out = [];
-    let head = t('app.drawing.head');
-    const d = drawingOf();
-    const n = drawingState?.sel ? d.notes.find((q) => q.id === drawingState.sel) : null;
-    const setN = (label, fn) => commitDrawing(label, (dd) => { const q = dd.notes.find((x) => x.id === n.id); if (q) fn(q); });
-    if (n) {
-      head = n.kind === 'datum' ? t('app.gdt.datum_head', { letter: n.letter }) : n.kind === 'fcf' ? t('app.gdt.fcf_head') : t('app.gdt.finish_head');
-      const bad = G.validate(n);
-      if (bad) out.push(msg(bad, 'is-error'));
-      const grid = [];
-      if (n.kind === 'datum') grid.push(...field(t('app.gdt.letter'), selectInput(G.DATUM_LETTERS.map((L) => [L, L]), n.letter, (v) => setN(t('app.undo.datum_letter'), (q) => { q.letter = v; }))));
-      if (n.kind === 'fcf') {
-        const C = G.CHARACTERISTICS[n.char];
-        grid.push(...field(t('app.gdt.tolerance'), selectInput(Object.entries(G.CHARACTERISTICS).map(([k2, c]) => [k2, c.label]), n.char, (v) => setN(t('app.undo.characteristic'), (q) => {
-          q.char = v; const c = G.CHARACTERISTICS[v];
-          if (!c.dia) q.dia = false; if (!c.mod) { q.mod = ''; q.datums = q.datums.map((x) => ({ ...x, mod: '' })); }
-          if (c.datums === 'none') q.datums = []; else if (c.datums === 'required' && !q.datums.length) q.datums = [{ letter: 'A', mod: '' }];
-        }))));
-        grid.push(...field(t('app.gdt.zone_mm'), numInput(n.tol, (v) => setN(t('app.undo.tolerance_value'), (q) => { q.tol = v; }), { min: 0.000001 })));
-        if (C.dia) grid.push(check(t('app.gdt.dia_zone'), n.dia, (v) => setN(t('app.undo.dia_zone'), (q) => { q.dia = v; })));
-        if (C.mod) grid.push(...field(t('app.gdt.material'), selectInput([['', t('app.gdt.rfs')], ['M', 'MMC (Ⓜ)'], ['L', 'LMC (Ⓛ)']], n.mod, (v) => setN(t('app.undo.material_condition'), (q) => { q.mod = v; }))));
-        if (C.datums !== 'none') {
-          for (let i = 0; i < 3; i++) {
-            const dt = n.datums[i];
-            grid.push(...field([t('app.gdt.primary'), t('app.gdt.secondary'), t('app.gdt.tertiary')][i], selectInput([['', '—'], ...G.DATUM_LETTERS.map((L) => [L, L])], dt ? dt.letter : '', (v) => setN(t('app.undo.datum_reference'), (q) => {
-              const list = q.datums.slice(0, 3);
-              if (!v) list.splice(i); else if (list[i]) list[i] = { ...list[i], letter: v }; else if (i === list.length) list.push({ letter: v, mod: '' });
-              q.datums = list;
-            }))));
-            if (dt && C.mod) grid.push(...field(t('app.gdt.modifier'), selectInput([['', t('app.gdt.mod_none')], ['M', 'MMB (Ⓜ)'], ['L', 'LMB (Ⓛ)']], dt.mod, (v) => setN(t('app.undo.datum_modifier'), (q) => { q.datums[i].mod = v; }))));
-          }
-        }
-        if (C.legacy) out.push(el('p', { className: 'pc-note' }, t('app.gdt.legacy')));
-      }
-      if (n.kind === 'finish') {
-        grid.push(...field(t('app.gdt.ra'), numInput(n.ra, (v) => setN(t('app.undo.roughness'), (q) => { q.ra = v; }), { min: 0.000001 })));
-        grid.push(...field(t('app.gdt.process'), selectInput(Object.entries(G.PROCESSES), n.process, (v) => setN(t('app.undo.finish_process'), (q) => { q.process = v; }))));
-        const note = el('input', { type: 'text', className: 'pc-input', id: 'pc-finish-note', value: n.note || '', maxLength: 40 });
-        note.addEventListener('change', () => setN(t('app.undo.finish_note'), (q) => { q.note = note.value.replace(/[\u0000-\u001f]/g, '').slice(0, 40); }));
-        grid.push(...field(t('app.gdt.note'), note));
-      }
-      out.push(el('div', { className: 'pc-props' }, ...grid));
-      const dl = el('dl', { className: 'pc-dl' });
-      fillDl(dl, [[t('app.gdt.reads'), G.describe(n)], [t('app.gdt.on'), t('app.gdt.on_view', { view: viewWord(n.view) })]]);
-      out.push(el('div', { className: 'pc-block' }, dl));
-      out.push(el('p', { className: 'pc-note' }, t('app.gdt.drag_note')));
-      out.push(el('div', { className: 'pc-block pc-actions' }, btn(t('app.btn.delete'), () => deleteNote(), 'pc-btn is-danger'), btn(t('app.btn.done'), () => { drawingState.sel = null; composeShow(); renderProps(); })));
-    } else {
-      const grid = [];
-      grid.push(...field(t('drawing.panel.sheet'), selectInput([P.SHEET_AUTO, ...P.SHEET_KEYS].map((k) => [k, k === 'auto' ? t('drawing.sheet.auto', { size: drawingState?.sheet && d.sheet === 'auto' ? sheetLabel(drawingState.sheet.paper) : '' }) : sheetLabel(k)]), d.sheet || 'a3', (v) => commitDrawing(t('drawing.undo.sheet'), (dd) => { if (v === 'a3') delete dd.sheet; else dd.sheet = v; }))));
-      grid.push(...field(t('app.drawing.section_aa'), selectInput([['', t('app.drawing.none')], ['front', t('app.drawing.of_front')], ['top', t('app.drawing.of_top')], ['right', t('app.drawing.of_right')]], d.section ? d.section.of : '', (v) => {
-        commitDrawing(t('app.undo.section_view'), (dd) => { dd.section = v ? { of: v } : null; if (!v && dd.detail?.of === 'section') dd.detail = null; }, { refetch: true });
-      })));
-      if (d.section) grid.push(...field(t('app.drawing.cut_at'), numInput(d.section.at ?? sectionCentre(d.section.of), (v) => commitDrawing(t('app.undo.section_position'), (dd) => { dd.section.at = v; }, { refetch: true }))));
-      grid.push(...field(t('app.drawing.detail_b'), selectInput([['', t('app.drawing.none')], ['front', t('app.drawing.from_front')], ['top', t('app.drawing.from_top')], ['right', t('app.drawing.from_right')], ...(d.section ? [['section', t('app.drawing.from_section')]] : [])], d.detail ? d.detail.of : '', (v) => {
-        if (!v) { commitDrawing(t('app.undo.detail_view'), (dd) => { dd.detail = null; }); return; }
-        drawingTool('detail'); status(t('app.drawing.click_detail_centre', { view: viewWord(v) }), true);
-      })));
-      if (d.detail) {
-        grid.push(...field(t('app.drawing.detail_radius'), numInput(d.detail.r, (v) => commitDrawing(t('app.undo.detail_size'), (dd) => { dd.detail.r = v; }), { min: 0.001 })));
-        grid.push(...field(t('app.drawing.detail_scale'), selectInput(P.DETAIL_SCALES.map((k) => [String(k), t('app.drawing.times_sheet', { k })]), String(d.detail.scale), (v) => commitDrawing(t('app.drawing.detail_scale'), (dd) => { dd.detail.scale = Number(v); }))));
-      }
-      { const cb = check(t('drawing.holedims.panel'), !!d.holeDims, (v) => commitDrawing(t('drawing.holedims.undo'), (dd) => { if (v) dd.holeDims = true; else delete dd.holeDims; })); cb.dataset.holeDims = '1'; grid.push(cb); }   // 0.8 EG.20
-      if (d.holeDims && drawingState?.sheet?.holeDims) { const hd = drawingState.sheet.holeDims; grid.push(el('span', { className: 'k' }, ''), el('span', { className: 'v pc-muted', dataset: { holeDimsCount: String(hd.holes) } }, t('drawing.holedims.count', { n: hd.holes, sizes: hd.sizes, view: t('drawing.view.' + hd.view) }))); }
-      grid.push(...field(t('drawing.holes.panel'), selectInput([['', t('drawing.holes.none')], ...['front', 'top', 'right'].map((k) => [k, t('drawing.holes.of', { view: t('drawing.view.' + k) })])], d.holeTable ? d.holeTable.view : '', (v) => commitDrawing(t('drawing.holes.undo'), (dd) => { if (v) dd.holeTable = { view: v }; else delete dd.holeTable; }))));
-      if (d.holeTable && drawingState?.sheet?.holeTable) { const ht = drawingState.sheet.holeTable; grid.push(el('span', { className: 'k' }, ''), el('span', { className: 'v pc-muted', dataset: { holeCount: String(ht.rows.length) } }, t('drawing.holes.count', { n: ht.rows.length }) + (ht.skipped ? ' ' + t('drawing.holes.skipped', { n: ht.skipped }) : ''))); }
-      else if (d.holeTable && !named()) grid.push(el('span', { className: 'k' }, ''), el('span', { className: 'v pc-muted' }, t('drawing.holes.exact')));
-      out.push(el('div', { className: 'pc-props' }, ...grid));
-      out.push(titleBlockPanel(d), revisionsPanel(d));
-      const sh = drawingState?.sheet;
-      if (sh?.omitted?.length) out.push(msg(t('app.drawing.no_room', { list: sh.omitted.join(', ') })));
-      if (sh && !sh.exact) out.push(el('p', { className: 'pc-note' }, exactOff() ? t('kernel.drawing.note') : exact.state === 'loading' ? t('app.drawing.mesh_note_loading') : t('app.drawing.mesh_note_failed')));
-      if (d.notes.length) out.push(el('div', { className: 'pc-block' }, el('p', { className: 'pc-props-sub', style: 'margin-top:0' }, t('app.drawing.notes_on_sheet')),
-        el('ul', { className: 'pc-list' }, ...d.notes.map((q) => el('li', {}, el('span', { className: 'grow' + (G.validate(q) ? ' is-bad' : '') }, G.describe(q)), btn(t('app.btn.select'), () => { drawingState.sel = q.id; composeShow(); renderProps(); }, 'pc-linkbtn'))))));
-      out.push(el('p', { className: 'pc-note' }, t('app.drawing.notes_help')));
-      out.push(el('div', { className: 'pc-block pc-actions' }, btn(t('app.drawing.export_pdf'), () => exportDrawing(), 'pc-btn is-primary'), btn(t('app.drawing.back'), () => leaveDrawing())));
-    }
-    ui.propsH.textContent = head;
-    swapChildren(ui.props, out);
-  }
 
-  /** The title block's fields (part.drawing.title; empty = left out, Title falls back to the part's name, Date to today). */
-  function titleBlockPanel(d) {
-    const tt = d.title || {};
-    const setT = (k, v) => commitDrawing(t('drawing.undo.title'), (dd) => { const n = { ...(dd.title || {}) }; if (v) n[k] = v; else delete n[k]; if (Object.keys(n).length) dd.title = n; else delete dd.title; });
-    const rows = [['title', { placeholder: part.name }], ['number', {}], ['rev', { placeholder: d.revisions?.length ? d.revisions[d.revisions.length - 1].rev : '' }], ['company', {}], ['drawnBy', {}], ['checkedBy', {}], ['approvedBy', {}],
-      ['date', { placeholder: new Date().toISOString().slice(0, 10) }], ['tolerance', { placeholder: t('drawing.panel.tolerance_ph') }], ['finish', {}]];
-    const grid = [];
-    for (const [k, o] of rows) {
-      const inp = textInput(tt[k], (v) => {
-        if (k === 'date' && v && !/^\d{4}-\d{2}-\d{2}$/.test(v)) { status(t('drawing.panel.date_bad')); renderProps(); return; }
-        setT(k, v);
-      }, { max: P.TITLE_FIELDS[k], placeholder: o.placeholder || '', attrs: { 'data-title-field': k } });
-      grid.push(...field(t('drawing.panel.' + k.replace(/[A-Z]/g, (c) => '_' + c.toLowerCase())), inp));
-    }
-    const mat = el('p', { className: 'pc-note' }, part.material ? t('drawing.panel.material_is', { name: part.material.name }) : t('drawing.panel.material_none'));
-    return el('div', { className: 'pc-block', dataset: { titleBlock: '1' } }, el('p', { className: 'pc-props-sub', style: 'margin-top:0' }, t('drawing.panel.title_block')), el('div', { className: 'pc-props' }, ...grid), mat);
-  }
-  /** The revision list (part.drawing.revisions, oldest first): add one with the next letter and today's date, edit, delete. */
-  function revisionsPanel(d) {
-    const revs = d.revisions || [];
-    const setR = (i, k, v) => commitDrawing(t('drawing.undo.revision'), (dd) => { if (dd.revisions?.[i]) dd.revisions[i] = { ...dd.revisions[i], [k]: v }; });
-    const items = revs.map((r, i) => el('li', { dataset: { revRow: String(i) } },
-      textInput(r.rev, (v) => setR(i, 'rev', v), { max: 8, attrs: { 'aria-label': t('drawing.panel.rev_rev'), 'data-rev-field': 'rev', style: 'width:3.5rem;flex:0 0 auto' } }),
-      textInput(r.desc, (v) => setR(i, 'desc', v), { max: 120, attrs: { 'aria-label': t('drawing.panel.rev_desc'), 'data-rev-field': 'desc', className: 'pc-input grow' } }),
-      textInput(r.date, (v) => { if (v && !/^\d{4}-\d{2}-\d{2}$/.test(v)) { status(t('drawing.panel.date_bad')); renderProps(); return; } setR(i, 'date', v); }, { max: 10, attrs: { 'aria-label': t('drawing.panel.rev_date'), 'data-rev-field': 'date', style: 'width:6.5rem;flex:0 0 auto' } }),
-      textInput(r.by, (v) => setR(i, 'by', v), { max: 40, attrs: { 'aria-label': t('drawing.panel.rev_by'), 'data-rev-field': 'by', style: 'width:4rem;flex:0 0 auto' } }),
-      btn(t('drawing.panel.rev_delete'), () => commitDrawing(t('drawing.undo.revision_delete'), (dd) => { dd.revisions.splice(i, 1); if (!dd.revisions.length) delete dd.revisions; }), 'pc-linkbtn', { dataset: { revDelete: String(i) } })));
-    const full = revs.length >= P.MAX_REVISIONS;
-    return el('div', { className: 'pc-block', dataset: { revisions: '1' } }, el('p', { className: 'pc-props-sub', style: 'margin-top:0' }, t('drawing.panel.revisions')),
-      revs.length ? el('ul', { className: 'pc-list pc-revs' }, ...items) : el('p', { className: 'pc-note' }, t('drawing.panel.no_revisions')),
-      el('div', { className: 'pc-actions' }, btn(t('drawing.panel.rev_add'), () => commitDrawing(t('drawing.undo.revision_add'), (dd) => { dd.revisions = [...(dd.revisions || []), { rev: nextRevision(dd.revisions), desc: '', date: new Date().toISOString().slice(0, 10), by: '' }]; }), 'pc-btn', { disabled: full, title: full ? t('drawing.panel.rev_full', { n: P.MAX_REVISIONS }) : '', dataset: { revAdd: '1' } })));
-  }
 
-  function sectionCentre(of) {
-    const b = regen?.stats?.bbox; if (!b) return 0;
-    const dir = { front: [0, 0, 1], top: [0, 1, 0], right: [1, 0, 0] }[of];
-    return +V.dot(dir, b.min.map((v, i) => (v + b.max[i]) / 2)).toFixed(4);
-  }
 
-  function deleteNote() {
-    const id = drawingState?.sel;
-    if (!id) return;
-    commitDrawing(t('app.undo.delete_note'), (d) => { d.notes = d.notes.filter((q) => q.id !== id); });
-    drawingState.sel = null; composeShow(); renderProps();
-    status(t('app.drawing.note_deleted'));
-  }
 
   // ---------------------------------------------------------------- files
   function download(bytes, name, type) {
@@ -2955,160 +2407,13 @@ function init(root) {
     status(r.how === 'written' ? t('app.file.written', { file: r.path || r.name || name }) : t('app.file.saved', { file: name }));
   }
 
-  function exportMesh(kind) {
-    if (mode === 'sketch') exitSketch();
-    if (!regen?.mesh) { status(t('app.export.no_solid')); return; }
-    const name = fileBase();
-    if (kind === 'stl') { download(X.stlBinary(regen.mesh, name), name + '.stl', 'model/stl'); status(t('app.export.stl', { file: name + '.stl', n: regen.mesh.indices.length / 3 })); }
-    else if (kind === '3mf') { download(X.threeMf(regen.mesh, name), name + '.3mf', 'model/3mf'); status(t('app.export.3mf', { file: name + '.3mf' })); }
-    else { const s = X.stepFaceted(regen.mesh, name, { schema: kind === 'step214' ? 'AP214' : 'AP242' }); download(s.text, name + '.step', 'model/step'); status(t('app.export.step_faceted', { file: name + '.step', n: s.counts.faces })); }
-  }
 
-  /**
-   * Check for 3D printing (0.5 SG.4, #531): the part (or the whole assembly) as a printer mesh — Z up, mm, as the STL and
-   * 3MF exports write it — through print3d.js: closed, faces the right way, not passing through itself; size against
-   * the bed in Settings, volume, base, overhangs. Then the usual STL or 3MF export.
-   */
-  async function checkPrint() {
-    if (mode === 'sketch') exitSketch();
-    if (mode === 'pick') endPick();
-    const asmMode = mode === 'assembly';
-    if (!asmMode) await built();
-    const src = asmMode ? asmTools.printMesh() : regen?.mesh;
-    if (!src) { status(asmMode ? t('ui.asm.export.building') : t('app.export.no_solid')); return; }
-    const PR = await import('./print3d.js');
-    status(t('app.print3d.checking'), true);
-    await new Promise((r) => requestAnimationFrame(() => setTimeout(r, 0)));
-    const S = src.positions, n = S.length / 3, pos = new Float64Array(S.length);
-    for (let i = 0; i < n; i++) { pos[i * 3] = S[i * 3]; pos[i * 3 + 1] = -S[i * 3 + 2]; pos[i * 3 + 2] = S[i * 3 + 1]; }   // Y up → Z up, as the exports
-    const rep = PR.printCheck({ positions: pos, indices: src.indices, colors: null }, { bed: settings.bed });
-    const mm = (v) => (Math.round(v * 10) / 10).toLocaleString(locale() === 'en-XA' ? 'en' : locale());
-    const line = (k, x) => el('li', {}, t(k, x));
-    const problems = rep.problems.map((p) => line('app.print3d.p.' + p.kind, { n: p.n }));
-    const warnings = rep.warnings.map((w) => line('app.print3d.w.' + w.kind, { n: w.n || 0, share: Math.max(1, Math.round((w.share || 0) * 100)), angle: w.angle || 45, x: mm(w.bed?.[0] || 0), y: mm(w.bed?.[1] || 0), z: mm(w.bed?.[2] || 0) }));
-    const body = el('div', { className: 'pc-print' },
-      el('p', { className: 'pc-print-verdict', dataset: { printOk: rep.ok ? '1' : '0' } }, t(rep.ok ? 'app.print3d.ready' : 'app.print3d.notready')),
-      problems.length ? el('ul', { className: 'pc-print-problems', dataset: { printProblems: '' } }, ...problems) : null,
-      warnings.length ? el('ul', { className: 'pc-print-warnings', dataset: { printWarnings: '' } }, ...warnings) : null,
-      el('ul', { className: 'pc-print-facts' },
-        el('li', {}, t(asmMode ? 'app.print3d.what.asm' : 'app.print3d.what.part')),
-        rep.size ? el('li', {}, t('app.print3d.size', { w: mm(rep.size[0]), d: mm(rep.size[1]), h: mm(rep.size[2]) })) : null,
-        rep.volume != null ? el('li', {}, t('app.print3d.volume', { v: mm(rep.volume / 1000) })) : null,
-        el('li', {}, t('app.print3d.tris', { n: rep.triangles })),
-        settings.bed ? null : el('li', {}, t('app.print3d.nobed'))));
-    status(t(rep.ok ? 'app.print3d.ready' : 'app.print3d.notready'));
-    if (!rep.triangles) { await ask({ title: t('app.print3d.title'), body, buttons: [['cancel', t('app.btn.close'), 'pc-btn is-primary']] }); return; }
-    const key = await ask({ title: t('app.print3d.title'), body, buttons: [['cancel', t('app.btn.cancel'), 'pc-btn'], ['stl', t('app.print3d.stl'), 'pc-btn'], ['3mf', t('app.print3d.3mf'), 'pc-btn is-primary']] });
-    if (key === 'stl' || key === '3mf') return asmMode ? asmTools.exportCmd('export-' + key) : exportMesh(key);
-  }
 
-  /** IFC4 with every property: geometry, part properties, parameters, title block, quantities (ifc-export.js; 0.5 WL.32). */
-  function exportIfc() {
-    if (mode === 'sketch') exitSketch();
-    if (!regen?.mesh) { status(t('app.export.no_solid')); return; }
-    const name = fileBase(), r = partIfc(part, regen, { evaluate: evaluateVars, fileName: name + '.ifc' });
-    download(r.text, name + '.ifc', 'application/x-step');
-    status(t('app.export.ifc', { file: name + '.ifc', psets: r.counts.psets, n: r.counts.properties }));
-  }
 
-  /** USD package (.usdz) of the part (usd-partcraft.js on cc-usd, ./usd/; 0.7 XF.8). */
-  async function exportUsd() {
-    if (mode === 'sketch') exitSketch();
-    if (!regen?.mesh) { status(t('app.export.no_solid')); return; }
-    const name = fileBase();
-    const { partUsd } = await import('./usd-partcraft.js');
-    const r = partUsd(part, regen, { format: 'usdz', name: name + '.usdz' });
-    download(new Blob([r.data], { type: 'model/vnd.usdz+zip' }), name + '.usdz', 'model/vnd.usdz+zip');
-    status(t('usd.done', { name: name + '.usdz', n: 1 }));
-  }
 
-  async function exportDrawing() {
-    if (mode === 'sketch') exitSketch();
-    if (mode === 'pick') endPick();
-    await built();
-    if (!regen?.mesh) { status(t('app.drawing.no_solid')); return; }
-    status(t('app.drawing.making'), true);
-    let sheet;
-    if (mode === 'drawing' && drawingState?.sheet && !drawingState.drag) sheet = composeSheet(drawingState.data, { name: part.name, drawing: drawingOf(), annotate: G.annotationGeometry, material: part.material?.name, holes: drawingHoles() });
-    else {
-      let data;
-      try { data = await drawingViewsNow(drawingOf()); } catch (err) { status(t('app.drawing.failed', { error: err.message })); return; }
-      sheet = composeSheet(data, { name: part.name, drawing: drawingOf(), annotate: G.annotationGeometry, material: part.material?.name, holes: drawingHoles() });
-    }
-    const pdf = await drawingPdf(sheet);
-    download(pdf.bytes, fileBase() + ' - drawing.pdf', 'application/pdf');   // i18n-ignore: a file name
-    const extras = Object.keys(sheet.views).filter((k) => ['section', 'detail', 'iso'].includes(k)).map((k) => ({ section: () => t('app.drawing.v_section'), detail: () => t('app.drawing.v_detail'), iso: () => t('app.drawing.v_iso') }[k]()));
-    const nn = sheet.notes.filter((q) => q.box).length;
-    status(t('app.drawing.exported', { scale: scaleLabel(sheet.scale), views: [t('app.drawing.v_front'), t('app.drawing.v_top'), t('app.drawing.v_right'), ...extras].join(', '), notes: nn ? t('app.drawing.gdt_notes', { n: nn }) : '', exact: sheet.exact ? t('app.drawing.exact_views') : '' }));
-  }
 
-  /**
-   * SolidWorks exchange (swmacro.js, brep-xcaf.js): the named, coloured STEP, or the macro that builds the part natively
-   * (+ that STEP on a second click). Built in the exact kernel's worker; without it the macro covers what needs no
-   * face/edge picks and says what it left out. Not yet tested in SolidWorks — every message says so.
-   */
-  async function exportForSw(macro) {
-    if (mode === 'sketch') exitSketch();
-    if (mode === 'pick') endPick();
-    await built();
-    const name = fileBase();
-    const SWM = await import('./swmacro.js');
-    let res = null;
-    if (useExact) {
-      status(macro ? t('app.sw.writing_macro') : t('app.export.writing_step'), true);
-      try { res = await exact.call('swExport', { part, name: part.name || name }); } catch (err) { status(t('app.export.failed', { error: err.message })); return; }
-    } else if (!macro) { status(exactWhy(t('kernel.what.sw_step'), exact.state === 'loading' ? t('app.sw.step_needs_exact_loading') : t('app.sw.step_needs_exact_off'))); return; }
-    const getStep = () => { if (res?.step) { download(res.step.text, name + '.step', 'model/step'); return true; } return false; };
-    if (!macro) {
-      if (!getStep()) { status(t('app.sw.step_failed', { reason: res?.stepError || t('app.sw.no_solid') })); return; }
-      status(t('app.sw.step_done', { file: name + '.step', name: part.name }));
-      return;
-    }
-    const swb = res ? res.swb : SWM.partToSwb(part, { name: part.name || name });
-    download(SWM.toCp1252(swb.text), name + '.swb', 'application/octet-stream');
-    const left = swb.notes.length;
-    status(t('app.sw.macro_done', { file: name + '.swb', carried: swb.stats.carried, features: swb.stats.features, noexact: res ? '' : t('app.sw.without_exact'), notes: left ? t('app.sw.notes', { n: left }) : '' }));
-    const text = [t('app.sw.macro_text', { carried: swb.stats.carried, features: swb.stats.features, vars: t('app.sw.vars', { n: swb.stats.vars }), equations: t('app.sw.equations', { n: swb.stats.equations }) }), ...swb.notes].join(' ');
-    const buttons = [['close', t('app.btn.close'), 'pc-btn']];
-    if (res?.step) buttons.push(['step', t('app.sw.download_step'), 'pc-btn is-primary']);
-    const pickd = await ask({ title: t('app.sw.macro_title'), text: text + ' ' + (res?.step ? t('app.sw.step_beside') : res?.stepError ? t('app.sw.no_step', { error: res.stepError }) : t('app.sw.step_needs_exact')), buttons });
-    if (pickd === 'step') getStep();
-  }
 
-  async function exportStep(schema) {
-    if (mode === 'sketch') exitSketch();
-    if (!useExact) { status(exactOff() ? t('kernel.step.not_built') : exact.state === 'loading' ? t('app.export.step_needs_exact_loading') : t('app.export.step_needs_exact_off')); return; }
-    await built();
-    if (!regen?.mesh) { status(t('app.export.no_solid')); return; }
-    status(t('app.export.writing_step'), true);
-    try {
-      const { text } = await exact.call('step', { part, schema });
-      const name = fileBase();
-      download(text, name + '.step', 'model/step');
-      const c = (re) => (text.match(re) || []).length;
-      status(t('app.export.step_exact', { file: name + '.step', schema, faces: c(/ADVANCED_FACE\(/g), cyl: c(/CYLINDRICAL_SURFACE\(/g), cone: c(/CONICAL_SURFACE\(/g), torus: c(/TOROIDAL_SURFACE\(/g), spline: c(/B_SPLINE_SURFACE/g) }));
-    } catch (err) { status(t('app.export.step_failed', { error: err.message })); }
-  }
 
-  function exportDxf(sf) {
-    let f = sf || editingFeature() || (sel?.kind === 'feature' && P.featureById(part, sel.id)?.type === 'sketch' ? P.featureById(part, sel.id) : null);
-    if (f && f.type === 'sketch') {
-      const d = X.dxfSketch(f.sketch);
-      const name = fileBase() + ' - ' + f.name.replace(/[^A-Za-z0-9 _.-]+/g, '_');
-      download(d.text, name + '.dxf', 'image/vnd.dxf');
-      status(t('app.export.dxf_sketch', { file: name + '.dxf', lines: d.counts.line, arcs: d.counts.arc, circles: d.counts.circle, points: d.counts.point }));
-      return;
-    }
-    if (pick?.kind === 'face' && pick.flat && regen?.mesh) {
-      const grp = view.planarGroups();
-      const fl = faceLoops2D(regen.mesh, grp.groups[pick.group]);
-      const d = X.dxfLoops(fl.loops);
-      download(d.text, fileBase() + ' - face.dxf', 'image/vnd.dxf');   // i18n-ignore: a file name
-      status(t('app.export.dxf_face', { n: fl.loops.length, area: f3(Math.abs(fl.area)) }));
-      return;
-    }
-    status(t('app.export.dxf_nothing'));
-  }
 
   async function newPart() {
     if (mode === 'assembly' || editPartOf) { if (!(await closeAssembly())) return; }
@@ -3189,11 +2494,22 @@ function init(root) {
     await built();
     syncPlanes(); view.view('iso');
     shellKit?.opened(); surfacesChanged(host); nodesChanged(host);
-    const errs = [...regen.results.values()].filter((r) => r.status === 'error').length;
+    const errs = regen ? [...regen.results.values()].filter((r) => r.status === 'error').length : 0;   // no kernel at all: the file is open, nothing is built
     status(errs ? t('app.file.opened_failing', { name, n: part.features.length, errs }) : t('app.file.opened', { name, n: part.features.length }));
   }
 
   ui.file.addEventListener('change', async () => { const f = ui.file.files[0]; ui.file.value = ''; if (f) openFile(f); });
+  // 2026-11-12: the start card's "Try a sample file" button (and the same entry in the command palette): opens a small bracket through the normal open path
+  async function openSample() {
+    try {
+      if (!(await confirmDiscard())) return;
+      const r = await fetch(new URL('./samples/sample-bracket.partcraft.json', import.meta.url));
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      await openText(await r.text(), 'sample-bracket.partcraft.json');
+    } catch (err) { status(t('app.sample.noload', { why: err && err.message ? err.message : String(err) })); }
+  }
+  document.querySelector('[data-hint-sample]')?.addEventListener('click', openSample);
+  { const regSample = () => window.ccPalette?.register?.([{ id: 'partcraft-sample', label: t('ui.hint.trysample'), group: 'file', keywords: 'sample example demo try', run: openSample }]); if (window.ccPalette) regSample(); else window.addEventListener('load', regSample); }
   async function openFile(f) {
     try { if (await addons?.openFromAddon(f)) return; } catch (e) { status(t('app.file.addon_failed', { name: f.name, error: e && e.message ? e.message : String(e) })); return; }   // an add-on's importer
     if (/\.(step|stp)$/i.test(f.name)) { await importStep(f); return; }
@@ -3205,129 +2521,8 @@ function init(root) {
     await openText(await f.text(), f.name);
   }
 
-  /** A STEP file becomes an imported solid: the first feature of a new part, or added to this one. */
-  async function importStep(f) {
-    if (f.size > 60 * 1024 * 1024) { status(t('app.step.too_big')); return; }
-    const text = await f.text();
-    if (!/^\s*ISO-10303-21;/.test(text)) { status(t('app.step.not_step', { name: f.name })); return; }
-    if (exactOff()) { await importMesh(f, { step: true }); return; }   // no exact kernel in this build: read as triangles (D7.26)
-    if (exact.state !== 'ready') {
-      ui.busy.hidden = false; ui.busyText.textContent = t('app.step.loading_exact');
-      try { await exact.start(); } catch { ui.busy.hidden = true; await importMesh(f, { step: true }); return; } finally { ui.busy.hidden = true; }
-    }
-    let info;
-    try { info = await exact.call('stepInfo', { text }); } catch (err) { await ask({ title: t('app.step.cannot_import', { name: f.name }), text: err.message, buttons: [['cancel', t('app.btn.ok'), 'pc-btn is-primary']] }); return; }
-    let into = 'new';
-    if (part.features.length) {
-      into = await ask({ title: t('app.step.import_title', { name: f.name }), text: t('app.step.import_text', { n: info.solids, faces: info.faces, part: part.name }), buttons: [['cancel', t('app.btn.cancel'), 'pc-btn'], ['add', t('app.step.add_to_part'), 'pc-btn'], ['new', t('app.step.new_part'), 'pc-btn is-primary']] });
-      if (into === 'cancel') return;
-      if (into === 'new' && !(await confirmDiscard())) return;
-    }
-    if (mode === 'sketch') exitSketch();
-    if (mode === 'pick') endPick();
-    if (mode === 'drawing') leaveDrawing();
-    if (into === 'new') {
-      part = P.newPart(f.name.replace(/\.(step|stp)$/i, '').replace(/[\u0000-\u001f]/g, '').slice(0, 120) || 'Imported');   // i18n-ignore: a default part name saved in the file (data)
-      hist.clear(); dirty = false; sel = null; pick = null;
-    }
-    const g = commit(t('app.undo.import_step'), () => P.addFeature(part, 'import', { file: f.name.slice(0, 200), step: text, up: 'z' }));
-    sel = { kind: 'feature', id: g.id };
-    view.setPlanesVisible(false);
-    await built();
-    renderAll(); view.view('iso');
-    const r = regen.results.get(g.id);
-    status(r?.status === 'ok' ? t('app.step.imported', { name: f.name, n: info.solids, faces: info.faces, vol: f3(info.volume) }) : t('app.feature.error', { name: g.name, error: r?.message || t('app.step.not_built') }), true);
-  }
 
-  /** An STL / OBJ / 3MF mesh becomes a solid body (D7.49): read, repaired (meshimport.js), shown with what was repaired and what
-   *  stays open, then the first feature of a new part or a body added to (cut from, intersected with) this one. `step`: a STEP
-   *  file read as triangles by cc-step (step/read.js, D7.26) when there is no exact kernel; its solids become one mesh in mm. */
-  /** File › Open a .kicad_pcb (0.8 SU.897): the board and its parts as boxes with a height each (Parameters › h_<reference>). */
-  async function importKicadBoard(f) {
-    let made;
-    try {
-      const text = f.text ? await f.text() : await f.arrayBuffer().then((b) => new TextDecoder().decode(b));
-      made = (await import('./kicad.js')).importKicad(text, f.name);
-    } catch (err) {
-      await ask({ title: t('app.kicad.cannot_open', { name: f.name }), text: String(err && err.message ? err.message : err), buttons: [['cancel', t('app.btn.ok'), 'pc-btn is-primary']] });
-      return;
-    }
-    await openText(P.toJSON(made.part), made.part.name);
-    dirty = true;   // a new part made from the board, not a file on disk yet
-    status(t('app.kicad.opened', { name: f.name, parts: made.board.parts.length }));
-    await ask({ title: t('app.kicad.report', { name: f.name }), text: made.report.join(' '), buttons: [['cancel', t('app.btn.ok'), 'pc-btn is-primary']] });
-  }
 
-  async function importMesh(f, { step = false, threedm = false } = {}) {
-    if (!step && f.size > MI.MAX_BYTES) { status(t('mesh.err.too_big', { mb: Math.round(MI.MAX_BYTES / 1048576) }), true); return; }
-    ui.busy.hidden = false; ui.busyText.textContent = t(step ? 'app.step.reading' : threedm ? 'ccdm.part.reading' : 'app.mesh.reading', { name: f.name });
-    let read, fixed;
-    try {
-      await new Promise((r) => setTimeout(r, 30));   // let the busy note paint
-      const bytes = f.bytes ? await f.bytes() : new Uint8Array(await f.arrayBuffer());   // a host file (host.js) or a File
-      read = step ? MI.meshFromStep((await import('./step/read.js')).readStep(bytes)) : threedm ? (await import('./mesh3dm.js')).meshFrom3dm(bytes) : await MI.readMeshFile(bytes, f.name);
-      fixed = MI.repairMesh(read);
-    } catch (err) {
-      ui.busy.hidden = true;
-      const why = err && err.code ? t(err.code, err.vars) : String(err && err.message ? err.message : err);
-      await ask({ title: t('app.mesh.cannot_open', { name: f.name }), text: why, buttons: [['cancel', t('app.btn.ok'), 'pc-btn is-primary']] });
-      return;
-    } finally { ui.busy.hidden = true; }
-    const rep = fixed.report, fmt = read.format.toUpperCase();
-    const lines = MI.reportLines(rep, read.notes).filter((l) => !(step && l.key === 'mesh.rep.welded')).map((l) => t(l.key, l.vars));   // a STEP's faces always share their edge points: joining them is no repair
-    // the size here, with the units and up axis picked below
-    let lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
-    for (let i = 0; i < fixed.positions.length; i += 3) for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], fixed.positions[i + k]); hi[k] = Math.max(hi[k], fixed.positions[i + k]); }
-    const choice = { units: read.unit || 'mm', up: 'z', op: 'add' };
-    const sizeLine = el('li', { dataset: { meshSize: '' } });
-    const showSize = () => {
-      const s = MI.UNITS[choice.units], d = [0, 1, 2].map((k) => (hi[k] - lo[k]) * s);
-      const [x, y, z] = choice.up === 'z' ? [d[0], d[2], d[1]] : d;
-      sizeLine.textContent = t('app.mesh.size', { x: f3(x), y: f3(y), z: f3(z) });
-    };
-    showSize();
-    const pickRow = (label, options, key, extra) => {
-      const sel = el('select', { className: 'pc-input', 'aria-label': label, dataset: { meshPick: key } }, ...options.map(([v, l]) => el('option', { value: v, selected: v === choice[key] }, l)));
-      sel.addEventListener('change', () => { choice[key] = sel.value; showSize(); });
-      return el('label', { className: 'pc-mesh-row' }, el('span', {}, label), sel, extra || null);
-    };
-    const adding = part.features.length > 0;
-    const st = read.step;
-    const body = el('div', { className: 'pc-mesh', dataset: { meshImport: '' } },
-      st ? el('p', { dataset: { stepFacts: '' } }, t('app.step.read_facts', { n: st.counts.solids, solids: st.counts.solids, faces: st.counts.faces, schema: st.schema === 'other' ? 'STEP' : st.schema })) : null,
-      read.threedm ? el('p', { dataset: { threedmFacts: '' } }, t('ccdm.part.facts', { n: read.threedm.objects, cached: read.threedm.cached, ours: read.threedm.ours })) : null,
-      st && st.counts.instances > st.counts.solids ? el('p', {}, t('app.step.read_placed', { n: st.counts.instances })) : null,
-      el('p', {}, t('app.mesh.facts', { n: rep.triangles, pts: rep.vertices, fmt })),
-      el('ul', { className: 'pc-mesh-report', dataset: { meshReport: '' } }, ...(lines.length ? lines : [t('app.mesh.nothing_fixed')]).map((s) => el('li', {}, s))),
-      el('p', { className: 'pc-mesh-verdict', dataset: { meshClosed: rep.closed ? '1' : '0' } }, t(rep.closed ? 'app.mesh.closed' : 'app.mesh.not_closed')),
-      rep.closed ? el('div', { className: 'pc-mesh-picks' },
-        pickRow(t('app.mesh.units'), Object.keys(MI.UNITS).map((u) => [u, t('app.mesh.unit.' + u)]), 'units', read.unit ? el('small', {}, t('app.mesh.units_from_file')) : null),
-        pickRow(t('app.import.up_in_file'), [['z', t('app.import.z_up')], ['y', t('app.import.y_up')]], 'up'),
-        adding ? pickRow(t('app.mesh.op'), ['add', 'cut', 'intersect'].map((o) => [o, t('app.mesh.op.' + o)]), 'op') : null,
-        el('ul', { className: 'pc-mesh-size' }, sizeLine)) : null);
-    if (!rep.closed) { await ask({ title: t('app.mesh.title', { name: f.name }), body, buttons: [['cancel', t('app.btn.close'), 'pc-btn is-primary']] }); return; }
-    const into = await ask({ title: t('app.mesh.title', { name: f.name }), body, buttons: adding
-      ? [['cancel', t('app.btn.cancel'), 'pc-btn'], ['new', t('app.step.new_part'), 'pc-btn'], ['add', t('app.step.add_to_part'), 'pc-btn is-primary']]
-      : [['cancel', t('app.btn.cancel'), 'pc-btn'], ['new', t('app.mesh.open'), 'pc-btn is-primary']] });
-    if (into === 'cancel') return;
-    if (into === 'new' && adding && !(await confirmDiscard())) return;
-    if (mode === 'sketch') exitSketch();
-    if (mode === 'pick') endPick();
-    if (mode === 'drawing') leaveDrawing();
-    if (into === 'new') {
-      part = P.newPart(f.name.replace(/\.(stl|obj|3mf|step|stp|3dm)$/i, '').replace(/[\u0000-\u001f]/g, '').slice(0, 120) || 'Imported');   // i18n-ignore: a default part name saved in the file (data)
-      hist.clear(); dirty = false; sel = null; pick = null;
-      choice.op = 'add';
-    }
-    const g = commit(t('app.undo.import_mesh'), () => P.addFeature(part, 'import', { file: f.name.slice(0, 200), mesh: MI.encodeMesh(fixed), units: choice.units, up: choice.up, op: choice.op, report: rep }));
-    sel = { kind: 'feature', id: g.id };
-    view.setPlanesVisible(false);
-    await built();
-    renderAll(); view.view('iso');
-    const r = regen.results.get(g.id);
-    const flats = regen.faces ? new Set(regen.faces.filter((x) => (x.name || '').startsWith(g.id + '.flat:')).map((x) => x.name)).size : 0;
-    status(r?.status === 'ok' ? t('app.mesh.done', { name: f.name, vol: f3(regen.stats?.volume || 0), n: flats }) : t('app.feature.error', { name: g.name, error: r?.message || t('app.step.not_built') }), true);
-  }
 
   const stage = $('[data-stage]');
   let dragDepth = 0;
@@ -3349,9 +2544,10 @@ function init(root) {
   // moment later. Saving, New, Open and closing clear `dirty` / `asmDirty`, and the watcher below then drops the copy.
   const autosave = new Autosave({ app: 'partcraft' });
   const asmShown = () => !!asm && !editPartOf;
-  const adoc = autosave.doc({ id: 'open', name: fileBase(), snapshot: async () => (asmShown()
-    ? { data: { kind: 'assembly', text: A.toJSON(asm) }, meta: { name: (asm.name || 'assembly') + '.partcraft-asm.json' } }
-    : { data: { kind: 'part', text: P.toJSON(part) }, meta: { name: fileBase() + '.partcraft.json' } }) });
+  // 0.10 PERF.24: the first copy is the whole document, then only the chunks each edit changed (lib/history); the history that is followed is the shown document's
+  const adoc = autosave.doc({ id: 'open', name: fileBase(), journal: followJournal(() => (asmShown()
+    ? asmHist.journal(() => asm, () => ({ docKind: 'assembly', name: (asm.name || 'assembly') + '.partcraft-asm.json' }))
+    : hist.journal(() => part, () => ({ docKind: 'part', name: fileBase() + '.partcraft.json' })))) });
   let copyPending = false;
   const noteChange = () => {
     if (!(dirty || asmDirty)) return;
@@ -3363,9 +2559,13 @@ function init(root) {
   ready.then(() => autosave.offer({
     onRecover: async (rec) => {
       const d = rec.data;
-      if (!d || typeof d.text !== 'string') throw new Error('This copy is empty.');   // i18n-ignore: shown by the shell's dialog for a damaged copy
-      await openText(d.text, rec.meta?.name || rec.name || t('app.file.recovered'));
-      if (d.kind === 'assembly') asmDirty = true; else dirty = true;   // recovered work is not saved to a file yet
+      const chunks = d && d.kind === 'chunks';   // 0.10: a base and its changes
+      const docKind = chunks ? rec.meta?.docKind : d?.kind;
+      let text = d?.text;
+      if (chunks) { const doc = recoverState(rec, P.HISTORY_SPEC); text = docKind === 'assembly' ? A.toJSON(doc) : P.toJSON(doc); }
+      if (typeof text !== 'string') throw new Error('This copy is empty.');   // i18n-ignore: shown by the shell's dialog for a damaged copy
+      await openText(text, rec.meta?.name || rec.name || t('app.file.recovered'));
+      if (docKind === 'assembly') asmDirty = true; else dirty = true;   // recovered work is not saved to a file yet
       noteChange(); renderAll();
     },
   }));
@@ -3754,7 +2954,13 @@ function init(root) {
     if (/^[0-9.]$/.test(e.key) && !e.altKey && mode === 'model' && ws === WS.DESIGN && sel?.kind === 'feature') {
       const f = P.featureById(part, sel.id), main = f && MAIN_NUMBER[f.type];
       const inp = main && ui.props.querySelector(`[data-param-key="${f.id}.${main}"]`);
-      if (inp && !inp.disabled) { e.preventDefault(); inp.focus(); inp.value = e.key; inp.setSelectionRange(1, 1); status(t('app.feature.type_main', { name: f.name })); return; }
+      if (inp && !inp.disabled) {
+        e.preventDefault(); inp.focus(); inp.value = e.key; inp.setSelectionRange(1, 1); status(t('app.feature.type_main', { name: f.name }));
+        // FX.252: the box now belongs to the shared property grid, which sets a value on "change". A browser sends no "change" on Enter for a
+        // value put there by code (the first digit), so a single typed digit was never set. Enter in this box now says "change" itself.
+        if (!inp.ccEnterSets) { inp.ccEnterSets = true; inp.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') { ev.preventDefault(); inp.dispatchEvent(new Event('change', { bubbles: true })); } }); }
+        return;
+      }
     }
     if (tgt && tgt.closest && tgt.closest('.pc-tree') && (e.altKey || e.key.startsWith('Arrow'))) return;
     if (stackup?.active && stackup.keydown(e)) { e.preventDefault(); return; }
@@ -3836,6 +3042,7 @@ function init(root) {
   mountPartAccess({ part: () => part, regen: () => regen, stage: ui.tree, status: ui.status, facts: () => [...(ui.facts?.querySelectorAll('dt') || [])].map((dt) => dt.textContent.trim() + ' ' + (dt.nextElementSibling?.textContent || '').trim()).filter((x) => /\S\s+\S/.test(x)).join('. ') + '.', sel: () => sel,
     selectFeature: (id) => selectFeature(id), partName: () => part.name || fileBase(), labelOf: (f) => f.name || P.FEATURE_LABELS[f.type] || f.type });   // EG.52
   window.partcraft = {
+    get exportSet() { return exportSet; },   // Finalize and export in SuperCad Studio (SC.7)
     ready, built, asmBuilt, exact, get useExact() { return useExact; }, get multi() { return multi; }, get drawing() { return drawingState; }, startPick, endPick, enterDrawing, leaveDrawing, drawingClick, G,
     exactReady: () => (exactOff() ? built() : exact.start().then(() => built())),   // no exact kernel (0.4): the mesh kernel's build
     viewCube, axisIcon, cubeView: cubeOpts.getView, get settings() { return settings; },
@@ -3888,5 +3095,8 @@ function init(root) {
     import('./workspace-partcraft.js').then((m) => m.mountPartcraftWorkspace(root))
       .catch((e) => { document.documentElement.removeAttribute('data-cc-ws-boot'); console.warn('layouts did not start:', e); });   // i18n-ignore: a developer message
   }
+  // 0.10 BK.179 / SU.1814 (bim-part-link-10): a part sent from BimCraft opens here with the building around it; Save back sends it home
+  bimLink = mountBimLink({ t, status: (m, bad) => status(m, bad), P, MI, THREE, view, part: () => part, openPartText: (text, name) => openText(text, name), regenMesh: () => regen?.mesh || null, markDirty: () => { dirty = true; }, chip: $('[data-bim-link]') });
+  ready.then(() => bimLink.receive()).catch((e) => console.warn('part link:', e));   // i18n-ignore: a developer message
   renderAll();
 }

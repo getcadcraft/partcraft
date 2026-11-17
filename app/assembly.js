@@ -760,6 +760,8 @@ export function motionCheck(asm, builds, M, jointId, from, to, steps = 12, key =
 const num = (v) => typeof v === 'number' && Number.isFinite(v) && Math.abs(v) < 1e9;
 const text = (s, max = 120) => String(s ?? '').replace(/[\u0000-\u001f\u007f]/g, '').slice(0, max);
 
+/** What one assembly file may hold (readAssembly): placing is linear since the id map (PERF.40); the browser's memory is the limit. */
+export const MAX_INSTANCES = 50000, MAX_JOINTS = 100000;
 /** Check an opened assembly file; returns a clean assembly or throws Error. */
 export function readAssembly(raw) {
   let j = raw;
@@ -778,13 +780,16 @@ export function readAssembly(raw) {
     try { part = readPart(p.part); props = readPartProps(p); } catch (e) { throw new Error(t('model.assembly.file.part_problem', { name: text(p.name) || pid, message: e.message })); }
     asm.parts[pid] = { name: text(p.name) || part.name, part, ...props };
   }
-  if (!Array.isArray(j.instances) || j.instances.length > 50000) throw new Error(t('model.assembly.file.no_instances'));
+  if (!Array.isArray(j.instances)) throw new Error(t('model.assembly.file.no_instances'));
+  // FX (0.10 PERF.40): a file over the cap said "no instance list"; it says how many it has and how many PartCraft opens
+  if (j.instances.length > MAX_INSTANCES) throw new Error(t('model.assembly.file.too_many_instances', { n: j.instances.length.toLocaleString('en-US'), max: MAX_INSTANCES.toLocaleString('en-US') }));
   for (const i of j.instances) {
     if (!asm.parts[i.part]) throw new Error(t('model.assembly.file.inst_missing_part'));
     if (!Array.isArray(i.place) || i.place.length !== 16 || !i.place.every(num)) throw new Error(t('model.assembly.file.inst_bad_place'));
     asm.instances.push({ id: take(i.id, /^i\d{1,9}$/), part: i.part, name: text(i.name, 80) || i.id, place: [...i.place] });
   }
-  if (!Array.isArray(j.joints) || j.joints.length > 100000) throw new Error(t('model.assembly.file.no_joints'));
+  if (!Array.isArray(j.joints)) throw new Error(t('model.assembly.file.no_joints'));
+  if (j.joints.length > MAX_JOINTS) throw new Error(t('model.assembly.file.too_many_joints', { n: j.joints.length.toLocaleString('en-US'), max: MAX_JOINTS.toLocaleString('en-US') }));
   const insts = new Set(asm.instances.map((i) => i.id));
   const end = (e) => {
     if (!e || !insts.has(e.inst)) throw new Error(t('model.assembly.file.joint_missing_part'));

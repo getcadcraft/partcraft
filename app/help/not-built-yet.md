@@ -22,7 +22,7 @@ This version builds every part with the mesh kernel (see [The mesh kernel](topic
 | Several bodies: {{ui:Combine}}, {{ui:Move body}}, {{ui:Scale body}}, {{ui:Path pattern}}, features that make a new body | One solid; patterns and mirror copy features |
 | Sketches, planes, axes and points on faces that only an exact kernel can find (a face made by a fillet, a hole wall, a face of an imported solid) | Sketch on base planes, reference planes and the flat faces of extrudes and revolves |
 | A generative design outcome opened as a part or added to it (it becomes an imported solid) | Download the outcome as STL or STEP |
-| Opening STEP files with their curved faces kept exact, exact STEP export (AP242, AP214), STEP for other part modelers | {{ui:Open}} reads STEP as triangles ([Open a STEP file](topic:import-step)); {{ui:Export}} › {{ui:STEP (faceted, mesh kernel)}}, STL or 3MF; the macro for another part modeler still writes |
+| Editing an opened STEP file's curved faces as exact surfaces; exact STEP of spline, swept and revolved faces from a STEP file, spline sides, modelled threads, STL / OBJ / 3MF bodies and assemblies; STEP for other part modelers | {{ui:Open}} reads STEP as triangles and keeps the file's flat faces, cylinders, cones, spheres and tori for the export ([Open a STEP file](topic:import-step)); {{ui:Export}} › {{ui:STEP AP242 (exact solid)}} writes every analytic face exactly and keeps those as facets ([Export](topic:export-files#for-other-cad-programs-step)); the macro for another part modeler still writes |
 | True arcs in drawing views | Views and section views are drawn from the facets |
 | Exact volumes, areas and distances | {{ui:Measure}} gives the faceted solid's numbers, a little low on round parts; a finer **Curves** setting brings them closer |
 
@@ -162,7 +162,7 @@ Report what you miss most through the site's support page: it shapes what comes 
 | Not built yet | Instead, today |
 |---|---|
 | Headers, ports and fittings on the generated heat exchanger; temperature curves for material strength; tee losses in the manifold | The generators build the core and the tubes; add fittings in Design; use the material's room-temperature figures with a safety factor |
-| Installing generators from the add-on directory with one click | {{ui:Open}} in the Engineer workspace adds a generator from a file |
+| Adding generators from the add-on directory with one click | {{ui:Open}} in the Engineer workspace adds a generator from a file |
 | A field file finer than the generator's own voxel size; reading `.vdb` files in | Save a finer field from a script; `.vdb` is written, not read |
 | Pressure-vessel code calculations | The textbook thin-wall and thick-wall formulas, with the safety factor you choose; not a code margin |
 | Generators for the other apps | PartCraft only in this version |

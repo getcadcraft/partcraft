@@ -223,6 +223,8 @@ $__tools = [
                 <button type="button" role="menuitem" data-cmd="export-step-faceted"><?= Lang::e('ui.tb.export.step_faceted') ?></button>
                 <button type="button" role="menuitem" data-cmd="export-step214-faceted"><?= Lang::e('ui.tb.export.step214_faceted') ?></button>
                 <button type="button" role="menuitem" data-cmd="export-ifc" title="<?= Lang::e('ui.tb.export.ifc.title') ?>"><?= Lang::e('ui.tb.export.ifc') ?></button>
+                <?php /* 0.10 SU.1814 (bim-part-link-10): part-link-pc.js. The command works only for a part that came from BimCraft (part.bimLink). */ ?>
+                <button type="button" role="menuitem" data-cmd="link-save-back" title="<?= Lang::e('partlink.pc.menu_title') ?>"><?= Lang::e('partlink.pc.menu') ?></button>
                 <button type="button" role="menuitem" data-cmd="export-usd" title="<?= Lang::e('usd.export.title') ?>"><?= Lang::e('usd.menu.usdz') ?></button><?php /* 0.7 XF.8 (session usd): usd-partcraft.js */ ?>
                 <button type="button" role="menuitem" data-cmd="export-sw-step" title="<?= Lang::e('ui.tb.export.sw_step.title') ?>"><?= Lang::e('ui.tb.export.sw_step') ?></button>
                 <button type="button" role="menuitem" data-cmd="export-sw-macro" title="<?= Lang::e('ui.tb.export.sw_macro.title') ?>"><?= Lang::e('ui.tb.export.sw_macro') ?></button>
@@ -277,6 +279,7 @@ $__tools = [
         <li><?= $__lx('ui.hint.3', ['exit' => '<strong>' . Lang::e('ui.tb.sketch.exit_sketch') . '</strong>', 'extrude' => '<strong>' . Lang::e('ui.tb.features.extrude') . '</strong>', 'revolve' => '<strong>' . Lang::e('ui.tb.features.revolve') . '</strong>']) ?></li>
         <li><?= $__lx('ui.hint.4', ['file' => '<code>.partcraft.json</code>']) ?></li>
       </ol>
+      <p class="pc-hint-sample"><button type="button" class="btn-line btn-sm-cc" data-hint-sample><i class="bi bi-lightning-charge" aria-hidden="true"></i> <?= Lang::e('ui.hint.trysample') ?></button></p>
       <div data-recent-files data-max="6"></div>
     </div>
     <div class="pc-sheet" data-sheet hidden></div>
@@ -318,6 +321,7 @@ $__tools = [
     <output class="pc-coords" data-coords></output>
     <span class="pc-status-msg" data-status role="status" aria-live="polite"></span>
     <span class="pc-chip" data-kernel title="<?= Lang::e('ui.status.kernel.title') ?>"></span>
+    <span class="pc-chip" data-bim-link hidden></span>
     <span class="pc-chip" data-build-state></span>
   </footer>
 </main>

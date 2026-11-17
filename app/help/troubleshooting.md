@@ -65,7 +65,7 @@ Wait a little on a slow connection: the kernel and the 3D library are downloaded
 - Sketch tools work only inside a sketch.
 - {{ui:Undo}} and {{ui:Redo}} are grayed when there is nothing to undo or redo.
 - {{ui:Assembly}} needs a part with a solid. {{ui:Joint}} needs two parts in the assembly. {{ui:Edit part}} needs a part selected.
-- {{ui:STEP AP242 (exact solid)}} and {{ui:STEP AP214 (exact solid)}} are always grayed: exact STEP is not built yet in this version. Use {{ui:STEP (faceted, mesh kernel)}}.
+- {{ui:STEP AP242 (exact solid)}} and {{ui:STEP AP214 (exact solid)}} are grayed in an assembly: export each part. Another program refuses the exact file: try {{ui:STEP AP214 (exact solid)}}, then {{ui:STEP (faceted, mesh kernel)}}, and tell us through {{ui:Help}} › {{ui:Report a problem}}.
 - {{ui:Sweep}}, {{ui:Loft}} and the other features that need an exact kernel are not grayed: they stay clickable, their tooltips end with "not built yet (needs an exact kernel)", and clicking one says so in the status bar. See [What is not built yet](topic:not-built-yet).
 - {{ui:Drawing}} needs a part with a solid, and is grayed while a sketch is open.
 - {{ui:Export}} items are grayed in an assembly: assemblies cannot be exported yet. Close it, or edit a part, to export.

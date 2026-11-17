@@ -2,7 +2,7 @@
 title: PartCraft ekrani
 summary: Har bir panel va satrning turi: asboblar paneli va u qanday oʻzgarishi, tarix, detal faktlari, 3D koʻrinish, xususiyatlar paneli va holat satri.
 keywords: ekran, tartib, asboblar paneli, tarix, xususiyatlar daraxti, xususiyatlar, panel, holat satri, interfeys, ui, tur, toʻliq ekran
-from: 7394fc49
+from: 5b5bb843
 ---
 
 Ekranda beshta qism bor: yuqorida asboblar paneli, chapda tarix, oʻrtada 3D koʻrinish, oʻngda xususiyatlar paneli va pastda holat satri. Ularning hammasidan yuqorida CadCraft ilova paneli turadi.

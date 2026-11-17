@@ -80,6 +80,8 @@ Select the feature and type a new **Name** at the bottom of the right panel (up 
 
 A part with hundreds of features is tested at 750. PartCraft keeps the solid it had part-way through the history, so a change late in the history rebuilds only the features after it; a change near the top rebuilds everything built on it, which takes longest. Undo and redo rebuild only from where the two states differ. To work faster on a big part, roll back to where you are working (see Roll back above) or suppress what you do not need for now. Several cuts and bosses that do not touch each other are applied together, so a part made of many separate holes and bosses builds quicker than the number of features suggests.
 
+A big part rebuilds in the background: the build chip at the bottom says **Rebuilding…** with how far it has got, and the view, the panels and the menus keep working while it runs. The part on screen is the last one built until the new one is ready. If you change something again while it rebuilds, PartCraft builds the newest version and drops the one in progress. A small part still rebuilds at once.
+
 ## Undo and redo
 
 - {{key:Mod+Z}} or {{ui:Undo}} undoes the last change: a feature, a setting, a sketch edit, a drag. The status bar says what, for example "Undid change dimension."

@@ -2,7 +2,7 @@
 title: Isikrini se-PartCraft
 summary: Ukuhambisa kuzo zonke ibha namaphaneli: ibha yamathuluzi nendlela eshintsha ngayo, umlando, izinto zengxenye, i-view ye-3D, ipaneli yezakhiwo nebha yesimo.
 keywords: isikrini, ukwakheka, ibha yamathuluzi, umlando, umlando wezici, izakhiwo, ipaneli, ibha yesimo, interface, ui, ukuhambisa, isikrini esigcwele
-from: 7394fc49
+from: 5b5bb843
 ---
 
 Isikrini sinezingxenye ezinhlanu: ibha yamathuluzi phezulu, umlando ngakwesobunxele, i-view ye-3D phakathi, ipaneli yezakhiwo ngakwesokudla kanye nebha yesimo ngaphansi. Phezu kwakho konke kuhlezi i-app bar ye-CadCraft.

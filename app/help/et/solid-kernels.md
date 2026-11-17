@@ -1,37 +1,37 @@
 ---
-title: Võrgutuum
-summary: See PartCrafti versioon ehitab iga osa brauseris töötava võrgutuumaga. Mida see tähendab ümarate pindade, mahtude ja failide jaoks, kuidas näha, et see töötab, ja millised elemendid ootavad täpset tuuma.
-keywords: tuum, võrk, manifold, täpne, b-rep, tahkudeks jaotatud, kõverused, opencascade, occt, ümardus vajab täpset, pole veel ehitatud, võrguväline, webassembly
-from: 68d32d16
+title: Võrgusilma tuum
+summary: See PartCraft-i versioon ehitab iga detaili võrgusilma tuumaga, mis töötab sinu brauseris. Mida see tähendab ümarate tahkude, mahtude ja failide jaoks, kuidas tead, et see töötab, ja millised funktsioonid ootavad täpset tuuma.
+keywords: tuum, võrgusilm, manifold, täpne, b-rep, tahkudeks jaotatud, kõverad, opencascade, occt, ümardus vajab täpset, pole veel loodud, võrguta, webassembly
+from: f931645c
 ---
 
-Geomeetriatuum on mootor, mis muudab sinu ajaloo tahkiseks. Selle PartCrafti versiooni tuum on **võrgutuum** (manifold-3d). See töötab sinu arvutis väikese WebAssembly-programmina ja on valmis hetk pärast rakenduse avanemist. Sinu osa kohta ei saadeta midagi kuhugi.
+Geomeetriatuum on mootor, mis muudab sinu ajaloo tahkiseks. Sellel PartCraft-i versioonil on üks: **võrgusilma tuum** (manifold-3d). See töötab sinu arvutis väikese WebAssembly-programmina ja on valmis hetk pärast rakenduse avamist. Midagi sinu detailist ei saadeta kuhugi.
 
-| | Võrgutuum |
+| | Võrgusilma tuum |
 |---|---|
-| Ümarad kujundid | Lamedad tahud. **Kõverused** osa paneelil määrab, kui peen |
-| Mahud ja pindalad | Tahkudeks jaotatud tahkise järgi, ümaratel osadel veidi väiksemad |
-| Visandid, väljapressimine, lõikamine, pööramine, augud, massiivid, peegeldus, abitasandid | Jah |
-| Ümardus ja faas | Sirgetel servadel lamedate tahkude vahel; kokku jooksvad ümardused on kaldlõigatud |
-| Koor ja tõmbenurk | Koor avab lamedad tahud (täpne seina paksus); Tõmbenurk kallutab lamedaid tahke |
-| Eksportid | STL, 3MF, STEP (tahkudeks jaotatud), joonise PDF ja DXF |
-| Joonise vaated | Joonistatud tahkudest, sh lõikevaated |
-| Tahud ja servad | Nimetatud ja tuntud liigi järgi (lame, silinder, koonus, sfäär, toroid; sirge, ring), võetud visanditest: töötsoonid Simulatsioon, Generatiivne ja Valmistus, Mõõda, valimine ja augutabel kasutavad neid |
+| Ümarad kujud | Lamedad tahud. **Kõverused** detaili paneelil määrab, kui peenelt |
+| Mahud ja pinnad | Tahkudeks jaotatud tahkisest, ümarate detailide puhul veidi väiksem |
+| Visandid, ekstrudeerimine, lõikamine, pööramine, augud, mustrid, peegeldus, referentstasandid | Jah |
+| {{ui:Ümardus}} ja faas | Sirgetel servadel lamedate tahkude vahel; kokkupuutuvad ümardused on mitreeritud |
+| Kest ja tõmme | Kest avab lamedad tahud (täpne seinapaksus); tõmme kallutab lamedaid tahke |
+| Eksport | STL, 3MF, STEP (täpne: ümarad tahud kirjutatakse oma tõelistel pindadel või tahkudeks jaotatult), jooniste PDF ja DXF |
+| Joonistusvaated | Joonistatakse tahkudest, sealhulgas lõikevaated |
+| Tahud ja servad | Nimetatud ja tuntud liigi järgi (tasane, silinder, koonus, sfäär, toroid; sirge, ringjoon), võetud visanditest: töölauad Simulation, Generative ja Manufacture, {{ui:Mõõda}}, valimine ja augutabel kasutavad neid |
 
-Olekuriba paremas servas olev kiip ütleb **Võrgutuum**, kui see sinu osa ehitab.
+Olekuriba parema otsa lähedal olev märk ütleb **Mesh kernel**, kui see detaili ehitab.
 
-## Mida ootab täpne tuum
+## Mis ootab täpset tuuma
 
-Täpne (B-rep) tuum hoiab tõelisi ringe, silindreid ja koonuseid ning sujuvaid ümardusi mis tahes servadel. Sellel on ehitatud pühkimised, loftid, pinnad, lehtmetall, ribid, mitu tahkist, STEP-import ja täpne STEP-eksport. Varasemad PartCrafti labori versioonid kasutasid selleks OpenCascade'i. Selle litsents (LGPL) ei sobi sellele väljalaskele, kus iga rakendus on Apache-2.0 ja kasutab ainult lubavalt litsentseeritud teeke, seega seda ei ole kaasatud. Sellele pole kuupäeva.
+Täpne (B-rep) tuum säilitab tõelised ringjooned, silindrid ja koonused ning sujuvad ümardused mis tahes servas; pühkimised, loftid, pinnad, lehtmetall, ribid, mitu kehandit ja STEP-import kõverate tahkudega, mis jäävad täpseks, ehitatakse sellel. (Täpne STEP-eksport ei oota seda: võrgusilma tuum teab iga tahu tõelist pinda visandist ja eksport kirjutab need.) Varasemad PartCraft-i labori versioonid kasutasid selleks OpenCascade'i. Selle litsents (LGPL) ei sobi sellele väljaandele, kus iga rakendus on Apache-2.0 ja kasutab ainult lubavalt litsentseeritud teeke, seega seda ei ole kaasas. Millelegi siin ei ole kuupäeva.
 
-Kuni selleni ütlevad need funktsioonid valimisel **Pole veel ehitatud**: olekuriba ütleb põhjuse ja nende nuppude tööriistavihjed lõpevad tekstiga „pole veel ehitatud (vajab täpset tuuma)“. [Mida veel ei ole ehitatud](topic:not-built-yet) loetleb igaühe ja ütleb, mida selle asemel teha.
+Kuni selleni ütlevad need funktsioonid, kui sa neid valid, **Pole veel loodud**: olekuriba ütleb põhjuse ja nende nuppude tööriistavihjed lõpevad sõnadega „pole veel loodud (vajab täpset tuuma)“. [Mis pole veel loodud](topic:not-built-yet) loetleb igaühe ja ütleb, mida selle asemel teha.
 
-Varasema versiooniga tehtud osa avaneb ikka. Need elemendid jäävad ajalukku märgituna kui pole ehitatud (too hiirega ühe kohale, et näha põhjust), ülejäänud osa ehitatakse ja salvestamine jätab need muutmata.
+Varasemas versioonis tehtud detail, millel need funktsioonid on, avaneb ikka. Need funktsioonid jäävad ajalukku märgituna kui pole loodud (hoia kursorit ühe kohal, et näha põhjust), ülejäänud detail ehitub ja salvestamine jätab need muutmata.
 
-## Ümarad pinnad ja kõverused
+## Ümarad tahud ja kõverused
 
-Võrgutuum joonistab ringi hulknurgana. **Kõverused** osa paneelil määrab, mitme küljega täisring on. Rohkem külgi näeb sujuvam välja ja mõõdab tõelisele väärtusele lähemal, kuid kauem ehitada. Mahud, pindalad ja kaugused, mis tulevad {{ui:Mõõda}}st, on selle tahkudeks jaotatud tahkise omad: augu või väljaulatuva osa puhul on need natuke väiksemad kui ümara kuju omad.
+Võrgusilma tuum joonistab ringjoone hulknurgana. **Kõverused** detaili paneelil määrab, mitu külge täisringil on; rohkem külgi näeb sujuvam välja ja mõõdab täpsemat väärtust, kuid ehitub kauem. Mahud, pinnad ja kaugused {{ui:Mõõda}} järgi on selle tahkudeks jaotatud tahkise omad: augu või ümara ülemineku puhul on need veidi väiksemad kui ümara kuju omad.
 
-## Võrgus ja võrguvälisena
+## Võrgus ja võrguta
 
-Võrgutuum on osa rakenduse enda allalaadimisest. Ilma ühenduseta töötamiseks salvesta PartCraft võrguvälist kasutust, kui oled võrgus: vali rakenduseribalt {{ui:Salvesta võrguks}} ja oota, kuni seisab **Valmis võrguvälisena**. Üksikasjad: [Töö võrguvälisena](common:offline).
+Võrgusilma tuum on rakenduse enda allalaadimise osa. Töötamiseks ilma ühenduseta salvesta PartCraft võrguta kasutamiseks, kui oled võrgus: vali rakenduse ribal {{ui:Salvesta võrguks}} ja oota, kuni see ütleb **Võrguta valmis**. Üksikasjad: [Võrguta töötamine](common:offline).

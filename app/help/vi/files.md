@@ -2,7 +2,7 @@
 title: Tệp: mở, lưu và xuất
 summary: Các tệp chi tiết và lắp ráp PartCraft mở và lưu, mọi định dạng xuất và những gì chúng giữ, tệp đi đâu, và điều gì thay đổi khi ngoại tuyến hoặc giữa các trình duyệt.
 keywords: mở, lưu, xuất, tải xuống, tệp, partcraft.json, tệp lắp ráp, stl, 3mf, step, dxf, pdf, tệp của tôi ở đâu, ngoại tuyến, lưu thành
-from: c15c2c48
+from: e5fbc7e3
 ---
 
 PartCraft làm việc với các tệp trên máy tính của bạn. Nó không bao giờ tải một chi tiết lên, và không có tài khoản hay lưu trữ đám mây nào liên quan. Lưu lên đám mây chưa có.

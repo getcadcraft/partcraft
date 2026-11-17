@@ -1,99 +1,99 @@
 ---
 title: Začíname s PartCraft
-summary: Čo PartCraft dnes robí, čo potrebuje Váš prehliadač a prvá súčiastka za desať minút, od náčrtu po uložený súbor.
-keywords: začíname, prvé spustenie, rýchly štart, úvod, návod, prvá súčiastka, doska, parametrický, modelár súčiastok
-from: 5f0a668d
+summary: Čo PartCraft dnes robí, čo potrebuje váš prehliadač a prvá súčiastka za desať minút, od náčrtu po uložený súbor.
+keywords: začíname, prvé spustenie, rýchly štart, úvod, výukový návod, prvá súčiastka, doska, parametrický, modelár súčiastok
+from: 7d43283f
 ---
 
-PartCraft je parametrická aplikácia na súčiastky a zostavy z rodiny CadCraft. Nakreslíte 2D náčrt, zafixujete ho väzbami a kótami, premeníte ho na teleso prvkami ako vytiahnutie, rotačné teleso a otvor a ľubovoľné číslo môžete neskôr zmeniť: súčiastka sa prestaví z histórie. Súčiastky potom idú do zostáv, kde ich spoje umiestňujú a umožňujú skontrolovať pohyb.
+PartCraft je aplikácia pre parametrické súčiastky a zostavy v rodine CadCraft. Nakreslíte 2D náčrt, zafixujete ho vzťahmi a kótami, premeníte ho na teleso pomocou prvkov ako vytiahnutie, rotačné teleso a otvor a neskôr zmeníte ľubovoľné číslo: súčiastka sa prestaví podľa svojej histórie. Súčiastky potom vstupujú do zostáv, kde ich spoje umiestnia a umožnia skontrolovať pohyb.
 
-Čo robí táto zostava:
+Čo táto verzia robí:
 
 | Úloha | Čo získate |
 |---|---|
-| Náčrty | Úsečky, obdĺžniky, kružnice, oblúky, body a osi, s väzbami a kótami, a živý stav: nedostatočne, plne alebo nadmerne definovaný |
-| Prvky telies | Vytiahnutie, vyrezanie, rotačné teleso, rotačný výrez, jednoduché otvory a otvory so zahĺbením, lineárne a kruhové polia, zrkadlenie, zaoblenia a skosenia na priamych hranách medzi plochými plochami a škrupiny a úkosy na plochých plochách. Ťahanie po dráhe, loft a ďalšie prvky, ktoré potrebujú presné jadro, zatiaľ v tejto verzii nie sú hotové: pozrite [Čo ešte nie je hotové](topic:not-built-yet) |
-| História | Úprava čísel každého prvku, potlačenie, vrátenie, zmena poradia a zmazanie, so späť |
-| Zostavy | Súčiastky spojené pevnými, otočnými a posuvnými spojmi, kontrola kolízií a kontrola pohybu |
-| Výkresy | List A3 s tromi pohľadmi, izometriou, rezom, detailom, celkovými rozmermi, základňami, rámcami tolerancií a symbolmi drsnosti povrchu, exportovaný ako PDF |
-| Súbory | Vlastné súbory súčiastok a zostáv; STL, 3MF, fazetovaný STEP, DXF a PDF na výstupe |
+| Náčrty | Úsečky, obdĺžniky, kružnice, oblúky, body a osové čiary, so vzťahmi a kótami a živým stavom: nedourčený, úplne dourčený alebo preurčený |
+| Prvky telesa | Vytiahnutie, vyrezanie, rotačné teleso, rotačné vyrezanie, jednoduché a zapustené otvory, lineárne a kruhové polia, zrkadlenie, zaoblenia a zrazenia na priamych hranách medzi rovinnými plochami, a škrupiny a sklony na rovinných plochách. Ťahanie po dráhe, lofty a ďalšie prvky, ktoré vyžadujú presné jadro, zatiaľ nie sú v tejto verzii hotové: pozri [Čo ešte nie je hotové](topic:not-built-yet) |
+| História | Upravíte čísla ľubovoľného prvku, dočasne ho vypnete (potlačíte), vrátite históriu späť, zmeníte poradie a zmažete ho, s možnosťou späť |
+| Zostavy | Súčiastky spojené tuhými, rotačnými a posuvnými spojmi, kontrola kolízií a kontrola pohybu |
+| Výkresy | List A3 s tromi pohľadmi, izometriou, rezom, detailným pohľadom, celkovými rozmermi, referenčnými základňami, rámami tolerancií prvkov a symbolmi drsnosti povrchu, exportovaný ako PDF |
+| Súbory | Vlastné súbory súčiastok a zostáv; výstup STL, 3MF, presný STEP, DXF a PDF |
 
-Všetko beží vo Vašom prehliadači, vo Vašom počítači. **Nič sa nenahráva.** Kam súbory idú, pozrite v [Súbory: otvorenie, uloženie a export](topic:files).
+Všetko beží vo vašom prehliadači, na vašom počítači. **Nič sa nenahráva.** Pozri [Súbory: otvorenie, uloženie a export](topic:files), kam sa súbory ukladajú.
 
 ## Čo potrebujete
 
-- Aktuálny Chrome, Edge, Firefox alebo Safari so zapnutým **WebGL** (3D grafika) a **WebAssembly**. Obe sú predvolene zapnuté. Geometriu telies vytvára sieťové jadro vo WebAssembly, ktoré sa načíta s aplikáciou: pozrite [Sieťové jadro](topic:solid-kernels).
-- Najjednoduchšia je myš. Funguje touchpad a dotykové obrazovky fungujú na prezeranie a jednoduché náčrty: pozrite [Touchpad, dotyk a malé obrazovky](topic:trackpad-and-touch).
-- Obrazovka široká aspoň 1280 pixelov ukazuje celý panel nástrojov v jednom riadku. Užšie okná posúvajú panel nástrojov do strán; na telefóne sa panely otvárajú ako listy z panela dole.
+- Aktuálny Chrome, Edge, Firefox alebo Safari so zapnutým **WebGL** (3D grafika) a **WebAssembly**. Obe sú štandardne zapnuté. Geometriu telies zostavuje jadro siete WebAssembly, ktoré sa načíta spolu s aplikáciou: pozri [Jadro siete](topic:solid-kernels).
+- Najjednoduchšia je myš. Touchpad funguje a dotykové obrazovky fungujú na prezeranie a jednoduché náčrty: pozri [Touchpad, dotyk a malé obrazovky](topic:trackpad-and-touch).
+- Obrazovka široká aspoň 1280 pixelov zobrazí celý panel nástrojov v jednom riadku. Užšie okná posúvajú panel nástrojov do strany; na telefóne sa panely otvárajú ako listy z lišty dole.
 
 Viac o prehliadačoch: [Prehliadače a počítače](common:browsers).
 
 :::note
-PartCraft beží v prehliadači a na počítači v CadCraft Studio. Ukladanie do cloudu zatiaľ nie je k dispozícii: súčiastky otvárate zo svojho počítača a ukladáte ich naň späť ako súbory.
+PartCraft beží v prehliadači a na počítači vnútri CadCraft Studio. Ukladanie do cloudu zatiaľ nie je dostupné: súčiastky otvárate z počítača a ukladáte ich späť ako súbory.
 :::
 
 ## Otvorenie PartCraft
 
 1. Otvorte PartCraft.
-2. Počkajte, kým obrazovka hlási „Načítava sa jadro telies…“. Prvýkrát to chvíľu trvá.
-3. Uvidíte prázdny 3D pohľad s tromi základnými rovinami, históriu vľavo („Súčiastka1“, potom Predná rovina, Horná rovina, Pravá rovina) a pole v pohľade s nadpisom „Začnite súčiastku“.
-4. Čip blízko pravého konca stavového riadka hlási „Sieťové jadro“: PartCraft v tejto verzii vytvára každú súčiastku sieťovým jadrom, takže okrúhle plochy sú ploché fazety. Modelovať môžete hneď.
+2. Počkajte, kým obrazovka zobrazí „Načítavanie jadra telies…“. Prvýkrát to chvíľu trvá.
+3. Uvidíte prázdny 3D pohľad s tromi základnými rovinami, históriu vľavo („Part1“, potom Predná rovina, Horná rovina, Pravá rovina) a kváder v pohľade s nadpisom „Začnite súčiastku“.
+4. Čip na pravom konci stavového riadku hovorí „Jadro siete“: PartCraft v tejto verzii zostavuje každú súčiastku s jadrom siete, takže okrúhle plochy sú ploché fasety. Môžete hneď začať modelovať.
 
-Ak pohľad hlási, že prehliadač nevie zobraziť 3D, alebo že sa jadro nenačítalo, pozrite [Riešenie problémov](topic:troubleshooting#the-app-does-not-start).
+Ak pohľad hovorí, že prehliadač nedokáže zobraziť 3D, alebo sa jadro nenačítalo, pozri [Riešenie problémov](topic:troubleshooting#the-app-does-not-start).
 
 ## Vaša prvá súčiastka: doska s otvorom
 
-Vytvoríte dosku 60 × 40 mm, hrubú 10 mm, so skrz prechádzajúcim otvorom 6 mm. Jednotky sú milimetre.
+Vytvoríte dosku 60 × 40 mm, hrubú 10 mm, so 6 mm otvorom skrz ňu. Jednotky sú milimetre.
 
-### Nakreslenie obrysu
+### Nakreslite obrys
 
 1. Kliknite na **Predná rovina** v histórii vľavo. Rovina sa v pohľade zvýrazní.
-2. Vyberte {{ui:Náčrt}} na paneli nástrojov alebo stlačte {{key:S}}. Pohľad sa otočí priamo na rovinu a nástroj Úsečka je aktívny.
+2. Vyberte {{ui:Náčrt}} na paneli nástrojov alebo stlačte {{key:S}}. Pohľad sa otočí priamo na rovinu a aktívny je nástroj Úsečka.
 3. Stlačte {{key:R}} pre nástroj Obdĺžnik.
-4. Presuňte ukazovateľ na počiatok (malý červený kruh s krížikom). Malý štvorec ukazuje, že sa prichytáva. Kliknite.
-5. Presuňte sa nahor a doprava a kliknite znova. Máte obdĺžnik. Jeho čiary sú modré: modrá znamená, že sa ešte môžu pohybovať.
+4. Presuňte ukazovateľ na začiatok (malý červený kruh s krížom). Malý štvorček ukáže, že sa prichytáva. Kliknite.
+5. Presuňte nahor a doprava a znova kliknite. Máte obdĺžnik. Jeho čiary sú modré: modrá znamená, že sa ešte môžu pohybovať.
 
-### Zadanie rozmerov
+### Dajte mu rozmery
 
-1. Stlačte {{key:D}} pre nástroj Kóta.
-2. Kliknite na hornú čiaru, potom kliknite kúsok nad ňu. Otvorí sa pole s číslom s aktuálnou dĺžkou.
-3. Napíšte `60` a stlačte {{key:Enter}}. Obdĺžnik sa zmení na 60 mm široký.
-4. Kliknite na ľavú čiaru, potom kúsok vľavo od nej. Napíšte `40` a stlačte {{key:Enter}}.
+1. Stlačte {{key:D}} pre nástroj Kótovanie.
+2. Kliknite na hornú čiaru a potom kliknite o kúsok nad ňou. Otvorí sa okno s číslom s aktuálnou dĺžkou.
+3. Napíšte `60` a stlačte {{key:Enter}}. Obdĺžnik sa zmení na šírku 60 mm.
+4. Kliknite na ľavú čiaru a potom kliknite o kúsok vľavo od nej. Napíšte `40` a stlačte {{key:Enter}}.
 
-Čip vľavo hore v pohľade teraz hlási **Plne definovaný** a čiary zčernejú (čierne v motíve Papier, svetlé v motíve Model). Každý bod a rozmer je pevný.
+Čip v ľavom hornom rohu pohľadu teraz hovorí **Úplne určený** a čiary sa zmenia na tušovú farbu (čierna na motíve Papier, svetlá na motíve Model). Každý bod a rozmer je pevný.
 
 :::tip
-Ak ste obdĺžnik začali mimo počiatku, čip stále hlási „Nedostatočne definovaný (2 stupňov voľnosti)“. Stlačte {{key:S}} pre Vybrať, kliknite na jeden roh, {{key:Shift}}+kliknite na počiatok, potom vyberte {{ui:• Zhodnosť}} v pravom paneli.
+Ak ste obdĺžnik začali mimo začiatku, čip stále hovorí „Nedourčený · 2 stupne voľnosti“. Stlačte {{key:S}} pre Výber, kliknite na jeden roh, {{key:Shift}}+klik na začiatok a potom na pravom paneli zvoľte {{ui:• Splývanie}}.
 :::
 
-### Vytiahnutie
+### Vytiahnite ho
 
 1. Vyberte {{ui:Ukončiť}} na paneli nástrojov alebo stláčajte {{key:Esc}}, kým sa náčrt nezavrie (zvyčajne dvakrát).
-2. Vyberte {{ui:Vytiahnuť}}. Objaví sa 10 mm teleso. „Extrude1“ sa pridá do histórie, s „Sketch1“ odsadeným pod ním.
-3. Pravý panel ukazuje nastavenia vytiahnutia. Ak chcete zmeniť hrúbku, napíšte nové číslo do **Hĺbka (mm)** a stlačte {{key:Enter}} alebo {{key:Tab}}. Súčiastka sa okamžite prestaví.
+2. Vyberte {{ui:Vytiahnuť}}. Objaví sa teleso hrubé 10 mm. Do histórie sa pridá „Extrude1“ a pod ňou odsadený „Sketch1“.
+3. Na pravom paneli sa zobrazia nastavenia vytiahnutia. Ak chcete zmeniť hrúbku, zadajte nové číslo do poľa **Hĺbka (mm)** a stlačte {{key:Enter}} alebo {{key:Tab}}. Súčiastka sa okamžite prestaví.
 
-### Pridanie otvoru
+### Pridajte otvor
 
-1. Kliknite na veľkú plochú plochu v prednej časti dosky (koniec vytiahnutia). Celá plocha sa zvýrazní a pravý panel hlási **Plocha**.
-2. Vyberte {{ui:Náčrt na tejto ploche}} v pravom paneli.
+1. Kliknite na veľkú rovnú plochu na prednej strane dosky (koniec vytiahnutia). Celá plocha sa zvýrazní a na pravom paneli sa zobrazí **Plocha**.
+2. Na pravom paneli vyberte {{ui:Náčrt na tejto ploche}}.
 3. Stlačte {{key:P}} pre nástroj Bod a kliknite blízko stredu plochy.
 4. Vyberte {{ui:Ukončiť}}.
-5. Vyberte {{ui:Otvor}}. Doskou prejde otvor 6 mm. Ak chcete, zmeňte **Priemer (mm)** v pravom paneli.
+5. Vyberte {{ui:Otvor}}. Cez dosku prejde otvor 6 mm. Ak chcete, zmeňte **Priemer (mm)** na pravom paneli.
 
-Pole **Súčiastka** vľavo dole teraz ukazuje objem, povrchovú plochu, rozmer (60 × 40 × 10 mm) a „Priechodné otvory: 1“.
+Pole **Súčiastka** vľavo dole teraz zobrazuje objem, povrch, rozmery (60 × 40 × 10 mm) a „Priechodné otvory: 1“.
 
-### Uloženie
+### Uložte ju
 
 1. Stlačte {{key:Mod+S}} alebo vyberte {{ui:Uložiť}}.
-2. Prehliadač stiahne `Part1.partcraft.json` do priečinka so stiahnutými súbormi. Súbor obsahuje celú históriu: znova ho otvorte pomocou {{ui:Otvoriť}} a pokračujte v úpravách.
+2. Váš prehliadač stiahne `Part1.partcraft.json` do priečinka sťahovania. Súbor obsahuje celú históriu: otvorte ho znova pomocou {{ui:Otvoriť}}, aby ste mohli pokračovať v úpravách.
 
-Ak chcete súčiastku najprv premenovať, kliknite na prázdne miesto v pohľade, aby nebolo nič vybrané, a napíšte nový **Názov** v pravom paneli.
+Ak chcete súčiastku najprv premenovať, kliknite na prázdne miesto v pohľade, aby nič nebolo vybrané, a na pravom paneli zadajte nový **Názov**.
 
-## Kam ďalej
+## Kde pokračovať ďalej
 
-- [Nakreslenie prvého náčrtu](topic:sketch-basics) a [Plné definovanie náčrtu](topic:relations-dimensions) vysvetľujú náčrtník poriadne.
-- [Zmena súčiastky cez jej históriu](topic:edit-history) ukazuje, ako upravovať to, čo ste vytvorili.
-- [Zaoblenie, skosenie a vydlabanie](topic:fillet-chamfer-shell) a [Vytvorenie výkresu](topic:drawing-pdf) súčiastku dokončia. [Čo ešte nie je hotové](topic:not-built-yet) uvádza, čo táto verzia nerobí, napríklad ťahanie po dráhe a loft.
-- [Ak prichádzate z iného parametrického modelára](topic:coming-from) uvádza návyky, ktoré tu fungujú inak.
+- [Nakreslite prvý náčrt](topic:sketch-basics) a [Úplne určte náčrt](topic:relations-dimensions) podrobne vysvetľujú editor náčrtov.
+- [Zmena súčiastky cez jej históriu](topic:edit-history) ukazuje, ako upraviť to, čo ste vytvorili.
+- [Zaoblenie, zrazenie a škrupina](topic:fillet-chamfer-shell) a [Vytvorenie výkresu](topic:drawing-pdf) súčiastku dokončia. [Čo ešte nie je hotové](topic:not-built-yet) uvádza, čo táto verzia nerobí, napríklad ťahanie po dráhe a lofty.
+- [Prechod z iného parametrického modelára](topic:coming-from) uvádza zvyky, ktoré tu fungujú inak.
 - [Klávesy a myš](topic:keyboard) je úplný zoznam skratiek.
 - [Používanie tohto pomocníka](common:help).

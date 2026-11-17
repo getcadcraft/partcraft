@@ -4,7 +4,8 @@
  *   stlBinary(mesh, name)      binary STL, millimetres, Z up (printing formats are Z-up; the model is Y-up)
  *   threeMf(mesh, name)        3MF core (one object, millimetres, Z up) in a stored zip
  *   dxfSketch(sketch, name)    a sketch as DXF R12: LINE / ARC / CIRCLE / POINT; construction on layer CONSTRUCTION
- *   dxfLoops(loops, name)      closed 2D loops (a planar face's profile) as R12 closed POLYLINEs
+ *   dxfLoops(loops, circles)   closed 2D loops (a planar face's profile) as R12 closed POLYLINEs; a loop with a circle
+ *                              (faces.js loopCircles: a round hole) as a CIRCLE
  *   stepFaceted(mesh, name)    STEP AP242 (ISO 10303-21) FACETED_BREP: planar faces merged, curved
  *                              surfaces as their facets. Model coordinates (Y up), millimetres.
  * The R12 layout follows CadCraft's dxf.js writer (header $ACADVER AC1009, LTYPE/LAYER/STYLE tables).
@@ -118,7 +119,10 @@ function dxfHead(w, f, layers, ext, { dashed = false } = {}) {
   w(9, '$ACADVER'); w(1, 'AC1009');
   w(9, '$INSBASE'); w(10, '0.0'); w(20, '0.0'); w(30, '0.0');
   if (ext) { w(9, '$EXTMIN'); w(10, f(ext.x0)); w(20, f(ext.y0)); w(30, '0.0'); w(9, '$EXTMAX'); w(10, f(ext.x1)); w(20, f(ext.y1)); w(30, '0.0'); }
-  w(9, '$INSUNITS'); w(70, 4);   // millimetres
+  // Millimetres, said twice (FX.208, Discord 2026-11-11): R12 itself has no units variable, so a strict R12 reader
+  // skips $INSUNITS and assumes inches; $MEASUREMENT 1 (metric) is the second variable many readers check.
+  w(9, '$INSUNITS'); w(70, 4);
+  w(9, '$MEASUREMENT'); w(70, 1);
   w(0, 'ENDSEC');
   w(0, 'SECTION'); w(2, 'TABLES');
   w(0, 'TABLE'); w(2, 'LTYPE'); w(70, dashed ? 2 : 1);
@@ -175,18 +179,22 @@ export function dxfSketch(sk) {
 }
 
 /** Closed 2D loops as R12 closed 2D POLYLINEs on layer PROFILE. */
-export function dxfLoops(loops) {
+export function dxfLoops(loops, circles = null) {
   const { lines, w, f } = dxfWriter();
+  let nc = 0;
   let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
   for (const l of loops) for (const [x, y] of l) { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); }
   dxfHead(w, f, [['0', 7], ['PROFILE', 7]], loops.length ? { x0, y0, x1, y1 } : null);
-  for (const l of loops) {
+  for (const [i, l] of loops.entries()) {
+    // circles[i] (faces.js loopCircles): this outline is a whole circle, written as one (0.9.1)
+    const c = circles ? circles[i] : null;
+    if (c) { w(0, 'CIRCLE'); w(8, 'PROFILE'); w(10, f(c.c[0])); w(20, f(c.c[1])); w(30, '0.0'); w(40, f(c.r)); nc++; continue; }
     w(0, 'POLYLINE'); w(8, 'PROFILE'); w(66, 1); w(10, '0.0'); w(20, '0.0'); w(30, '0.0'); w(70, 1);
     for (const [x, y] of l) { w(0, 'VERTEX'); w(8, 'PROFILE'); w(10, f(x)); w(20, f(y)); w(30, '0.0'); }
     w(0, 'SEQEND'); w(8, 'PROFILE');
   }
   w(0, 'ENDSEC'); w(0, 'EOF');
-  return { text: lines.join('\r\n') + '\r\n', counts: { polyline: loops.length } };
+  return { text: lines.join('\r\n') + '\r\n', counts: { polyline: loops.length - nc, circle: nc } };
 }
 
 /**

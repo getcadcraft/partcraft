@@ -112,6 +112,35 @@ export function faceLoops2D(mesh, group) {
   return { frame, loops: loops.map((l) => dropCollinear(l)), area: loops.reduce((s, l) => s + area(l), 0) };
 }
 
+/**
+ * Outlines of a flat face that are whole circles (0.9.1 FX.223): a closed loop whose every point is on one cylinder face of the
+ * body standing square to the face (a drilled or imported hole, a round boss). → per loop { c: [x, y], r } or null. The centre
+ * and radius are the cylinder's own, not fitted to the facets, so a DXF gets the true circle a laser or plasma table cuts.
+ */
+export function loopCircles(frame, loops, faces) {
+  const cyls = (faces || []).filter((f) => f && f.type === 'cylinder' && f.axis && f.r > 0 && Math.abs(V.dot(f.axis.d, frame.n)) > 1 - 1e-9)
+    .map((f) => ({ c: V.toPlane(frame, f.axis.o), r: f.r }));
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const l of loops) for (const [x, y] of l) { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); }
+  const span = loops.length ? Math.hypot(x1 - x0, y1 - y0) : 0;
+  const tol = 4e-6 * span + 1e-6;   // 32-bit positions round to about 1e-7 of the part's size
+  return loops.map((l) => {
+    if (l.length < 8) return null;
+    for (const k of cyls) {
+      if (!l.every((p) => Math.abs(Math.hypot(p[0] - k.c[0], p[1] - k.c[1]) - k.r) <= tol)) continue;
+      // all the way round once: the loop's turning about the centre is one full turn
+      let turn = 0;
+      for (let i = 0; i < l.length; i++) {
+        const a = l[i], b = l[(i + 1) % l.length];
+        const u = [a[0] - k.c[0], a[1] - k.c[1]], v = [b[0] - k.c[0], b[1] - k.c[1]];
+        turn += Math.atan2(u[0] * v[1] - u[1] * v[0], u[0] * v[0] + u[1] * v[1]);
+      }
+      if (Math.abs(Math.abs(turn) - 2 * Math.PI) < 1e-6) return { c: [k.c[0], k.c[1]], r: k.r };
+    }
+    return null;
+  });
+}
+
 /** Remove vertices that sit on a straight run (mesh boundaries carry them from neighbouring faces). */
 export function dropCollinear(loop, sinTol = 1e-6) {
   if (loop.length <= 3) return loop;

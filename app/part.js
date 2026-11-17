@@ -21,6 +21,7 @@
  *   import   { file, step, up:'z'|'y' }       (exact kernel only) a solid read from STEP text (kept in the file)
  *            { file, mesh, units, up, op, report }   (0.7 D7.49, version 5; the mesh kernel) a body from an STL / OBJ / 3MF mesh:
  *            mesh = meshimport.js encodeMesh (repaired, in the file's units and axes), units = UNITS key, op 'add'|'cut'|'intersect',
+ *            (0.9.1: mesh.s / mesh.f = the exact round surfaces a STEP file gave and each triangle's, optional)
  *            report = what the import repaired and what stayed open (meshimport.js readReport)
  *   generated { script: { lang, text }, inputs, op, up, gen, mesh, report, ran, sheet, log }   (0.8 CE.3, version 6; generated.js) a body a
  *            script made, kept like a body from a mesh; the file never needs the script to run to open, rebuild or print
@@ -39,6 +40,9 @@
  *            and "<sketchFeatureId>.<constraintId>" (f1.k7). readPart checks it after the features (an equation on a
  *            number the file lacks is refused). Driven numbers keep their last resolved value in the features, so a
  *            reader that ignores params builds the same part.
+ *   bimLink (optional, 0.10 SU.1814; cc-partlink readRef): { link, globalId, name, ifcClass, file, hash, rev } — this part IS a BIM element sent from BimCraft;
+ *            Save back to BimCraft sends its shape home as an update. The element's geometry and its surroundings are not in the file. A reader that
+ *            ignores the key opens the part as any other.
  *   configs (optional, version 3; 0.4 P18): { rows: [{ name, values: { <parameter>: number } }], active } — configurations
  *            (configs.js): named rows of driving-parameter values; the part as saved is built with its current parameters.
  *            0.6 LC.14: a row may carry `off: [feature id]` (features it turns off); a file with any such row is version 4,
@@ -76,6 +80,8 @@ import { BODY_LABELS, BODY_BASE, BODY_EXACT_ONLY, BODY_DEFAULTS, bodiesDeps, rea
 import { SURFACE_LABELS, SURFACE_BASE, SURFACE_EXACT_ONLY, SURFACE_DEFAULTS, surfaceDeps, readSurface, usesSurface } from './surface.js';
 import { SHEET_LABELS, SHEET_BASE, SHEET_EXACT_ONLY, SHEET_DEFAULTS, sheetDeps, readSheet, usesSheetMetal } from './sheetmetal.js';
 import { readPartParams } from './params-part.js';
+import { ChunkHistory, chunkJournal } from './history/index.js';   // 0.10 PERF.21 / PERF.24
+import { readRef as readBimLink } from './partlink/index.js';   // 0.10 SU.1814: the link to a BIM element
 import { readConfigs } from './configs.js';
 import { RIB_LABELS, RIB_BASE, RIB_EXACT_ONLY, RIB_DEFAULTS, readRib, usesRib } from './rib.js';
 import { THREAD_LABELS, THREAD_BASE, THREAD_DEFAULTS, readThread, readHoleThread, usesThread } from './threads.js';
@@ -403,10 +409,11 @@ export function readPart(raw) {
         if (f.mesh !== undefined) {
           // a body from a mesh (D7.49): the mesh checked in full (counts, every index, every number), then the small fields
           need(!f.step, 'model.file.bad.its_mesh');   // (addFeature's defaults leave step '')
-          try { decodeMesh(f.mesh); } catch { need(false, 'model.file.bad.its_mesh'); }
+          let dm = null;
+          try { dm = decodeMesh(f.mesh); } catch { need(false, 'model.file.bad.its_mesh'); }
           need(f.units === undefined || Object.hasOwn(UNITS, f.units), 'model.file.bad.its_units');
           need(f.op === undefined || ['add', 'cut', 'intersect'].includes(f.op), 'model.file.bad.the_operation');
-          Object.assign(g, { file: text(f.file, 200), mesh: { nv: f.mesh.nv, nt: f.mesh.nt, v: f.mesh.v, i: f.mesh.i }, units: f.units || 'mm', up: f.up === 'y' ? 'y' : 'z', op: f.op || 'add' });
+          Object.assign(g, { file: text(f.file, 200), mesh: { nv: f.mesh.nv, nt: f.mesh.nt, v: f.mesh.v, i: f.mesh.i, ...(dm && dm.round ? { s: dm.round.surfs, f: f.mesh.f } : {}) }, units: f.units || 'mm', up: f.up === 'y' ? 'y' : 'z', op: f.op || 'add' });   // s, f (0.9.1): a STEP file's exact round surfaces, kept only when they check out
           if (typeof f.link === 'string' && /^[A-Za-z0-9_.:{}-]{1,200}$/.test(f.link)) g.link = f.link;   // 0.9 SU.810b: what a live link brought (link-pc.js)
           const rep = readReport(f.report);
           if (rep) g.report = rep;
@@ -430,6 +437,7 @@ export function readPart(raw) {
   if (j.params !== undefined && j.params !== null) { const pp = readPartParams(j.params, part); if (pp) part.params = pp; }
   // configurations after the parameters: every value must name one of them (configs.js, 0.4 P18)
   if (j.configs !== undefined && j.configs !== null) { const cf = readConfigs(j.configs, part.params, part.features); if (cf) part.configs = cf; }
+  if (j.bimLink !== undefined && j.bimLink !== null) { const bl = readBimLink(j.bimLink); if (bl) part.bimLink = bl; }
   if (j.stock !== undefined && j.stock !== null) { const st = cleanStock(j.stock); if (st.items.length) part.stock = st; }
   if (j.laser !== undefined && j.laser !== null) { const lj = cleanJob(j.laser); if (lj.layers.length) part.laser = lj; }   // 0.7 SU.772: the Laser program's settings   // 0.7 SU.755: offcut stock (nest/nest-stock.js)
   if (j.rollback === null || j.rollback === undefined) part.rollback = null;
@@ -490,34 +498,51 @@ export function readDrawing(d) {
   return out;
 }
 
-/** Undo history of whole-part JSON snapshots. */
+/** How a part and an assembly are cut into chunks (lib/history): the lists of objects with an id are one chunk per object. */
+export const HISTORY_SPEC = Object.freeze({ arrays: { features: 'id', instances: 'id', joints: 'id' } });
+
+/**
+ * Undo history by change records (0.10 PERF.21; lib/history): a step holds the chunks one edit changed, not a copy of the part. The
+ * app's way of working is kept: `push(doc, label)` BEFORE an edit; the changes are found when the next call comes (the next push, undo,
+ * redo, or an autosave) and become that step. undo / redo put the chunks back into `doc` itself and return it as `{ part, label }`.
+ * `limit` steps and at most `maxBytes` of changed chunks (the oldest go first, the newest MIN_STEPS always stay). `undoStack` and `redoStack`
+ * may be kept and put back (Edit part inside an assembly) because the table that goes with them hangs on them.
+ */
 export class History {
-  /** `limit` steps, and at most `maxBytes` of snapshots (0.7 D7.51: a 750-feature part is 0.2 MB a step, so 200 steps were 42 MB; a part with
-   *  big sketches more): the oldest go first, the newest MIN_STEPS always stay. */
-  constructor(limit = 200, maxBytes = 96e6) { this.limit = limit; this.maxBytes = maxBytes; this.undoStack = []; this.redoStack = []; }
-  get bytes() { let n = 0; for (const s of this.undoStack) n += s.json.length; return n; }
-  trim() {
-    let n = this.bytes;
-    while (this.undoStack.length > this.limit || (n > this.maxBytes && this.undoStack.length > History.MIN_STEPS)) n -= this.undoStack.shift().json.length;
+  constructor(limit = 200, maxBytes = 96e6) {
+    this.limit = limit; this.maxBytes = maxBytes;
+    this.h = this._fresh();
   }
-  push(part, label) {
-    this.undoStack.push({ json: JSON.stringify(part), label });
-    this.trim();
-    this.redoStack = [];
+  _fresh() { return new ChunkHistory({ spec: HISTORY_SPEC, limit: this.limit, maxBytes: this.maxBytes, minSteps: History.MIN_STEPS }); }
+  // The chunk table is taken from the document the first time it is needed (a stack that was just emptied has none yet).
+  _ready(doc) { if (!this.h.cur.size) this.h.reset(doc); return this.h; }
+  get undoStack() { return this.h.undoStack; }
+  set undoStack(v) { if (v && v.history) this.h = v.history; else this.h = this._fresh(); }
+  get redoStack() { return this.h.redoStack; }
+  set redoStack(v) { if (v && v.history) this.h = v.history; else if (this.h.redoStack.length) this.h.redoStack.length = 0; }
+  get bytes() { return this.h.bytes; }
+  /** Call before an edit of `doc`. */
+  push(doc, label) {
+    const h = this._ready(doc);
+    h.sync(doc, { close: true });
+    h.begin(label);
   }
-  undo(part) {
-    const s = this.undoStack.pop();
-    if (!s) return null;
-    this.redoStack.push({ json: JSON.stringify(part), label: s.label });
-    return { part: JSON.parse(s.json), label: s.label };
+  /** What the last step has changed so far goes into the table (an autosave in the middle of an edit); the step stays open. */
+  settle(doc) { this._ready(doc).sync(doc); }
+  undo(doc) {
+    const h = this._ready(doc);
+    h.sync(doc, { close: true });
+    const label = h.undo(doc);
+    return label === null ? null : { part: doc, label };
   }
-  redo(part) {
-    const s = this.redoStack.pop();
-    if (!s) return null;
-    this.undoStack.push({ json: JSON.stringify(part), label: s.label });
-    this.trim();
-    return { part: JSON.parse(s.json), label: s.label };
+  redo(doc) {
+    const h = this._ready(doc);
+    h.sync(doc, { close: true });
+    const label = h.redo(doc);
+    return label === null ? null : { part: doc, label };
   }
-  clear() { this.undoStack = []; this.redoStack = []; }
+  clear() { this.h = this._fresh(); }
+  /** The autosave journal of `doc()` (the document the history is of: it can change when a file opens). */
+  journal(doc, meta) { return chunkJournal(this._ready(doc()), { meta, prepare: () => this.settle(doc()) }); }
 }
 History.MIN_STEPS = 20;

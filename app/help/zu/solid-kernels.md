@@ -2,7 +2,7 @@
 title: I-mesh kernel
 summary: Lolu nguqulo lwe-PartCraft lwakha yonke ingxenye nge-mesh kernel esebenza esiphequluleni sakho. Lokho kusho ukuthini ngezindawo ezijikelezayo, ngamavolumu namafayela, ukuthi ungayazi kanjani ukuthi isebenza, nokuthi yiziphi izici ezilinda i-kernel eqondile.
 keywords: kernel, mesh, manifold, exact, b-rep, faceted, amajika, opencascade, occt, fillet kudinga okuqondile, akukakhiwa, ngaphandle kwe-inthanethi, webassembly
-from: 68d32d16
+from: f931645c
 ---
 
 I-kernel yejiyomethri iyinjini eguqula umlando wakho ibe isolidi. Lolu nguqulo lwe-PartCraft lunayo: i-**mesh kernel** (manifold-3d). Isebenza kukhompyutha yakho njengohlelo oluncane lwe-WebAssembly futhi ilungele ngemuva nje kokuvulwa kwe-app. Akukho lutho mayelana nengxenye yakho olucashunwa noma yiluphi uhlangothi.

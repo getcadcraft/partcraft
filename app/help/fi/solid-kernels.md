@@ -1,37 +1,37 @@
 ---
 title: Verkkoydin
-summary: Tämä PartCraftin versio rakentaa jokaisen osan verkkoytimellä, joka toimii selaimessasi. Mitä se tarkoittaa pyöreille pinnoille, tilavuuksille ja tiedostoille, miten näet sen toimivan ja mitkä muotoelementit odottavat tarkkaa ydintä.
-keywords: ydin, verkko, manifold, tarkka, b-rep, tahkoitettu, käyrät, opencascade, occt, pyöristys vaatii tarkan, ei toteutettu, offline, webassembly
-from: 68d32d16
+summary: Tämä PartCraftin versio rakentaa jokaisen osan selaimessa toimivalla verkkoytimellä. Mitä se tarkoittaa pyöreille pinnoille, tilavuuksille ja tiedostoille, miten tiedät sen toimivan ja mitkä muotoelementit odottavat tarkkaa ydintä.
+keywords: ydin, verkko, monisto, tarkka, b-rep, fasetoitu, käyrät, opencascade, occt, pyöristys vaatii tarkan, ei vielä toteutettu, offline, webassembly
+from: f931645c
 ---
 
-Geometriaydin on moottori, joka muuttaa historiasi kiintokappaleeksi. Tässä PartCraftin versiossa on yksi: **verkkoydin** (manifold-3d). Se toimii tietokoneellasi pienenä WebAssembly-ohjelmana ja on valmis hetki sovelluksen avaamisen jälkeen. Mitään osastasi ei lähetetä minnekään.
+Geometriaydin on moottori, joka muuttaa historiasi kiintokappaleeksi. Tässä PartCraftin versiossa on yksi: **verkkoydin** (manifold-3d). Se toimii tietokoneellasi pienenä WebAssembly-ohjelmana ja on valmis hetken kuluttua sovelluksen avautumisesta. Osasi tietoja ei lähetetä minnekään.
 
 | | Verkkoydin |
 |---|---|
-| Pyöreät muodot | Tasaisia tahkoja. **Käyrät** osapaneelissa säätää hienoutta |
-| Tilavuudet ja pinta-alat | Tahkoitetun kiintokappaleen, pyöreillä osilla hieman alhaiset |
-| Luonnokset, pursotus, leikkaus, kierto, reiät, toistot, peilaus, vertailutasot | Kyllä |
-| Pyöristys ja Viiste | Suorilla särmillä tasaisten pintojen välillä; kohtaavat pyöristykset jiirataan |
-| Kuori ja Vetokulma | Kuori avaa tasaisia pintoja (tarkka seinämän paksuus); Vetokulma kallistaa tasaisia pintoja |
-| Viennit | STL, 3MF, STEP (tahkoitettu), piirustus-PDF ja DXF |
-| Piirustusnäkymät | Piirretään tahkoista, leikkausnäkymät mukaan lukien |
-| Pinnat ja särmät | Nimetty ja lajiltaan tunnettu (tasainen, lieriö, kartio, pallo, torus; suora, ympyrä), otettu luonnoksista: Simulointi-, Generatiivinen- ja Valmistus-työtilat, Mittaa, valinta ja reikätaulukko käyttävät niitä |
+| Pyöreät muodot | Tasaiset fasetit. **Käyrät** osan paneelissa määrittää tarkkuuden |
+| Tilavuudet ja pinta-alat | Fasetoidusta kiintokappaleesta, pyöreillä osilla hieman alhaalla |
+| Luonnokset, pursotus, leikkaus, kierto, reiät, toistot, peilaus, referenssitasot | Kyllä |
+| Pyöristys ja viisto | Suorien reunojen kohdalla tasaisten pintojen välissä; kohtaavat pyöristykset katkaistaan vinoon |
+| Onttoaminen ja vinous | Onttoaminen avaa tasaiset pinnat (tarkka seinämän paksuus); vinous kallistaa tasaisia pintoja |
+| Viennit | STL, 3MF, STEP (tarkka: pyöreät pinnat kirjoitetaan todellisilla pinnoillaan; tai fasetoitu), piirustus-PDF ja DXF |
+| Piirustusnäkymät | Piirretään fasettien mukaan, mukaan lukien leikkausnäkymät |
+| Pinnat ja reunat | Nimettyjä ja tunnistettuja tyypin mukaan (tasainen, sylinteri, kartio, pallo, toroidi; suora, ympyrä), otettu luonnoksista: Simulointi-, Generatiivinen- ja Valmistus-työtilat, Mittaa, valinta ja reikätaulukko käyttävät niitä |
 
-Tilarivin oikean reunan lähellä oleva merkki sanoo **Verkkoydin**, kun se rakentaa osaasi.
+Tilarivin oikeassa päässä oleva merkki sanoo **Verkkoydin**, kun se rakentaa osaasi.
 
-## Mikä odottaa tarkkaa ydintä
+## Mitä odottaa tarkkaa ydintä
 
-Tarkka (B-rep) ydin säilyttää todelliset ympyrät, lieriöt ja kartiot, ja sileät pyöristykset millä tahansa särmällä, pyyhkäisyt, loftit, pinnat, levytyö, uurteet, useat kappaleet, STEP-tuonti ja tarkka STEP-vienti rakentuvat sen varaan. PartCraftin aiemmat lab-versiot käyttivät siihen OpenCascadea. Sen lisenssi (LGPL) ei sovi tähän julkaisuun, jossa jokainen sovellus on Apache-2.0 ja käyttää vain sallivasti lisensoituja kirjastoja, joten sitä ei ole mukana. Millään tässä ei ole päivämäärää.
+Tarkka (B-rep) ydin säilyttää todelliset ympyrät, sylinterit ja kartiot sekä sileät pyöristykset mille tahansa reunalle; siihen rakentuvat myös sweep-, loft-, pinnat, levytyö, ribit, useat kappaleet ja STEP-tuonti, jossa kaarevat pinnat säilyvät tarkkoina. (Tarkka STEP-vienti ei odota sitä: verkkoydin tuntee kunkin pinnan todellisen pinnan luonnoksesta, ja vienti kirjoittaa ne.) Aiemmat PartCraftin kokeiluversiot käyttivät siihen OpenCascadea. Sen lisenssi (LGPL) ei sovi tähän julkaisuun, jossa kaikki sovellukset ovat Apache-2.0-lisenssin alaisia ja käyttävät vain sallivasti lisensoituja kirjastoja, joten sitä ei ole mukana. Tälle ei ole päivämäärää.
 
-Siihen asti nämä muotoelementit sanovat **Ei vielä toteutettu**, kun valitset ne: tilarivi kertoo syyn, ja niiden painikkeiden työkaluvihjeet päättyvät sanoihin ”ei vielä toteutettu (tarvitsee tarkan ytimen)”. [Mitä ei ole vielä toteutettu](topic:not-built-yet) luettelee jokaisen sekä sen, mitä tehdä sen sijaan.
+Siihen asti nämä ominaisuudet sanovat **Ei vielä toteutettu**, kun valitset ne: tilarivi kertoo syyn, ja niiden painikkeiden työkaluvihjeet päättyvät tekstiin ”ei vielä toteutettu (tarvitsee tarkan ytimen)”. [Mitä ei ole vielä toteutettu](topic:not-built-yet) listaa kukin ominaisuus ja kertoo, mitä tehdä sen sijaan.
 
-Aiemmassa versiossa niillä tehty osa aukeaa yhä. Nämä muotoelementit pysyvät historiassa ei-rakennetuiksi merkittyinä (vie osoitin yhden päälle nähdäksesi syyn), loput osasta rakentuu, ja tallennus säilyttää ne muuttumattomina.
+Osa, joka on tehty niillä aiemmassa koontiversiossa, avautuu edelleen. Nämä ominaisuudet pysyvät historiassa merkittyinä ei-toteutetuiksi (vie hiiri päälle nähdäksesi syyn), muu osa rakentuu, ja tallennus säilyttää ne muuttumattomina.
 
 ## Pyöreät pinnat ja Käyrät
 
-Verkkoydin piirtää ympyrän monikulmiona. **Käyrät** osapaneelissa määrää, kuinka monta sivua täydellä ympyrällä on; enemmän sivuja näyttää sileämmältä ja mittaa lähempänä todellista arvoa, ja rakentuu hitaammin. Tilavuudet, pinta-alat ja {{ui:Mittaa}}-työkalun etäisyydet koskevat tätä tahkoitettua kiintokappaletta: reiällä tai ulokkeella ne ovat hieman pienempiä kuin pyöreän muodon.
+Verkkoydin piirtää ympyrän monikulmiona. **Käyrät** osan paneelissa määrittää, kuinka monta sivua täydellä ympyrällä on; enemmän sivuja näyttää sileämmältä ja mittaa lähemmäs todellista arvoa, mutta rakentuu hitaammin. Tilavuudet, pinta-alat ja etäisyydet kohdasta {{ui:Mittaa}} ovat fasetoidusta kiintokappaleesta: reiälle tai korotukselle ne ovat hieman pienempiä kuin pyöreän muodon.
 
-## Online ja offline
+## Verkossa ja offline
 
-Verkkoydin on osa sovelluksen omaa latausta. Jos haluat työskennellä ilman yhteyttä, tallenna PartCraft offline-käyttöön, kun olet online: valitse {{ui:Tallenna offline-käyttöön}} sovelluspalkissa ja odota, kunnes se sanoo **Offline valmis**. Lisätietoja: [Offline-työskentely](common:offline).
+Verkkoydin on osa sovelluksen omaa latausta. Työskennelläksesi ilman yhteyttä tallenna PartCraft offline-käyttöön yhteyden ollessa auki: valitse sovelluspalkista {{ui:Tallenna offline-käyttöön}} ja odota, kunnes se sanoo **Offline valmis**. Lisätietoja: [Työskentely offline-tilassa](common:offline).

@@ -8,7 +8,7 @@
  */
 import { registerWorkspace } from './workspaces.js';
 import { registerStudyReader } from './part.js';
-import { readStudy, newStudy, newOp, OP_TYPES, OP_PARAMS, AXES, ORIGINS, POSTS, POST_LIMITS, originLabel } from './cam.js';
+import { readStudy, newStudy, newOp, OP_TYPES, OP_PARAMS, AXES, ORIGINS, POSTS, POST_LIMITS, originLabel, machineModel } from './cam.js';
 import { parsePost } from './cam-postdef.js';
 import { t } from './i18n.js';
 import { newTool, KINDS, MATERIALS, speeds, describeTool, validateTool, speedsSource, exportLibrary, readLibrary, mergeTools, savedLibrary, saveToLibrary, removeFromLibrary } from './cam-tools.js';
@@ -530,6 +530,9 @@ function renderProgram(host, box, st, r, K) {
       ...(machinesReady() ? [K.btn(t('mfg.send'), () => doPost(host, true), 'pc-btn', { disabled: !r, dataset: { msend: '1' }, title: t('mfg.send.title') })] : []),   // 0.8 EG.40: Studio's machines (upload only)
       K.btn(t('mfg.toolpath_csv'), () => { const pg = program(host); if (pg) host.downloadBlob(baseName(host) + '-toolpath.csv', new Blob([toolpathCsv(pg)], { type: 'text/csv' }), 'text/csv'); }, 'pc-btn', { disabled: !r }),
       K.btn(t('mfg.toolpath_json'), () => { const pg = program(host); if (pg) host.downloadBlob(baseName(host) + '-toolpath.json', new Blob([toolpathJson(pg)], { type: 'application/json' }), 'application/json'); }, 'pc-btn', { disabled: !r })),
+    // 0.9.1 FIX-091-EXACT-STEP: the part as an exact solid in this setup's work coordinates, for the shop's own CAM or checker
+    el('div', { className: 'pc-actions' },
+      K.btn(t('mfg.step_work'), () => doStepWork(host), 'pc-btn', { disabled: !host.regen?.mesh, dataset: { mstep: '1' }, title: t('mfg.step_work.title') })),
     el('p', { className: 'pc-note' }, t('mfg.lab_note')));
   box.append(pb);
 }
@@ -629,6 +632,19 @@ function renderLibrary(host, box, st, K) {
       }), 'pc-btn', { dataset: { mlibimport: '1' } }))));
 }
 
+/** The part as exact STEP (step-exact.js) with the origin at the setup's work origin and Z along the tool axis. */
+async function doStepWork(host) {
+  const rg = host.regen;
+  if (!rg?.mesh) { host.status(t('mfg.no_solid'), true); return; }
+  try {
+    const st = study(host), model = machineModel(rg, st.setup);
+    const SE = await import('./step-exact.js');
+    const out = SE.stepExact(rg, host.part.name || 'Part', { map: model.toM, segments: host.part.resolution || 64 });   // i18n-ignore: the solid's name in the file
+    const name = baseName(host) + '-work.step';
+    host.downloadBlob(name, new Blob([out.text], { type: 'model/step' }), 'model/step');
+    host.status(t(out.counts.faceted ? 'mfg.step_work.done_part' : 'mfg.step_work.done', { file: name, origin: originLabel(st.setup.origin), faces: out.counts.faces, exact: out.counts.exact, faceted: out.counts.faceted }));
+  } catch (e) { host.status(t('mfg.step_work.failed', { error: e.code === 'open' ? t('app.export.step_open') : e.message }), true); }
+}
 const baseName = (host) => String(host.part.name || 'Part').replace(/[^A-Za-z0-9 _-]/g, '').trim().replace(/\s+/g, '-') || 'Part';   // i18n-ignore: file name
 // 0.8 EG.40 (part_PART_3): "Send to a machine…". Studio's desktop shell offers `window.ccSendToMachine({ app, kind, files: [{ name, bytes }], note })
 // → Promise<{ ok, sent, cancelled?, error? }>` (studio_PART_3's dialog, the same one DetailCraft calls) over the bridge `cadcraftDesktop.machines`; without

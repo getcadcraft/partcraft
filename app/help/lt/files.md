@@ -1,94 +1,94 @@
 ---
 title: Failai: atidarymas, įrašymas ir eksportavimas
-summary: Detalių ir surinkimų failai, kuriuos PartCraft atidaro ir įrašo, kiekvienas eksporto formatas ir tai, ką jis išsaugo, kur keliauja failai ir kas keičiasi neprisijungus bei tarp naršyklių.
-keywords: atidaryti, įrašyti, eksportuoti, atsisiųsti, failas, partcraft.json, surinkimo failas, stl, 3mf, step, dxf, pdf, kur mano failai, neprisijungus, įrašyti kaip
-from: c15c2c48
+summary: PartCraft atidaromi ir įrašomi detalės bei surinkimo failai, kiekvienas eksporto formatas ir tai, ką jis išsaugo, kur keliauja failai ir kas keičiasi neprisijungus ar tarp naršyklių.
+keywords: atidaryti, įrašyti, eksportuoti, atsisiuntimas, failas, partcraft.json, surinkimo failas, stl, 3mf, step, dxf, pdf, kur mano failai, neprisijungus, įrašyti kaip
+from: e5fbc7e3
 ---
 
-PartCraft dirba su failais jūsų kompiuteryje. Detalės niekada neįkeliamos, paskyros ir debesies saugyklos nėra. Įrašymas debesyje dar nepasiekiamas.
+PartCraft veikia su failais jūsų kompiuteryje. Jis niekada neįkelia detalės, ir čia nedalyvauja paskyra ar debesies saugykla. Įrašymas į debesį dar neprieinamas.
 
-## Ką atidaro PartCraft
+## Ką PartCraft atidaro
 
 | Failas | Plėtinys | Kaip |
 |---|---|---|
-| PartCraft detalė | `.partcraft.json` | {{ui:Atidaryti}}, {{key:Mod+O}} arba nuvilkite ją į 3D vaizdą |
-| PartCraft surinkimas | `.partcraft-asm.json` | Tas pats: PartCraft pats atpažįsta, koks tai failas |
-| STEP kietasis kūnas | `.step`, `.stp` | Kietasis kūnas, nuskaitomas kaip trikampiai: [Atidaryti STEP failą ir kurti toliau](topic:import-step) |
+| PartCraft detalė | `.partcraft.json` | {{ui:Atidaryti}}, {{key:Mod+O}} arba numeskite ant 3D vaizdo |
+| PartCraft surinkimas | `.partcraft-asm.json` | Tas pats: PartCraft pats atpažįsta rūšį |
+| STEP kietasis kūnas | `.step`, `.stp` | Kietasis kūnas, nuskaitytas kaip trikampiai: [Atidarykite STEP failą ir kurkite toliau](topic:import-step) |
 
-STL, OBJ ir 3MF tinklai taip pat atsidaro kaip kietieji kūnai ([Atidaryti STL, OBJ ar 3MF](topic:open-meshes)), taip pat ir `.3dm` failai ([Atidaryti .3dm modelį](topic:open-3dm-files)). DXF, IGES ir kitų programų detalių failai atidaryti negali (žr. [Kas dar nepadaryta](topic:not-built-yet)).
+STL, OBJ ir 3MF tinklai taip pat atidaromi kaip kietieji kūnai ([Atidarykite STL, OBJ ar 3MF](topic:open-meshes)), taip pat ir `.3dm` failai ([Atidarykite .3dm modelį](topic:open-3dm-files)). DXF, IGES ir kitų programų savi detalių failai neatidaromi (žr. [Kas dar nesukurta](topic:not-built-yet)).
 
-Atidarant taikomos taisyklės:
+Taisyklės atidarant:
 
-- Detalės arba surinkimo failo pavadinimas turi baigtis `.json`, o failas turi būti ne didesnis nei 50 MB.
-- Failai patikrinami prieš ką nors parodant. Sugadintas arba pakeistas failas atmetamas, ir pateikiama paprasta priežastis, pavyzdžiui: „Tai nėra PartCraft failas.“
-- Failas, įrašytas naujesne PartCraft versija, atmetamas: „Šis failas įrašytas naujesne PartCraft versija (failo versija 3); ši versija skaito versiją 2.“ Senesni failai atsidaro.
-- Jei ekrane esanti detalė turi neįrašytų pakeitimų, PartCraft pirmiausia paklaus: {{ui:Atšaukti}}, {{ui:Atmesti pakeitimus}} arba {{ui:Pirmiausia įrašyti}}.
+- Detalės ar surinkimo failo pavadinimas turi baigtis `.json`, o failas turi būti mažesnis nei 50 MB.
+- Failai patikrinami prieš rodant ką nors. Sugadintas ar redaguotas failas atmetamas su paprastu paaiškinimu, pavyzdžiui: „Tai nėra PartCraft failas.“
+- Failas, įrašytas naujesnio PartCraft, atmetamas: „Šis failas įrašytas naujesnio PartCraft (failo versija 3); ši versija skaito versiją 2.“ Senesni failai atidaromi.
+- Jei ekrane esanti detalė turi neįrašytų pakeitimų, PartCraft pirmiausia klausia: {{ui:Atšaukti}}, {{ui:Atmesti pakeitimus}} arba {{ui:Pirmiausia įrašyti}}.
 
 ## Įrašymas
 
 {{ui:Įrašyti}} arba {{key:Mod+S}} įrašo tai, kas rodoma ekrane:
 
-- Detalė: `<detalės pavadinimas>.partcraft.json` – visa istorija (eskizai, ryšiai, matmenys, elementai, grąžinimo iki čia padėtis), brėžinio lapo pjūvis, detalės ir GD&T pastabos bei visas bet kurio STEP kietojo kūno, importuoto ankstesnėje versijoje, tekstas. Elementai, kurių ši versija negali sukurti, išsaugomi nepakeisti. Pats kietasis kūnas neįrašomas; PartCraft jį atkuria iš istorijos, kai failas atidaromas.
-- Surinkime: `<surinkimo pavadinimas>.partcraft-asm.json`, su **visomis jame esančiomis detalėmis**. Vienas failas talpina visą surinkimą, todėl jį galima siųsti atskirai.
+- Detalėje: `<part name>.partcraft.json`, visa istorija (eskizai, ryšiai, matmenys, elementai, grąžinimo padėtis), brėžinio lapo pjūvio, detalės ir GD&T pastabos bei visas bet kokio ankstesne versija importuoto STEP kietojo kūno tekstas. Elementai, kurių ši versija negali sukurti, įrašomi nepakeisti. Pats kietasis kūnas neįrašomas; PartCraft jį perkuria iš istorijos atidarant failą.
+- Surinkime: `<assembly name>.partcraft-asm.json`, **su kiekviena detale viduje**. Vienas failas talpina visą surinkimą, todėl jį galima siųsti atskirai.
 
-Įrašymas yra **atsisiuntimas**. Naršyklė failą įrašo į savo atsisiuntimų aplanką arba, jei nustatyta klausti, paklaus, kur jį įrašyti. Įrašius dar kartą, sukuriamas naujas atsisiuntimas; naršyklė gali pavadinti jį `Part1 (1).partcraft.json`, o ne pakeisti senąjį. Failus galite pervadinti ar perkelti {{pick:mac=Finder|windows=Failų naršykle|linux=jūsų failų tvarkykle}} pagal savo norą.
+Įrašymas yra **atsisiuntimas**. Naršyklė deda failą į savo atsisiuntimų aplanką arba klausia, kur jį dėti, jei tai nustatėte. Įrašius dar kartą sukuriamas naujas atsisiuntimas; naršyklė gali pavadinti jį `Part1 (1).partcraft.json`, o ne pakeisti seną. Failus pervardinkite ar perkelkite {{pick:mac=Finder|windows=Failų naršyklė|linux=jūsų failų tvarkyklė}} pagal savo nuožiūrą.
 
-Visi detalės pavadinimo simboliai, išskyrus raides, skaitmenis, tarpus, `_`, `.` ir `-`, failo pavadinime pakeičiami į `_`.
+Simboliai, kurie nėra raidės, skaitmenys, tarpai, `_`, `.` ar `-`, detalės pavadinime failo vardui pakeičiami į `_`.
 
 :::tip
-Daugumoje naršyklių yra nustatymas, kuris kiekvieną kartą klausia, kur įrašyti atsisiuntimą. Jei norite, kad kiekvieną kartą būtų rodomas pasirinkimas „Įrašyti kaip“, įjunkite jį: Chrome ir Edge – nustatymuose, skiltyje Downloads (Atsisiuntimai); Firefox – skiltyje General (Bendra), Files and Applications (Failai ir programos); Safari – skiltyje General (Bendra), File download location (Failo atsisiuntimo vieta).
+Dauguma naršyklių turi nustatymą klausti, kur įrašyti kiekvieną atsisiuntimą. Įjunkite, jei norite kiekvieną kartą matyti „Įrašyti kaip“: Chrome ir Edge – nustatymuose skiltyje Atsisiuntimai; Firefox – Bendrieji, Failai ir programos; Safari – Bendrieji, failų atsisiuntimo vieta.
 :::
 
 Daugiau apie tai, kur keliauja atsisiuntimai ir kaip saugoti failus: [Kur keliauja jūsų failai](common:your-files).
 
 ## Eksportavimas
 
-Meniu {{ui:Eksportuoti}} įrašo kitus formatus. Kiekvienas jų yra atsisiuntimas, pavadintas pagal detalę.
+Meniu {{ui:Eksportuoti}} įrašo kitus formatus. Kiekvienas yra atsisiuntimas, pavadintas pagal detalę.
 
-| Meniu punktas | Failas | Kas jame |
+| Meniu punktas | Failas | Kas jame yra |
 |---|---|---|
-| {{ui:STL, spausdinimui 3D}} | `<name>.stl` | Dvejetainis STL kietojo kūno trikampiai, milimetrais, **Z aukštyn** |
+| {{ui:STL, spausdinimui 3D}} | `<name>.stl` | Dvejetainis STL su kietojo kūno trikampiais, milimetrais, **Z aukštyn** |
 | {{ui:3MF, spausdinimui 3D}} | `<name>.3mf` | 3MF su kietuoju kūnu kaip vienu objektu, milimetrais, **Z aukštyn** |
-| {{ui:STEP AP242 (tikslus kietasis kūnas)}} | `<name>.step` | Šioje versijoje dar nepadaryta (pilkai pažymėta): reikia tikslaus branduolio |
-| {{ui:STEP AP214 (tikslus kietasis kūnas)}} | `<name>.step` | Šioje versijoje dar nepadaryta (pilkai pažymėta) |
-| {{ui:STEP (paviršiais, tinklo branduolys)}} | `<name>.step` | Kietasis kūnas iš plokščių paviršių pagal tinklą: **apvalūs paviršiai – daug mažų plokščių facetų**. Milimetrais, PartCraft savo ašimis (Y aukštyn). Šioje versijoje tinkamiausias STEP kitoms CAD programoms |
-| {{ui:DXF eskizo arba plokščio paviršiaus}} | `<name> - <sketch>.dxf` arba `<name> - face.dxf` | DXF R12. Eskizas: linijos, lankai, apskritimai ir taškai pagal eskizo koordinates, sluoksniuose PROFILE, CONSTRUCTION ir POINTS. Pasirinktas plokščias paviršius: jo kontūrai kaip uždarosios polilinijos (apvalios briaunos – kaip jų facetai) |
-| {{ui:Brėžinys (PDF): vaizdai, pjūvis, detalė, GD&T}} | `<name> - drawing.pdf` | A3 brėžinio lapas: trys vaizdai, izometrija, pjūvis ir detalė (jei nustatyti), bendrieji matmenys, GD&T simboliai, antraštės blokas |
+| {{ui:STEP AP242 (tikslus kietasis kūnas)}} | `<name>.step` | Vienas tikslus kietasis kūnas, milimetrais, Z aukštyn: apvalūs paviršiai kaip tikri cilindrai, kūgiai, sferos ir toroidai. STEP, kurį naudoti kitoms CAD ir CAM programoms |
+| {{ui:STEP AP214 (tikslus kietasis kūnas)}} | `<name>.step` | Tas pats tikslus kietasis kūnas senesnėje AP214 schemoje |
+| {{ui:STEP (paviršiais, tinklo branduolys)}} | `<name>.step` | Kietasis kūnas iš plokščių paviršių iš tinklo: **apvalūs paviršiai yra daug mažų plokščių facetų**. Milimetrais, PartCraft savo ašyse (Y aukštyn). Programai, kuri atsisako tikslaus failo |
+| {{ui:DXF eskizo arba plokščio paviršiaus}} | `<name> - <sketch>.dxf` arba `<name> - face.dxf` | DXF R12. Eskizas: linijos, lankai, apskritimai ir taškai eskizo koordinatėmis, sluoksniuose PROFILE, CONSTRUCTION ir POINTS. Pasirinktas plokščias paviršius: jo kontūrai kaip uždaros polilinijos (apvalios briaunos kaip jų facetos) |
+| {{ui:Brėžinys (PDF): vaizdai, pjūvis, detalė, GD&T}} | `<name> - drawing.pdf` | A3 brėžinio lapas: trys vaizdai, izometrija, pjūvis ir detalė, jei nustatyta, bendri matmenys, GD&T simboliai, antraštės blokas |
 
 :::note
-{{ui:STEP AP242 (tikslus kietasis kūnas)}} ir {{ui:STEP AP214 (tikslus kietasis kūnas)}} šioje versijoje dar nepadaryti: naudokite {{ui:STEP (paviršiais, tinklo branduolys)}}. Forma ir tūris teisingi, bet kiekvienas apvalus paviršius – daug plokščių facetų, todėl kitos programos negali pasirinkti skylės kaip cilindro. Jei tai svarbu, pirmiausia nustatykite **Kreives** smulkiau.
+{{ui:STEP AP242 (tikslus kietasis kūnas)}} įrašo skyles, iškilimus, suapvalinimus, kūgius, sferas ir toroidus jų tikrais paviršiais, todėl kita programa skylę gali pasirinkti kaip cilindrą; **Kreivės** jo nekeičia. Splaino šonai, modeliuoti sriegiai ir importuoti tinklai neturi tikro paviršiaus ir lieka plokščiomis facetomis tame pačiame kietajame kūne; būsenos juostoje nurodoma, kiek jų. {{ui:STEP (paviršiais, tinklo branduolys)}} įrašo kiekvieną apvalų paviršių kaip facetas.
 :::
 
-- Eksportuojama detalė, rodoma ekrane. Surinkime eksportas išjungtas; surinkimo eksporto dar nėra.
-- STL, 3MF, facetuotas STEP ir paviršiaus DXF visada sudaryti iš facetų. Nustatymas **Kreivės** (dešiniajame skydelyje, kai nieko nepasirinkta) nustato, kiek jie smulkūs – nuo 32 iki 256 facetų per apsisukimą. Prieš eksportuodami STL ar 3MF lygiam spausdinimui pasirinkite Smulkiai arba Labai smulkiai.
-- PDF brėžinys naudoja skaitytuvo įdiegtą Helvetica šriftą. Simboliai, kurių jis negali rodyti, spausdinami kaip „?“.
+- Eksportuojama tai, kas rodoma ekrane. Eksportas surinkime išjungtas; surinkimo eksportas dar nesukurtas.
+- STL, 3MF, facetinis STEP ir paviršiaus DXF visada sudaryti iš facetų. Nustatymas **Kreivės** (dešiniajame skydelyje, kai nieko nepasirinkta) nustato, kiek jie smulkūs – nuo 32 iki 256 facetų per apsisukimą. Prieš eksportuodami STL ar 3MF glotniam spausdinimui pasirinkite Smulkus arba Labai smulkus.
+- PDF brėžinys naudoja skaitytuvo įmontuotą Helvetica šriftą. Simboliai, kurių jis negali parodyti, spausdinami kaip „?“.
 
-Žingsnis po žingsnio: [Eksportavimas spausdinimui, STEP ir DXF](topic:export-files) ir [Brėžinio lapo sudarymas](topic:drawing-pdf).
+Žingsnis po žingsnio: [Eksportas spausdinimui, STEP ir DXF](topic:export-files) ir [Sukurkite brėžinio lapą](topic:drawing-pdf).
 
 ## Neįrašytas darbas
 
-- Po kiekvieno pakeitimo PartCraft šioje naršyklėje trumpam išsaugo atidarytos detalės ar surinkimo atkūrimo kopiją, todėl sugedus programai ar uždarius skirtuką darbas nepražūva: kitą kartą atidarius PartCraft, programa paklaus „Atkurti jūsų darbą?“. Tai nėra įrašymas: kad išsaugotumėte darbą, įrašykite jį į failą. Žr. [Atkurti neįrašytą darbą](common:recover).
-- Jei bandysite uždaryti skirtuką arba perkrauti puslapį su neįrašytais pakeitimais, naršyklė paklaus „Palikti svetainę?“. Tai naršyklės pačios langas; PartCraft negali pakeisti jo teksto.
-- {{ui:Naujas}}, {{ui:Atidaryti}} ir surinkimo uždarymas prieš atmesdami neįrašytus pakeitimus paklaus.
+- PartCraft kiekvieno pakeitimo po akimirkos saugo šioje naršyklėje atidarytos detalės ar surinkimo atkūrimo kopiją, todėl nukritus programai ar uždarius skirtuką darbas nedingsta: kitą kartą atidarę PartCraft, jis klausia „Atkurti jūsų darbą?“. Tai nėra įrašymas: įrašykite į failą, kad išsaugotumėte darbą. Žr. [Atkurkite neįrašytą darbą](common:recover).
+- Jei bandote uždaryti skirtuką ar perkrauti puslapį su neįrašytais pakeitimais, naršyklė klausia: „Palikti svetainę?“. Tai naršyklės langas; PartCraft negali pakeisti jo teksto.
+- {{ui:Naujas}}, {{ui:Atidaryti}} ir surinkimo uždarymas klausia prieš atmetant neįrašytus pakeitimus.
 
 ## Prisijungus ir neprisijungus
 
-Viskas vyksta jūsų kompiuteryje: tinklo branduolys (WebAssembly programa) atsisiunčiamas kartu su programa ir geometriją sudaro vietoje, o failai skaitomi iš disko ir į jį rašomi. Jokie detalės duomenys tinklu nesiunčiami. Žr. [Tinklo branduolys](topic:solid-kernels).
+Viskas vyksta jūsų kompiuteryje: tinklo branduolys (WebAssembly programa) atsisiunčiamas kartu su programa ir kuria geometriją vietoje, o failai skaitomi iš jūsų disko ir į jį rašomi. Jokie detalės duomenys nekeliauja tinklu. Žr. [Tinklo branduolys](topic:solid-kernels).
 
-Kad galėtumėte dirbti visiškai be ryšio, prisijungę įrašykite PartCraft darbui neprisijungus: programos viršutinėje juostoje pasirinkite {{ui:Įrašyti neprisijungus}} ir palaukite, kol bus rodoma eiga („Įrašoma 40 iš 212“), kol pasirodys **Paruošta darbui neprisijungus**. Įrašytą kopiją sudaro 3D biblioteka ir tinklo branduolys, todėl vėliau modeliavimas, įrašymas, visi eksportai ir brėžiniai veikia neprisijungus. Jei rodoma **Nepavyko įrašyti**, prisijunkite ir spustelėkite dar kartą; **Neprisijungus nepasiekiama** reiškia, kad šis naršyklės langas negali išsaugoti kopijos (privatūs langai ir kai kurie valdomi kompiuteriai). Kai kopija įrašyta, spustelėjus **Paruošta darbui neprisijungus**, siūloma {{ui:Įrašyti dar kartą (gauti naujausią versiją)}} ir {{ui:Pašalinti kopiją neprisijungus}}. Išsamiau: [Darbas neprisijungus](common:offline).
+Norėdami dirbti be jokio ryšio, būdami prisijungę įrašykite PartCraft darbui neprisijungus: programos juostoje pasirinkite {{ui:Įrašyti neprisijungus}} ir palaukite, kol skaičiuojama („Įrašoma 40 iš 212“), kol rodoma **Paruošta darbui neprisijungus**. Įrašytoje kopijoje yra 3D biblioteka ir tinklo branduolys, todėl vėliau modeliavimas, įrašymas, visi eksportai ir brėžiniai veikia neprisijungus. Jei rodoma **Nepavyko įrašyti**, spustelėkite, kad bandytumėte dar kartą prisijungę; **Neprisijungus nepasiekiama** reiškia, kad šis naršyklės langas negali saugoti kopijos (privatūs langai ir kai kurie valdomi kompiuteriai). Kai kopija įrašyta, spustelėjus **Paruošta darbui neprisijungus**, siūlomi {{ui:Įrašyti dar kartą (gauti naujausią versiją)}} ir {{ui:Pašalinti kopiją neprisijungus}}. Išsamiau: [Darbas neprisijungus](common:offline).
 
 :::online
-Esate prisijungę. Net jei neįrašėte darbui neprisijungus, kai PartCraft įsikėlė ir būsenos juostos žymė rodo „Tinklo branduolys“, galite toliau dirbti nutrūkus ryšiui. Tik nekraukite puslapio iš naujo, kol vėl nebūsite prisijungę.
+Esate prisijungę. Net jei neįrašėte darbui neprisijungus, kai PartCraft įsikėlė ir būsenos juostos žymė rodo „Tinklo branduolys“, galite dirbti toliau, jei ryšys nutrūksta. Tik neperkraukite puslapio, kol vėl nebūsite prisijungę.
 :::
 
 :::offline
-Esate neprisijungę. Jei PartCraft jau atidarytas, toliau dirbkite: įrašymas ir eksportavimas veikia. Jei programos juostoje rodoma **Paruošta darbui neprisijungus**, PartCraft atsidaro iš naujo ir be ryšio; priešingu atveju neperkraukite šio skirtuko.
+Esate neprisijungę. Jei PartCraft jau atidarytas, dirbkite toliau: įrašymas ir eksportavimas veikia. Jei programos juostoje rodoma **Paruošta darbui neprisijungus**, PartCraft atsidaro ir be ryšio nuo nulio; priešingu atveju neperkraukite šio skirtuko.
 :::
 
-## Skirtumai tarp naršyklių
+## Naršyklių skirtumai
 
-- **Atsisiuntimai.** Kiekviena naršyklė turi savo atsisiuntimų aplanką ir savą klausimo būdą. Jei naršyklė klausia, ar šiai svetainei leidžiama atsisiųsti failus, leiskite, kitaip įrašymas ir eksportavimas neveiks.
-- **Nuvilkimas** failo į vaizdą veikia Chrome, Edge, Firefox ir Safari naršyklėse.
-- **Failai iš telefono ar planšetės.** iPhone ir iPad įrenginiuose {{ui:Atidaryti}} rodo programą Files; įrašyti failai keliauja į Files, Downloads. Android įrenginiuose jie keliauja į aplanką Atsisiuntimai.
+- **Atsisiuntimai.** Kiekviena naršyklė turi savo atsisiuntimų aplanką ir savo klausimo būdą. Jei naršyklė klausia, ar šiai svetainei leisti atsisiųsti failus, leiskite, kitaip įrašyti ir eksportuoti neveiks.
+- **Vilkimas ir numetimas** failo į vaizdą veikia Chrome, Edge, Firefox ir Safari.
+- **Failai iš telefono ar planšetės.** iPhone ir iPad įrašyti failai keliauja į Failų programą, aplanką Atsisiuntimai; Android įrašyti failai keliauja į Atsisiuntimų aplanką.
 
-Failuose esantis turinys nesiskiria tarp naršyklių ar operacinių sistemų.
+Failų turinys nesiskiria tarp naršyklių ar operacinių sistemų.

@@ -1,94 +1,94 @@
 ---
 title: Datoteke: otvaranje, spremanje i izvoz
-summary: Datoteke dijelova i sklopova koje PartCraft otvara i sprema, svaki izvozni format i što čuva, kamo idu datoteke te što se mijenja offline ili među preglednicima.
-keywords: otvaranje, spremanje, izvoz, preuzimanje, datoteka, partcraft.json, datoteka sklopa, stl, 3mf, step, dxf, pdf, gdje su moje datoteke, offline, spremi kao
-from: c15c2c48
+summary: Dijelovi i sklopovi koje PartCraft otvara i sprema, svaki izvozni format i što zadržava, gdje datoteke završavaju te što se mijenja izvan mreže ili između preglednika.
+keywords: otvori, spremi, izvezi, preuzmi, datoteka, partcraft.json, datoteka sklopa, stl, 3mf, step, dxf, pdf, gdje su moje datoteke, izvan mreže, spremi kao
+from: e5fbc7e3
 ---
 
-PartCraft radi s datotekama na vašem računalu. Nikada ne šalje dio na poslužitelj, a nema ni računa ni pohrane u oblaku. Spremanje u oblak još nije dostupno.
+PartCraft radi s datotekama na vašem računalu. Nikada ne učitava dio, a nema računa ni pohrane u oblaku. Spremanje u oblak još nije dostupno.
 
 ## Što PartCraft otvara
 
-| Datoteka | Nastavak | Kako |
+| Datoteka | Ekstenzija | Kako |
 |---|---|---|
-| PartCraft dio | `.partcraft.json` | {{ui:Otvori}}, {{key:Mod+O}} ili ispuštanje na 3D prikaz |
-| PartCraft sklop | `.partcraft-asm.json` | Isto: PartCraft prepoznaje o kojoj je vrsti riječ |
-| STEP tijelo | `.step`, `.stp` | Puno tijelo pročitano kao trokuti: [Otvorite STEP datoteku i gradite na njoj](topic:import-step) |
+| PartCraft dio | `.partcraft.json` | {{ui:Otvori}}, {{key:Mod+O}} ili ispustite je na 3D prikaz |
+| PartCraft sklop | `.partcraft-asm.json` | Isto: PartCraft vidi koje je vrste |
+| STEP tijelo | `.step`, `.stp` | Čvrsto tijelo čitano kao trokuti: [Otvorite STEP datoteku i gradite na njoj](topic:import-step) |
 
-STL, OBJ i 3MF mreže također se otvaraju kao puna tijela ([Otvorite STL, OBJ ili 3MF](topic:open-meshes)), kao i `.3dm` datoteke ([Otvorite .3dm model](topic:open-3dm-files)). DXF, IGES i vlastite datoteke dijelova drugih programa ne mogu se otvoriti (pogledajte [Što još nije izrađeno](topic:not-built-yet)).
+STL, OBJ i 3MF mreže također se otvaraju kao čvrsta tijela ([Otvorite STL, OBJ ili 3MF](topic:open-meshes)), kao i datoteke `.3dm` ([Otvorite .3dm model](topic:open-3dm-files)). DXF, IGES i vlastite datoteke dijelova drugih programa ne mogu se otvoriti (vidi [Što još nije izrađeno](topic:not-built-yet)).
 
 Pravila pri otvaranju:
 
-- Ime datoteke dijela ili sklopa mora završavati na `.json`, a datoteka mora biti manja od 50 MB.
-- Datoteke se provjeravaju prije nego što se išta prikaže. Oštećena ili ručno mijenjana datoteka odbija se s običnim razlogom, na primjer „Ovo nije PartCraft datoteka.“
-- Datoteka koju je spremio noviji PartCraft odbija se: „Ovu datoteku spremio je noviji PartCraft (verzija datoteke 3); ovaj čita verziju 2.“ Starije datoteke se otvaraju.
+- Naziv datoteke dijela ili sklopa mora završavati s `.json`, a datoteka mora biti manja od 50 MB.
+- Datoteke se provjeravaju prije prikaza. Oštećena ili uređena datoteka odbija se uz jednostavan razlog, npr. „Ovo nije PartCraft datoteka.“
+- Datoteka spremljena novijim PartCraftom se odbija: „Ova datoteka je spremljena novijim PartCraftom (verzija datoteke 3); ova čita verziju 2.“ Starije datoteke se otvaraju.
 - Ako dio na zaslonu ima nespremljene promjene, PartCraft prvo pita: {{ui:Odustani}}, {{ui:Odbaci promjene}} ili {{ui:Prvo spremi}}.
 
 ## Spremanje
 
 {{ui:Spremi}} ili {{key:Mod+S}} sprema ono što je na zaslonu:
 
-- Za dio: `<naziv dijela>.partcraft.json`, cijela povijest (skice, odnosi, kote, značajke, položaj vraćanja unatrag), bilješke presjeka, detalja i GD&T-a lista crteža te puni tekst svakog STEP tijela uvezenog u ranijoj verziji. Značajke koje ova verzija ne može izgraditi spremaju se natrag nepromijenjene. Samo tijelo se ne pohranjuje; PartCraft ga ponovno gradi iz povijesti kad se datoteka otvori.
-- U sklopu: `<naziv sklopa>.partcraft-asm.json`, sa **svakim dijelom unutar njega**. Jedna datoteka nosi cijeli sklop, pa je možete poslati samu.
+- Za dio: `<part name>.partcraft.json`, cijela povijest (skice, odnosi, kote, značajke, položaj vraćanja), odjeljak, detalj i GD&T bilješke lista crteža, te cijeli tekst svakog STEP tijela uvezenog u ranijoj verziji. Značajke koje ova verzija ne može izgraditi spremaju se nepromijenjene. Samo tijelo se ne sprema; PartCraft ga ponovno gradi iz povijesti kad se datoteka otvori.
+- U sklopu: `<assembly name>.partcraft-asm.json`, s **svakim dijelom unutra**. Jedna datoteka nosi cijeli sklop, pa je možete poslati samostalno.
 
-Spremanje je **preuzimanje**. Vaš preglednik stavlja datoteku u svoju mapu preuzimanja ili pita gdje je staviti ako je tako postavljen. Ponovno spremanje stvara novo preuzimanje; preglednik ga može nazvati `Part1 (1).partcraft.json` umjesto da zamijeni staru. Preimenujte ili premještajte datoteke u {{pick:mac=Finderu|windows=Istraživaču datoteka|linux=upravitelju datoteka}} kako želite.
+Spremanje je **preuzimanje**. Vaš preglednik stavlja datoteku u mapu za preuzimanja ili pita gdje da je stavi, ako ste to tako postavili. Ponovno spremanje stvara novo preuzimanje; preglednik može nazvati datoteku `Part1 (1).partcraft.json` umjesto da zamijeni staru. Preimenujte ili premjestite datoteke pomoću {{pick:mac=Findera|windows=Istraživača datoteka|linux=upravitelja datoteka}}, kako želite.
 
-Znakovi koji nisu slova, znamenke, razmaci, `_`, `.` i `-` u nazivu dijela postaju `_` u imenu datoteke.
+Znakovi u nazivu dijela osim slova, brojeva, razmaka, `_`, `.` i `-` pretvaraju se u `_` u nazivu datoteke.
 
 :::tip
-Većina preglednika ima postavku za pitanje gdje spremiti svako preuzimanje. Uključite je ako želite izbor „Spremi kao“ svaki put: u Chromeu i Edgeu je pod Preuzimanja u postavkama; u Firefoxu pod Općenito, Datoteke i aplikacije; u Safariju pod Općenito, Lokacija za preuzimanje datoteka.
+Većina preglednika ima postavku koja pita gdje spremiti svako preuzimanje. Uključite je ako želite izbor „Spremi kao“ svaki put: u Chromeu i Edgeu je pod Preuzimanja u postavkama; u Firefoxu pod Općenito, Datoteke i aplikacije; u Safariju pod Općenito, Lokacija za preuzimanje datoteka.
 :::
 
-Više o tome kamo idu preuzimanja i kako sigurno čuvati datoteke: [Kamo idu vaše datoteke](common:your-files).
+Više o tome kamo idu preuzimanja i kako čuvati datoteke: [Gdje su vaše datoteke](common:your-files).
 
 ## Izvoz
 
-Izbornik {{ui:Izvezi}} zapisuje druge formate. Svaki je preuzimanje, imenovano prema dijelu.
+Izbornik {{ui:Izvoz}} zapisuje ostale formate. Svaki je preuzimanje, nazvano prema dijelu.
 
-| Stavka izbornika | Datoteka | Što sadrži |
+| Stavka izbornika | Datoteka | Što je u njoj |
 |---|---|---|
-| {{ui:STL, za 3D ispis}} | `<naziv>.stl` | Binarni STL trokuta tijela, milimetri, **Z prema gore** |
-| {{ui:3MF, za 3D ispis}} | `<naziv>.3mf` | 3MF s tijelom kao jednim objektom, milimetri, **Z prema gore** |
-| {{ui:STEP AP242 (egzaktno tijelo)}} | `<naziv>.step` | U ovoj verziji još nije izrađeno (zasivljeno): treba egzaktnu jezgru |
-| {{ui:STEP AP214 (egzaktno tijelo)}} | `<naziv>.step` | U ovoj verziji još nije izrađeno (zasivljeno) |
-| {{ui:STEP (stranični, mrežna jezgra)}} | `<naziv>.step` | Tijelo od ravnih ploha iz mreže: **okrugle površine su mnogo malih ravnih stranica**. Milimetri, u PartCraftovim vlastitim osima (Y prema gore). STEP koji u ovoj verziji treba koristiti za druge CAD programe |
-| {{ui:DXF skice ili ravne plohe}} | `<naziv> - <skica>.dxf` ili `<naziv> - face.dxf` | DXF R12. Skica: linije, lukovi, kružnice i točke u koordinatama same skice, na slojevima PROFILE, CONSTRUCTION i POINTS. Odabrana ravna ploha: njezini obrisi kao zatvorene polilinije (okrugli bridovi kao njihove stranice) |
-| {{ui:Crtež (PDF): pogledi, presjek, detalj, GD&T}} | `<naziv> - drawing.pdf` | List crteža A3: tri pogleda, izometrija, presjek i detalj ako su zadani, ukupne mjere, GD&T simboli, zaglavlje |
+| {{ui:STL, za 3D ispis}} | `<name>.stl` | Binarni STL trokuta tijela, milimetri, **Z gore** |
+| {{ui:3MF, za 3D ispis}} | `<name>.3mf` | 3MF s tijelom kao jednim objektom, milimetri, **Z gore** |
+| {{ui:STEP AP242 (egzaktno tijelo)}} | `<name>.step` | Jedno egzaktno tijelo, milimetri, Z gore: okrugle plohe kao pravi cilindri, stošci, kugle i torusi. STEP za druge CAD i CAM programe |
+| {{ui:STEP AP214 (egzaktno tijelo)}} | `<name>.step` | Isto egzaktno tijelo u starijoj shemi AP214 |
+| {{ui:STEP (stranični, mrežna jezgra)}} | `<name>.step` | Tijelo od ravnih ploha iz mreže: **okrugle površine su mnogo malih ravnih faceta**. Milimetri, u vlastitim osima PartCrafta (Y gore). Za program koji odbija egzaktnu datoteku |
+| {{ui:DXF skice ili ravne plohe}} | `<name> - <sketch>.dxf` ili `<name> - face.dxf` | DXF R12. Skica: linije, lukovi, kružnice i točke u vlastitim koordinatama skice, na slojevima PROFILE, CONSTRUCTION i POINTS. Odabrana ravna ploha: njezini obrisi kao zatvorene polilinije (okrugli bridovi kao facete) |
+| {{ui:Crtež (PDF): pogledi, presjek, detalj, GD&T}} | `<name> - drawing.pdf` | A3 list crteža: tri pogleda, izometrija, presjek i detalj ako su postavljeni, ukupne dimenzije, GD&T simboli, zaglavlje crteža |
 
 :::note
-{{ui:STEP AP242 (egzaktno tijelo)}} i {{ui:STEP AP214 (egzaktno tijelo)}} u ovoj verziji još nisu izrađeni: koristite {{ui:STEP (stranični, mrežna jezgra)}}. Ima ispravan oblik i obujam, ali je svaka okrugla ploha mnogo ravnih stranica, pa drugi programi ne mogu odabrati provrt kao valjak. Prvo postavite **Krivulje** finije ako je to važno.
+{{ui:STEP AP242 (egzaktno tijelo)}} zapisuje rupe, izbočine, zaobljenja, stošce, kugle i toruse na njihovim pravim površinama, pa drugi program može odabrati rupu kao cilindar; **Krivulje** to ne mijenja. Bokovi splajnova, modelirani navoji i uvezene mreže nemaju egzaktnu površinu i ostaju ravni facete u istom tijelu; statusna traka kaže koliko ih je. {{ui:STEP (stranični, mrežna jezgra)}} zapisuje svaku okruglu plohu kao facete.
 :::
 
-- Izvozi se odnose na dio na zaslonu. Izvoz je isključen u sklopu; izvoza sklopa još nema.
-- STL, 3MF, stranični STEP i DXF plohe uvijek se sastoje od stranica. Postavka **Krivulje** (u desnoj ploči kad ništa nije odabrano) određuje koliko su fine, od 32 do 256 stranica po okretaju. Prije izvoza STL-a ili 3MF-a za gladak ispis odaberite Fino ili Vrlo fino.
+- Izvozi su dijela na zaslonu. Izvoz je isključen u sklopu; izvoz sklopa još ne postoji.
+- STL, 3MF, facetirani STEP i DXF ploha uvijek su od faceta. Postavka **Krivulje** (u desnom oknu kad ništa nije odabrano) određuje koliko su fini, od 32 do 256 faceta po krugu. Prije izvoza STL-a ili 3MF-a za glatki ispis odaberite Fino ili Vrlo fino.
 - PDF crtež koristi ugrađeni font Helvetica čitača. Znakovi koje ne može prikazati ispisuju se kao „?“.
 
-Korak po korak: [Izvoz za ispis, STEP i DXF](topic:export-files) i [Izradite list crteža](topic:drawing-pdf).
+Korak po korak: [Izvoz za ispis, STEP i DXF](topic:export-files) i [Izrada lista crteža](topic:drawing-pdf).
 
-## Nespremljen rad
+## Nespremljeni rad
 
-- PartCraft trenutak nakon svake promjene čuva kopiju za oporavak otvorenog dijela ili sklopa u ovom pregledniku, pa ga rušenje ili zatvorena kartica ne gubi: sljedeći put kad otvorite PartCraft pita „Oporaviti svoj rad?“. To nije spremanje: spremite u datoteku da zadržite svoj rad. Pogledajte [Oporavite nespremljeni rad](common:recover).
-- Ako pokušate zatvoriti karticu ili osvježiti stranicu s nespremljenim promjenama, preglednik pita „Napustiti web-mjesto?“. To je okvir samog preglednika; PartCraft ne može promijeniti njegov tekst.
+- PartCraft čuva kopiju za oporavak otvorenog dijela ili sklopa u ovom pregledniku nedugo nakon svake promjene, pa rušenje ili zatvorena kartica ne gube rad: sljedeći put kad otvorite PartCraft pita „Oporaviti vaš rad?“. To nije spremanje: spremite u datoteku da zadržite rad. Vidi [Oporavak nespremljenog rada](common:recover).
+- Ako pokušate zatvoriti karticu ili ponovno učitati stranicu s nespremljenim promjenama, preglednik pita „Napustiti stranicu?“. To je okvir samog preglednika; PartCraft ne može promijeniti njegov tekst.
 - {{ui:Novo}}, {{ui:Otvori}} i zatvaranje sklopa pitaju prije odbacivanja nespremljenih promjena.
 
-## Online i offline
+## Na mreži i izvan mreže
 
-Sve se događa na vašem računalu: mrežna jezgra (WebAssembly program) preuzima se s aplikacijom i gradi geometriju lokalno, a datoteke se čitaju s vašeg diska i zapisuju na njega. Podaci o dijelu ne putuju mrežom. Pogledajte [Mrežna jezgra](topic:solid-kernels).
+Sve se odvija na vašem računalu: mrežna jezgra (WebAssembly program) preuzima se s aplikacijom i lokalno gradi geometriju, a datoteke se čitaju s diska i zapisuju na njega. Nikakvi podaci o dijelu ne idu mrežom. Vidi [Mrežna jezgra](topic:solid-kernels).
 
-Za rad bez ikakve veze spremite PartCraft za offline uporabu dok ste online: odaberite {{ui:Spremi za offline}} u traci aplikacije i pričekajte dok broji („Spremanje 40 od 212“) dok ne napiše **Spremno za offline**. Spremljena kopija uključuje 3D knjižnicu i mrežnu jezgru, pa nakon toga modeliranje, spremanje, svaki izvoz i crteži rade offline. Ako piše **Spremanje nije uspjelo**, kliknite ga da pokušate ponovno dok ste online; **Offline nije dostupan** znači da ovaj prozor preglednika ne može čuvati kopiju (privatni prozori i neka upravljana računala). Kad je kopija spremljena, klik na **Spremno za offline** nudi {{ui:Spremi ponovno (preuzmi najnoviju verziju)}} i {{ui:Ukloni offline kopiju}}. Pojedinosti: [Rad offline](common:offline).
+Za rad bez veze spremite PartCraft za rad izvan mreže dok ste na vezi: odaberite {{ui:Spremi za offline}} u traci aplikacije i pričekajte dok broji („Spremanje 40 od 212“) dok ne piše **Offline spreman**. Spremljena kopija uključuje 3D knjižnicu i mrežnu jezgru, pa poslije svo modeliranje, spremanje, svi izvozi i crteži rade izvan mreže. Ako piše **Nije moguće spremiti**, kliknite da pokušate ponovno dok ste na mreži; **Offline nije dostupno** znači da ovaj prozor preglednika ne može zadržati kopiju (privatni prozori i neka upravljana računala). Kad je kopija spremljena, klik na **Offline spreman** nudi {{ui:Spremi ponovno (preuzmi najnoviju verziju)}} i {{ui:Ukloni offline kopiju}}. Detalji: [Rad izvan mreže](common:offline).
 
 :::online
-Online ste. Čak i bez spremanja za offline uporabu, kad se PartCraft učita i oznaka u statusnoj traci kaže „Mrežna jezgra“, možete nastaviti raditi ako veza ispadne. Samo ne osvježavajte stranicu dok se ponovno ne spojite.
+Na mreži ste. Čak i bez spremanja za rad izvan mreže, kad se PartCraft učita i čip u statusnoj traci kaže „Mrežna jezgra“, možete nastaviti raditi ako veza prekine. Samo ne ponovno učitavajte stranicu dok ne budete ponovno na mreži.
 :::
 
 :::offline
-Offline ste. Ako je PartCraft već otvoren, nastavite raditi; spremanje i izvoz i dalje rade. Ako traka aplikacije piše **Spremno za offline**, PartCraft se otvara od nule i bez veze; inače ne osvježavajte ovu karticu.
+Niste na mreži. Ako je PartCraft već otvoren, nastavite raditi; spremanje i izvoz i dalje rade. Ako traka aplikacije piše **Offline spreman**, PartCraft se otvara i od početka bez veze; inače ne ponovno učitavajte ovu karticu.
 :::
 
-## Razlike među preglednicima
+## Razlike između preglednika
 
-- **Preuzimanja.** Svaki preglednik ima vlastitu mapu preuzimanja i vlastiti način pitanja. Ako preglednik pita smije li ova stranica preuzimati datoteke, dopustite, inače spremanje i izvoz ne mogu raditi.
-- **Povuci i ispusti** datoteke na prikaz radi u Chromeu, Edgeu, Firefoxu i Safariju.
+- **Preuzimanja.** Svaki preglednik ima vlastitu mapu za preuzimanja i vlastiti način pitanja. Ako preglednik pita smije li ova stranica preuzimati datoteke, dopustite, inače spremanje i izvoz neće raditi.
+- **Povlačenje i ispuštanje** datoteke na prikaz radi u Chromeu, Edgeu, Firefoxu i Safariju.
 - **Datoteke s telefona ili tableta.** Na iPhoneu i iPadu Otvori prikazuje aplikaciju Datoteke; spremljene datoteke idu u Datoteke, Preuzimanja. Na Androidu idu u mapu Preuzimanja.
 
-Nema razlike u tome što datoteke sadrže među preglednicima ili operacijskim sustavima.
+Nema razlike u sadržaju datoteka između preglednika ili operativnih sustava.

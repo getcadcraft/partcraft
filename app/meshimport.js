@@ -7,7 +7,7 @@
  *
  *   readMeshFile(bytes, name) → { format: 'stl'|'obj'|'3mf', positions: Float64Array, indices: Uint32Array, unit: null|UNIT,
  *                                  objects, notes: [{ key, vars }] }                                       (async: 3MF inflates)
- *   repairMesh({ positions, indices }, { gap }) → { positions, indices, report }   weld, drop degenerate / doubled triangles,
+ *   repairMesh({ positions, indices[, triTag, surfs] }, { gap }) → { positions, indices, report[, round] }   weld, drop degenerate / doubled triangles,
  *       close small gaps (boundary points within `gap` of each other, default 1e-3 of the size), fill small holes, orient every
  *       shell consistently and outward. report = { vertices, triangles, welded, degenerate, duplicates, gapsClosed,
  *       holesFilled, holesLeft, openEdges, nonManifold, flipped, shells, closed }
@@ -353,7 +353,7 @@ function edgeCensus(I) {
 }
 
 /** Drop triangles with a repeated corner or no area, and doubled ones (two the same way: one kept; opposite ways: both go). */
-function cleanTris(P, I, areaTol) {
+function cleanTris(P, I, areaTol, tag = null) {
   const out = [], seen = new Map();
   let degenerate = 0, duplicates = 0;
   for (let t = 0; t < I.length / 3; t++) {
@@ -367,12 +367,12 @@ function cleanTris(P, I, areaTol) {
     const par = ((a < b) + (b < c) + (c < a)) & 1;   // which way round, independent of the starting corner
     const prev = seen.get(k);
     if (prev) { duplicates++; if (prev.par !== par) prev.gone = true; continue; }
-    const rec = { tri: [a, b, c], par, gone: false };
+    const rec = { tri: [a, b, c], par, gone: false, tag: tag ? tag[t] : -1 };
     seen.set(k, rec); out.push(rec);
   }
-  const keep = [];
-  for (const r of out) { if (r.gone) { duplicates++; continue; } keep.push(...r.tri); }
-  return { I: Uint32Array.from(keep), degenerate, duplicates };
+  const keep = [], kept = [];
+  for (const r of out) { if (r.gone) { duplicates++; continue; } keep.push(...r.tri); kept.push(r.tag); }
+  return { I: Uint32Array.from(keep), degenerate, duplicates, tag: tag ? Int32Array.from(kept) : null };
 }
 
 /** Boundary half-edges chained into loops (each walks u → v → …); edges at a pinch point may end in an open chain (skipped). */
@@ -534,16 +534,19 @@ function compact(P, I) {
 export const HOLE_MAX_EDGES = 2000;    // holes up to this many edges are filled
 export const HOLE_MAX_SPAN = 0.25;     // … and no wider than this share of the mesh's size
 
-export function repairMesh({ positions, indices }, { gap = null } = {}) {
+export function repairMesh({ positions, indices, triTag = null, surfs = null }, { gap = null } = {}) {
   let P = positions, I = indices;
+  // 0.9.1: each triangle's exact surface (a STEP file's round faces, meshFromStep) follows it through the repair; −1 = none
+  let tag = triTag && surfs && surfs.length && triTag.length === indices.length / 3 ? Int32Array.from(triTag) : null;
   const report = { vertices: 0, triangles: 0, welded: 0, degenerate: 0, duplicates: 0, gapsClosed: 0, holesFilled: 0, holesLeft: 0, openEdges: 0, nonManifold: 0, flipped: 0, shells: 0, closed: false };
   // points that are not numbers: their triangles go
   const badPt = new Uint8Array(P.length / 3);
   for (let i = 0; i < P.length / 3; i++) if (!(Number.isFinite(P[i * 3]) && Number.isFinite(P[i * 3 + 1]) && Number.isFinite(P[i * 3 + 2]))) badPt[i] = 1;
   if (badPt.includes(1)) {
-    const keep = [];
-    for (let t = 0; t < I.length / 3; t++) if (!badPt[I[t * 3]] && !badPt[I[t * 3 + 1]] && !badPt[I[t * 3 + 2]]) keep.push(I[t * 3], I[t * 3 + 1], I[t * 3 + 2]); else report.degenerate++;
+    const keep = [], keepTag = [];
+    for (let t = 0; t < I.length / 3; t++) if (!badPt[I[t * 3]] && !badPt[I[t * 3 + 1]] && !badPt[I[t * 3 + 2]]) { keep.push(I[t * 3], I[t * 3 + 1], I[t * 3 + 2]); if (tag) keepTag.push(tag[t]); } else report.degenerate++;
     I = Uint32Array.from(keep);
+    if (tag) tag = Int32Array.from(keepTag);
     const fin = new Float64Array(P);
     for (let i = 0; i < badPt.length; i++) if (badPt[i]) fin[i * 3] = fin[i * 3 + 1] = fin[i * 3 + 2] = 0;
     P = fin;
@@ -561,8 +564,8 @@ export function repairMesh({ positions, indices }, { gap = null } = {}) {
     const c = compact(P, I); P = c.P; I = c.I;
   }
   const areaTol = 1e-14 * size * size;
-  let cl = cleanTris(P, I, areaTol);
-  I = cl.I; report.degenerate += cl.degenerate; report.duplicates += cl.duplicates;
+  let cl = cleanTris(P, I, areaTol, tag);
+  I = cl.I; tag = cl.tag; report.degenerate += cl.degenerate; report.duplicates += cl.duplicates;
   // 2. small gaps: boundary points within gapTol of another boundary point are merged
   let census = edgeCensus(I);
   if (census.open.length && gapTol > exact) {
@@ -573,7 +576,7 @@ export function repairMesh({ positions, indices }, { gap = null } = {}) {
     for (let i = 0; i < map.length; i++) if (map[i] !== i) merged++;
     if (merged) {
       I = I.map((v) => map[v]);
-      cl = cleanTris(P, I, areaTol); I = cl.I; report.degenerate += cl.degenerate; report.duplicates += cl.duplicates;
+      cl = cleanTris(P, I, areaTol, tag); I = cl.I; tag = cl.tag; report.degenerate += cl.degenerate; report.duplicates += cl.duplicates;
       const before = census.open.length;
       census = edgeCensus(I);
       report.gapsClosed = Math.max(0, before - census.open.length);
@@ -618,7 +621,9 @@ export function repairMesh({ positions, indices }, { gap = null } = {}) {
       P = Float64Array.from(pos);
       const all = new Uint32Array(I.length + extra.length);
       all.set(I); all.set(extra, I.length);
-      cl = cleanTris(P, all, areaTol); I = cl.I;
+      let allTag = null;
+      if (tag) { allTag = new Int32Array(all.length / 3).fill(-1); allTag.set(tag); }   // a filled hole's triangles lie on no surface of the file
+      cl = cleanTris(P, all, areaTol, allTag); I = cl.I; tag = cl.tag;
       census = edgeCensus(I);
     }
   }
@@ -630,7 +635,8 @@ export function repairMesh({ positions, indices }, { gap = null } = {}) {
   report.openEdges = census.open.length; report.nonManifold = census.nonManifold;
   report.vertices = P.length / 3; report.triangles = I.length / 3;
   report.closed = !census.open.length && !census.nonManifold;
-  return { positions: P, indices: I, report };
+  const round = tag && tag.length === I.length / 3 && tag.some((x) => x >= 0) ? { surfs, triSurf: tag } : null;
+  return { positions: P, indices: I, report, ...(round ? { round } : {}) };
 }
 
 // ---- flat faces -------------------------------------------------------------------------------------------------------
@@ -743,8 +749,37 @@ function leBytes(typed) {
   return out;
 }
 
-export function encodeMesh({ positions, indices }) {
-  return { nv: positions.length / 3, nt: indices.length / 3, v: toB64(leBytes(Float32Array.from(positions))), i: toB64(leBytes(Uint32Array.from(indices))) };
+export function encodeMesh({ positions, indices, round = null }) {
+  const out = { nv: positions.length / 3, nt: indices.length / 3, v: toB64(leBytes(Float32Array.from(positions))), i: toB64(leBytes(Uint32Array.from(indices))) };
+  // 0.9.1: the exact surfaces a STEP file gave (s) and each triangle's (f, −1 = none), so the body keeps true planes, cylinders,
+  // cones, spheres and tori; a reader that does not know them reads the triangles alone
+  const r = round && readRound({ s: round.surfs, n: indices.length / 3 }, round.triSurf);
+  if (r) { out.s = r.surfs; out.f = toB64(leBytes(Int32Array.from(r.triSurf))); }
+  return out;
+}
+
+export const MAX_ROUND = 200000;   // exact surfaces kept with one imported body
+const vec3ok = (a) => Array.isArray(a) && a.length === 3 && a.every((x) => Number.isFinite(x) && Math.abs(x) < 1e12);
+const dirOk = (a) => vec3ok(a) && Math.abs(Math.hypot(a[0], a[1], a[2]) - 1) < 1e-6;
+const posOk = (x) => Number.isFinite(x) && x > 0 && x < 1e12;
+/** One exact surface, checked (untrusted) and copied; null if it is not one we know. */
+function readSurf(q) {
+  if (!q || typeof q !== 'object') return null;
+  if (q.type === 'plane' && dirOk(q.n) && vec3ok(q.o)) return { type: 'plane', n: [...q.n], o: [...q.o] };
+  if (q.type === 'cylinder' && vec3ok(q.o) && dirOk(q.d) && posOk(q.r)) return { type: 'cylinder', o: [...q.o], d: [...q.d], r: q.r };
+  if (q.type === 'cone' && vec3ok(q.o) && dirOk(q.d) && posOk(q.k)) return { type: 'cone', o: [...q.o], d: [...q.d], k: q.k };
+  if (q.type === 'sphere' && vec3ok(q.c) && posOk(q.r)) return { type: 'sphere', c: [...q.c], r: q.r };
+  if (q.type === 'torus' && vec3ok(q.c) && dirOk(q.d) && posOk(q.R) && posOk(q.r)) return { type: 'torus', c: [...q.c], d: [...q.d], R: q.R, r: q.r };
+  return null;
+}
+/** The round surfaces kept with a mesh, checked: every surface one we know, every triangle's number in range. Anything wrong
+ *  → null (the body is then its triangles alone, as before 0.9.1), never an error. */
+function readRound({ s, n }, triSurf) {
+  if (!Array.isArray(s) || !s.length || s.length > MAX_ROUND || !triSurf || triSurf.length !== n) return null;
+  const surfs = s.map(readSurf);
+  if (surfs.some((x) => !x)) return null;
+  for (let t = 0; t < n; t++) { const k = triSurf[t]; if (!(Number.isInteger(k) && k >= -1 && k < surfs.length)) return null; }
+  return { surfs, triSurf: Int32Array.from(triSurf) };
 }
 
 /** The mesh a part file keeps, checked (untrusted): counts against the data, every index in range, every number finite. */
@@ -758,7 +793,14 @@ export function decodeMesh(m) {
   const positions = new Float32Array(m.nv * 3), indices = new Uint32Array(m.nt * 3);
   for (let k = 0; k < positions.length; k++) { const x = dv.getFloat32(k * 4, true); if (!Number.isFinite(x)) fail('mesh.err.kept_bad'); positions[k] = x; }
   for (let k = 0; k < indices.length; k++) { const x = di.getUint32(k * 4, true); if (x >= m.nv) fail('mesh.err.kept_bad'); indices[k] = x; }
-  return { positions, indices };
+  let round = null;
+  if (Array.isArray(m.s) && typeof m.f === 'string' && m.f.length === 4 * Math.ceil(m.nt * 4 / 3)) {
+    try {
+      const fb = fromB64(m.f);
+      if (fb.length === m.nt * 4) { const df = new DataView(fb.buffer), tf = new Int32Array(m.nt); for (let k = 0; k < m.nt; k++) tf[k] = df.getInt32(k * 4, true); round = readRound({ s: m.s, n: m.nt }, tf); }
+    } catch { round = null; }
+  }
+  return { positions, indices, ...(round ? { round } : {}) };
 }
 
 /** decodeMesh plus its flat faces, kept for the last few meshes (a rebuild decodes nothing it decoded before). */
@@ -766,10 +808,12 @@ const decoded = new Map();
 export function meshOf(m) {
   const key = m.v;
   let d = decoded.get(key);
-  if (d && d.i === m.i) { decoded.delete(key); decoded.set(key, d); return d.mesh; }
+  // (the kept surfaces are part of what was decoded: the same triangles with other surfaces, or none, are another mesh)
+  const sj = () => (Array.isArray(m.s) ? JSON.stringify(m.s) : '');
+  if (d && d.i === m.i && d.f === m.f && (d.s === m.s || d.sj === sj())) { decoded.delete(key); decoded.set(key, d); return d.mesh; }
   const mesh = decodeMesh(m);
   mesh.flats = planarRegions(mesh.positions, mesh.indices);
-  decoded.set(key, { i: m.i, mesh });
+  decoded.set(key, { i: m.i, f: m.f, s: m.s, sj: sj(), mesh });
   while (decoded.size > 4) decoded.delete(decoded.keys().next().value);
   return mesh;
 }
@@ -810,14 +854,29 @@ export function meshFromStep(r) {
   for (const s of r.solids) { n += s.positions.length; t += s.indices.length; }
   if (t / 3 > MAX_TRIS) throw new MeshError('mesh.err.too_many', { max: MAX_TRIS });
   const positions = new Float64Array(n), indices = new Uint32Array(t);
-  let pn = 0, ti = 0;
+  // 0.9.1: the file's faces keep their exact surface (plane, cylinder, cone, sphere, torus); faces of one surface share one entry
+  const surfs = [], surfIx = new Map(), triTag = new Int32Array(t / 3).fill(-1);
+  // (a plane is keyed by its normal and its distance from the origin: two faces in one plane are one surface)
+  const keyOf = (q) => q.type + ':' + (q.type === 'plane' ? [...q.n, q.n[0] * q.o[0] + q.n[1] * q.o[1] + q.n[2] * q.o[2]] : [...(q.o || q.c), ...(q.d || []), q.r ?? 0, q.R ?? 0, q.k ?? 0]).map((x) => (Math.abs(x) < 1e-9 ? 0 : x).toPrecision(12)).join(',');
+  let pn = 0, ti = 0, tt = 0;
   for (const s of r.solids) {
     const base = pn / 3;
     positions.set(s.positions, pn);
     for (let i = 0; i < s.indices.length; i++) indices[ti++] = base + s.indices[i];
     pn += s.positions.length;
+    const of = (s.surfs || []).map((q) => {
+      const c = q ? readSurf(q) : null;
+      if (!c || surfs.length >= MAX_ROUND) return -1;
+      const k = keyOf(c);
+      let g = surfIx.get(k);
+      if (g === undefined) { g = surfs.length; surfIx.set(k, g); surfs.push(c); }
+      return g;
+    });
+    const tf = s.triFace, nt = s.indices.length / 3;
+    for (let k = 0; k < nt; k++) triTag[tt + k] = tf && tf.length === nt && tf[k] < of.length ? of[tf[k]] : -1;
+    tt += nt;
   }
-  return { positions, indices, format: 'step', unit: 'mm', notes: r.notes.slice(), step: r };
+  return { positions, indices, format: 'step', unit: 'mm', notes: r.notes.slice(), step: r, ...(surfs.length ? { surfs, triTag } : {}) };
 }
 
 function latin1(u8) { let s = ''; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return s; }

@@ -15,7 +15,7 @@ A geometry kernel is the engine that turns your history into a solid. This versi
 | Sketches, extrude, cut, revolve, holes, patterns, mirror, reference planes | Yes |
 | Fillet and Chamfer | On straight edges between flat faces; rounds that meet are mitred |
 | Shell and Draft | Shell opens flat faces (exact wall thickness); Draft tilts flat faces |
-| Exports | STL, 3MF, STEP (faceted), drawing PDF and DXF |
+| Exports | STL, 3MF, STEP (exact: round faces written on their true surfaces; or faceted), drawing PDF and DXF |
 | Drawing views | Drawn from the facets, section views included |
 | Faces and edges | Named and known by kind (flat, cylinder, cone, sphere, torus; straight, circle), taken from the sketches: the Simulation, Generative and Manufacture workspaces, Measure, picking and the hole table use them |
 
@@ -23,7 +23,7 @@ The chip near the right end of the status bar says **Mesh kernel** while it buil
 
 ## What waits for an exact kernel
 
-An exact (B-rep) kernel keeps true circles, cylinders and cones, and smooth fillets on any edge, sweeps, lofts, surfaces, sheet metal, ribs, several bodies, STEP import and exact STEP export are built on one. Earlier lab builds of PartCraft used OpenCascade for that. Its license (the LGPL) does not fit this release, where every app is Apache-2.0 and uses only permissively licensed libraries, so it is not included. Nothing here has a date.
+An exact (B-rep) kernel keeps true circles, cylinders and cones, and smooth fillets on any edge, sweeps, lofts, surfaces, sheet metal, ribs, several bodies and STEP import with curved faces kept exact are built on one. (Exact STEP export does not wait for it: the mesh kernel knows each face's true surface from the sketch, and the export writes those.) Earlier lab builds of PartCraft used OpenCascade for that. Its license (the LGPL) does not fit this release, where every app is Apache-2.0 and uses only permissively licensed libraries, so it is not included. Nothing here has a date.
 
 Until then those features say **Not built yet** when you choose them: the status bar gives the reason, and their buttons' tooltips end with "not built yet (needs an exact kernel)". [What is not built yet](topic:not-built-yet) lists each one with what to do instead.
 

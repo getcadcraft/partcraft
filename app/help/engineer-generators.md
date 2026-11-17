@@ -58,5 +58,5 @@ Engineer's generators and data sheets carry a notice about export controls and s
 - Headers, ports and fittings on the heat exchanger core: it is the core only.
 - Temperature curves for material strength: the materials are at room temperature.
 - Tee losses and the sharing of flow between outlets in the manifold.
-- Installing generators from the add-on directory with one click; opening a file adds one to this browser.
+- Adding generators from the add-on directory with one click; opening a file adds one to this browser.
 - Generators for the other apps.

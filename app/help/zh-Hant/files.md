@@ -2,7 +2,7 @@
 title: 檔案：開啟、儲存與匯出
 summary: PartCraft 開啟與儲存的零件及組合件檔案、所有匯出格式及其保留的內容、檔案的去向，以及離線時或不同瀏覽器之間有哪些變化。
 keywords: 開啟, 儲存, 匯出, 下載, 檔案, partcraft.json, 組合件檔案, stl, 3mf, step, dxf, pdf, 我的檔案在哪裡, 離線, 另存新檔
-from: c15c2c48
+from: e5fbc7e3
 ---
 
 PartCraft 處理你電腦上的檔案。它絕不會上傳零件，也不涉及任何帳戶或雲端儲存空間。目前尚無雲端儲存。

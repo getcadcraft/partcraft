@@ -2,7 +2,7 @@
 title: Skrini ya PartCraft
 summary: Ziara ya kila upau na paneli: upau wa zana na jinsi unavyobadilika, historia, ukweli wa sehemu, mwonekano wa 3D, paneli ya sifa na upau wa hali.
 keywords: skrini, mpangilio, upau wa zana, historia, mti wa vipengele, sifa, paneli, upau wa hali, kiolesura, ui, ziara, skrini kamili
-from: 7394fc49
+from: 5b5bb843
 ---
 
 Skrini ina sehemu tano: upau wa zana juu, historia upande wa kushoto, mwonekano wa 3D katikati, paneli ya sifa upande wa kulia, na upau wa hali chini. Juu yao yote kuna upau wa programu wa CadCraft.

@@ -27,7 +27,7 @@ export function partItem(part, mesh, { name = '' } = {}) {
     notes.push('box');   // the caller words it (t('partitem.box'))
   } else shape = { type: 'mesh', positions: body.positions, indices: body.indices };
   const item = {
-    format: 'cadcraft-library-item', format_version: 1, name: nm, kind: 'equipment', category: 'other/other',
+    format: 'cadcraft-library-item', format_version: 1, name: nm, kind: 'equipment', category: 'other/other', ifc: { class: 'IfcBuildingElementProxy' },   // the library checker names the class on every item (a part is the proxy its IFC export writes)
     plan: { layers: [{ name: 'EQUIP', color: 7 }], entities: [{ type: 'poly', layer: 'EQUIP', color: null, closed: true,
       pts: [[bb.x, bb.y], [bb.x + bb.w, bb.y], [bb.x + bb.w, bb.y + bb.d], [bb.x, bb.y + bb.d]] }] },
     body: shape,

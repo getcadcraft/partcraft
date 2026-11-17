@@ -2,7 +2,7 @@
 title: Kernel lưới
 summary: Phiên bản PartCraft này dựng mọi chi tiết bằng một kernel lưới chạy trong trình duyệt của bạn. Điều đó nghĩa là gì đối với mặt tròn, thể tích và tệp, cách nhận biết nó đang chạy, và những tính năng nào phải chờ kernel chính xác.
 keywords: kernel, lưới, manifold, chính xác, b-rep, xấp xỉ bằng mặt, đường cong, opencascade, occt, bo góc cần kernel chính xác, chưa xây dựng, ngoại tuyến, webassembly
-from: 68d32d16
+from: f931645c
 ---
 
 Kernel hình học là bộ máy biến lịch sử của bạn thành một khối đặc. Phiên bản PartCraft này có một cái: **kernel lưới** (manifold-3d). Nó chạy trên máy tính của bạn như một chương trình WebAssembly nhỏ và sẵn sàng ngay sau khi ứng dụng mở. Không có gì về chi tiết của bạn được gửi đi đâu cả.

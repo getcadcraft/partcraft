@@ -2,7 +2,7 @@
 title: 網格核心
 summary: 此版本的 PartCraft 以在瀏覽器中執行的網格核心建構每一個零件。這對圓弧面、體積與檔案代表什麼、如何判斷它正在運作，以及哪些特徵要等精確核心。
 keywords: 核心, 網格, manifold, 精確, b-rep, 面片, 曲線, opencascade, occt, 圓角需要精確核心, 尚未實作, 離線, webassembly
-from: 68d32d16
+from: f931645c
 ---
 
 幾何核心是把你的歷程轉成實體的引擎。此版本的 PartCraft 有一個：**網格核心**（manifold-3d）。它以小型 WebAssembly 程式的形式在你的電腦上執行，應用程式開啟後片刻即可使用。你的零件不會被傳送到任何地方。

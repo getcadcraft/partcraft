@@ -2,7 +2,7 @@
 title: 网格内核
 summary: 此版本的PartCraft用在浏览器中运行的网格内核构建每个零件。这对圆形表面、体积和文件意味着什么，如何确认它在工作，以及哪些特征要等精确内核。
 keywords: 内核, 网格, manifold, 精确, b-rep, 面片, 曲线, opencascade, occt, 圆角需要精确内核, 尚未实现, 离线, webassembly
-from: 68d32d16
+from: f931645c
 ---
 
 几何内核是把你的历史转换成实体的引擎。此版本的PartCraft有一个：**网格内核**（manifold-3d）。它作为一个小型WebAssembly程序在你的计算机上运行，应用打开片刻后即可使用。关于你零件的任何内容都不会发送到任何地方。

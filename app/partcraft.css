@@ -559,8 +559,12 @@ button.cs-shown-h:focus-visible { outline: var(--pen-2) solid var(--action); }
 /* One toolbar row at 1440 px (0.5 final sweep, `closing`): File › Standard part (MQ.4) grew the File group by 80 px and the
    Design toolbar wrapped (groups 1489 px). Below 1600 px Standard part and Normal to show as their icons; the label stays in
    the title and for screen readers (BimCraft's rule for its newest tools). Phones keep app-phone.js's icon rules. */
+/* FX.251: File › Documents (0.8) grew the File group by 81 px and the Design toolbar wrapped again (groups 1519 px). Below 1600 px Documents
+   shows as its icon too, and the groups stand a little closer; the core toolbar is one row at 1440 px again. An add-on's own group (3D print,
+   on by default) can still take a second row. */
 @media (max-width: 1599.98px) {
-  .pc-tool[data-cmd="std-part"] > span, .pc-tool[data-cmd="view-normal"] > span { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+  .pc-tool-group { padding-left: .125rem; padding-right: .125rem; }
+  .pc-tool[data-cmd="documents"] > span, .pc-tool[data-cmd="std-part"] > span, .pc-tool[data-cmd="view-normal"] > span { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 }
 
 /* Nest flat parts on sheets (0.6 LC.17, nest-ui.js; session lc-make) */

@@ -39,6 +39,7 @@ export const COMMANDS = [
   C('file.new', 'file', 'bi-file-earmark-plus', 'new'),
   C('file.open', 'file', 'bi-folder2-open', 'open', { defKeys: ['Ctrl+O'] }),
   C('file.save', 'file', 'bi-download', 'save', { defKeys: ['Ctrl+S'] }),
+  C('file.link-save-back', 'file', 'bi-box-arrow-up-right', 'link-save-back', { optional: true }),   // 0.10 SU.1814: send the shape back to BimCraft
   C('file.std-part', 'file', 'bi-nut', 'std-part'),
   C('file.documents', 'file', 'bi-folder2-open', 'documents'),   // 0.8 SU.1058: the Documents panel (check out / in, revisions, release states)
   C('export.print', 'export', 'bi-printer', 'export-print'),

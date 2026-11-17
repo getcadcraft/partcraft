@@ -2,7 +2,7 @@
 title: Kernel ya matundu
 summary: Toleo hili la PartCraft hujenga kila sehemu kwa kernel ya matundu inayoendeshwa kwenye kivinjari chako. Hiyo inamaanisha nini kwa nyuso za duara, ujazo na faili, jinsi ya kujua inafanya kazi, na ni vipengele vipi vinavyosubiri kernel sahihi.
 keywords: kernel, matundu, manifold, sahihi, exact, b-rep, yenye nyuso bapa, mikunjo, opencascade, occt, fillet inahitaji sahihi, bado haijajengwa, nje ya mtandao, webassembly
-from: 68d32d16
+from: f931645c
 ---
 
 Kernel ya jiometri ni injini inayogeuza historia yako kuwa kigumu. Toleo hili la PartCraft lina moja: **kernel ya matundu** (manifold-3d). Inaendeshwa kwenye kompyuta yako kama programu ndogo ya WebAssembly na iko tayari muda mfupi baada ya programu kufunguka. Hakuna kitu kuhusu sehemu yako kinachotumwa popote.

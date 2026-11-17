@@ -2,7 +2,7 @@
 title: PartCraft-skärmen
 summary: En rundtur i varje fält och panel: verktygsfältet och hur det ändras, historiken, delfakta, 3D-vyn, egenskapspanelen och statusfältet.
 keywords: skärm, layout, verktygsfält, historik, funktionsträd, egenskaper, panel, statusfält, gränssnitt, ui, rundtur, helskärm
-from: 7394fc49
+from: 5b5bb843
 ---
 
 Skärmen har fem delar: verktygsfältet över toppen, historiken till vänster, 3D-vyn i mitten, egenskapspanelen till höger och statusfältet längs nederkanten. Ovanför allt sitter CadCraft-appfältet.

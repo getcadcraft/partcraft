@@ -1,0 +1,75 @@
+---
+title: Có gì mới trong 0.7 (trước đó)
+summary: PartCraft 0.7 thêm không gian làm việc Illustrate cho sổ tay, các tệp STEP, STL, OBJ, 3MF và .3dm mở thành khối đặc, khung hàn từ tiết diện thép, liên kết vòng kín, chi tiết có hàng trăm đặc trưng, gói biến thể từ các cấu hình của bạn, post có thể sửa với hoàn thiện 3D và thư viện dụng cụ, phôi thừa giữ lại giữa các lần xếp hình, chương trình laser, xuất USD và công cụ cho trợ lý AI của riêng bạn.
+keywords: có gì mới 0.7, bản phát hành trước, ghi chú phát hành, nhật ký thay đổi, thay đổi, 0.7, phiên bản, tính năng mới, illustrate, sổ tay, minh họa kỹ thuật, khung nhìn tách rời, bong bóng, danh sách chi tiết, hướng dẫn, 3D tương tác, hoạt ảnh, step, stp, stl, obj, 3mf, 3dm, lưới thành khối, mở lưới, cấu kiện hàn, cấu kiện kết cấu, danh sách cắt, vòng kín, liên kết, bốn thanh, chi tiết lớn, nhiều đặc trưng, gói biến thể, biến thể, bộ cấu hình, bộ xử lý post, sửa post, cpost, song song, vân cầu, hoàn thiện 3D, thư viện dụng cụ, màu phôi, phôi thừa, laser, usd, usdz, trợ lý, mcp, gọn, đơn vị, tiếng Bồ Đào Nha
+from: 236f6da8
+---
+
+Đây là những gì đã thay đổi trong PartCraft 0.7, so với 0.6. Chi tiết được nhập từ nhiều tệp hơn, và một không gian làm việc mới tạo sổ tay từ thiết kế của bạn.
+
+## Mới
+
+### Sổ tay từ thiết kế của bạn
+
+- **Không gian làm việc Illustrate.** Chọn {{ui:Illustrate}} trong bộ chuyển {{ui:Không gian làm việc}}, rồi {{ui:Mới}} trong nhóm {{ui:Sổ tay}}: một sổ tay bắt đầu từ chi tiết hoặc lắp ráp đang mở, một lắp ráp đã lưu, hoặc một tệp glTF, OBJ, STL hoặc 3MF (cây và tên của nó được giữ; các bản sao của cùng một chi tiết thành một chi tiết với số lượng). Một sổ tay là một tệp riêng (`.partcraft-manual.json`) với bản sao các chi tiết, nên tài liệu vẫn tiếp tục trong khi thiết kế thay đổi. Xem [Bắt đầu một sổ tay trong Illustrate](topic:illustrate).
+- **Khung nhìn và kiểu hiển thị.** Ẩn, làm mờ, cô lập hoặc đổi màu các chi tiết, chạy khung nhìn tách rời, cắt một mặt cắt hoặc một hộp ra khỏi mô hình, thêm kính lúp, và lưu tất cả thành một khung nhìn. Xem [Khung nhìn, kiểu hiển thị, mặt cắt và kính lúp](topic:illustrate-views).
+- **Bong bóng và danh sách chi tiết.** Một cú nhấp đánh số mọi chi tiết mà một khung nhìn hiển thị; các số luôn gắn với chi tiết của chúng và không bao giờ được dùng lại. Danh sách có thể nằm trong khung nhìn và được lưu dưới dạng CSV. Xem [Danh sách chi tiết và bong bóng](topic:illustrate-parts-list).
+- **Chú thích gắn chặt.** Nhãn và chú giải tự điền số, tên, vật liệu hoặc số lượng của chi tiết; mũi tên, khoảng cách, góc và bán kính được đo từ các chi tiết, hình dạng và ảnh. Chúng di chuyển cùng chi tiết khi nó được tách rời. Xem [Chú thích gắn chặt](topic:illustrate-annotations).
+- **Hình nét, hướng dẫn và tệp 3D.** Xuất bất kỳ khung nhìn nào thành hình nét vector (SVG hoặc PDF) với các đường khuất và mặt cắt tô bóng, hoặc thành PNG; biến các khung nhìn thành hướng dẫn từng bước dưới dạng PDF hoặc một trang HTML; hoặc lưu một tệp HTML mở được ngoại tuyến trong bất kỳ trình duyệt nào, với các khung nhìn, danh sách chi tiết và hoạt ảnh. Xem [Hình minh họa kỹ thuật](topic:illustrate-line-art), [Tài liệu hướng dẫn](topic:illustrate-instructions) và [Tệp 3D tương tác](topic:illustrate-interactive).
+- **Hoạt ảnh và cập nhật.** Đặt khóa cho chi tiết và camera, ghi lại khung nhìn tách rời từng bước, và lưu video. Khi thiết kế thay đổi, {{ui:Cập nhật từ thiết kế…}} cho biết những gì đã di chuyển, thay đổi, xuất hiện hoặc biến mất trước khi có gì thay đổi, và giữ các khung nhìn, chú thích, bong bóng và khóa đi cùng chi tiết của chúng. Xem [Tạo hoạt ảnh cho một sổ tay](topic:illustrate-animation) và [Cập nhật một sổ tay từ thiết kế](topic:illustrate-update).
+
+### Mở các tệp khác
+
+- **Tệp STEP mở thành khối đặc.** {{ui:Mở}} đọc STEP AP203, AP214 và AP242 mà không cần nhân chính xác. Mặt phẳng vẫn phẳng, mặt cong thành nhiều mặt phẳng nhỏ, và một lắp ráp vào như một khối với mọi chi tiết ở vị trí tệp đặt chúng. Phác thảo trên các mặt phẳng của nó, cắt và thêm vào. Xem [Mở tệp STEP và xây dựng trên đó](topic:import-step).
+- **Lưới STL, OBJ và 3MF thành khối đặc.** Mở hoặc thả tệp: PartCraft nối các góc trùng, khép các khe nhỏ, lấp các lỗ và lật các tam giác quay sai hướng, rồi cho biết nó đã làm gì và lưới giờ có khép kín hay không. Chọn đơn vị và chiều hướng lên, và khối vào dưới tên **Imported1**, với các mặt phẳng của nó là bề mặt để phác thảo. Một lưới không thể khép kín sẽ cho biết còn bao nhiêu lỗ hổng và không thêm gì cả. Xem [Mở STL, OBJ hoặc 3MF thành khối đặc](topic:open-meshes).
+- **Tệp .3dm mở thành một khối.** Các lưới, khối đa mặt, khối đùn và vị trí khối của một tệp `.3dm` vào như một khối đặc, từ các lưới đã lưu trong tệp hoặc được PartCraft tessellate, qua cùng bước sửa chữa và kiểm tra "khép kín?" như một lưới. Đường cong, văn bản, đối tượng SubD, lớp và màu bị bỏ qua, và hộp thoại nói rõ điều đó. Xem [Mở mô hình .3dm thành khối đặc](topic:open-3dm-files).
+
+### Chi tiết và lắp ráp
+
+- **Khung từ tiết diện thép.** Vẽ khung bằng các đường, trong một phác thảo hoặc nhiều phác thảo cho khung 3D, rồi {{ui:Thêm}} › {{ui:Cấu kiện kết cấu}}: một tiết diện từ bảng AISC hoặc EN 10365 chạy dọc theo mọi đường. Góc được cắt vát hoặc cắt đầu, các thanh gặp nhau thành chữ T hoặc ba thanh tại một góc được cắt vừa khít, các đầu tự do có thể có nắp và bản nút ở góc, và danh sách cắt cho chiều dài và góc đầu của từng đoạn ({{ui:Lưu danh sách cắt (CSV)}}). Xem [Khung từ tiết diện thép](topic:structural-members).
+- **Vòng kín trong lắp ráp.** Các chi tiết nối thành vòng (cơ cấu bốn thanh, tay quay và trượt, khung có giằng) giờ khép lại: kéo hoặc nhập một giá trị trên vòng và phần còn lại đi theo, và kiểm tra chuyển động quét vòng theo cách tương tự. Khớp vẫn có thể di chuyển có màu xanh, một vòng không thể khép lại chuyển sang đỏ và cho biết nó lệch bao nhiêu. Xem [Vòng kín: cơ cấu liên kết](topic:build-assembly#closed-loops-linkages).
+- **Chi tiết với hàng trăm đặc trưng.** PartCraft giữ khối đặc mà nó có ở giữa lịch sử, nên một thay đổi muộn trong lịch sử chỉ dựng lại các đặc trưng sau nó, và các cắt và gờ không chạm nhau được áp dụng cùng lúc. Đã kiểm thử trên một chi tiết 750 đặc trưng. Cửa sổ Tham số theo kịp hàng trăm phương trình, và hoàn tác giữ 200 bước trừ khi chúng sẽ dùng quá nhiều bộ nhớ (không bao giờ ít hơn 20). Xem [Chi tiết với hàng trăm đặc trưng](topic:edit-history#parts-with-hundreds-of-features).
+- **Gói biến thể từ các cấu hình của bạn.** {{ui:Gói biến thể…}} dưới **Cấu hình** trên thẻ {{ui:Tham số}} dựng mọi cấu hình, hoặc những cấu hình bạn đánh dấu, trong một tệp zip: một STEP, một IFC, một tờ bản vẽ DWG và một ảnh xem trước cho mỗi cái, một bảng tham số (CSV và JSON), và chi tiết dưới dạng một mục thư viện với các biến thể. Cấu hình nào không dựng được sẽ được liệt kê và bỏ qua. Dòng lệnh làm điều tương tự với `partcraft variants`. Xem [Tạo gói biến thể từ các cấu hình của bạn](topic:variant-pack).
+
+### Gia công
+
+- **Post có thể sửa.** Các post kiểu Fanuc, GRBL và LinuxCNC trong {{ui:Gia công}} giờ là các tệp văn bản ngắn theo định dạng post riêng của PartCraft, và vẫn ghi đúng những gì chúng đã ghi trước đây. {{ui:Sửa post…}} mở bản sao riêng của bạn của một post ({{ui:Post mới…}} và {{ui:Nhập tệp post…}} cũng vậy), cho biết dòng nào sai, và hiển thị mã G-code nó sẽ ghi khi bạn gõ. Post được lưu trong chi tiết và dưới dạng tệp `.cpost`. Xem [Post có thể sửa](topic:post-processors).
+- **Hoàn thiện 3D: Song song và Vân cầu.** Hoàn thiện toàn bộ bề mặt mô hình bằng dao phay đầu cầu, đầu bo tròn hoặc đầu phẳng, theo các đường song song ở bất kỳ góc nào, hoặc theo các lượt cách nhau một khoảng đã đặt để gờ giữa chúng có chiều cao bạn yêu cầu (không dùng với dao phay đầu phẳng). Xem [Hoàn thiện 3D: song song và vân cầu](topic:finish-3d).
+- **Thư viện dụng cụ.** Lưu dụng cụ trong trình duyệt này cho mọi chi tiết, và xuất hoặc nhập chúng dưới dạng tệp JSON để chuyển sang máy tính khác. Xem [Thư viện dụng cụ](topic:tool-library).
+- **Phôi so với mô hình theo màu.** Khi bật **Hiển thị phôi mô phỏng**, phôi có màu xanh lá trên mô hình, đỏ ở nơi dao đã cắt vào, và từ vàng đến xám ở nơi còn phôi, với chú giải trong bảng. Xem [Mô phỏng](topic:manufacture#simulate).
+- **Phôi thừa được giữ lại giữa các lần xếp hình.** Sau một lần xếp hình, phần còn lại của mỗi tấm có thể trở thành một phôi thừa được đánh số, có vật liệu và độ dày. Lần xếp hình kế tiếp của cùng vật liệu và độ dày dùng phôi thừa trước, rồi đến tấm nguyên; danh sách phôi được lưu trong tệp và dưới dạng CSV, và DXF đánh dấu từng phôi thừa. Xem [Giữ và tái sử dụng phôi thừa](topic:nest-offcuts).
+- **Chương trình laser.** {{ui:Xuất}} › {{ui:Chương trình laser…}} lấy đường viền từ một tệp DXF và đặt mỗi lớp làm gì (cắt, khắc vạch, khắc, tô đầy), xem trước các chuyển động của đầu laser và lưu mã G-code chế độ laser GRBL. Trong Chrome và Edge, nó còn có thể vẽ khung công việc khi laser tắt, rồi gửi qua USB. Các thiết lập được lưu trong tệp. Xem [Gửi bản vẽ tới máy laser](topic:laser-cutting).
+- **Xuất USD.** {{ui:Xuất}} › {{ui:Gói USD (.usdz)}} ghi chi tiết cùng vật liệu, thể tích và khối lượng, hoặc một lắp ráp với mỗi chi tiết một lần và mọi bản sao được đặt đúng vị trí, theo mét với Z hướng lên. Xem [Xuất chi tiết hoặc lắp ráp sang USD](topic:usd).
+
+### Trợ lý
+
+- **Công cụ cho trợ lý AI của riêng bạn.** Được bật trong {{ui:Cài đặt}} › {{ui:PartCraft}} › {{ui:Trợ lý}}, một trợ lý kết nối qua CadCraft Studio có thể đọc các đặc trưng, tham số và thuộc tính khối lượng, đặt một tham số và dựng lại (một bước hoàn tác), chạy kịch bản CraftScript, Lua hoặc Python theo cách không gian làm việc Kịch bản làm, xuất STL, 3MF, STEP dạng mặt phẳng hoặc USD, lưu, và xuất một sổ tay thành PDF, SVG, hướng dẫn hoặc tệp 3D tương tác. Máy chủ tệp và dòng lệnh `cadcraft` làm điều tương tự trên các chi tiết và sổ tay đã lưu. PartCraft không chứa AI. Xem [Dùng PartCraft với trợ lý AI](topic:use-with-ai-assistants).
+
+## Thay đổi
+
+- **Chi tiết có thân từ tệp được lưu dưới dạng phiên bản chi tiết 5.** Một chi tiết có thân STEP, STL, OBJ, 3MF hoặc `.3dm` giữ các tam giác đã sửa bên trong tệp `.partcraft.json`, nên bạn không cần tệp gốc nữa. PartCraft 0.6 từ chối phiên bản 5 bằng thông báo "phiên bản mới hơn" của nó thay vì mở sai. Các chi tiết khác được lưu như trước. Xem [Các tệp PartCraft](topic:file-formats#the-partcraft-files).
+- Các post bạn viết được lưu trong chi tiết. Một PartCraft cũ hơn mở chi tiết như vậy sẽ bỏ các post khi lưu lại.
+
+## Trong mọi ứng dụng
+
+- **Đơn vị.** {{ui:Cài đặt}} › {{ui:Chung}} › {{ui:Đơn vị}} có một danh sách cho mỗi loại: chiều dài, diện tích, thể tích, góc và độ dốc, với kích thước chính xác theo định nghĩa của đơn vị (feet khảo sát Hoa Kỳ là một đơn vị riêng). Tắt các đơn vị bạn không bao giờ dùng và chúng rời khỏi danh sách; đánh dấu sao một đơn vị và công việc mới bắt đầu bằng nó. Một tệp luôn giữ đơn vị riêng của nó. Các ô riêng của PartCraft chưa theo danh sách hoặc dấu sao: chi tiết vẫn hiển thị bằng milimét. Xem [Đơn vị, giá trị nhập và danh sách đơn vị](common:unit-lists).
+- **Mật độ bố cục gọn hơn và các bảng tự thu gọn.** {{ui:Cài đặt}} › {{ui:Chung}} › {{ui:Mật độ bố cục}} › {{ui:Gọn}} đưa nhiều thứ hơn lên màn hình (màn hình cảm ứng và điện thoại giữ các nút lớn). Mỗi bảng bên có một thanh tiêu đề mảnh: kéo để neo hoặc làm nổi bảng, thả nó lên thanh của bảng khác để chia sẻ một khung dưới dạng thẻ, ghim để nó trượt về mép, hoặc ẩn đi và đưa trở lại từ mép. Xem [Sắp xếp các bảng](common:arrange-panels#make-the-layout-denser).
+- **Hộp thoại di chuyển được.** Kéo hộp thoại theo thanh tiêu đề để tránh bản vẽ; nó quay về chỗ bạn để lại. Nhấp đúp thanh tiêu đề để căn lại giữa. Xem [Di chuyển hộp thoại](common:arrange-panels#move-a-dialog).
+- **Công thức cho trợ lý AI.** Mười yêu cầu mẫu cho trợ lý của riêng bạn (dọn gọn một bản vẽ, in một bộ, kiểm tra bản vẽ, hỏi mô hình, cộng bóc tách khối lượng, thử một biến thể chi tiết…), mỗi cái kèm công cụ nó gọi và quyền nó cần, và mỗi cái được chạy lại bằng các kiểm thử của chúng tôi. Các ứng dụng không chứa AI. Xem [Công thức cho trợ lý AI](common:assistants-recipes).
+- **Ngôn ngữ.** **Português (Portugal)** là mới trong {{ui:Cài đặt}} › {{ui:Chung}} › {{ui:Ngôn ngữ}}. Ngôn ngữ đó, **Português (Brasil)**, **Español (México)** và **Bahasa Indonesia** giờ đã có đủ mọi từ của ứng dụng, dưới dạng bản nháp chưa được người bản ngữ xem xét. Các chủ đề trợ giúp bằng tiếng Anh, với một chủ đề bằng tiếng Tây Ban Nha.
+- **CadCraft Studio** cho biết vì sao kiểm tra cập nhật thất bại (chưa có tệp cho hệ thống của bạn, không có mạng, chữ ký sai) thay vì chỉ "Xong", và không đưa lại thẻ Có gì mới mà bạn đã đóng cho đến khi có bản phát hành mới hơn.
+
+## Chưa có trong phiên bản này
+
+- **0.7 chưa được ký mã.** Việc ký, và gói Microsoft Store, được chuyển sang 0.8 vì việc xác thực chứng chỉ chưa hoàn tất. Kiểm tra SHA-256 bên cạnh mỗi tệp tại getcadcraft.com/download. Trên Windows, nếu SmartScreen chặn trình cài đặt, chọn {{ui:Thông tin thêm}}, rồi {{ui:Vẫn chạy}}. Trên Mac, lần đầu, nhấp chuột phải vào CadCraft Studio và chọn {{ui:Mở}}. CadCraft Studio chưa có trên kho ứng dụng nào, và chưa có bản dựng cho iPad hay iPhone.
+- Các danh sách góc và độ dốc trong {{ui:Đơn vị}} được lưu, nhưng chưa có ô nào đọc chúng.
+- Vật thể từ tệp STEP, lưới và `.3dm` không có lịch sử và các mặt cong của chúng là các mặt phẳng nhỏ. Màu, tên chi tiết và cây lắp ráp không được đọc từ STEP; đường cong, đối tượng SubD, văn bản, lớp và màu không được đọc từ `.3dm`. Bộ đọc `.3dm` được kiểm tra trên các tệp do bộ công cụ của định dạng ghi, chưa phải trên các tệp do chính chương trình mô hình hóa lưu.
+- Illustrate chưa mở tệp STEP trong {{ui:Từ một tệp khác…}} (hãy mở STEP trong Thiết kế và bắt đầu từ {{ui:Từ chi tiết đang mở}}), ModelCraft và BimCraft chưa thể chuyển trực tiếp một mô hình sang đó, và ảnh có chất lượng của trình theo dõi đường đi chưa được cung cấp. Xuất video và tệp tương tác chưa được kiểm tra trên điện thoại và máy tính bảng thật.
+- Chương trình laser chỉ lấy đường viền từ tệp DXF: các mẫu phẳng của chi tiết tôn cần nhân chính xác. CadCraft Studio chưa có Web Serial, nên ở đó hãy lưu G-code và gửi bằng chương trình riêng của máy laser. Mã G-code laser và ba post tích hợp chưa được kiểm chứng trên máy thật: hãy kiểm tra mọi chương trình trên trình mô phỏng của bộ điều khiển trước.
+- Hoàn thiện 3D chỉ có Song song và Vân cầu: không có phay thô 3D, đường nước, bút chì hay gia công phần còn lại, không có tiện. Thư viện dụng cụ được giữ trong trình duyệt này, không đồng bộ.
+- Trang bộ cấu hình, nơi khách chọn một biến thể trên trang web và tải về, chỉ mở cho nhân viên cho đến khi công tắc của trang được bật. Cổng (điểm nối) không được đặt từ PartCraft.
+- Cấu kiện kết cấu chỉ theo đường thẳng và là một khối đặc không có mối hàn.
+- Các kiểu dải lệnh của PartCraft vẫn vẽ mọi nút ở kích thước đầy đủ.
+- Từ tính: nam châm vĩnh cửu chỉ có trong 2-D; động cơ, thép bão hòa và bộ tạo lưới cho chi tiết cong chưa được xây dựng.
+
+Mọi thứ khác có trong [Những gì chưa được xây dựng](topic:not-built-yet).

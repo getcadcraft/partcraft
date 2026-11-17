@@ -36,7 +36,7 @@ The legend under the message in the right panel repeats the colors.
 
 **Where you place the number decides the kind** for a slanted line or two points: place it above or below to get a horizontal distance, to the left or right to get a vertical distance, and elsewhere for the true (aligned) distance.
 
-The box accepts plain numbers in millimeters or degrees, such as `25`, `12.5` or `1e3`. A leading `⌀`, `Ø` or `R`, or a trailing `mm` or `°`, is ignored. Angles are 0 to 180 degrees. Arithmetic such as `20+5` is not accepted.
+The box accepts plain numbers in millimeters or degrees, such as `25`, `12.5` or `1e3`. A leading `⌀`, `Ø` or `R`, or a trailing `mm` or `°`, is ignored. Angles are 0 to 180 degrees. Arithmetic such as `20+5` is not accepted; to link a size to a variable or formula, start it with `=`.
 
 To change a dimension later, double-click its number in the sketch, or choose **Edit** beside it in the list in the right panel.
 

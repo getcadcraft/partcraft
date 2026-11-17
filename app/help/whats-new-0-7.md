@@ -2,7 +2,7 @@
 title: What's new in 0.7 (earlier)
 summary: PartCraft 0.7 adds the Illustrate workspace for manuals, STEP, STL, OBJ, 3MF and .3dm files opened as solid bodies, welded frames from steel sections, closed-loop linkages, parts with hundreds of features, a variant pack from your configurations, posts you can edit with 3D finishing and a tool library, offcuts kept between nests, laser programs, USD export and tools for your own AI assistant.
 section: start
-order: 6
+order: 7
 keywords: whats new 0.7, earlier release, release notes, changelog, changes, 0.7, version, new features, illustrate, manual, technical illustration, exploded view, balloons, parts list, instructions, interactive 3d, animation, step, stp, stl, obj, 3mf, 3dm, mesh to solid, open mesh, weldment, structural member, frame, cut list, closed loop, linkage, four-bar, large part, many features, variant pack, variants, configurator, post processor, edit post, cpost, parallel, scallop, 3d finishing, tool library, stock colours, offcut, remnant, laser, usd, usdz, assistant, mcp, compact, units, portuguese
 ---
 

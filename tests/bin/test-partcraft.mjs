@@ -1285,6 +1285,18 @@ await (await import(path.join(REPO, 'tools/partcraft-test/test-cam.mjs'))).runCa
   const last = (r.stdout || '').trim().split('\n').pop();
   ok(r.status === 0, 'cam-sheets: ' + last + (r.status ? '\n' + r.stdout.split('\n').filter((l) => /FAIL/.test(l)).join('\n') : ''));
 }
+{ // 0.9.1 FIX-091-EXACT-STEP: exact STEP written from the mesh kernel (step-exact.js) — its own stand-alone test
+  section('Exact STEP from the mesh kernel (tools/partcraft-test/test-step-exact.mjs)');
+  const r = spawnSync(process.execPath, [path.join(REPO, 'tools/partcraft-test/test-step-exact.mjs')], { encoding: 'utf8', maxBuffer: 1 << 26 });
+  const last = (r.stdout || '').trim().split('\n').pop();
+  ok(r.status === 0, 'step-exact: ' + last + (r.status ? '\n' + r.stdout.split('\n').filter((l) => /FAIL/.test(l)).join('\n') : ''));
+}
+{ // 0.9.1 FX.223: a STEP file opened on the mesh kernel keeps its exact surfaces through to Export › STEP and DXF circles
+  section('STEP in, exact STEP out (tools/partcraft-test/test-step-roundtrip.mjs)');
+  const r = spawnSync(process.execPath, [path.join(REPO, 'tools/partcraft-test/test-step-roundtrip.mjs')], { encoding: 'utf8', maxBuffer: 1 << 26 });
+  const last = (r.stdout || '').trim().split('\n').pop();
+  ok(r.status === 0, 'step-roundtrip: ' + last + (r.status ? '\n' + r.stdout.split('\n').filter((l) => /FAIL/.test(l)).join('\n') : ''));
+}
 await (await import(path.join(REPO, 'tools/partcraft-test/test-simulation.mjs'))).runSimulationTests({ ok, section, near, oc });
 await (await import(path.join(REPO, 'tools/partcraft-test/test-thermal.mjs'))).runThermalTests({ ok, section, near, oc });
 await (await import(path.join(REPO, 'tools/partcraft-test/test-tet.mjs'))).runTetTests({ ok, section, near, oc });

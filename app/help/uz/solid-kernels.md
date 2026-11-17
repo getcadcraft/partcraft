@@ -2,7 +2,7 @@
 title: Mesh yadrosi
 summary: Bu versiya PartCraft har bir detalni brauzeringizda ishlaydigan mesh yadrosi bilan quradi. Bu dumaloq yuzalar, hajmlar va fayllar uchun nimani anglatadi, u ishlayotganini qanday bilish mumkin va qaysi elementlar aniq yadroni kutadi.
 keywords: yadro, mesh, manifold, aniq, b-rep, faset, egri chiziqlar, opencascade, occt, yumaloqlash aniq yadro talab qiladi, hali qurilmagan, oflayn, webassembly
-from: 68d32d16
+from: f931645c
 ---
 
 Geometriya yadrosi tarixingizni yaxlit jismga aylantiradigan dvigatel. Bu versiyada PartCraft ning bitta yadrosi bor: **mesh yadrosi** (manifold-3d). U kompyuteringizda kichik WebAssembly dasturi sifatida ishlaydi va ilova ochilgandan bir zum keyin tayyor boʻladi. Detalingiz haqidagi hech narsa hech qayerga yuborilmaydi.

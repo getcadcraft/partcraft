@@ -1,37 +1,37 @@
 ---
 title: El núcleo de malla
-summary: Esta versión de PartCraft construye cada pieza con un núcleo de malla que corre en tu navegador. Qué significa para las superficies redondas, los volúmenes y los archivos, cómo saber que funciona, y qué funciones esperan un núcleo exacto.
-keywords: núcleo, malla, manifold, exacto, b-rep, facetado, curvas, opencascade, occt, redondeo necesita exacto, no hecho, sin conexión, webassembly
-from: 68d32d16
+summary: Esta versión de PartCraft ojapo pieza peteĩteĩ mesh kernel ndive navegadór-pe oñemba'apóva. Mba'épa ha'e redondo cara, volumen ha archivo, mba'éichapa ehecha oñemba'apo ha mba'e herramienta oikotevẽ kernel exacto.
+keywords: núcleo, malla, variedad, exacto, b-rep, facetado, curvas, opencascade, occt, redondeo necesita exacto, no construido, sin conexión, webassembly
+from: f931645c
 ---
 
-Un núcleo geométrico es el motor que convierte tu historial en un sólido. Esta versión de PartCraft tiene uno: el **núcleo de malla** (manifold-3d). Corre en tu computadora como un pequeño programa WebAssembly y está listo un momento después de abrir la app. Nada de tu pieza se envía a ningún lado.
+Geometry kernel ha'e motor oñemoambue historia sólido-pe. Ko versión PartCraft-pe oguereko: **mesh kernel** (manifold-3d). Kompiutadór-pe pequeño WebAssembly programa rupi oñemba'apo ha aplicación oñepyrũ mbovy momento rire ojeporaka. Pieza nada ndojehasavaʼekue ojehaʼõ.
 
-| | Núcleo de malla |
+| | Mesh kernel |
 |---|---|
-| Formas redondas | Facetas planas. **Curvas** en el panel de la pieza define qué tan finas son |
-| Volúmenes y áreas | Del sólido facetado, algo bajos en piezas redondas |
-| Bocetos, extruir, cortar, revolucionar, agujeros, patrones, espejo, planos de referencia | Sí |
-| Redondeo y chaflán | En bordes rectos entre caras planas; los redondeos que se encuentran se cortan a inglete |
-| Cáscara e inclinación | La cáscara abre caras planas (espesor de pared exacto); la inclinación inclina caras planas |
-| Exportaciones | STL, 3MF, STEP (facetado), PDF de plano y DXF |
-| Vistas de plano | Dibujadas desde las facetas, incluidas las vistas de corte |
-| Caras y bordes | Con nombre y reconocidos por tipo (plana, cilindro, cono, esfera, toro; recta, círculo), tomados de los bocetos: los espacios de trabajo Simulación, Generativo y Fabricación, Medir, la selección y la tabla de agujeros los usan |
+| Formas redondas | Caras planas. **Curvas** pieza panel-pe ohechauka mba'éichapa fino |
+| Volúmenes y áreas | Sólido facetado rehe, redondo piezas-pe peteĩ mbyky |
+| Bocetos, extrude, corte, revolve, agujeros, patrones, espejo, planos de referencia | Ndio |
+| Redondeo y chaflán | Línea recta bordes plano caras-pe; redondeo ojoaporã ojeporaka mitred |
+| Carcasa y borrador | Carcasa caras planas ábrese (espesor pared exacto); Draft caras planas inclina |
+| Exportaciones | STL, 3MF, STEP (exacto: cara redonda verdadera superficie-pe; térã facetado), plano PDF ha DXF |
+| Vistas de dibujo | Facetas-gui ojapo, sección vistas incluido |
+| Caras y bordes | Ojerechazaha ha mba'éichagua oikuaa (plano, cilindro, cono, esfera, toro; recta, círculo), boceto-gui: Simulation, Generative ha Manufacture espacio de trabajo, Measure, selección ha tabla de agujeros oiporu |
 
-El chip cerca del extremo derecho de la barra de estado dice **Núcleo de malla** mientras construye tu pieza.
+Barra de estado derecho punta chip **Mesh kernel** ohechauka pieza oñemboguejýva.
 
-## Lo que espera un núcleo exacto
+## Mba'e oikotevẽ kernel exacto
 
-Un núcleo exacto (B-rep) conserva círculos, cilindros y conos reales, y redondeos suaves en cualquier borde. Barridos, lofts, superficies, chapa, nervios, varios cuerpos, importación STEP y exportación STEP exacta se construyen sobre uno. Versiones de laboratorio anteriores de PartCraft usaban OpenCascade para eso. Su licencia (LGPL) no encaja con esta versión, donde cada app es Apache-2.0 y usa solo bibliotecas con licencia permisiva, así que no está incluido. Nada de esto tiene fecha.
+Kernel exacto (B-rep) verdadero círculos, cilindros ha conos ohasa, ha redondeo liso cualquier borde-pe, barridos, lofts, superficies, chapa metálica, nervios, varios cuerpos ha STEP importación curvas caras exacto oñemboguejýva oñemoĩ upe-pe. (STEP exacto exportación ndoikotevẽi: mesh kernel boceto-gui cada cara verdadera superficie ikuaa, exportación upéva oñeme'ẽ.) PartCraft laboratorio versiones OpenCascade oiporu upe ko'ẽ. Su licencia (LGPL) ko versión-pe ndojeikói, cada aplicación Apache-2.0 ha biblioteca permisivas, upévare ndaincluíri. Ndaipóri fecha.
 
-Hasta entonces esas funciones dicen **Todavía no hecho** cuando las elegís: la barra de estado da el motivo, y las descripciones de sus botones terminan con "todavía no está hecho (necesita un núcleo exacto)". [Lo que todavía no está hecho](topic:not-built-yet) enumera cada una con lo que conviene hacer en su lugar.
+Ko'ã peve, ko funciones **Not built yet** ohechauka eiporu jave: barra de estado razón ohechauka, ha botón tooltip "not built yet (needs an exact kernel)" ohupytýva. [Ndaiporiva ko'ágã](topic:not-built-yet) oñemombe'u peteĩteĩ mba'e ojapo ojeporakuaáva.
 
-Una pieza hecha con ellas en una versión anterior se sigue abriendo. Esas funciones quedan en el historial marcadas como no hechas (pasá el puntero sobre una para ver el motivo), el resto de la pieza se construye, y guardar las mantiene sin cambios.
+Ko'ã mbaʼe earlier build-pe oñemoĩ pieza ojapo jave, oñeñongatu. Ojehechaukáva "not built" historia-pe oĩ (hover peteĩ razón), ambue pieza oñemboguejy, guardá oñemoĩ ndoñemoambuéi.
 
 ## Caras redondas y Curvas
 
-El núcleo de malla dibuja un círculo como un polígono. **Curvas** en el panel de la pieza define cuántos lados tiene un círculo completo; más lados se ven más suaves y miden más cerca del valor real, pero tardan más en construirse. Los volúmenes, áreas y distancias de {{ui:Medir}} son de este sólido facetado: para un agujero o un saliente son un poco más chicos que los de la forma redonda.
+Mesh kernel círculo polígono-pe ojapo. **Curvas** pieza panel-pe ohechauka peteĩ círculo lado mbohapy; más lado, más porã ohechauka ha medida verdadera ojeporakuaa, pero más tiempo ojapo. Volúmenes, áreas ha distancias {{ui:Measure}} rupi facetado sólido rehe: agujero o boss-pe mbyky, redondo forma-gui.
 
 ## En línea y sin conexión
 
-El núcleo de malla es parte de la descarga propia de la app. Para trabajar sin conexión, guardá PartCraft para uso sin conexión mientras estás en línea: elegí {{ui:Guardar para usar sin conexión}} en la barra de la app y esperá hasta que diga **Listo sin conexión**. Detalles: [Trabajar sin conexión](common:offline).
+Mesh kernel aplicación descarga ryepýpe. Sin conexión oñemba'apo jave, guardá PartCraft sin conexión ojeporaka ndaipórire: eiporu {{ui:Save for offline}} app barra-pe ha ojeporaka **Offline ready**. Mba'éichapa: [Trabajar sin conexión](common:offline).

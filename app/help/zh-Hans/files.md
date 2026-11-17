@@ -2,7 +2,7 @@
 title: 文件：打开、保存和导出
 summary: PartCraft可打开和保存的零件及装配体文件、所有导出格式及其保留的内容、文件的保存位置，以及离线或不同浏览器之间的差异。
 keywords: 打开, 保存, 导出, 下载, 文件, partcraft.json, 装配体文件, stl, 3mf, step, dxf, pdf, 文件在哪里, 离线, 另存为
-from: c15c2c48
+from: e5fbc7e3
 ---
 
 PartCraft处理你计算机上的文件。它绝不会上传零件，也不涉及账户或云存储。云保存尚不可用。

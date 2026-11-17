@@ -63,7 +63,7 @@ export function itemFromVariants(part, table, built, { activeName = null } = {})
     const d = rows[defIndex], bb = d.footprint;
     const body = d.body;
     return {
-      format: 'cadcraft-library-item', format_version: 1, name: String(part.name || 'Part').slice(0, 500), kind: 'equipment', category: 'other/other',
+      format: 'cadcraft-library-item', format_version: 1, name: String(part.name || 'Part').slice(0, 500), kind: 'equipment', category: 'other/other', ifc: { class: 'IfcBuildingElementProxy' },
       plan: { layers: [{ name: 'EQUIP', color: 7 }], entities: [{ type: 'poly', layer: 'EQUIP', color: null, closed: true,
         pts: [[bb.x, bb.y], [bb.x + bb.w, bb.y], [bb.x + bb.w, bb.y + bb.d], [bb.x, bb.y + bb.d]] }] },
       body,
