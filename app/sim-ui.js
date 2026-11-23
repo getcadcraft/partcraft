@@ -9,6 +9,7 @@ import { faceRef } from './brep.js';
 import { describe, CONSTRAINT_LABEL, LOAD_LABEL, findFaceIndex } from './sim.js';
 import { exactWhy } from './exact-client.js';
 import { t } from './i18n.js';
+import { dot3 as dot } from './geom-vec.js';   // shared helpers (0.11 PERF.74)
 
 export const fmt = (v, dp = 3) => (Number.isFinite(v) ? String(+Number(v).toFixed(dp)) : '');
 /** 4 significant figures, plain. */
@@ -278,7 +279,6 @@ export function valueAt(mesh, values, tri, p, comps = 1) {
   const P = mesh.positions, I = mesh.indices, v = [0, 1, 2].map((k) => I[3 * tri + k]);
   const a = v.map((i) => [P[3 * i], P[3 * i + 1], P[3 * i + 2]]);
   const e0 = a[1].map((c, k) => c - a[0][k]), e1 = a[2].map((c, k) => c - a[0][k]), e2 = p.map((c, k) => c - a[0][k]);
-  const dot = (x, y) => x[0] * y[0] + x[1] * y[1] + x[2] * y[2];
   const d00 = dot(e0, e0), d01 = dot(e0, e1), d11 = dot(e1, e1), d20 = dot(e2, e0), d21 = dot(e2, e1), den = d00 * d11 - d01 * d01 || 1;
   const w1 = (d11 * d20 - d01 * d21) / den, w2 = (d00 * d21 - d01 * d20) / den, w0 = 1 - w1 - w2;
   const out = [];

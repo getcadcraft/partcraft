@@ -8,7 +8,8 @@
  */
 import { registerWorkspace } from './workspaces.js';
 import { registerStudyReader } from './part.js';
-import { readStudy, newStudy, newOp, OP_TYPES, OP_PARAMS, AXES, ORIGINS, POSTS, POST_LIMITS, originLabel, machineModel } from './cam.js';
+import { readStudy, newStudy, newOp, OP_TYPES, OP_PARAMS, canTilt, AXES, ORIGINS, POSTS, POST_LIMITS, originLabel, machineModel } from './cam.js';
+import { KINEMATICS, orientFromVector, toolVector, isTilted, mulMV } from './cam-kin.js';
 import { parsePost } from './cam-postdef.js';
 import { t } from './i18n.js';
 import { newTool, KINDS, MATERIALS, speeds, describeTool, validateTool, speedsSource, exportLibrary, readLibrary, mergeTools, savedLibrary, saveToLibrary, removeFromLibrary } from './cam-tools.js';
@@ -20,11 +21,12 @@ import { GOUGE_RGB, ON_RGB, THIN_RGB, MID_RGB, STOCK_RGB } from './cam-sim.js';
 import { faceRef, edgeRef } from './brep.js';
 import { exactWhy } from './exact-client.js';
 import { renderCost } from './cost-ui.js';   // 0.8 EG.76: the Cost tab
+import { dot3 as d } from './geom-vec.js';   // shared helpers (0.11 PERF.74)
 
 registerStudyReader('manufacture', (raw) => readStudy(raw));
 
 const KEY = 'manufacture';
-const S = { tab: 'ops', op: null, tool: null, picking: false, result: null, resultFor: null, busy: false, req: 0, worker: null, timer: 0, play: 0, showPaths: true, showStock: false, error: null };
+const S = { tab: 'ops', op: null, tool: null, picking: false, pickOrient: false, adding: false, result: null, resultFor: null, busy: false, req: 0, worker: null, timer: 0, play: 0, showPaths: true, showStock: false, error: null };
 const COLORS = ['#2f7fd8', '#d8772f', '#2fa36b', '#a34fd8', '#c9a227', '#d83f6b', '#3fb8c9', '#7a8a2f'];
 const fmt = (v, dp = 3) => (Number.isFinite(v) ? String(+Number(v).toFixed(dp)) : '');
 // Parameter labels and choice names: looked up on use (label(k), choice(k, v)), never at import.
@@ -40,12 +42,23 @@ const LABEL_KEYS = {
   engagement: 'cam.adaptive.engagement',   // 0.4 P24
   tolerance: 'mfg.param.tolerance', angle: 'mfg.param.angle', zigzag: 'mfg.param.zigzag', slopeFrom: 'mfg.param.slope_from', slopeTo: 'mfg.param.slope_to',   // 0.7 LC.15
   height: 'mfg.param.cusp', from: 'mfg.param.from',
+  // 0.11 Track CAM
+  minStock: 'mfg.param.min_stock', flats: 'mfg.param.flats', lean: 'mfg.param.lean', towardNormal: 'mfg.param.toward_normal', maxTilt: 'mfg.param.max_tilt',
+  pattern: 'mfg.param.pattern', axisY: 'mfg.param.axis_y', axisZ: 'mfg.param.axis_z', xFrom: 'mfg.param.x_from', xTo: 'mfg.param.x_to',
+  angleFrom: 'mfg.param.angle_from', angleTo: 'mfg.param.angle_to', depth: 'mfg.param.depth', past: 'mfg.param.past', stopZ: 'mfg.param.stop_z',
+  pullout: 'mfg.param.pullout', feedFactor: 'mfg.param.feed_factor', zFrom: 'mfg.param.z_from', zTo: 'mfg.param.z_to', minDepth: 'mfg.param.min_depth',
+  z: 'mfg.param.part_z', pitch: 'mfg.param.pitch', passes: 'mfg.param.passes', spring: 'mfg.param.spring', zStart: 'mfg.param.z_start', length: 'mfg.param.length',
+  action: 'mfg.param.action', approach: 'mfg.param.approach', over: 'mfg.param.over',
 };
 const label = (k) => (LABEL_KEYS[k] ? t(LABEL_KEYS[k]) : k);
-const CHOICES = { direction: ['x', 'y'], entry: ['helix', 'ramp', 'plunge'], side: ['auto', 'outside', 'inside'], cycle: ['peck', 'drill', 'chipbreak'], from: ['edge', 'top'] };
+const CHOICES = { direction: ['x', 'y'], entry: ['helix', 'ramp', 'plunge'], side: ['auto', 'outside', 'inside'], cycle: ['peck', 'drill', 'chipbreak'], from: ['edge', 'top'], pattern: ['along', 'around'], action: ['set', 'measure'] };
 const choice = (k, v) => ((CHOICES[k] || []).includes(v) ? t(`mfg.choice.${k}.${v}`) : v);
-const NEEDS_GEO = { pocket: true, adaptive: true, contour: true, drill: true, chamfer: true };   // parallel and scallop take the whole model: nothing to pick
-const TOOL_FOR = { face: ['face', 'flat'], pocket: ['flat', 'bull', 'ball'], adaptive: ['flat', 'bull'], contour: ['flat', 'bull'], drill: ['drill'], chamfer: ['chamfer'], parallel: ['ball', 'bull', 'flat'], scallop: ['ball', 'bull'] };
+const NEEDS_GEO = { pocket: true, adaptive: true, contour: true, drill: true, chamfer: true, probe: true };   // the rest take the whole model: nothing to pick
+const TOOL_FOR = { face: ['face', 'flat'], pocket: ['flat', 'bull', 'ball'], adaptive: ['flat', 'bull'], contour: ['flat', 'bull'], drill: ['drill'], chamfer: ['chamfer'], parallel: ['ball', 'bull', 'flat'], scallop: ['ball', 'bull'],
+  rough3d: ['flat', 'bull', 'ball'], rest3d: ['flat', 'bull', 'ball'], five: ['ball'], rotary: ['ball'],
+  turnface: ['turn'], turnrough: ['turn'], turnfinish: ['turn'], turngroove: ['groove'], turnpart: ['groove'], turnthread: ['turn'], turndrill: ['drill'], probe: ['probe'] };
+/** The operations behind the toolbar's More button, by family. */
+const FAMILIES = [['mfg.add.three_d', ['rough3d', 'rest3d']], ['mfg.add.multi', ['five', 'rotary']], ['mfg.add.turn', ['turnface', 'turnrough', 'turnfinish', 'turngroove', 'turnpart', 'turnthread', 'turndrill']], ['mfg.add.probe', ['probe']]];
 
 const study = (host) => host.study(KEY);
 function edit(host, label, fn) {
@@ -94,7 +107,7 @@ const time = (s) => { const m = Math.floor(s / 60), r = Math.round(s - m * 60); 
 function program(host) {
   const r = S.result, st = S.resultFor;
   if (!r || !st) return null;
-  const paths = r.paths.map((p) => ({ op: opOf(st, p.op), tool: st.tools.find((t) => t.id === p.tool) || null, speeds: p.speeds, moves: p.moves, warnings: p.warnings, info: p.info, error: p.error, sim: p.sim })).filter((p) => p.op);
+  const paths = r.paths.map((p) => ({ op: opOf(st, p.op), tool: st.tools.find((t) => t.id === p.tool) || null, speeds: p.speeds, moves: p.moves, warnings: p.warnings, info: p.info, error: p.error, sim: p.sim, ...(p.kind ? { kind: p.kind } : {}), ...(p.frame ? { frame: p.frame } : {}), ...(p.tip ? { tip: p.tip } : {}) })).filter((p) => p.op);
   return { setup: st.setup, model: { stock: r.stock }, tools: st.tools, paths };
 }
 let segCache = null;
@@ -111,6 +124,14 @@ function toWorldFn(r) {
   return (m) => { const q = [m[0] + o[0], m[1] + o[1], m[2] + o[2]]; return [0, 1, 2].map((k) => ax.x[k] * q[0] + ax.y[k] * q[1] + ax.z[k] * q[2]); };
 }
 
+/** A path point → the work frame: a tilted operation's points are in its own frame (Q), a lathe path's are radii from its axis (o). */
+function inWork(fr, p) {
+  if (!fr) return p;
+  if (fr.Q) return mulMV(fr.Q, p);
+  if (fr.o) return [p[0] + fr.o[0], p[1] + fr.o[1], p[2] + fr.o[2]];
+  return p;
+}
+
 // ---------------------------------------------------------------- 3D overlays
 
 function draw(host) {
@@ -124,7 +145,7 @@ function draw(host) {
     const g = new THREE.Group();
     const all = segs(host);
     const byOp = new Map();
-    for (const s of all) { if (!byOp.has(s.op)) byOp.set(s.op, { feed: [], rapid: [] }); const b = byOp.get(s.op)[s.k === 'rapid' ? 'rapid' : 'feed']; const pts = segPoints(s, 0.05); for (let i = 0; i < pts.length - 1; i++) b.push(...W(pts[i]), ...W(pts[i + 1])); }
+    for (const s of all) { if (!byOp.has(s.op)) byOp.set(s.op, { feed: [], rapid: [] }); const b = byOp.get(s.op)[s.k === 'rapid' ? 'rapid' : 'feed']; const pts = segPoints(s, 0.05); for (let i = 0; i < pts.length - 1; i++) b.push(...W(inWork(s.fr, pts[i])), ...W(inWork(s.fr, pts[i + 1]))); }
     let k = 0;
     for (const op of st.ops) {
       const b = byOp.get(op.id);
@@ -170,10 +191,14 @@ function drawTool(host) {
   if (!tool) return;
   const W = toWorldFn(r), ax = AXES[r.axis] || AXES['+y'];
   const h = Math.max(tool.fluteLen, tool.d);
-  const geo = new THREE.CylinderGeometry(tool.d / 2, tool.d / 2, h, 24);
+  const lathe = ph.kind === 'lathe';
+  const rad = lathe ? Math.max(tool.kind === 'groove' ? tool.d / 2 : tool.kind === 'drill' ? tool.d / 2 : 2 * tool.cornerR, 0.5) : tool.d / 2;
+  const geo = new THREE.CylinderGeometry(rad, rad, h, 24);
   const m = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ color: '#8a94a3', transparent: true, opacity: 0.8 }));
-  const tip = W(s.b);
-  const up = new THREE.Vector3(...ax.z);
+  const tip = W(inWork(s.fr, s.b));
+  // which way the tool points, in the work frame: a leaning move's own direction, a tilted operation's, a lathe tool's (radially out; a drill along Z)
+  const dirM = s.ta ? s.ta : s.fr && s.fr.Q ? mulMV(s.fr.Q, [0, 0, 1]) : lathe && tool.kind !== 'drill' ? [1, 0, 0] : [0, 0, 1];
+  const up = new THREE.Vector3(ax.x[0] * dirM[0] + ax.y[0] * dirM[1] + ax.z[0] * dirM[2], ax.x[1] * dirM[0] + ax.y[1] * dirM[1] + ax.z[1] * dirM[2], ax.x[2] * dirM[0] + ax.y[2] * dirM[1] + ax.z[2] * dirM[2]);
   m.position.set(tip[0] + up.x * h / 2, tip[1] + up.y * h / 2, tip[2] + up.z * h / 2);
   m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), up);
   view.setOverlay('manufacture-tool', m);
@@ -193,19 +218,34 @@ function addOp(host, type) {
   let made = null;
   edit(host, t('mfg.undo.add_op', { op: OP_TYPES[type].toLowerCase() }), (s) => {
     const want = TOOL_FOR[type];
-    const tool = want.map((k) => s.tools.find((t) => t.kind === k)).find(Boolean);
+    let tool = want.map((k) => s.tools.find((t) => t.kind === k)).find(Boolean);
+    // the starter tools are a mill's: the first turning or probing operation brings its own tool (a turning insert, a grooving blade, a probe)
+    if (!tool && KINDS[want[0]] && (KINDS[want[0]].lathe || KINDS[want[0]].probe)) {
+      tool = newTool(want[0], { id: 'tl' + Date.now().toString(36), number: Math.min(999, Math.max(0, ...s.tools.map((x) => x.number)) + 1) });
+      s.tools.push(tool);
+    }
     made = newOp(type, { tool: tool ? tool.id : null, name: uniqueName(s, OP_TYPES[type]) });
     s.ops.push(made);
   });
-  S.tab = 'ops'; S.op = made.id; S.picking = !!NEEDS_GEO[type];
+  S.tab = 'ops'; S.op = made.id; S.picking = !!NEEDS_GEO[type]; S.pickOrient = false;
   host.renderPanel();
-  if (S.picking) host.status(type === 'drill' ? t('mfg.pick.start_drill') : t('mfg.pick.start'), true);
+  if (S.picking) host.status(type === 'drill' ? t('mfg.pick.start_drill') : type === 'probe' ? t('mfg.pick.start_probe') : t('mfg.pick.start'), true);
 }
 function uniqueName(s, base) { let n = 1; while (s.ops.some((o) => o.name === base + ' ' + n)) n++; return base + ' ' + n; }
 
 /** Which picks an operation takes (in machine terms: the tool axis is the setup's +Z). */
 function pickable(host, op, hit) {
-  const st = study(host), rg = host.regen, ax = AXES[st.setup.axis].z;
+  const st = study(host), rg = host.regen, A = AXES[st.setup.axis];
+  // the tool's direction in the world: the setup's axis, or this operation's own tilt (0.11 CAM.3)
+  const tv = canTilt(op.type) && isTilted(op.orient) ? toolVector(op.orient) : [0, 0, 1];
+  const ax = [0, 1, 2].map((k) => A.x[k] * tv[0] + A.y[k] * tv[1] + A.z[k] * tv[2]);
+  if (op.type === 'probe') {
+    if (hit.kind !== 'face' || hit.face === undefined || hit.face < 0) return { why: t('mfg.why.probe_faces') };
+    const f = rg.faces[hit.face];
+    if (f.type === 'plane' && (d(f.n, A.z) > 1 - 1e-9 || (Math.abs(d(f.n, A.z)) < 1e-9 && (Math.abs(Math.abs(d(f.n, A.x)) - 1) < 1e-9 || Math.abs(Math.abs(d(f.n, A.y)) - 1) < 1e-9)))) return { face: hit.face };
+    if (f.type === 'cylinder' && Math.abs(Math.abs(d(f.axis.d, A.z)) - 1) < 1e-9) return { face: hit.face };
+    return { why: t('mfg.why.probe_faces') };
+  }
   if (hit.kind === 'edge') {
     if (hit.edge === undefined || hit.edge < 0) return { why: t('mfg.why.edge_not_exact') };
     if (op.type === 'drill') {
@@ -234,6 +274,19 @@ function pickable(host, op, hit) {
     return { face: hit.face };
   }
   return { why: t('mfg.why.face_type', { type: f.type }) };
+}
+/** 0.11 CAM.3: point this operation's tool square at a picked flat face (the tool looks at the face: its direction is the face's normal). */
+function pickDirection(host, hit) {
+  const st = study(host), op = opOf(st, S.op), rg = host.regen;
+  if (!op || !canTilt(op.type)) { S.pickOrient = false; return; }
+  const f = hit.kind === 'face' && hit.face >= 0 ? rg.faces[hit.face] : null;
+  if (!f || f.type !== 'plane' || !f.n) { host.status(t('mfg.orient.flat')); return; }
+  const A = AXES[st.setup.axis];
+  const o = orientFromVector([d(f.n, A.x), d(f.n, A.y), d(f.n, A.z)]);
+  edit(host, t('mfg.undo.tool_direction'), (s) => { opOf(s, op.id).orient = o.tilt > 1e-6 ? o : null; });
+  S.pickOrient = false;
+  host.status(o.tilt > 1e-6 ? t('mfg.orient.set', { tilt: fmt(o.tilt, 3), turn: fmt(o.turn, 3) }) : t('mfg.orient.same'));
+  host.renderPanel();
 }
 function togglePick(host, hit) {
   const st = study(host), op = opOf(st, S.op);
@@ -351,9 +404,21 @@ function renderSetup(host, box, st, K) {
     ...K.field(t('mfg.setup.max_rpm'), K.num(s.machine.maxRpm, (v) => set(t('mfg.undo.spindle'), (x) => { x.machine.maxRpm = v; }), { min: 100, max: 200000 })),
     ...K.field(t('mfg.setup.rapid'), K.num(s.machine.rapid, (v) => set(t('mfg.undo.rapid'), (x) => { x.machine.rapid = v; }), { min: 10, max: 200000 })),
     ...K.field(t('mfg.setup.tool_change'), K.num(s.machine.toolChange, (v) => set(t('mfg.undo.tool_change'), (x) => { x.machine.toolChange = v; }), { min: 0, max: 3600 })),
+    ...K.field(t('mfg.setup.kin'), (() => { const e = K.sel(KINEMATICS.map((k) => [k, t('mfg.kin.' + k)]), s.machine.kin || 'none', (v) => set(t('mfg.undo.machine_axes'), (x) => { x.machine.kin = v; })); e.dataset.mkin = '1'; return e; })()),
     ...K.field(t('mfg.setup.coolant'), K.sel([['flood', t('mfg.setup.flood')], ['mist', t('mfg.setup.mist')], ['off', t('mfg.setup.coolant_off')]], s.coolant, (v) => set(t('mfg.setup.coolant'), (x) => { x.coolant = v; }))),
     ...K.field(t('mfg.setup.program'), K.num(s.program, (v) => { if (!Number.isInteger(v)) { host.status(t('mfg.setup.program_whole')); return; } set(t('mfg.setup.program'), (x) => { x.program = v; }); }, { min: 1, max: 9999 })),
   );
+  if ((s.machine.kin || 'none') !== 'none') {
+    // 0.11 CAM.3: the rotary axes — who carries them, whether the control keeps the tool tip on the path, and where the table turns
+    const mc = s.machine, pv = mc.pivot || [0, 0, 0];
+    g.append(
+      el('p', { className: 'pc-props-sub' }, t('mfg.setup.rotary')),
+      ...K.field(t('mfg.setup.rotary_in'), K.sel([['table', t('mfg.setup.rotary_table')], ['head', t('mfg.setup.rotary_head')]], mc.rotaryIn || 'table', (v) => set(t('mfg.undo.machine_axes'), (x) => { x.machine.rotaryIn = v; }))),
+      K.check(t('mfg.setup.tcp'), !!mc.tcp, (v) => set(t('mfg.undo.machine_axes'), (x) => { x.machine.tcp = v; }), { dataset: { mtcp: '1' } }));
+    if (mc.kin === 'ac' || mc.kin === 'bc') g.append(...K.field(t('mfg.setup.tilt_max'), K.num(mc.tiltMax ?? 110, (v) => set(t('mfg.undo.machine_axes'), (x) => { x.machine.tiltMax = v; }), { min: 0, max: 180 })));
+    if (!mc.tcp && (mc.rotaryIn || 'table') === 'table') ['X', 'Y', 'Z'].forEach((a, i) => g.append(...K.field(t('mfg.setup.pivot', { axis: a }), K.num(pv[i], (v) => set(t('mfg.undo.machine_axes'), (x) => { const q = (x.machine.pivot || [0, 0, 0]).slice(); q[i] = v; x.machine.pivot = q; }), { min: -100000, max: 100000 }))));
+    g.append(el('p', { className: 'pc-note' }, !mc.tcp && mc.rotaryIn === 'head' ? t('mfg.setup.head_needs_tcp') : t('mfg.setup.rotary_note')));
+  }
   box.append(el('div', { className: 'pc-block' }, g));
   const r = S.result;
   if (r) box.append(el('div', { className: 'pc-block' }, el('dl', { className: 'pc-dl' },
@@ -392,24 +457,33 @@ function renderTools(host, box, st, K) {
   const g = el('div', { className: 'pc-props' },
     el('p', { className: 'pc-props-sub' }, KINDS[tl.kind].label),
     ...K.field(t('mfg.tools.number'), K.num(tl.number, (v) => set(t('mfg.undo.tool_number'), (x) => { x.number = v; }), { min: 1, max: 999 })),
-    ...K.field(t('mfg.tools.d'), K.num(tl.d, (v) => set(t('mfg.undo.tool_d'), (x) => { x.d = v; }), { min: 0.05, max: 250 })),
+    ...K.field(tl.kind === 'groove' ? t('mfg.tools.blade_width') : tl.kind === 'probe' ? t('mfg.tools.ball_d') : tl.kind === 'turn' ? t('mfg.tools.insert_size') : t('mfg.tools.d'), K.num(tl.d, (v) => set(t('mfg.undo.tool_d'), (x) => { x.d = v; }), { min: 0.05, max: 250 })),
     ...K.field(t('mfg.tools.flutes'), K.num(tl.flutes, (v) => set(t('mfg.tools.flutes'), (x) => { x.flutes = v; }), { min: 1, max: 20 })),
     ...K.field(t('mfg.tools.flute_len'), K.num(tl.fluteLen, (v) => set(t('mfg.tools.flute_len'), (x) => { x.fluteLen = v; }), { min: 0.01, max: 500 })));
   if (tl.kind === 'bull') g.append(...K.field(t('mfg.tools.corner'), K.num(tl.cornerR, (v) => set(t('mfg.tools.corner'), (x) => { x.cornerR = v; }), { min: 0, max: 125 })));
+  if (tl.kind === 'turn' || tl.kind === 'groove') g.append(...K.field(tl.kind === 'turn' ? t('mfg.tools.nose') : t('mfg.tools.corner'), K.num(tl.cornerR, (v) => set(t('mfg.tools.nose'), (x) => { x.cornerR = v; }), { min: 0, max: 5 })));
+  if (tl.kind === 'turn') g.append(
+    ...K.field(t('mfg.tools.insert_angle'), K.num(tl.angle, (v) => set(t('mfg.undo.tool_angle'), (x) => { x.angle = v; }), { min: 20, max: 100 })),
+    ...K.field(t('mfg.tools.lead'), K.num(tl.lead ?? 93, (v) => set(t('mfg.undo.tool_angle'), (x) => { x.lead = v; }), { min: 45, max: 120 })));
   if (tl.kind === 'drill' || tl.kind === 'chamfer') g.append(...K.field(tl.kind === 'drill' ? t('mfg.tools.point_angle') : t('mfg.tools.included_angle'), K.num(tl.angle, (v) => set(t('mfg.undo.tool_angle'), (x) => { x.angle = v; }), { min: 0, max: 180 })));
   if (tl.kind === 'chamfer') g.append(...K.field(t('mfg.tools.tip'), K.num(tl.tipD, (v) => set(t('mfg.tools.tip'), (x) => { x.tipD = v; }), { min: 0, max: 250 })));
   g.append(...K.field(t('mfg.tools.material'), K.sel([['carbide', t('mfg.tools.carbide')], ['hss', t('mfg.tools.hss')]], tl.material, (v) => set(t('mfg.undo.tool_material'), (x) => { x.material = v; }))),
     el('p', { className: 'pc-props-sub' }, t('mfg.tools.overrides')),
     ...K.field(t('mfg.tools.vc'), K.num(tl.vc, (v) => set(t('mfg.tools.cutting_speed'), (x) => { x.vc = v; }), { min: 0.001, max: 100000, nullable: true })),
-    ...K.field(tl.kind === 'drill' ? t('mfg.tools.fpr') : t('mfg.tools.fz'), K.num(tl.fz, (v) => set(t('mfg.tools.chip_load'), (x) => { x.fz = v; }), { min: 0.000001, max: 100, nullable: true })),
+    ...K.field(tl.kind === 'drill' || KINDS[tl.kind].lathe ? t('mfg.tools.fpr') : t('mfg.tools.fz'), K.num(tl.fz, (v) => set(t('mfg.tools.chip_load'), (x) => { x.fz = v; }), { min: 0.000001, max: 100, nullable: true })),
     ...K.field(t('mfg.tools.rpm'), K.num(tl.rpm, (v) => set(t('mfg.undo.spindle'), (x) => { x.rpm = v; }), { min: 1, max: 200000, nullable: true })),
     ...K.field(t('mfg.tools.feed_mm'), K.num(tl.feed, (v) => set(t('mfg.feed'), (x) => { x.feed = v; }), { min: 0.1, max: 100000, nullable: true })));
   const sp = speeds(tl, st.setup.material, st.setup.machine);
   box.append(el('div', { className: 'pc-block' }, g),
     el('div', { className: 'pc-block' }, el('dl', { className: 'pc-dl' },
-      el('dt', {}, t('mfg.spindle')), el('dd', {}, sp.clamped === 'max' ? t('mfg.tools.rpm_max', { rpm: sp.rpm }) : `${sp.rpm} rpm`),   // i18n-ignore: unit
-      el('dt', {}, t('mfg.feed')), el('dd', {}, `${fmt(sp.feed, 1)} mm/min`), el('dt', {}, t('mfg.plunge')), el('dd', {}, `${fmt(sp.plunge, 1)} mm/min`),   // i18n-ignore: numbers and units
-      el('dt', {}, t('mfg.tools.cutting_speed')), el('dd', {}, `${fmt(sp.vc, 1)} m/min`), el('dt', {}, tl.kind === 'drill' ? t('mfg.tools.feed_per_rev') : t('mfg.tools.chip_load')), el('dd', {}, `${fmt(sp.fz, 4)} mm`)),   // i18n-ignore: numbers and units
+      ...(sp.lathe ? [
+        // a lathe tool: a surface speed the control holds (or the tool's own rpm), and a feed per revolution
+        el('dt', {}, t('mfg.spindle')), el('dd', {}, sp.css != null ? `${sp.css} m/min (≤ ${sp.maxRpm} rpm)` : `${sp.rpm} rpm`),   // i18n-ignore: numbers and units
+        el('dt', {}, t('mfg.op.feed_rev')), el('dd', {}, `${fmt(sp.feed, 3)} mm`)]   // i18n-ignore: numbers and units
+      : sp.probe ? [el('dt', {}, t('mfg.op.probe_feed')), el('dd', {}, `${fmt(sp.feed, 1)} mm/min`)]   // i18n-ignore: numbers and units
+      : [el('dt', {}, t('mfg.spindle')), el('dd', {}, sp.clamped === 'max' ? t('mfg.tools.rpm_max', { rpm: sp.rpm }) : `${sp.rpm} rpm`),   // i18n-ignore: unit
+        el('dt', {}, t('mfg.feed')), el('dd', {}, `${fmt(sp.feed, 1)} mm/min`), el('dt', {}, t('mfg.plunge')), el('dd', {}, `${fmt(sp.plunge, 1)} mm/min`),   // i18n-ignore: numbers and units
+        el('dt', {}, t('mfg.tools.cutting_speed')), el('dd', {}, `${fmt(sp.vc, 1)} m/min`), el('dt', {}, tl.kind === 'drill' ? t('mfg.tools.feed_per_rev') : t('mfg.tools.chip_load')), el('dd', {}, `${fmt(sp.fz, 4)} mm`)])),   // i18n-ignore: numbers and units
     el('p', { className: 'pc-note' }, t('mfg.tools.formula', { source: speedsSource() })),
     el('div', { className: 'pc-actions' }, K.btn(t('mfg.tools.delete'), () => {
       const users = st.ops.filter((o) => o.tool === tl.id);
@@ -423,12 +497,20 @@ function renderOps(host, box, st, K) {
   const { el } = host;
   const r = S.result && S.resultFor ? S.result : null;
   const res = (id) => (r ? r.paths.find((p) => p.op === id) : null);
+  if (S.adding) {
+    // the toolbar's More button: the other operations by family, to add with one click each
+    const blk = el('div', { className: 'pc-block', dataset: { madding: '1' } }, el('p', { className: 'pc-props-sub' }, t('mfg.add.title')));
+    for (const [label, types] of FAMILIES) blk.append(el('p', { className: 'pc-note' }, t(label)),
+      el('div', { className: 'pc-actions' }, ...types.map((type) => K.btn(t('mfg.tb.' + type), () => addOp(host, type), 'pc-btn', { title: t('mfg.tb.' + type + '.title'), dataset: { madd: type } }))));
+    blk.append(el('div', { className: 'pc-actions' }, K.btn(t('mfg.add.close'), () => { S.adding = false; host.renderPanel(); }, 'pc-btn', { dataset: { maddclose: '1' } })));
+    box.append(blk);
+  }
   const list = el('div', { className: 'pc-list', role: 'listbox', 'aria-label': t('mfg.tab.ops') });
   st.ops.forEach((o, i) => {
     const p = res(o.id);
     const flag = o.suppressed ? t('mfg.flag.off') : !p ? (S.busy ? '…' : '') : p.error ? t('mfg.flag.error') : p.sim && p.sim.gouges ? t('mfg.flag.gouges') : p.warnings.length ? t('mfg.flag.note') : t('mfg.flag.moves', { n: p.moves.length });
     const cls = ['pc-node', p && (p.error || (p.sim && p.sim.gouges)) ? 'is-error' : '', p && p.warnings.length ? 'is-warn' : '', o.suppressed ? 'is-off' : ''].join(' ');
-    list.append(el('button', { type: 'button', className: cls, role: 'option', 'aria-selected': String(S.op === o.id), dataset: { mop: o.id }, onclick: () => { S.op = o.id; S.picking = false; host.renderPanel(); } },
+    list.append(el('button', { type: 'button', className: cls, role: 'option', 'aria-selected': String(S.op === o.id), dataset: { mop: o.id }, onclick: () => { S.op = o.id; S.picking = false; S.pickOrient = false; host.renderPanel(); } },
       swatch(el, COLORS[i % COLORS.length]),
       el('span', { className: 'pc-node-name' }, o.name), el('span', { className: 'pc-node-flag' }, flag)));
   });
@@ -449,7 +531,16 @@ function renderOpEditor(host, box, st, op, p, K) {
     ...K.field(t('mfg.op.tool'), K.sel([['', t('mfg.op.choose_a_tool')], ...st.tools.map((t) => [t.id, `T${t.number} ${t.name || describeTool(t)}`])], op.tool || '', (v) => set(t('mfg.undo.op_tool'), (o) => { o.tool = v || null; }))),
   );
   if (NEEDS_GEO[op.type]) g.append(el('span', { className: 'k' }, t('mfg.op.geometry')), el('span', { className: 'v' }, geoWords(host, op)));
-  else if (op.type === 'parallel' || op.type === 'scallop') g.append(el('span', { className: 'k' }, t('mfg.op.geometry')), el('span', { className: 'v' }, t('mfg.op.whole_model')));
+  else g.append(el('span', { className: 'k' }, t('mfg.op.geometry')), el('span', { className: 'v' }, t('mfg.op.whole_model')));
+  if (canTilt(op.type)) {
+    // 0.11 CAM.3: this operation's own tool direction (tilt from the setup's axis, turn about it); 0 = the setup's axis
+    const o = op.orient || { tilt: 0, turn: 0 };
+    const tiltIn = K.num(o.tilt, (x) => set(t('mfg.undo.tool_direction'), (q) => { q.orient = x > 0 ? { tilt: x, turn: (q.orient && q.orient.turn) || 0 } : null; }), { min: 0, max: 180 });
+    const turnIn = K.num(o.turn, (x) => set(t('mfg.undo.tool_direction'), (q) => { if (q.orient) q.orient.turn = x; }), { min: -360, max: 360 });
+    tiltIn.dataset.morient = 'tilt'; turnIn.dataset.morient = 'turn';
+    turnIn.disabled = !op.orient;
+    g.append(...K.field(t('mfg.op.tilt'), tiltIn), ...K.field(t('mfg.op.turn'), turnIn));
+  }
   const spec = OP_PARAMS[op.type];
   for (const [k, v] of Object.entries(spec)) {
     if (typeof v === 'boolean') { g.append(K.check(label(k), op.params[k], (x) => set(label(k), (o) => { o.params[k] = x; }), { dataset: { mparam: k } })); continue; }
@@ -461,6 +552,7 @@ function renderOpEditor(host, box, st, op, p, K) {
     g.append(...K.field(label(k), input));
   }
   const acts = el('div', { className: 'pc-actions' });
+  if (canTilt(op.type)) acts.append(K.btn(S.pickOrient ? t('mfg.orient.cancel') : t('mfg.orient.pick'), () => { S.pickOrient = !S.pickOrient; S.picking = false; host.status(S.pickOrient ? t('mfg.orient.on') : t('mfg.pick.done')); host.renderPanel(); }, 'pc-btn', { title: t('mfg.orient.pick.title'), dataset: { morientpick: '1' } }));
   if (NEEDS_GEO[op.type]) acts.append(K.btn(S.picking ? t('mfg.pick.done_btn') : t('mfg.pick.btn'), () => { S.picking = !S.picking; host.status(S.picking ? t('mfg.pick.on') : t('mfg.pick.done')); host.renderPanel(); }, 'pc-btn' + (S.picking ? ' is-primary' : ''), { dataset: { mpick: '1' }, 'aria-pressed': String(S.picking) }));
   acts.append(
     K.btn(t('mfg.op.up'), () => edit(host, t('mfg.undo.move_op'), (s) => { if (i === 0) return false; const [x] = s.ops.splice(i, 1); s.ops.splice(i - 1, 0, x); }), 'pc-btn', { disabled: i === 0, dataset: { mup: '1' } }),
@@ -474,11 +566,21 @@ function renderOpEditor(host, box, st, op, p, K) {
     for (const w of p.warnings) rows.push(el('div', { className: 'pc-msg is-warn' }, el('p', {}, w)));
     const dl = el('dl', { className: 'pc-dl' });
     const add = (k, v) => { if (v !== '' && v !== null && v !== undefined) dl.append(el('dt', {}, k), el('dd', {}, String(v))); };
-    if (p.speeds) { add(t('mfg.spindle'), p.speeds.rpm + ' rpm'); add(t('mfg.op.feed_plunge'), `${fmt(p.speeds.feed, 1)} / ${fmt(p.speeds.plunge, 1)} mm/min`); }   // i18n-ignore: numbers and units
+    if (p.speeds && p.speeds.lathe) { add(t('mfg.spindle'), p.speeds.css != null ? `${p.speeds.css} m/min (≤ ${p.speeds.maxRpm} rpm)` : p.speeds.rpm + ' rpm'); add(t('mfg.op.feed_rev'), `${fmt(p.speeds.feed, 3)} mm`); }   // i18n-ignore: numbers and units
+    else if (p.speeds && p.speeds.probe) add(t('mfg.op.probe_feed'), `${fmt(p.speeds.feed, 1)} mm/min`);   // i18n-ignore: numbers and units
+    else if (p.speeds) { add(t('mfg.spindle'), p.speeds.rpm + ' rpm'); add(t('mfg.op.feed_plunge'), `${fmt(p.speeds.feed, 1)} / ${fmt(p.speeds.plunge, 1)} mm/min`); }   // i18n-ignore: numbers and units
     add(t('mfg.op.moves'), p.moves.length);
     if (p.info.holes) add(t('mfg.op.holes'), p.info.holes);
     if (p.info.loops) add(t('mfg.op.loops'), p.info.loops);
     if (p.info.entries) add(t('mfg.op.entries'), p.info.entries);
+    if (p.info.levels) add(t('mfg.op.levels'), p.info.levels);
+    if (p.info.passes) add(t('mfg.op.passes'), p.info.passes);
+    if (p.info.plunges) add(t('mfg.op.plunges'), p.info.plunges);
+    if (p.info.wallExtra) add(t('mfg.op.wall_extra'), fmt(p.info.wallExtra, 2) + ' mm');
+    if (p.info.maxTilt) add(t('mfg.op.max_tilt'), fmt(p.info.maxTilt, 1) + '°');
+    if (p.info.cycles) add(t('mfg.op.touch_cycles'), p.info.cycles);
+    if (p.kind === 'multi' || p.kind === 'probe') add(t('mfg.op.simulated'), t('mfg.op.not_simulated'));
+    else if (p.frame && p.frame.Q) add(t('mfg.op.simulated'), t('mfg.op.own_simulation'));
     if (S.result && S.result.time.perOp[op.id] !== undefined) add(t('mfg.op.time'), time(S.result.time.perOp[op.id]));
     if (p.sim) { add(t('mfg.op.removed'), fmt(p.sim.removed / 1000, 1) + ' cm³'); add(t('mfg.gouges'), p.sim.gouges ? t('mfg.cells', { n: p.sim.gouges }) : t('mfg.none')); if (p.sim.rapidCuts) add(t('mfg.op.rapid_cuts'), p.sim.rapidCuts); }
     box.append(el('div', { className: 'pc-block' }, ...rows, dl));
@@ -667,7 +769,9 @@ function doPost(host, send = false) {
   // the control and the study's own posts are read now, not from the study the toolpaths were last made from: they do not change the toolpaths
   const cur = study(host) || S.resultFor;
   const kind = cur.setup.machine.post;
-  const out = post(pg, { post: kind, name: host.part.name || 'Part', posts: cur.posts || [] });   // i18n-ignore: program name in the G-code
+  let out;
+  // a post can refuse a program (a tilted tool on a 3-axis machine, a turning program in a milling post): say why
+  try { out = post(pg, { post: kind, name: host.part.name || 'Part', posts: cur.posts || [] }); } catch (e) { host.status(t('mfg.post.refused', { why: e && e.message ? e.message : String(e) }), true); return; }   // i18n-ignore: program name in the G-code
   // 0.9 D8.13: the posted program, for the Factory floor add-on's job queue (it listens; nothing happens when it is off)
   try { window.dispatchEvent(new CustomEvent('cc-cam-posted', { detail: { app: 'partcraft', file: `${baseName(host)}.${out.ext}`, text: out.text, post: kind, postName: postName(cur, kind), part: host.part.name || '' } })); } catch { /* no window (tests) */ }
   if (send) { sendProgram(host, `${baseName(host)}.${out.ext}`, out.text); return; }
@@ -701,6 +805,8 @@ lazyLabels(registerWorkspace({
       { cmd: 'manufacture-chamfer', icon: 'triangle', label: 'mfg.tb.chamfer', title: 'mfg.tb.chamfer.title' },
       { cmd: 'manufacture-parallel', icon: 'list-nested', label: 'mfg.tb.parallel', title: 'mfg.tb.parallel.title' },
       { cmd: 'manufacture-scallop', icon: 'water', label: 'mfg.tb.scallop', title: 'mfg.tb.scallop.title' },
+      // 0.11 Track CAM: twelve more operations behind one button, offered at the top of the Operations tab (the toolbar stays one row)
+      { cmd: 'manufacture-more', icon: 'three-dots', label: 'mfg.tb.more', title: 'mfg.tb.more.title' },
     ] },
     { label: 'mfg.tb.program', items: [
       { cmd: 'manufacture-simulate', icon: 'play-circle', label: 'mfg.tb.simulate', title: 'mfg.tb.simulate.title' },
@@ -717,18 +823,25 @@ lazyLabels(registerWorkspace({
   command(cmd, host) {
     const m = /^manufacture-(face|pocket|adaptive|contour|drill|chamfer|parallel|scallop)$/.exec(cmd);
     if (m) { addOp(host, m[1]); return true; }
+    if (cmd === 'manufacture-more') {
+      if (!study(host)) edit(host, t('mfg.undo.new_setup'), () => {});
+      S.adding = !S.adding; S.tab = 'ops';
+      host.renderPanel();
+      return true;
+    }
     if (cmd === 'manufacture-simulate') { S.showStock = true; S.tab = 'ops'; generate(host); return true; }
     if (cmd === 'manufacture-post') { doPost(host); return true; }
     return false;
   },
   renderPanel,
   onPick(hit, host) {
+    if (S.pickOrient) { if (hit) pickDirection(host, hit); return; }
     if (!S.picking) { if (hit) host.status(t('mfg.pick.choose_op')); return; }
     if (!hit) return;
     togglePick(host, hit);
   },
   onHover(hit, host) {
-    if (!S.picking || !hit) { host.view.setHover(null); return; }
+    if (!(S.picking || S.pickOrient) || !hit) { host.view.setHover(null); return; }
     if (hit.kind === 'face' && hit.face !== undefined) {
       const tris = [];
       const tf = host.regen && host.regen.mesh && host.regen.mesh.triFace;
@@ -738,11 +851,11 @@ lazyLabels(registerWorkspace({
     else host.view.setHover(null);
   },
   keydown(ev, host) {
-    if (ev.key === 'Escape' && S.picking) { S.picking = false; host.status(t('mfg.pick.done')); host.renderPanel(); return true; }
+    if (ev.key === 'Escape' && (S.picking || S.pickOrient)) { S.picking = false; S.pickOrient = false; host.status(t('mfg.pick.done')); host.renderPanel(); return true; }
     return false;
   },
   toolState(cmd, host) {
-    if (/^manufacture-(face|pocket|contour|drill|chamfer|parallel|scallop)$/.test(cmd) && !(host.regen?.exact || host.regen?.named)) return { ok: false, why: exactWhy(t('kernel.what.manufacture'), t('mfg.need.exact')) };
+    if (/^manufacture-(face|pocket|contour|drill|chamfer|parallel|scallop|more)$/.test(cmd) && !(host.regen?.exact || host.regen?.named)) return { ok: false, why: exactWhy(t('kernel.what.manufacture'), t('mfg.need.exact')) };
     const st = study(host);
     if (cmd === 'manufacture-simulate' && !(st && st.ops.length)) return { ok: false, why: t('mfg.add_op_first') };
     if (cmd === 'manufacture-post' && !S.result) return { ok: false, why: t('mfg.make_first') };

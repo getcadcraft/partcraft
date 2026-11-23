@@ -18,6 +18,7 @@ import * as V from './vec.js';
 import { VIEWS, SCALES, PAPERS, scaleLabel, winAnsi } from './drawing.js';
 import { zipStored } from './export.js';
 import { t } from './i18n.js';
+import { escXmlClean as xmlEsc } from './util.js';   // shared helpers (0.11 PERF.74; tools/perf/util-copies.mjs)
 
 const circle = (cx, cy, r, n = 48) => Array.from({ length: n }, (_, i) => {
   const a = 2 * Math.PI * i / n, b = 2 * Math.PI * (i + 1) / n;
@@ -143,7 +144,6 @@ export function assemblyMesh(items) {
   return { positions, indices };
 }
 
-const xmlEsc = (s) => String(s).replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const num = (v) => { const r = Math.abs(v) < 1e-12 ? 0 : v; return Number(r.toPrecision(9)).toString(); };
 const zUp = (x, y, z) => [x, -z, y];
 const Y_TO_Z = [1, 0, 0, 0, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1];

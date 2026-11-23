@@ -49,6 +49,7 @@
     "adapter": "workspace-partcraft.js"
   },
   "hardware": true,
+  "toolbarRows": "auto",
   "problems": true,
   "nodes": true,
   "engines": true

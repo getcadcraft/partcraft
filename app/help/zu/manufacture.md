@@ -1,92 +1,94 @@
 ---
-title: Yenza ama-toolpath nama-G-code (Manufacture)
-summary: Setha isitoko nemvelaphi yomsebenzi, khetha amathuluzi, engeza imisebenzi yobuso, isikhala, ikhonthuwa, ukubhoboza nechamfer ngokukhetha ubuso, qedela imodeli yonke ngo-3D (parallel, scallop), lingisa isitoko ngokumelene nemodeli ukuze uthole ukugoqa nesikhathi somjikelezo, bese ulanda i-G-code kwenye yama-post amathathu akhelwe kuqala noma eyodwa oyihlelayo wena.
-keywords: exact step, step for the shop, work coordinates, cam handoff, parallel, scallop, 3d finishing, finishing, ball nose, tool library, edit post, custom post, post editor, adaptive, adaptive clearing, constant engagement, trochoidal, hsm, high speed machining, manufacture, CAM, toolpath, G-code, NC, CNC, mill, milling, pocket, contour, profile, facing, drill, peck, G83, G81, G73, chamfer, stock, work offset, G54, post processor, GRBL, LinuxCNC, feeds and speeds, simulation, gouge, cycle time
-from: beeb29aa
+title: Yenza izindlela zethuluzi ne-G-code (Ukukhiqiza)
+summary: Setha isitoko nemvelaphi yomsebenzi, khetha amathuluzi, engeza imisebenzi yobuso, i-pocket, i-contour, ukubhoboza nokusika i-chamfer ngokukhetha ubuso, qeda imodeli yonke nge-3D (nxande, iskalobhu), lingisa isitoko namodeli ukuze uthole ukugawuka nesikhathi sokusebenza, bese uyalanda i-G-code kusuka kwezimbili ezakhelwe ngaphakathi noma kuhlelo oluhlelwe nguwe.
+keywords: exact step, step wokusebenza, izixhumanisi zomsebenzi, ukudlulisa kwe-cam, nxande, iskalobhu, ukuqedwa nge-3d, ukuqeda, ibhola, umtapo wamathuluzi, hlela i-post, post engokwezifiso, umhleli we-post, adaptive, ukususwa okuhlala njalo, trochoidal, hsm, ukukhiqiza ngesivinini esikhulu, manufacture, CAM, indlela yethuluzi, G-code, NC, CNC, mill, milling, pocket, contour, profile, ukuhlanza ubuso, ukubhoboza, peck, G83, G81, G73, chamfer, isitoko, ukushintshwa komsebenzi, G54, post processor, GRBL, LinuxCNC, izinga lokondla nesivinini, ukulingisa, ukugawuka, isikhathi sokusebenza
+from: f8a03be8
 ---
 
-Indawo yokusebenza ye-Manufacture iguqula ingxenye ibe ama-toolpath womshini wokugaya wama-eksisi ama-3 beseiwabhala njenge-G-code. Imisebenzi eminingi ingu-**2.5-eksisi**: ithuluzi lihlala lime ngokuqondile, izindonga zisikwa zishaya phansi, nezinsalela zibe zintsha. **Parallel** ne-**Scallop** zigciba izindawo ezigoqekile ngo-3D (bheka [3D finishing](topic:finish-3d)); ithuluzi liseqinile ngokuqondile (ama-eksisi amathathu, akukho ukuthambeka). Lisebenza kubuso obubizwe ngamagama kubhoshoxo elinikezwa ingxenye (bheka [Ukuqopha kwe-mesh](topic:solid-kernels)).
+Isikhala sokusebenza se-Manufacture sishintsha imodeli ibe yizindlela zethuluzi bese isibhala njenge-G-code. Imisebenzi eminingi ngu-**milling engu-2.5-eksisi**: ithuluzi lihlala limile, izindonga zisikwa ziqonde phansi nezindonga zibe nezisekelo ezisicaba. I-**3D rough** ne-**Rest** zihlanza izingxenye ezigobile ngo-3D ([Ukuhlanzwa nge-3D nokusala okusele](topic:rough-3d)); i-**Parallel** ne-**Scallop** ziqeda zona ([Ukuqedwa nge-3D](topic:finish-3d)). Emshinini onama-eksisi azungezayo, noma yimuphi umsebenzi ungaba nethuluzi elithambekile, futhi imisebenzi emibili ihambisa ama-eksisi azungezayo ngenkathi isika ([Ukusebenza nama-eksisi ama-4 nama-5](topic:multi-axis)). Kukhona imisebenzi yomshini wokuthenda ([Ukuthenda](topic:turning)) nowephrobhu lokuthinta ([Iprobhu](topic:probing)). Isebenza ngobuso obubizwe ngamagama i-kernel ye-mesh inikeza ingxenye (bona [I-mesh kernel](topic:solid-kernels)).
 
-Ukwakha kwe-Lab: hlola zonke izinhlelo ngesimuleyitha salo mlawuli wakho, uzisebenzise emoyeni ngaphezulu kwesitoko kuqala.
+Ukwakhiwa kwelabhorethri: hlola yonke inhlelo ngesimulator somlawuli wakho, futhi uyiqhube emoyeni ngaphezu kwesitoko kuqala.
 
 ## Setha
 
-1. Khetha **Manufacture** kwi-workspace switcher, bese {{ui:Ukulungiselela okusha}}.
-2. Ku-thebhu ye-**Setup** khetha:
-   - **Tool axis (+Z)**: indlela ithuluzi elibheka ngayo ingxenye. World +Y (phezulu kwe-PartCraft) yisimo esizenzakalelayo; ngakho i-X yomshini iyi-world X futhi i-Y yomshini iyi-world −Z.
-   - **Work origin (G54)**: ikhona yesitoko noma isikhungo, phezulu noma phansi, phezulu-maphakathi kwemodeli, noma imvelaphi yemodeli.
-   - **Stock**: ibhokisi noma isigaxa, noma imodeli kanye nezinye ukwengeza (izinhlangothi, phezulu, phansi), noma usayizi osethiwe.
-   - **Material** (isetha izinga lokuqala lamafidi nejubane), i-**post** (umlawuli), ijubane eliphezulu lespindle yomshini, izinga lokusheshisa, nesikhathi sokushintsha ithuluzi, i-coolant nenombolo yohlelo.
+1. Khetha **Manufacture** kwisishintshi sesikhala sokusebenza, bese {{ui:New setup}}.
+2. Ethebhini le-**Setup** khetha:
+   - **I-eksisi yethuluzi (+Z)**: ithuluzi libheke ngasiphi isiqondiso engxenyeni. I-World +Y (ephezulu ye-PartCraft) yiyona ezenzakalelayo; i-X yomshini ibe yi-X yomhlaba, ne-Y yomshini ibe yi−Z yomhlaba.
+   - **Imvelaphi yomsebenzi (G54)**: ikhona yesitoko noma maphakathi, phezulu noma phansi, maphakathi kophezulu wemodeli, noma imvelaphi yemodeli.
+   - **Isitoko**: ibhokisi noma isilinda, noma imodeli plus okuseduze (ezinhlangothini, phezulu, phansi) noma usayizi osethiwe.
+   - **Impahla** (isetha izinga lokuqala lokondla nesivinini), i-**post** (umlawuli), isivinini esikhulu sesipindle yomshini, izinga lokuhamba ngokushesha nesikhathi sokushintsha ithuluzi, i-coolant nenombolo yohlelo.
 
 ## Amathuluzi
 
-Ithebhu ye-**Tools** iqukethe umtapo: ama-end mills athambile, abhalwayo nagqobhozayo, ama-drill, ama-chamfer mills nama-face mills, ngayinye nenombolo ye-T, ububanzi, ama-flute nobude bawo (kanye nenkomba yekhona, indawo ephoyintiwe noma i-chamfer lapho zisebenza khona).
+Ithebhu ethi **Amathuluzi** iqukethe umtapo: ama-end mill athambile, abhola nama-bull nose, amadrill, amamilling e-chamfer namamilling obuso, ngalinye linenombolo ye-T, ububanzi, ama-flute nobude be-flute (kanye ne-corner radius, i-point noma i-chamfer angle lapho zisebenza khona).
 
-Amathuluzi ami angagcinwa ebhrawuzeni futhi adluliselwe phakathi kwamakhompyutha njengefayela: bheka [Umtapo wamathuluzi](topic:tool-library).
+Amathuluzi ami angalondolozwa esiphequluli futhi ahanjiswe phakathi kwamakhompyutha njengefayela: bona [Umtapo wamathuluzi](topic:tool-library).
 
-Isivinini sespindle nefidi kuvela kuzinto: n = 1000 × isivinini sokusika / (π × ububanzi), i-feed = n × ama-flute × i-chip load (ama-drill: n × feed ngokuphindiswa). Lezi yizinombolo ezilondolozayo zokuqala ezivela kuzinhlu ezishicilelwe, ezingalungiswanga kumshini wakho; bhala isivinini sokusika, i-chip load, i-rpm noma i-feed somenzi wethuluzi lakho ukuze uzishintshe. Uma isivinini sedlula ubuningi bomshini kubanjwa lapho futhi i-feed iyalandela, igcina i-chip load.
+Isivinini sespindle nokondla kuvela ezintweni: n = 1000 × isivinini sokusika / (π × ububanzi), ukondla = n × ama-flute × i-chip load (ama-drill: n × ukondla ngokuzungeza). Lezi yizinombolo ezilondekile zokuqala ezivela emikhawulweni ebhaliwe, hhayi ezilungiselelwe umshini wakho; thayipha isivinini sokusika, i-chip load, i-rpm noma ukondla okusuka kumenzi wethuluzi lakho ukuze ukushintshe. Lapho isivinini sedlula okukhulu komshini kuyabanjwa lapho futhi ukondla kulandela, kugcinwa i-chip load.
 
 ## Engeza imisebenzi
 
-Inkinobho ngayinye yethuluzi yengeza umsebenzi futhi, lapho idinga ijiyometri, iqala ukukhetha: chofoza ubuso noma imiphetho ku-view (chofoza futhi ukuze ukhiphe okukhethiwe), bese {{ui:Kuqediwe ukukhetha}} noma {{key:Esc}}.
+Iqhosha ngalinye ethuluzini lengeza umsebenzi, futhi lapho kudingeka ijiyometri, liyaqala ukukhetha: chofoza ubuso noma imiphetho embonweni (chofoza futhi ukuze wehlise elinye), bese {{ui:Done picking}} noma {{key:Esc}}.
 
 | Umsebenzi | Khetha | Yenzani |
 |---|---|---|
-| {{ui:Ubuso}} | lutho | Ukudlula kwe-zig-zag kuso sonke isitoko, kudlule imiphetho yaso, kuye phezulu kwemodeli |
-| {{ui:Isikhala}} | ubuso obuthe batshe obuthe, umgodi ojikelezile, noma ishegu evaliwe lemiphetho | Ihlanza indawo ngokudlula kwe-offset kusuka ngaphakathi-ngaphandle, ekunyuseni ngakunye; izihlaleli (ubuso obuphakama ngaphakathi kwesisekelo) ziyashiywa; isisekelo esivulekile kuwo wonke umzuzu (akukho okuphakeme ngaphandle kwaso) siyahlanzwa kuze kufike emphethweni wesitoko |
-| {{ui:Okuguquguqukayo}} | okufanayo nesikhala | Ihlanza indawo efanayo ngokudlula okusika ububanzi obusethiwe (**Engagement**, ingxenye yobubanzi), ukuze umsiki angathathi isiqephu sobubanzi bonke, nasezikhonweni; ingena ngehelix futhi iqede izindonga ngezinga ngalinye. Ukusika okuncane kuvumela ukwehla okujulile nefidi ephezulu |
-| {{ui:Ikhonthuwa}} | ubuso obutshe bomkhawulo wabo, ubuso obujikelezile, noma imiphetho | Ilandela umkhawulo oshintshwe ngeradiyasi yethuluzi, ngaphandle noma ngaphakathi, nama-arc okungena nokuphuma, nama-tabs anengeziwe |
-| {{ui:Ukubhoboza}} | izimbobo (chofoza udonga lwesimbobo noma umphetho wawo) | Ibhoboza isimbobo ngasinye ngomjikelezo okhona: peck (G83), drill (G81) noma chip break (G73); noma nika ububanzi ukuze ubhoboze zonke izimbobo zalobo bubanzi |
-| {{ui:Chamfer}} | umkhawulo wobuso noma imiphetho | Isebenzisa i-chamfer mill ngomphetho ukuze isike ububanzi obusethiwe |
-| {{ui:Parallel}} | lutho (imodeli yonke) | Ukuqedela okungu-3D ngemigqa ehambisanayo nanoma yiliphi ikhona, ilandela ubuso ngebhola, i-bull-nose noma i-flat end mill. Bheka [3D finishing](topic:finish-3d) |
-| {{ui:Scallop}} | lutho (imodeli yonke) | Ukuqedela okungu-3D ngokudlula okubekwe ibanga elithile phezu kobuso, ukuze umphetho phakathi kwawo ube nobude ocelile |
+| {{ui:Face}} | lutho | Izindlela ze-zig-zag phezu kwesitoko sonke, ngaphesheya kwemiphetho yaso, ziye kophezulu womodeli |
+| {{ui:Pocket}} | ubuso obusicaba bomgodi, umgodi ongaphansi, noma ushintsho oluvaliwe lwemiphetho | Ihlanza indawo ngokudlula kwe-offset ngaphakathi-ngaphandle, ekunyuseni ngakunye kwe-step-down; izihlahla (ubuso obuma phezulu ngaphakathi kwesicaba) ziyashiywa; isicaba esivulekile ngokuzungezile (akukho okuphakeme ngaphandle kwaso) siyahlanzwa kuze kufike emphethelweni wesitoko |
+| {{ui:Adaptive}} | okufanayo ne-Pocket | Ihlanza indawo efanayo ngezindlela ezisika ububanzi obuthile ngakunye (**Engagement**, ingxenye yobubanzi), ukuze ithuluzi lingalokothi lithathe isikhala esigcwele ububanzi, ngisho emakhoneni; lingena ngohelikhi bese liqeda izindonga ngakunye kwezinga. Ukusika okuncane kuvumela i-step-down ejulile nokondla okukhulu |
+| {{ui:Contour}} | ubuso obusicaba (umbonakalo wabo), ubuso obuzungezile, noma imiphetho | Iland'umbonakalo ofakwe ngobubanzi bethuluzi, ngaphandle noma ngaphakathi, nama-arc okungena nokuphuma nama-tab ongakhetha kuwo |
+| {{ui:Drill}} | izimbobo (chofoza udonga lwembobo noma umphetho wayo) | Ibhoboza imbobo ngayinye ngomjikelezo oqinile: peck (G83), drill (G81) noma chip break (G73); noma nikeza ububanzi ukuze ubhobozele zonke izimbobo zalobo bubanzi |
+| {{ui:Chamfer}} | umbonakalo wobuso noma imiphetho | Ihambisa i-chamfer mill emphethelweni ukuze isike ububanzi obusethiwe |
+| {{ui:Parallel}} | lutho (imodeli yonke) | Ukuqedwa nge-3D ngemigqa enxande ngayo yonke i-engeli, ilandela umphezulu ngebhola, i-bull-nose noma i-end mill esicaba. Bona [Ukuqedwa nge-3D](topic:finish-3d) |
+| {{ui:Scallop}} | lutho (imodeli yonke) | Ukuqedwa nge-3D ngamapasi ahlukaniswe ngebanga elithile phezu komphezulu, ukuze igquma eliphakathi kwawo libe nokuphakama oyikhethayo |
 
-Khetha umsebenzi ohlwini ukuze ushintshe ithuluzi lawo, ukuphakama (clearance, retract, feed height, top, bottom), ukwehla, i-stepover, isitoko okufanele siyishiye, ukudlula kokuqeda, ukungena (helix, ramp noma plunge), i-climb milling, ama-tabs noma umjikelezo. {{ui:Phezulu}} no-{{ui:Phansi}} zihlela kabusha, {{ui:Vimbela}} kuyisusa, {{ui:Susa}} kuyisusa ngokuphelele. Konke kusemlandweni wokuhlehlisa futhi kugcinwa kwifayela lengxenye.
+Khetha umsebenzi kuhlu ukuze ushintshe ithuluzi walo, izinga lokuphakama (ukuhlukanisa, ukubuyela, izinga lokondla, phezulu, phansi), i-step-down, i-stepover, isitoko esizoshiya, ipasi lokuqeda, ukungena (uhelikhi, iramp noma plunge), ukugaya ngokukhwela, ama-tab noma umjikelezo. {{ui:Up}} no {{ui:Down}} zihlela kabusha, {{ui:Suppress}} iyishiya ngaphandle, {{ui:Delete}} iyasusa. Konke kusemlandweni wokuhlehla futhi kulondolozwa efayelini lengxenye.
 
-I-stepover yesikhala ingaphezu kwengxenye yobubanzi bethuluzi, ukuze yonke indawo yesisekelo ibe ngaphakathi kwesiqephu sethuluzi ngodlula ngamunye. Izikhala ezingaphakathi zigcina iradiyasi yethuluzi.
+Ubuso be-stepover ye-pocket bungaba ngaphansi kwesigamu sobubanzi bethuluzi, ukuze wonke amaphuzu esicaba aseduze nekhulu lethuluzi elilodwa lendlela. Amakhona angaphakathi agcina umsakazo wethuluzi.
 
-**Ukuhlanza okuguquguqukayo** kugcina ukubamba komsiki kuseduze nenani elilodwa. Ukubamba kwe-0.15 yobubanzi kuyi-engagement angle yomayelana ne-46°: indilinga yomphetho womsiki endaweni yempahla. Isikhala se-offset, ngokuphambene, sisika ububanzi bonke ekudlulweni kokuqala futhi sihambe kude ezikhonweni ngakunye ngaphakathi. Phakathi kokudlula ithuluzi lihlala lehlile lapho lihamba emoyeni osikiwe, bese liphakama futhi lehle emoyeni osikiwe kwezinye izindawo. Ukudlula kuthathwa ngegridi enhle phezu kwendawo (amasele cishe ingxenye eyishumi nambili yeradiyasi yethuluzi), ngakho ukubamba kungaphezu kwesele elilodwa lobubanzi obusethiwe; izindonga ziqedwa ngokunembile. Indawo evulekile enkulu yenza uhlelo olude olunezinyathelo ezimfishane eziningi.
+**Ukuhlanza okuguquguqukayo** kugcina ukungena kwe-cutter iseduze nenani elilodwa. Ukungena okungu-0.15 kobubanzi kuyi-engeli yokungena engaba ngu-46°: indilinga yomphetho wecutter ezintweni. I-offset pocket, ngokuphambene, isika ububanzi obugcwele ekudlulweni kwayo kokuqala futhi ibhinca kakhulu emakhoneni angaphakathi ngamunye. Phakathi kwamapasi ithuluzi lihlala lingene lapho lidlula emoyeni osikiwe, bese liyaphakama liphinde lehle emoyeni osikiwe kwezinye izindawo. Amapasi asetshenziswa kugridi ebucayi phezu kwesifunda (amaseli acishe abe yi-twelfth yomsakazo wethuluzi), ngakho ukungena kungadlula kancane kancane amaseli amabili obubanzi obusetshenzisiwe; izindonga ziqedwa ngokunembile. Indawo evulekile ekhulu yenza uhlelo olude olunemigqa emifushane eminingi.
 
 ## Lingisa
 
-Ama-toolpath ayenziwa futhi ngemva kwanoma yiluphi ushintsho (nengxenye nayo). {{ui:Lingisa}} futhi ibonisa isitoko esisele ngemva kohlelo lonke. Ipaneli ibonisa:
+Izindlela zethuluzi zenziwa futhi ngemva kokushintsha ngakunye (nengxenye yakho). {{ui:Simulate}} futhi ibonisa isitoko esisele ngemva kwawo wonke uhlelo. Iphaneli ibonisa:
 
-- **Cycle time**: ukunyakaza kwe-feed ngesivinini sayo, ukusheshisa njengemigqa eqondile ngezinga lokusheshisa lokusethwa, kanye nesikhathi sokushintsha ithuluzi. Imishini yangempela iyashesha, ngakho ithatha isikhathi eside.
-- **Gouges**: izindawo lapho ithuluzi lehla ngaphansi kwengxenye engu-0.02 mm ngaphansi kobuso bengxenye. Izimpawu ezibomvu zibakhombisa ku-view.
-- **Stock left on the part**: isitoko esisele engxenyeni.
+- **Isikhathi sokusebenza**: izinyathelo zokondla zihamba ngokondla kwazo, izinyathelo ezisheshayo zingamamugqa aqondile ngezinga lokuhamba ngokushesha kusethingi, kanye nesikhathi sokushintsha ithuluzi. Imishini yangempela iyashesha, ngakho ithatha isikhathi eside.
+- **Ukugawuka**: izindawo lapho ithuluzi lehla khona ngaphezu kuka-0.02 mm ngaphansi kobuso bengxenye. Imikhomba ebomvu iyawakhombisa embonweni.
+- **Isitoko esisele engxenyeni**.
 
-Isitoko siyimephu yobude yophezulu (Z-map), ngakho asikwazi ukukhombisa ama-undercut. Donsa **Playback** ukuze uhambise ithuluzi ohlelweni. Ku-view, ukunyakaza kwe-feed kuqinile kanti okusheshayo kuyizitebhisi, umbala owodwa ngomsebenzi ngamunye.
+Isitoko siyimephu yokuphakama yophezulu (Z-map), ngakho asikwazi ukubonisa ukugoba okungaphansi. Hudula i-**Playback** ukuze uhambise ithuluzi uhlelo lwonke. Embonweni, izinyathelo zokondla zimile, nezinyathelo ezisheshayo zimile ngemigqa, kube nombala owodwa ngokusebenza ngakunye.
 
-Lapho **Show the simulated stock** ivuliwe, isitoko siyanakwa ngokumelene nemodeli, seluleka ngeseli: **luhlaza** lapho sisemodelini (ngaphakathi kwe-0.02 mm), **kubomvu** lapho ithuluzi lingene emodelini, nalapho kusele isitoko emodelini **kwesikhwama** esincane, **kwe-orange** okungaphezulu, kuze kufike **kwe-grey** yesitoko esingasikiwe ku-1 mm noma ngaphezulu. Imibala yenziwa kabusha ngalo lonke ushintsho, ngemephu efanayo yobude nezinombolo epaneli, ngakho i-luhlaza nobomvu kuvumelana nomugqa we-Gouges. I-chamfer ingena emodelini ngenhloso futhi ibonisa obomvu ngomphetho wayo.
+Uma i-**Show the simulated stock** ivuliwe, isitoko sinombala ngokumelene nemodeli, iseli ngeseli: **luhlaza** lapho sikhona emodelini (phakathi kuka-0.02 mm), **kubomvu** lapho ithuluzi lisike emodelini, futhi lapho kusele isitoko emodelini **kwesasawu** ngesikhumba esincane, **kuwolintshi** ngokwengeziwe, kuguquke kube **kwegrey** yesitoko esingasikiwe ku-1 mm noma ngaphezulu. Imibala yenziwa futhi ngalo lonke ushintsho, ngemephu yokuphakama efanayo nezinombolo ephaneli, ngakho okuluhlaza nokubomvu kuvumelana nomugqa wokugawuka. Ishintshi lisika emodelini ngamabomu futhi libonisa okubomvu emaphethelweni alo.
 
-## Yiposta i-G-code
+## Post i-G-code
 
-Khetha umlawuli ngaphansi kwe-**Post** beseucindezela {{ui:Landa i-G-code}} (noma {{ui:Isiphothulukisi}} kwi-toolbar):
+Khetha umlawuli ngaphansi kwe-**Post** bese ucindezela {{ui:Download G-code}} (noma {{ui:Post}} kwibha yamathuluzi):
 
 | Umlawuli | Ifayela | Amanothi |
 |---|---|---|
-| Fanuc-style ISO | .nc | %, inombolo ye-O, izinombolo zemigqa, T M6 ne-G43 H, imijikelezo ehlanganisiwe |
-| GRBL | .nc | Akukho umshintshi wethuluzi noma imijikelezo ehlanganisiwe: ukushintsha kwethuluzi kumisa nge-M0, ukubhoboza kubhalwa njengezinyathelo ezilula |
-| LinuxCNC | .ngc | T M6 ne-G43 H, imijikelezo ehlanganisiwe, M2 |
-| Okwakho | noma yiliphi | I-post owayibhala noma owayishintsha: {{ui:Hlela iposi…}}, {{ui:Iposi elisha…}}, {{ui:Ngenisa ifayela le-post…}} |
+| Fanuc-style ISO | .nc | %, inombolo ye-O, izinombolo zomugqa, T M6 nge-G43 H, imijikelezo eqinile |
+| GRBL | .nc | Akukho umshintshi wethuluzi noma imijikelezo eqinile: ukushintsha kwethuluzi kuma nge-M0, ukubhoboza kubhalwa njengezinyathelo ezilula |
+| LinuxCNC | .ngc | T M6 nge-G43 H, imijikelezo eqinile, M2 |
+| Fanuc-style lathe | .nc | Ezinhlelweni zokuthenda: X njengobubanzi, ukondla ngokuzungeza, G96 ngaphansi komkhawulo we-G50, ukuthungwa kwe-G32 |
+| LinuxCNC lathe | .ngc | Ezinhlelweni zokuthenda: ububanzi be-G7, G95, G96, ukuthungwa kwe-G33; ayibhali inyathelo lokubuyela ekhaya |
+| Okwakho | noma yini | I-post oyibhaliyo noma oyishintshile: {{ui:Edit post…}}, {{ui:New post…}}, {{ui:Import post file…}} |
 
-Lonke ifayela liqala ngezimpawu zokuphawula zohlelo, isitoko, ukuthathwa kwemvelaphi namathuluzi. Izixhumanisi zisemamilimitha ngamadesimali amathathu. {{ui:I-CSV yendlela yethuluzi}} ne-{{ui:I-JSON yendlela yethuluzi}} zithumela izinyathelo ngokwazo.
+Wonke amafayela aqala ngamakhomenti ohlelo, isitoko, ukushintshwa komsebenzi namathuluzi. Izindlela zisemamilimitha ngamanani angu-3 amasentimitha. {{ui:Toolpath CSV}} no {{ui:Toolpath JSON}} zihambisa izinyathelo ngokwazo.
 
-**Hlola okuphumayo ngesimuleyitha yomshini wakho ngaphambi kokusika, bese uyisebenzisa emoyeni ngaphezulu kwesitoko kuqala.** Ama-post amathathu akhelwe kuqala amaphuzu okuqala alandela ukuziphatha okubhalwe kwezilawuli; awazange afakazelwe kunoma yimuphi umshini othile. I-post oyishintshile iyeyakho ukuyifakazela. Ukuthi uyibhala kanjani: [Post processors](topic:post-processors).
+**Hlola okuphumayo ngesimulator somshini wakho ngaphambi kokusika, futhi uyiqhube emoyeni ngaphezu kwesitoko kuqala.** Ama-post amathathu akhelwe ngaphakathi ayizisekelo ezilandela imiyalo ebhalwe yomlawuli; awazange afakazelwe emshinini othile. I-post oyishintshile iyeyakho ukuyifakazela. Indlela yokubhala enye: [Ama-post processor](topic:post-processors).
 
-## I-STEP eqondile yesitolo
+## I-G-code yesitolo ye-Exact STEP
 
-Ngaphansi kwezinkinobho ze-G-code kuthebhu ye-**Operations**, {{ui:STEP eqondile (izixhumanisi zomsebenzi)}} ilanda `<part>-work.step`: ingxenye njengesolidi eqondile (amasilinda eqondile ezimbobo nezigaxa, nemijikelezo eqondile emaphethelweni awo) nemvelaphi yayo ku-work origin yalolu lusetho nethuluzi le-Z eliqondene nalo. Lezi zixhumanisi ezisetshenziswa yi-G-code, ngakho uhlelo lwe-CAM noma umhloli wesitolo ubeka imodeli ngokufanayo nohlelo ngaphandle kokuyinyakazisa. Ifayela liqukethe ingxenye kuphela, hhayi isitoko noma ama-toolpath.
+Ngaphansi kwamaqhosha e-G-code ethebhini le-**Operations**, {{ui:Exact STEP (work coordinates)}} ilanda `<ingxenye>-work.step`: ingxenye njengesolidi eqondile (izinsimbi zangempela zemibhobo nezigidi, nezindilinga zangempela zamaphethelo awo) nemvelaphi yayo ku-work origin yalo setup kanye no-Z ngokuhamba nge-eksisi yethuluzi. Lezi yizixhumanisi ezisetshenziswa yi-G-code, ngakho umsebenzi we-CAM noma umhloli wesitolo ubeka imodeli ngokufanele nohlelo ngaphandle kokuyinyakazisa. Ifayela lingokwengxenye kuphela, hhayi isitoko noma izindlela zethuluzi.
 
-{{ui:Thumela}} › {{ui:STEP AP242 (exact solid)}} ibhala isolidi efanayo endaweni yayo yangempela engxenyeni (Z phezulu): bheka [Thumela ukuze kuphrintwe, i-STEP ne-DXF](topic:export-files#for-other-cad-programs-step).
+{{ui:Export}} › {{ui:STEP AP242 (exact solid)}} ibhala isolidi efanayo endaweni yengxenye yayo (Z ephezulu): bona [Ukuthumela ukuze kuphrintwe, STEP ne-DXF](topic:export-files#for-other-cad-programs-step).
 
 ## Imikhawulo
 
-- Ama-pocket, amakhonthuwa, ukubhoboza nama-chamfer angu-2.5-eksisi. Ubuso obugoqekile bungaqedelwa nge-3D ([parallel ne-scallop](topic:finish-3d)) kodwa abuhlanzwa nge-3D (i-cone ishiywa iyizinyathelo kuze kube uyiqedela), futhi akukho rest machining. Ukuhlanza okuguquguqukayo kungu-2D (izindawo ezintsha).
-- Ama-eksisi amathathu kuphela: akukho ukuthambeka, akukho ukugoba, akukho ukuhlola.
-- Izibambi namashangi akuhloliwe ukuthinta; isexwayiso sivela uma ukusika kujulile kunobude beflute.
-- Ama-feed nezivinini ziyizinhlamvu zokuqala. I-post ingumbhalo ongawuhlela, kodwa iphethe kuphela indlela okubhalwa ngayo izinyathelo; ayikwazi ukushintsha ama-toolpath, ukungeza ama-eksisi noma ukwazi umshini wakho ([Post processors](topic:post-processors) ikhombisa okungenzeka kuwo).
+- Ama-pocket, ama-contour, ukubhoboza namachamfer angama-2.5-eksisi. Izingxenye ezigobile zihlanzwa futhi ziqedwe nge-3D yimisebenzi yazo ([Ukuhlanzwa nge-3D nokusala okusele](topic:rough-3d), [Ukuqedwa nge-3D](topic:finish-3d)). I-adaptive clearing iyi-2D (izisekelo ezisicaba).
+- Amathuluzi athambekile, ukuqedwa kwe-5-eksisi nekwe-4th-axis, ukuthenda nokuhlola ziyakhona, ngakunye nemikhawulo yakho, futhi **akukho lolu hlobo olusetshenziswe emshinini**: bona [Ukusebenza nama-eksisi ama-4 nama-5](topic:multi-axis), [Ukuthenda](topic:turning) no-[Iprobhu](topic:probing).
+- Amabanga nezinhlobo zamathuluzi akahlolwa ukuthi awabangani; isexwayiso sivela uma ukusika kujule kunobude be-flute.
+- Ukondla nesivinini kungamanani okuqala. I-post ingombhalo ongawuhlela, kodwa iphethe kuphela ukubhalwa kwezinyathelo; ayikwazi ukushintsha indlela yethuluzi, ukungeza ama-eksisi noma ukwazi umshini wakho ([Ama-post processor](topic:post-processors) ibhala okungenzeki).
 
 ## Thumela uhlelo emshinini
 
-Ku-CadCraft Studio ekhompyutheni, nomshini osethwe ku-Studio, i-**Send to a machine…** ivela ngasemva kwe-**Download G-code** ilayishe uhlelo olufanayo emshinini osoxhumeni lwakho. Ayikaze iqalwe kusuka ku-PartCraft: iqale emshinini lapho kusobala ukuthi kulungile. Kusiphequluli inkinobho ayibonakali (ikhasi lewebhu alikwazi ukufinyelela umshini kunethiwekhi yakho): landa uhlelo kunalokho.
+Ku-CadCraft Studio ku-desktop, nomshini osethwe ku-Studio, i-**Send to a machine…** ivela eduze kwe-**Download G-code** futhi ilayishe lolu hlelo oluphambili emshinini ongaku-netiweki yakho. Ayiqali ngaphakathi kwe-PartCraft: uqala emshinini lapho usucace khona. Kusiphequluli, iqhosha alibonakali (ikhasi lewebhu alikwazi ukufinyelela umshini kunethiwekhi yakho): landa uhlelo kunalokho.

@@ -113,10 +113,12 @@ Some rows in the tables below suggest one of these features as the way round som
 
 | Not built yet | Instead, today |
 |---|---|
-| 3D roughing of curved faces, 3D adaptive clearing, rest machining; waterline, pencil, radial and spiral finishing; adaptive passes written as arcs | 2.5-axis face, pocket, 2D adaptive, contour, drill and chamfer: see [Make toolpaths and G-code](topic:manufacture); Parallel and Scallop finishing of the whole model: see [3D finishing](topic:finish-3d) |
-| 4- and 5-axis toolpaths, turning, probing | Set up one side at a time with the tool axis on the Setup tab |
+| 3D adaptive clearing and offset roughing in 3D; waterline, pencil, radial and spiral finishing; adaptive passes written as arcs | 3D roughing in straight rows and rest machining: see [3D roughing and rest machining](topic:rough-3d); Parallel and Scallop finishing: see [3D finishing](topic:finish-3d); 2.5-axis face, pocket, 2D adaptive, contour, drill and chamfer: see [Make toolpaths and G-code](topic:manufacture) |
+| Swarf cutting, flow-line and multi-axis roughing paths, tilted work plane codes (G68.2), collision checks of the holder and the machine; a simulation of 5-axis and rotary cuts | A tilted tool for any operation, 5-axis finishing with a ball end mill and 4th-axis rotary finishing: see [4- and 5-axis machining](topic:multi-axis) |
+| Boring and inside threads on a lathe, G71/G76 cycles, arcs in turning paths, live tools, a sub-spindle | Outside turning: face, rough, finish, groove, part off, thread, drill on centre: see [Turning on a lathe](topic:turning) |
+| Probing an angle or a corner, a tool setter, measuring a size against a tolerance | Probing a face, a side, a hole or a boss to set the work offset: see [Probing](topic:probing) |
 | Holder and shank collision checks | Watch the flute-length warnings and check in your control's simulator |
-| Probing, tool-life and subprogram cycles, 4th- and 5th-axis and lathe codes in a post; loading other programs' post files | Write or change a post in PartCraft's own format: see [Post processors you can edit](topic:post-processors) |
+| Tool-life and subprogram cycles in a post; loading other programs' post files | Write or change a post in PartCraft's own format: see [Post processors you can edit](topic:post-processors) |
 | Inch G-code (G20) | Millimetres (G21) only |
 
 ## Simulation and generative design

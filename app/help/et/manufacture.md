@@ -1,92 +1,94 @@
 ---
-title: Tööradade ja G-koodi tegemine (Valmistamine)
-summary: Seadista tooriku ja töönullpunkt, vali tööriistad, lisa tahkude, taskute, kontuuride, puurimise ja faasi toimingud tahke valides, viimistle kogu mudel 3D-s (paralleelne, lainetus), simuleeri tooriku ja mudeli vastandit vigade ja tsükliaja leidmiseks ning laadi G-kood alla ühest kolmest sisseehitatud postprotsessorist või ise muudetud postist.
-keywords: täpne STEP, STEP töökojale, töökoordinaadid, CAM-ülekanne, paralleelne, lainetus, 3D-viimistlus, viimistlus, kuulfrees, tööriistateek, muuda posti, kohandatud post, posti redaktor, adaptiivne, adaptiivne eemaldamine, konstantne haardumine, trohoidaalne, HSM, kiirlõikus, valmistamine, CAM, töörada, G-kood, NC, CNC, freesimine, tasku, kontuur, profiil, tasandamine, puurimine, G83, G81, G73, faas, töönihe, G54, postprotsessor, GRBL, LinuxCNC, etteanded ja kiirused, simulatsioon, vigane lõige, tsükliaeg
-from: beeb29aa
+title: Tee tööradu ja G-kood (Valmistamine)
+summary: Seadista toorik ja töönullpunkt, vali tööriistad, lisa tahu-, tasku-, kontuuri-, puurimis- ja faasitoimingud valides pindu, viimista kogu mudel 3D-s (paralleelne, lainetus), simuleeri toorikut mudeli vastu ülelõigete ja tsükliaja jaoks ning laadi G-kood alla ühelt kolmest sisseehitatud postprotsessorist või ühelt, mille ise muudad.
+keywords: täpne STEP, STEP tsehhile, töökoordinaadid, CAM-üleandmine, paralleelne, lainetus, 3d-viimistlus, viimistlus, kuulotsaga frees, tööriistakogu, muuda postprotsessorit, kohandatud postprotsessor, postprotsessori redaktor, adaptiivne, adaptiivne puhastus, konstantne kaasamine, trohoidaalne, hsm, kiirfreesimine, valmistamine, CAM, tööradu, G-kood, NC, CNC, frees, freesimine, tasku, kontuur, profiil, tasandamine, puurimine, vaheldumisi puurimine, G83, G81, G73, faas, toorik, töönihe, G54, postprotsessor, GRBL, LinuxCNC, söötmine ja kiirused, simulatsioon, ülelõige, tsükliaeg
+from: f8a03be8
 ---
 
-Tööruum Valmistamine muudab detaili 3-teljelise freesmasina tööradadeks ja kirjutab need G-koodina. Enamik toiminguid on **2.5-teljelised**: tööriist jääb vertikaalseks, seinad lõigatakse otse alla ja põhjad tasaseks. **Paralleelne** ja **Lainetus** viimistlevad kõverpindu 3D-s (vt [3D-viimistlus](topic:finish-3d)); tööriist jääb ikka vertikaalseks (kolm telge, kallutamist pole). See töötab detaili nimetatud tahkudel, mida võrgukern annab (vt [Võrgukern](topic:solid-kernels)).
+Töökeskkond Valmistamine muudab detaili tööradadeks ja kirjutab need G-koodiks. Enamik toiminguid on **2.5-teljelised** freesimised: tööriist seisab vertikaalselt, seinad lõigatakse otse alla ja põhjad on tasased. **3D-jäme** ja **Jääk** freesivad kõverad detailid 3D-s ([3D-jämedus ja jääk-freesimine](topic:rough-3d)); **Paralleelne** ja **Lainetus** viimistlevad need ([3D-viimistlus](topic:finish-3d)). Masinal, millel on pöörlevad teljed, saab iga toimingu teha kallutatud tööriistaga ning kaks toimingut liigutavad pöörlevaid telgi lõikamise ajal ([4- ja 5-teljeline töötlus](topic:multi-axis)). Treipingi jaoks on toimingud ([Treimine](topic:turning)) ja puutesondi jaoks ([Sondimine](topic:probing)). See töötab detaili nimetatud pindadega, mida võrgutuum annab (vt [Võrgutuum](topic:solid-kernels)).
 
-Labori versioon: kontrolli iga programmi oma juhtimissüsteemi simulaatoris ja käivita see kõigepealt materjalist õhus.
+Laboriversioon: kontrolli iga programmi oma juhtseadme simulaatoris ja käivita see esmalt õhus toorikust kõrgemal.
 
-## Seadistamine
+## Seadista
 
-1. Vali tööruumide lülitist **Valmistamine** ja seejärel {{ui:Uus seadistus}}.
+1. Vali töölülitist **Valmistamine**, seejärel {{ui:Uus seadistus}}.
 2. Vahekaardil **Seadistus** vali:
-   - **Tööriista telg (+Z)**: mis suunas tööriist detaili sisse osutab. Vaikimisi on maailma +Y (PartCraft'i üles); siis on masina X maailma X ja masina Y maailma −Z.
-   - **Töönullpunkt (G54)**: tooriku nurk või keskpunkt, ülemine või alumine, mudeli ülemine keskpunkt või mudeli nullpunkt.
-   - **Tooriku**: kast või silinder, kas mudel plus nihked (küljed, ülaosa, alumine) või fikseeritud mõõt.
-   - **Materjal** (määrab alguse etteanded ja kiirused), **postprotsessor** (juhtimine), masina maksimaalne spindli kiirus, kiirliikumise kiirus ja tööriista vahetuse aeg, jahutusvedelik ning programmi number.
+   - **Tööriista telg (+Z)**: mis suunas tööriist detaili sisse osutab. Maailma +Y (PartCraft'i üles) on vaikimisi; masina X on siis maailma X ja masina Y on maailma −Z.
+   - **Töönullpunkt (G54)**: toorikunurk või keskpunkt, ülemine või alumine, mudeli ülaosa keskpunkt või mudeli nullpunkt.
+   - **Toorik**: kast või silinder, kas mudel pluss nihked (küljed, ülaosa, alaosa) või fikseeritud mõõt.
+   - **Materjal** (määrab alguse söötmised ja kiirused), **Järeltöötlus** (juhtseade), masina maksimaalne spindli kiirus, kiirliikumise kiirus ja tööriista vahetuse aeg, jahutusvedelik ning programmi number.
 
 ## Tööriistad
 
-Vahekaart **Tööriistad** sisaldab teeki: lame-, kuul- ja nurgaraadiusega otsfreesid, puurid, faasifreesid ja tahkfreesid, igaühel T-number, läbimõõt, rihid ja rihvi pikkus (lisaks nurgaraadius, tipu- või faasinurk, kus see kohaldub).
+Vahekaart **Tööriistad** hoiab kogu: lame-, kuul- ja ümarotsaga freesid, puurid, faasifreesid ja tasandusfreesid, igaühel T-number, läbimõõt, soonte arv ja soonte pikkus (lisaks nurgaraadius, tipp- või faasinurk, kus need kohalduvad).
 
-Enda tööriistu saab salvestada brauserisse ja viia failina arvutist arvutisse: vt [Tööriistateek](topic:tool-library).
+Minu tööriistad saab salvestada brauserisse ja liigutada arvutite vahel failina: vt [Tööriistakogu](topic:tool-library).
 
-Spindli kiirus ja etteanne tulevad materjalist: n = 1000 × lõikekiirus / (π × läbimõõt), etteanne = n × rihid × lastukoormus (puuridel: n × etteanne pöörde kohta). Arvud on konservatiivsed alguspunktid avaldatud vahemikest, mitte sinu masina järgi häälestatud; sisesta oma tööriistatootja lõikekiirus, lastukoormus, pöörded või etteanne, et neid asendada. Kui kiirus ületab masina maksimumi, hoitakse see seal ja etteanne järgib, säilitades lastukoormuse.
+Spindli kiirus ja edasiandmine tulevad materjalist: n = 1000 × lõikekiirus / (π × läbimõõt), edasiandmine = n × soonte arv × lõikekoormus (puuride puhul: n × edasiandmine pöörde kohta). Arvud on konservatiivsed alguspunktid avaldatud vahemikest, mitte teie masinale häälestatud; sisesta tööriistatootja lõikekiirus, lõikekoormus, p/min või edasiandmine, et neid üle kirjutada. Kui kiirus ületab masina maksimumi, hoitakse seda seal ja edasiandmine järgib, säilitades lõikekoormuse.
 
-## Toimingute lisamine
+## Lisa toiminguid
 
-Iga tööriistariba nupp lisab toimingu ja kus see vajab geomeetriat, alustab valimist: kliki vaates tahkudele või servadele (uuesti klikk eemaldab ühe), seejärel {{ui:Valik on tehtud}} või {{key:Esc}}.
+Iga tööriistariba nupp lisab toimingu ja seal, kus see vajab geomeetriat, alustab valimist: klõpsa vaates pindu või servi (uuesti klõpsates eemaldad ühe), seejärel {{ui:Valik on tehtud}} või {{key:Esc}}.
 
-| Toiming | Valik | Mida see teeb |
+| Toiming | Valik | Mida ta teeb |
 |---|---|---|
-| {{ui:Tahk}} | ei midagi | Siksakilised läbikäigud üle kogu tooriku, üle selle servade, alla mudeli ülaosani |
-| {{ui:Tasku}} | lame põhjatahk, ümar auk või suletud servaahel | Puhastab piirkonna nihkega läbikäikudena seest välja, igal süvenemisel; saared (põhjast püsti seisvad tahud) jäetakse alles; põhi, mis on igast küljest avatud (väljaspool pole midagi kõrgemat), puhastatakse välja tooriku servani |
-| {{ui:Adaptiivne}} | sama mis {{ui:Tasku}} | Puhastab sama piirkonna läbikäikudega, millest igaüks lõikab kindla laiuse (**Haardumine**, osa läbimõõdust), nii et lõikur ei võta kunagi täislaiust soont, isegi nurkades; sisse läheb spiraalina ning viimistleb seinad igal tasemel. Kitsad lõiked lubavad sügavamat süvenemist ja kõrgemat etteannet |
-| {{ui:Kontuur}} | lame tahk (selle kontuur), ümar tahk või servad | Järgib kontuuri, mis on nihutatud tööriista raadiusega, väljas või seespool, sissesõidu- ja väljasõidukaaride ning valikuliste sildadega |
-| {{ui:Puurimine}} | augud (kliki augu seinale või servale) | Puurib iga augu fikseeritud tsükliga: lükkeldus (G83), puurimine (G81) või laastu purustus (G73); või anna läbimõõt, et puurida iga selle suurusega auk |
-| {{ui:Faas}} | tahu kontuur või servad | Viib faasifreesi mööda serva nii, et see lõikab sinu määratud laiuse |
-| {{ui:Paralleelne}} | ei midagi (kogu mudel) | 3D-viimistlus paralleelsete joontena mis tahes nurga all, järgides pinda kuul-, nurgaraadiusega või lame otsfrees. Vt [3D-viimistlus](topic:finish-3d) |
-| {{ui:Lainetus}} | ei midagi (kogu mudel) | 3D-viimistlus läbikäikudena, mis on määratud kauguse kaugusel üksteisest üle pinna, nii et nendevaheline hari on sinu nõutud kõrgusega |
+| {{ui:Tahk}} | ei midagi | Siksak-läbikäigud üle kogu tooriku, üle selle servade, kuni mudeli ülaosani |
+| {{ui:Tasku}} | lame põhjapind, ümmargune auk või suletud servaahel | Puhastab piirkonna nihkega läbikäikudes seest välja, igal sammul allalõikel; saared (tahud, mis seisavad põhja sees) jäetakse alles; põhi, mis on igast küljest avatud (väljaspool pole midagi kõrgemat), puhastatakse kuni toorikuservani |
+| {{ui:Adaptiivne}} | sama mis Tasku | Puhastab sama piirkonna läbikäikudega, mis igaüks lõikab kindla laiuse (**Kaasamine**, osa läbimõõdust), nii et lõikur ei võta kunagi täislaiust soont, isegi nurkades; siseneb spiraaliga ja viimistleb seinad igal tasemel. Kitsad lõiked lubavad sügavamat allalõiget ja suuremat edasiandmist |
+| {{ui:Kontuur}} | lame tahk (selle piirjoon), ümmargune tahk või servad | Järgib piirjoont, nihutatuna tööriista raadiuse võrra, väljapoole või sissepoole, sisse- ja väljasõidukaartega ning valikuliste sildadega |
+| {{ui:Puurimine}} | augud (klõpsa augu seinal või serval) | Puurib iga augu fikseeritud tsükliga: vaheldumisi puurimine (G83), puurimine (G81) või laastu purustamine (G73); või anna läbimõõt, et puurida iga selle suurusega auk |
+| {{ui:Faas}} | tahu piirjoon või servad | Käivitab faasifreesi mööda serva nii, et see lõikab seadistatud laiuse |
+| {{ui:Paralleelne}} | ei midagi (kogu mudel) | 3D-viimistlus paralleelsete joontega mis tahes nurga all, järgides pinda kuul-, ümar- või lameotsaga freesiga. Vt [3D-viimistlus](topic:finish-3d) |
+| {{ui:Lainetus}} | ei midagi (kogu mudel) | 3D-viimistlus läbikäikudega, mis on pinnal määratud kaugusel, nii et nendevaheline hari on soovitud kõrgusega |
 
-Vali toiming loendist, et muuta selle tööriista, kõrgusi (vabakäik, tagasitõmme, etteandekõrgus, ülaosa, alumine), sügavuse sammu, sammuvahet, jäetavat tooriku ruumi, viimistlusläbimist, sisenemist (spiraal, rambp või sukeldus), kaasfreesimist, sildu või tsüklit. {{ui:Üles}} ja {{ui:Alla}} järjestavad ümber, {{ui:Lülita välja}} jätab välja, {{ui:Kustuta}} eemaldab. Kõik on tagasivõtmise ajaloos ja salvestatud detailifaili.
+Vali toiming loendis, et muuta selle tööriista, kõrgusi (vabanemine, tagasitõmme, söötmiskõrgus, ülemine, alumine), allalõiget, sammu, jäetavat ülemõõtu, viimistlusläbikut, sisenemist (spiraal, kaldrada või sukeldamine), päripidi lõiget, sildu või tsüklit. {{ui:Üles}} ja {{ui:Alla}} järjestavad ümber, {{ui:Lülita välja}} jätab välja, {{ui:Kustuta}} eemaldab. Kõik on tagasivõtmise ajaloos ja salvestatud detailifailis.
 
-Tasku sammuvahe on kõige rohkem pool tööriista läbimõõdust, nii et iga punkt selle põhjas jääb ühe tööriista raadiuse piiresse läbikäigust. Seespoolsed nurgad säilitavad tööriista raadiuse.
+Tasku sammu laius on kõige rohkem pool tööriista läbimõõdust, nii et iga punkt selle põhjas jääb ühe tööriista raadiuse piiresse läbikäigust. Sisenurgad jäävad tööriista raadiuse võrra ümaraks.
 
-**Adaptiivne eemaldamine** hoiab lõikuri haardumise ühe väärtuse lähedal. 0.15 läbimõõdust haardumine on umbes 46° haardenurk: lõikuri serva kaar materjalis. Nihutatud tasku seevastu lõikab esimesel läbikäigul täislaiuses ja keerab iga seespoolse nurga ümber kaugemale. Läbikäikude vahel jääb tööriist allapoole seal, kus liigub läbi lõigatud õhu, ja tõuseb ning laskub mujal lõigatud õhus. Läbikäigud arvutatakse piirkonnal peenel võrgul (lahtrid umbes kaheteistkümnendik tööriista raadiusest), nii et haardumine võib minna kuni umbes ühe lahtri võrra seatust laiemaks; seinad viimistletakse täpselt. Suur avatud piirkond teeb pika programmi paljude lühikeste liigutustega.
+**Adaptiivne puhastus** hoiab lõikuri kaasamise lähedal ühel väärtusel. Kaasamine 0.15 läbimõõdust on kaasamisnurk umbes 46°: lõikuri serva kaar materjalis. Nihkega tasku seevastu lõikab esimesel läbikäigul täislaiuses ja keerleb iga sisenurgas kaugemale. Läbikäikude vahel jääb tööriist alla seal, kus see liigub läbi lõigatud õhu, ja tõuseb ning laskub lõigatud õhus mujal. Läbikäigud arvutatakse peenel ruudustikul piirkonnas (lahtrid umbes kaksteistkümnendik tööriista raadiusest), nii et kaasamine võib minna kuni umbes ühe lahtri võrra laiemaks kui seatud; seinad viimistletakse täpselt. Suur avatud piirkond teeb pika programmi paljude lühikeste liikumistega.
 
 ## Simuleeri
 
-Tööradu tehakse iga muudatuse järel uuesti (ka detaili oma). {{ui:Simuleeri}} näitab lisaks tooriku jääki pärast kogu programmi. Paneel näitab:
+Tööradu tehakse pärast iga muudatust uuesti (ka detaili oma). {{ui:Simuleeri}} näitab ka tooriku jäänud osa pärast kogu programmi. Paneel näitab:
 
-- **Tsükliaeg**: etteandeliikumised oma etteandel, kiirliikumised sirgete joontena seadistuse kiirliikumise kiirusel, pluss tööriista vahetuse aeg. Päris masinad kiirenevad, seega võtavad kauem aega.
-- **Vigastused**: kohad, kus tööriist läks detaili pinnast rohkem kui 0.02 mm allapoole. Punased märgid näitavad neid vaates.
-- **Tooriku jääk detailil**.
+- **Tsükliaeg**: edasiandmise liikumised oma kiirusel, kiirliikumised sirgjoontena seadistuse kiirliikumise kiirusel, pluss tööriista vahetuse aeg. Päris masinad kiirendavad, nii et nad võtavad kauem.
+- **Ülelõiked**: kohad, kuhu tööriist läks rohkem kui 0.02 mm detaili pinnast allapoole. Punased märgid näitavad neid vaates.
+- **Detailile jäänud toorik**.
 
-Toorik on ülaosa kõrgusekaart (Z-kaart), seega ei saa see näidata alalõikeid. Lohista **Esitust**, et liigutada tööriista mööda programmi. Vaates on etteandeliikumised tahked ja kiirliikumised katkendlikud, iga toimingu kohta üks värv.
+Toorik on ülaosa kõrgusekaart (Z-kaart), seega ei saa see näidata alalõikeid. Lohista **Esitus**, et liigutada tööriista mööda programmi. Vaates on edasiandmise liikumised tahked ja kiirliikumised katkendjoonega, üks värv toimingu kohta.
 
-Kui **Näita simuleeritud toorikut** on sees, värvitakse toorik mudeli järgi lahtri kaupa: **roheline**, kus see on mudelil (0.02 mm piires), **punane**, kus tööriist lõikas mudelisse, ning kus mudelile jääb tooriku materjali, **kollane** õhukese kihi korral, **oranž** rohkema korral, hallumas kuni **halli** lõikamata toorikuni 1 mm või rohkem. Värvid tehakse iga muudatusega uuesti samast kõrgusekaardist mis paneeli arvud, nii et roheline ja punane ühtivad rea Vigastused järgi. Faas lõikab mudelisse tahtlikult ja näitab oma serval punast.
+Kui **Näita simuleeritud toorikut** on sisse lülitatud, värvitakse toorik mudeli suhtes lahter-lahtrilt: **roheline**, kus see on mudelil (0.02 mm piires); **punane**, kus tööriist lõikas mudelisse; ning kus toorik on mudelil jäänud, **kollane** õhukese kihi korral, **oranž** rohkem, tuhmudes **halliks** lõikamata toorikuks 1 mm või rohkem. Värvid tehakse iga muudatusega uuesti samast kõrgusekaardist, mis annab paneeli arvud, nii et roheline ja punane ühtivad reaga Ülelõiked. Kiirkaart lõikab mudelisse tahtlikult ja näitab servas punast.
 
-## G-koodi postitamine
+## Postita G-kood
 
-Vali juhtimine jaotisest **Postprotsessor** ja vajuta {{ui:Laadi G-kood alla}} (või tööriistaribal {{ui:Järeltöötlus}}):
+Vali juhtseade jaotises **Järeltöötlus** ja vajuta {{ui:Laadi G-kood alla}} (või tööriistaribal {{ui:Järeltöötlus}}):
 
-| Juhtimine | Fail | Märkused |
+| Juhtseade | Fail | Märkused |
 |---|---|---|
-| Fanuc-tüüpi ISO | .nc | %, O-number, rearvunumbrid, T M6 koos G43 H-ga, fikseeritud tsüklid |
-| GRBL | .nc | Tööriistavahetajat ega fikseeritud tsükleid pole: tööriista vahetus peatub käsuga M0, puurimine kirjutatakse lihtsate liigutustena |
+| Fanuc-tüüpi ISO | .nc | %, O-number, reanumbrid, T M6 koos G43 H-ga, fikseeritud tsüklid |
+| GRBL | .nc | Tööriistavahetajat ega fikseeritud tsükleid ei ole: tööriista vahetus peatub käsuga M0, puurimine kirjutatakse lihtsate liikumistena |
 | LinuxCNC | .ngc | T M6 koos G43 H-ga, fikseeritud tsüklid, M2 |
-| Oma | mis tahes | Postprotsessor, mille kirjutasid või muutsid: {{ui:Muuda postprotsessorit…}}, {{ui:Uus postprotsessor…}}, {{ui:Impordi postprotsessori fail…}} |
+| Fanuc-tüüpi treipink | .nc | Treiprogrammide jaoks: X läbimõõduna, edasiandmine pöörde kohta, G96 G50 piiri all, G32 keermestamine |
+| LinuxCNC treipink | .ngc | Treiprogrammide jaoks: G7 läbimõõdud, G95, G96, G33 keermestamine; ei kirjuta lähtepunkti liikumist |
+| Oma | mis tahes | Ise kirjutatud või muudetud postprotsessor: {{ui:Muuda postprotsessorit…}}, {{ui:Uus postprotsessor…}}, {{ui:Impordi postprotsessori fail…}} |
 
-Iga fail algab kommentaaridega programmi, tooriku, töönihke ja tööriistade kohta. Koordinaadid on millimeetrites, 3 kohaga pärast koma. {{ui:Tööraja CSV}} ja {{ui:Tööraja JSON}} ekspordivad liigutused ise.
+Iga fail algab kommentaaridega programmi, tooriku, töönihke ja tööriistade kohta. Koordinaadid on millimeetrites kolme komakohaga. {{ui:Tööraja CSV}} ja {{ui:Tööraja JSON}} eksportivad liikumised ise.
 
-**Kontrolli väljundit oma masina enda simulaatoris enne lõikamist ja käivita see kõigepealt materjalist õhus.** Kolm sisseehitatud postprotsessorit on lähtepunktid, mis järgivad juhtimissüsteemide dokumenteeritud käitumist; neid pole tõestatud ühelgi kindlal masinal. Post, mida muudad, on sinu enda tõestada. Kuidas kirjutada: [Postprotsessorid](topic:post-processors).
+**Kontrolli väljundit oma masina simulaatoris enne lõikamist ja käivita see esmalt õhus toorikust kõrgemal.** Kolm sisseehitatud postprotsessorit on lähtepunktid, mis järgivad juhtseadmete dokumenteeritud käitumist; neid ei ole tõestatud ühelgi kindlal masinal. Postprotsessor, mida muudad, on sinu enda tõestada. Kuidas üks kirjutada: [Muudetavad postprotsessorid](topic:post-processors).
 
-## Täpne STEP töökojale
+## Täpne STEP tsehhile
 
-G-koodi nuppude all vahekaardil **Toimingud** laeb {{ui:Täpne STEP (töökoordinaadid)}} alla `<part>-work.step`: detail täpse tahkisena (augud ja ülendid on tõelised silindrid, nende servad tõelised ringid), mille nullpunkt on selle seadistuse töönullpunkt ja Z on tööriista telje suunas. Need on koordinaadid, mida G-kood kasutab, nii et töökoja enda CAM-programm või kontrollija joondab mudeli programmiga ilma seda liigutamata. Fail sisaldab ainult detaili, mitte toorikut ega tööradu.
+Vahekaardi **Toimingud** G-koodi nuppude all laadib {{ui:Täpne STEP (töökoordinaadid)}} alla `<part>-work.step`: detail täpse tahkisena (tõelised silindrid aukude ja tappide jaoks, tõelised ringid nende servade jaoks), mille nullpunkt on selle seadistuse töönullpunktis ja Z on mööda tööriista telge. Need on koordinaadid, mida G-kood kasutab, nii et tsehhi enda CAM-programm või kontrollija joondab mudeli programmiga ilma seda liigutamata. Fail sisaldab ainult detaili, mitte toorikut ega tööradu.
 
-{{ui:Ekspordi}} › {{ui:STEP AP242 (täpne tahke)}} kirjutab sama tahke detaili enda asendis (Z üles): vt [Ekspordi printimiseks, STEP ja DXF](topic:export-files#for-other-cad-programs-step).
+{{ui:Ekspordi}} › {{ui:STEP AP242 (täpne tahke)}} kirjutab sama tahkise detaili enda asendis (Z üles): vt [Eksport printimiseks, STEP ja DXF](topic:export-files#for-other-cad-programs-step).
 
 ## Piirangud
 
-- Taskud, kontuurid, puurimine ja faasid on 2.5-teljelised. Kõverpinnad saab 3D-s viimistleda ([paralleelne ja lainetus](topic:finish-3d)), kuid mitte 3D-s karedalt töödelda (koonus jääb astmetena, kuni viimistled), ega ole jäägi töötlemist. Adaptiivne eemaldamine on 2D (lamedad põhjad).
-- Ainult kolm telge: pole kallutamist, pole keeramist, pole kontrolli.
-- Hoidikuid ja kaelu ei kontrollita kokkupõrgete suhtes; hoiatus ilmub, kui lõige on sügavam kui rihi pikkus.
-- Etteanded ja kiirused on alguspunktid. Postprotsessor on tekst, mida saad muuta, kuid see otsustab ainult, kuidas liigutused kirjutatakse; ta ei saa muuta tööteed, lisada telgi ega tunda sinu masinat ([Postprotsessorid](topic:post-processors) loetleb, mida ta ei saa teha).
+- Tasku, kontuur, puurimine ja faas on 2.5-teljelised. Kõverad detailid jämedatakse ja viimistletakse 3D-s oma toimingutega ([3D-jämedus ja jääk-freesimine](topic:rough-3d), [3D-viimistlus](topic:finish-3d)). Adaptiivne puhastus on 2D (lamedad põhjad).
+- Kallutatud tööriistad, 5-teljeline ja 4. telje viimistlus, treimine ja sondimine on olemas, igaühel oma piirangud, ja **ükski neist ei ole käivitatud masinal**: vt [4- ja 5-teljeline töötlus](topic:multi-axis), [Treimine](topic:turning) ja [Sondimine](topic:probing).
+- Hoidikuid ja varsi ei kontrollita kokkupõrgete suhtes; hoiatus ilmub, kui lõige on sügavam kui soone pikkus.
+- Söötmised ja kiirused on alguspunktid. Postprotsessor on muudetav tekst, kuid see otsustab ainult selle, kuidas liikumised kirjutatakse; ta ei saa muuta tööradu, lisada telge ega teada sinu masinast ([Muudetavad postprotsessorid](topic:post-processors) loetleb, mida ta ei suuda).
 
 ## Saada programm masinale
 
-CadCraft Studio töölauarakenduses, kus masin on Studios seadistatud, ilmub **Saada masinale…** nupu **Laadi G-kood alla** kõrvale ja laeb sama programmi sinu võrgus olevale masinale. Seda ei käivitata kunagi PartCraftist: käivita see masina juures, kui on selge. Brauseris nuppu ei näidata (veebileht ei pääse sinu võrgus oleva masinani): laadi programm selle asemel alla.
+CadCraft Studio töölaua versioonis, kui masin on Studios seadistatud, ilmub nupu {{ui:Laadi G-kood alla}} kõrvale **Saada masinale…** ja laeb sama programmi üles sinu võrgus olevale masinale. Seda ei käivitata kunagi PartCraftist: käivita see masina juures, kui on selge. Brauseris nuppu ei näidata (veebileht ei pääse sinu võrgus masinani): laadi programm selle asemel alla.

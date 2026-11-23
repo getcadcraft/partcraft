@@ -42,6 +42,7 @@ import { pointOn } from './sketch-intersect.js';
 import * as Arcs from './arcs/arcs.js';
 import * as SA from './sketch-arcs.js';
 import { t } from './i18n.js';
+import { mid2 as mid } from './geom-vec.js';   // shared helpers (0.11 PERF.74)
 
 const PICK = 7, SNAP_PT = 10, SNAP_CURVE = 7;
 /** A finger held this long without moving (ms, px) is a long press (0.4 S.8): right-click's or Shift+click's job. */
@@ -1479,7 +1480,6 @@ export function dimAnchor(sk, c) {
   if (!m) return null;
   const r = c.refs;
   if (c.type === 'radius' || c.type === 'diameter' || (c.type === 'offset' && m.sig === 'RR')) return P(E(r[0]).c);
-  const mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
   if (c.type === 'angle') {
     const l1 = E(r[0]), l2 = E(r[1]);
     const a1 = P(l1.p1), b1 = P(l1.p2), a2 = P(l2.p1), b2 = P(l2.p2);

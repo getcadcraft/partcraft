@@ -21,11 +21,8 @@
 import { voxelize, meshBBox, triangleHash } from './voxel.js';
 import { CX, CY, CZ, Q } from './flow.js';
 import { t } from './i18n.js';
+import { cross3 as cross, dot3 as dot, sub3 as sub, unit3 as unit } from './geom-vec.js';   // shared helpers (0.11 PERF.74; tools/perf/util-copies.mjs)
 
-const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
-const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
-const unit = (a) => { const l = Math.hypot(a[0], a[1], a[2]) || 1; return [a[0] / l, a[1] / l, a[2] / l]; };
 
 /** Area-weighted outward normal and area of a face from the mesh's triangles. */
 export function faceNormal(mesh, fi) {

@@ -51,6 +51,9 @@
   max-height: calc(100vh - 9rem); overflow-y: auto;   /* a long menu scrolls instead of running off the window */
 }
 .pc-menu-right { left: auto; right: 0; min-width: 10rem; }
+/* 0.11 UI.17: a closed menu's list takes no room (newer Chrome lays out a closed <details>' content, so the hidden lists stretched the
+   toolbar's region to 1434 px at 1280: the contact sheet's "clipped" finding) */
+.pc-menu:not([open]) > .pc-menu-list { display: none; }
 .pc-menu-list .pc-menu-link { display: block; text-decoration: none; }
 .pc-menu-list button, .pc-menu-list .pc-menu-link { font: inherit; font-size: .875rem; font-weight: 500; text-align: left; color: var(--ink); background: none; border: 0; border-radius: var(--radius); padding: .35rem .5rem; cursor: pointer; }
 .pc-menu-list button:hover, .pc-menu-list button:focus-visible, .pc-menu-list .pc-menu-link:hover, .pc-menu-list .pc-menu-link:focus-visible { background: var(--sheet); outline: none; }
@@ -620,3 +623,16 @@ button.cs-shown-h:focus-visible { outline: var(--pen-2) solid var(--action); }
 .pc-photo-thumb { width: 100%; height: auto; border: 1px solid var(--line, #ccc); }
 .pc-photo-preview { display: block; width: 100%; height: auto; max-height: 40vh; border: 1px solid var(--line, #ccc); background: var(--sheet-2, #f4f4f4); }
 .pc-photo .pc-inline { display: inline-flex; gap: 0.5rem; align-items: center; }
+
+/* 0.11 SU.1811: Check this frame (frame-ui.js) */
+.pc-dialog.pc-dialog-wide { width: min(56rem, calc(100vw - 2rem)); }
+.pc-dialog.pc-dialog-wide .pc-dialog-text { max-height: 70vh; overflow: auto; }
+.pcframe-grid { display: flex; flex-wrap: wrap; gap: .5rem 1rem; align-items: end; }
+.pcframe-f { display: flex; flex-direction: column; gap: .15rem; font-size: .85rem; }
+.pcframe-row { display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; margin: .2rem 0; }
+.pcframe-eq { border-top: var(--pen-1) solid var(--line); padding: .3rem 0; }
+.pcframe-x { padding: 0 .5rem; }
+.pcframe-result { margin-top: .75rem; }
+.pcframe-result table { width: 100%; margin: .5rem 0; }
+.pcframe-result caption { text-align: left; font-weight: 600; }
+.pcframe-result td.num { text-align: right; }

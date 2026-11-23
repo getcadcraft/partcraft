@@ -1,39 +1,39 @@
 ---
-title: Acabado 3D: paralelo y festoneado
-summary: Terminá la superficie curva de todo el modelo con una fresa de punta esférica, de punta redondeada o plana, en líneas paralelas a cualquier ángulo o en pasadas separadas una distancia fija, para que las crestas entre ellas tengan la altura que pedís. Qué garantizan las trayectorias, y qué no.
-keywords: acabado 3d, acabado, paralelo, barrido, festoneado, festoneado constante, cúspide, punta esférica, punta redondeada, superficie, tolerancia, paso, pendiente, material a dejar, cortador de caída, rayado
-from: e1587d0a
+title: Acabado 3D: paralela y scallop
+summary: Acabado de toda la superficie curva del modelo con fresa de punta esférica, redonda o plana, en líneas paralelas a cualquier ángulo o en pasadas separadas una distancia fija, para que las crestas entre ellas tengan la altura pedida. Lo que garantizan las trayectorias y lo que no.
+keywords: acabado 3d, acabado, paralela, raster, scallop, scallop constante, cúspide, punta esférica, punta redonda, superficie, tolerancia, paso lateral, pendiente, material a dejar, drop cutter, corte excesivo
+from: 942d2341
 ---
 
-Dos operaciones en Manufacture cortan la **superficie completa del modelo** con la herramienta mantenida vertical (tres ejes). No toman picks: trabajan sobre todo el modelo que se ve desde arriba. Desbastá primero la pieza (adaptativo o cavidad); una pasada de acabado sobre material sin cortar avisa que cortaría profundo.
+Fabricación-pe mokõi operación ojapo **toda la superficie del modelo** herramienta vertical rehe (tres ejes). Ndaha'éi selección: trabajan sobre todo modelo ohechakuaáva arriba gui. Pieza desbaste ojapova primero (adaptativo térã pocket); pasada de acabado material sin cortar rehe avisa cortaría hondo.
 
-## Paralelo
+## Paralela
 
-Líneas rectas a través del modelo en el **ángulo** que fijes, separadas un **paso** (una fracción del diámetro de la herramienta). Cada línea sigue la superficie: la punta de la herramienta queda tan alta como debe para que ninguna parte de la fresa baje debajo del modelo, y la línea se corta más fina donde la superficie se dobla. Con **Zig-zag** activado, la herramienta queda apoyada entre líneas donde puede hacerlo con seguridad (verificado a lo largo del movimiento); si no, se levanta.
+Líneas rectas modelo rapykue **ángulo** rehe ojeporu, **paso lateral** (diámetro de herramienta fracción) gui. Cada línea superficie rehe oñemoĩ: punta altura ohechauka tanto ojeguerekovaʼerã fresa ndaha'éi modelo mboʼy. Línea finoveʼẽ corta superficie ojerovaʼeve. Con **Zigzag** ojapo, herramienta ryepype oĩ línea ryepýpe seguro haʼeháme (movimiento rehe ohechakuaa); ndaha'éi ramo, ojekuaʼa.
 
-- **Tolerance**: cuánto puede alejarse de la altura verdadera de la punta un trozo recto de línea (se usa la mitad como límite en el medio de cada trozo). Predeterminado 0,01 mm.
-- **Only where the surface is at least … and at most … (°)**: termina sólo zonas planas o sólo zonas empinadas. Donde la superficie queda fuera del rango, la línea se omite y la herramienta se levanta.
-- **Stock to leave**: el modelo desplazado esa distancia (la fresa agrandada por ella: exacto para herramientas de punta esférica y redondeada; una herramienta plana deja al menos esa cantidad).
-- **Bottom**: nada se corta por debajo de esta z.
+- **Tolerancia**: mboy ojeguerovaʼerã línea mbovy tramo punta altura verdadera gui (mitã tramo ojeporu límite gui cada tramo medio rehe). Ojehechaukáva 0,01 mm.
+- **Solo donde la superficie sea al menos … y como máximo … (°)**: acabado solo área poriahu térã empinada. Rango pe ndaha'éi línea oñeñeʼẽ herramienta ojekuaʼa.
+- **Material a dejar**: modelo ojeipysóva tanto distancia gui (fresa ojeikovaʼekue: ball ha bull-nose rehe exacto; fresa plana omboyke al menos tanto).
+- **Fondo**: ndaha'éi cortado z gui.
 
-## Festoneado
+## Scallop
 
-Pasadas que mantienen una distancia constante sobre la superficie entre sí, de modo que la cresta (el festón) que queda entre dos pasadas vecinas tiene la **altura** que pedís. La distancia sale de la altura y el radio de la bola: s = 2·√(2·R·h − h²), por ejemplo unos 0,69 mm entre pasadas para una bola Ø6 y una cresta de 0,02 mm. Una herramienta de punta redondeada usa el radio de su esquina. Una fresa plana se rechaza: no tiene cresta que dimensionar.
+Pasadas tanto distancia constante superficie rehe, ojehecha pe cresta (scallop) mokõi pasada vecina ryepýpe oguerekova **altura** pedida. Distancia altura ha bola radio gui ojeguerekova: s = 2·√(2·R·h − h²), ejemplo 0,69 mm pasada ryepýpe Ø6 bola ha 0,02 mm cresta rehe. Bull-nose herramienta esquina radio ojeporu. Fresa plana ndojejapóri: cresta ndoguerekói ojedimensionaʼỹ.
 
-Las pasadas empiezan **desde el borde del modelo, hacia adentro** o **desde su parte superior, hacia abajo**. Son contornos de la distancia sobre la superficie (no de altura), así que en una pendiente están cerca en planta y en una zona plana están muy separadas. La distancia se mide sobre una grilla de la superficie y tiene una precisión de alrededor del 1 %; la altura de la cresta es exacta donde la superficie es plana o suavemente curva, y aproximada donde se curva rápido. **Climb** mantiene el lado más alto de la superficie a la derecha del cortador.
+Pasadas **modelo borde gui, adentro** térã **modelo tuicha gui, abajo** oñepyrũ. Superficie distancia contorno (ndaha'éi altura contorno) gui; pendiente rehe planta rehe hasy, llano rehe mbovy ryepýpe. Distancia superficie cuadrícula rehe medida, aproximadamente 1 % rehe; cresta altura exacta llano térã suave curva rehe, aproximada curva rápida rehe. **Concordante** ojapo: superficie tuicha pe lado fresa derecha rehe.
 
-## Qué tan buenas son las trayectorias
+## Cuánto valen las trayectorias
 
-Lo que verifican las pruebas, con formas cerradas o una búsqueda de fuerza bruta independiente sobre la huella del cortador:
+Pruebas ohechauka fórmula cerrada térã búsqueda independiente:
 
-- La altura de la punta bajo la herramienta es exacta para una herramienta esférica, redondeada y plana sobre caras, aristas y esquinas de la malla, y nunca está por encima de la altura verdadera; para líneas paralelas la trayectoria queda dentro de la tolerancia, sin ninguna entalla más profunda que eso.
-- Los largos de trayectoria sobre un plano inclinado coinciden con la forma cerrada; las pasadas de festoneado sobre un plano están a la distancia pedida, y la cresta entre ellas sale a la altura pedida.
-- La simulación de material muestra ninguna entalla después de una pasada y muestra las crestas que quedan.
+- Punta altura herramienta rehe exacta bola, bull-nose y plana herramienta rehe, cara, arista y esquina malla gui, ndaha'éi verdadera altura gui tuicha; líneas paralelas trayectoria tolerancia rehe oĩ, corte excesivo ndaha'éi hondo tolerancia gui.
+- Trayectoria largo plano inclinado rehe fórmula cerrada gui oĩ igual; scallop pasada plano rehe pedida distancia ryepýpe, cresta altura pedida.
+- Simulación material pasada rehe ndohechauka corte excesivo, ohechauka cresta oĩva.
 
-Lo que estas trayectorias no son: son pasadas básicas de acabado, no todo lo que ofrece un sistema de producción.
+Ndaha'éi ojeguerekova: acabado básico pasada, ndaha'éi production sistema opa ojapova.
 
-- Sin hacer: contorno a z constante (waterline), limpieza de esquinas y de rincones, pasadas radiales y en espiral, proyección de una curva sobre la superficie, detección de zonas planas, mecanizado de remanente, verificación de colisión de porta-herramientas y vástago, e inclinación de la herramienta.
-- El centro de la herramienta queda sobre el modelo: las trayectorias se detienen en el borde del modelo en lugar de seguir afuera, así que una pared vertical justo en el borde no se acaba hasta su pie.
-- Las socavaduras no se ven (la superficie es lo que la herramienta encuentra desde arriba).
-- El modelo es la malla del núcleo, así que las trayectorias siguen la malla (su tolerancia de cuerda es de alrededor de 0,0002 de la diagonal de la pieza), no la superficie exacta.
-- Acabar un modelo grande con una tolerancia fina produce un programa largo con muchos movimientos cortos. Revisá la salida en el simulador de tu máquina antes de cortar.
+- **Todavía no**: altura constante (waterline) acabado, lápiz y esquina limpieza, radial y espiral pasada, curva proyección superficie rehe, plano área detección, portaherramienta y mango colisión control. Desbaste y resto mecanizado propias operación ([3D desbaste y mecanizado de resto](topic:rough-3d)); herramienta inclinada [acabado 5 ejes](topic:multi-axis#5-axis-finishing).
+- Centro herramienta modelo rapykue oĩ: trayectoria modelo borde rehe oñemboty, vertical pared borde rehe ndaha'éi acabado tuicha pie peve.
+- Socavaduras ndohechaukái (superficie herramienta arriba gui oúva).
+- Modelo malla kernel gui, trayectoria malla rehe oguerovaʼekue (cuerda tolerancia 0,0002 pieza diagonal gui), ndaha'éi superficie exacta rehe.
+- Modelo tuicha fina tolerancia rehe acabado: programa tuicha ojejapóva moves pyahu. Revisá salida máquina simulador rehe antes cortar.

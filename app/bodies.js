@@ -22,6 +22,7 @@
  */
 import { t } from './i18n.js';
 import { registerParamField } from './params-part.js';
+import { add3 as add, cross3 as cross, dot3 as dot, len3 as len, scale3 as mul, sub3 as sub } from './geom-vec.js';   // shared helpers (0.11 PERF.74; tools/perf/util-copies.mjs)
 
 // the types' names for people, read when shown (getters: never translated at import; part.js keeps them getters)
 export const BODY_LABELS = {
@@ -54,7 +55,7 @@ registerParamField('pathpattern', 'count', { get label() { return t('model.param
 registerParamField('pathpattern', 'd', { get label() { return t('model.params_part.field.spacing'); }, kind: 'length', min: 1e-6, max: 1e6, when: (f) => f.spacing === 'distance' });
 
 // ---------------------------------------------------------------- body ids
-export const BODY_RE = /^f\d{1,9}(:\d{1,4})?(@f\d{1,9}#\d{1,4}){0,24}$/;
+export const BODY_RE = /^f\d{1,16}(:\d{1,4})?(@f\d{1,16}#\d{1,4}){0,24}$/;
 export const goodBody = (id) => typeof id === 'string' && id.length <= 300 && BODY_RE.test(id);
 /** Feature ids a body id depends on (its maker and every copying feature). */
 export const bodyFeatures = (id) => [...new Set(String(id || '').match(/f\d+/g) || [])];
@@ -207,12 +208,6 @@ export function hiddenGeometry(part, regen) {
 export const usesBodies = (part) => !!(part.bodyInfo && Object.keys(part.bodyInfo).length) || part.features.some((f) => BODY_LABELS[f.type] || ((f.type === 'extrude' || f.type === 'revolve') && (f.op === 'new' || f.op === 'intersect')) || (Array.isArray(f.bodies) && f.bodies.length));
 
 // ---------------------------------------------------------------- arithmetic shared with the tests (kernel-free)
-const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
-const add = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
-const mul = (a, s) => [a[0] * s, a[1] * s, a[2] * s];
-const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
-const len = (a) => Math.hypot(a[0], a[1], a[2]);
 
 /** Column-major 4×4 of p ↦ c + diag(sx, sy, sz)(p − c). */
 export const scaleAbout = (c, sx, sy, sz) => [sx, 0, 0, 0, 0, sy, 0, 0, 0, 0, sz, 0, c[0] * (1 - sx), c[1] * (1 - sy), c[2] * (1 - sz), 1];

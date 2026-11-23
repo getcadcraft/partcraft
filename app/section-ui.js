@@ -44,7 +44,7 @@ export function createSection(ctx) {
       ...BASE_KEYS.map((k) => el('option', { value: k, selected: st.base === k }, t('section.base.' + k))),
       el('option', { value: 'face', selected: st.base === 'face', disabled: !st.face }, t('section.base.face')));
     sel.addEventListener('change', () => setBase(sel.value));
-    const pickBtn = el('button', { type: 'button', className: 'pc-btn pc-btn-sm' + (st.picking ? ' is-primary' : ''), 'data-section-pick': '', onclick: () => arm() },
+    const pickBtn = el('button', { type: 'button', className: 'pc-btn pc-btn-sm' + (st.picking ? ' is-primary' : ''), 'data-section-pick': '', onclick: arm },
       st.picking ? t('section.picking') : t('section.pick'));
     const slider = el('input', { type: 'range', className: 'pc-section-range', min: String(lo), max: String(hi), step: String(span / 1000), value: String(st.c), 'aria-label': t('section.position'), 'data-section-slider': '' });
     const num = el('input', { type: 'number', className: 'pc-input', step: 'any', value: fmt(st.c), 'aria-label': t('section.position_mm'), 'data-section-at': '' });
@@ -56,7 +56,7 @@ export function createSection(ctx) {
     caps.addEventListener('change', () => { st.caps = caps.checked; apply(); });
     card.replaceChildren(
       el('div', { className: 'pc-measure-head' }, el('strong', {}, t('section.title')),
-        el('button', { type: 'button', className: 'pc-btn pc-btn-sm', 'data-section-close': '', title: t('section.close.title'), onclick: () => stop() }, t('section.close'))),
+        el('button', { type: 'button', className: 'pc-btn pc-btn-sm', 'data-section-close': '', title: t('section.close.title'), onclick: stop }, t('section.close'))),
       el('div', { className: 'pc-section-row' }, el('span', { className: 'k' }, t('section.plane')), sel, pickBtn),
       el('div', { className: 'pc-section-row' }, el('span', { className: 'k' }, t('section.position')), slider, num, el('span', { className: 'pc-muted' }, 'mm')),
       el('label', { className: 'pc-section-check' }, flip, el('span', {}, t('section.flip'))),

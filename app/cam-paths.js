@@ -27,12 +27,29 @@
  *   chamfer chamfer mill along an outline, offset so the cone cuts the asked width.
  *   face    zig-zag over the stock, overhanging its edges, down to the model top.
  *   parallel, scallop   3D finishing of the whole model (cam-finish.js).
+ *
+ * 0.11 Track CAM. More operations live in their own modules: rough3d, rest3d (cam-rough3d.js), five, rotary (cam-multiaxis.js),
+ * turnface … turndrill (cam-turn.js), probe (cam-probe.js). An opPath may now also carry:
+ *   frame {orient, Q, key}   the operation was worked out with a tilted tool (op.orient): its moves are in the tilted frame
+ *                            (work = Q · local, same origin); or frame {o} for a lathe path (where the axis is)
+ *   kind  'multi' (moves carry a tool direction `a`) | 'lathe' (p = [radius, 0, z], feeds per revolution) | 'probe'
+ *   moves also {k: 'probe'} (a feed that stops at the touch), {k: 'probeset'} (no motion), {k: 'thread', f: lead}
+ * The stock simulation is a height map along the setup's tool axis: a tilted direction gets a height map of its own
+ * (simFor), not carried over from the others; multi-axis and probing paths are not simulated; lathe paths bring their own
+ * result from cam-turn.js's stock.
  */
 import * as O from './cam-offset.js';
 import { speeds, profile, KINDS } from './cam-tools.js';
 import { stockLoop, machineModel } from './cam.js';
 import { adaptivePasses } from './cam-adaptive.js';
 import { opParallel, opScallop } from './cam-finish.js';
+import { ROUGH_OPS } from './cam-rough3d.js';
+import { MULTI_OPS } from './cam-multiaxis.js';
+import { TURN_OPS } from './cam-turn.js';
+import { PROBE_OPS } from './cam-probe.js';
+import { canTilt } from './cam.js';
+import { isTilted, orientKey, solveAngles, outputTransform, mulMV, kinMessage } from './cam-kin.js';
+export { kinMessage };
 import { t } from './i18n.js';
 
 import { PECK_BACKOFF, expandCycle } from './cam-cycle.js';
@@ -631,7 +648,22 @@ function opAdaptive(op, ctx, P) {
   if (P.pos) P.rapidZ(model.stock.max[2] + p.clearance);
 }
 
-const OPS = { face: opFace, pocket: opPocket, adaptive: opAdaptive, contour: opContour, drill: opDrill, chamfer: opChamfer, parallel: opParallel, scallop: opScallop };
+const OPS = { face: opFace, pocket: opPocket, adaptive: opAdaptive, contour: opContour, drill: opDrill, chamfer: opChamfer, parallel: opParallel, scallop: opScallop, ...ROUGH_OPS, ...MULTI_OPS, ...TURN_OPS, ...PROBE_OPS };
+
+/** Can the machine in Setup hold the tool the way this path asks? → a message, or null when it can. */
+export function kinProblem(path, machine) {
+  try {
+    if (path.kind === 'multi') {
+      let prev = null;
+      for (const m of path.moves) if (m.a) prev = solveAngles(machine, m.a, prev);
+      outputTransform(machine, prev || {});
+    } else if (path.frame && path.frame.Q) {
+      const ang = solveAngles(machine, mulMV(path.frame.Q, [0, 0, 1]));
+      outputTransform(machine, ang);
+    }
+    return null;
+  } catch (e) { return kinMessage(e); }
+}
 
 // ---------------------------------------------------------------- program
 
@@ -639,10 +671,11 @@ const OPS = { face: opFace, pocket: opPocket, adaptive: opAdaptive, contour: opC
  * Every operation's toolpath, in order. `sim` (cam-sim.js Sim, optional) is run after each operation so later
  * ones see the stock that is left (drill R planes). → {model, paths:[opPath | {op, error}], warnings}
  */
-export function generateProgram(study, regen, { sim = null, model = null, only = null, extraOps = {} } = {}) {
+export function generateProgram(study, regen, { sim = null, model = null, only = null, extraOps = {}, simFor = null, cell3d = 0 } = {}) {
   model = model || machineModel(regen, study.setup);
   const paths = [];
-  const stockTop = model.stock.max[2];
+  const shared = {};
+  const tilted = new Map();   // orientKey → {model, sim}
   for (const op of study.ops) {
     if (op.suppressed) { paths.push({ op, suppressed: true, moves: [], warnings: [] }); continue; }
     if (only && !only.includes(op.id)) continue;
@@ -650,25 +683,43 @@ export function generateProgram(study, regen, { sim = null, model = null, only =
     if (!tool) { paths.push({ op, error: t('mfg.op.choose_tool'), moves: [], warnings: [] }); continue; }
     const warnings = [];
     const sp = speeds(tool, study.setup.material, study.setup.machine);
-    if (sp.clamped === 'max') warnings.push(t('mfg.speed.clamped', { rpm: study.setup.machine.maxRpm }));
+    if (sp.clamped === 'max' && !sp.lathe) warnings.push(t('mfg.speed.clamped', { rpm: study.setup.machine.maxRpm }));
+    let m = model, sm = sim, frame = null;
+    try {
+      if (canTilt(op.type) && isTilted(op.orient)) {
+        const key = orientKey(op.orient);
+        if (!tilted.has(key)) { const tm = machineModel(regen, study.setup, op.orient); tilted.set(key, { model: tm, sim: simFor ? simFor(tm) : null }); }
+        m = tilted.get(key).model; sm = tilted.get(key).sim;
+        frame = { orient: { tilt: op.orient.tilt, turn: op.orient.turn }, Q: m.Q, key };
+      }
+    } catch (e) { paths.push({ op, tool, speeds: sp, error: e.message, moves: [], warnings }); continue; }
+    const stockTop = m.stock.max[2];
+    const simNow = sm;
     const ctx = {
-      model, tool, sp, op, info: {}, warn: (m) => warnings.push(m),
-      stockAt: (x, y, r) => (sim ? sim.maxIn(x, y, r) : stockTop),
+      model: m, mainModel: model, tool, sp, op, info: {}, warn: (msg) => warnings.push(msg), setup: study.setup, shared, cell3d,
+      hasSim: !!simNow, simCell: simNow ? simNow.cell : 0, stockAt: (x, y, r) => (simNow ? simNow.maxIn(x, y, r) : stockTop),
     };
     const P = new Path();
     const fn = OPS[op.type] || extraOps[op.type];
     try {
       if (!fn) throw new Error(t('mfg.op.not_built'));
       fn(op, ctx, P);
-      const res = { op, tool, speeds: sp, moves: P.moves, warnings, info: ctx.info };
-      if (sim) { const r = sim.run(res); res.sim = r; }
+      const res = { op, tool, speeds: ctx.sp, moves: P.moves, warnings, info: ctx.info };
+      if (ctx.pathKind) res.kind = ctx.pathKind;
+      if (frame) res.frame = frame; else if (ctx.frame) res.frame = ctx.frame;
+      if (ctx.tip) res.tip = ctx.tip;
+      if (res.moves.length && (res.kind === 'multi' || (res.frame && res.frame.Q))) { const why = kinProblem(res, study.setup.machine); if (why) warnings.push(why); }
+      if (ctx.simResult) res.sim = ctx.simResult;
+      else if (simNow && !ctx.noSim) { const r = simNow.run(res); res.sim = r; }
       paths.push(res);
     } catch (e) {
-      paths.push({ op, tool, speeds: sp, error: e.message, moves: [], warnings });
+      paths.push({ op, tool, speeds: ctx.sp, error: e.message, moves: [], warnings });
     }
   }
-  return { model, paths, setup: study.setup, tools: study.tools };
+  return { model, paths, setup: study.setup, tools: study.tools, tilted, lathe: shared.lathe || null };
 }
+/** What keeps two paths' coordinates apart: a tilted frame or a lathe path has coordinates of its own. */
+export const frameKey = (ph) => (ph.kind === 'lathe' ? 'lathe' : ph.frame && ph.frame.key ? ph.frame.key : '');
 
 /**
  * Straight and arc segments of a program, canned cycles expanded: [{k rapid|feed|arc, a, b, c?, sw?, f, op}]
@@ -676,15 +727,26 @@ export function generateProgram(study, regen, { sim = null, model = null, only =
  */
 export function segments(paths, start = null) {
   const out = [];
-  let pos = start;
+  let pos = start, key = null;
   for (const ph of paths) {
     if (!ph.moves || !ph.moves.length) continue;
+    // no joining move between paths whose coordinates are not the same frame (a tilted direction, a lathe path)
+    const fk = frameKey(ph);
+    if (key !== null && fk !== key) pos = null;
+    key = fk;
+    const fr = ph.frame || null;
     for (const m0 of ph.moves) {
+      if (m0.k === 'probeset') continue;
       const list = m0.k === 'cycle' ? expandCycle(m0) : [m0];
       for (const m of list) {
         if (!pos) { pos = m.p; continue; }
-        if (m.k === 'arc') out.push({ k: 'arc', a: pos, b: m.p, c: m.c, sw: m.sw, f: m.f, op: ph.op.id });
-        else out.push({ k: m.k, a: pos, b: m.p, f: m.f, op: ph.op.id });
+        let sg;
+        if (m.k === 'arc') sg = { k: 'arc', a: pos, b: m.p, c: m.c, sw: m.sw, f: m.f, op: ph.op.id };
+        else sg = { k: m.k === 'rapid' ? 'rapid' : 'feed', a: pos, b: m.p, f: m.f, op: ph.op.id };
+        if (fr) sg.fr = fr;
+        if (m.a) sg.ta = m.a;
+        if (m.k === 'probe' || m.k === 'thread') sg.was = m.k;
+        out.push(sg);
         pos = m.p;
       }
     }

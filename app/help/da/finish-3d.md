@@ -1,39 +1,39 @@
 ---
-title: 3D-efterbehandling: parallel og scallop
-summary: Efterbehandl hele modellens buede overflade med en kugle-, bull-nose- eller flad endefræser, i parallelle linjer i en vilkårlig vinkel eller i gennemløb med en fast afstand, så kammene mellem dem holder den højde, du beder om. Hvad banerne garanterer, og hvad de ikke gør.
-keywords: 3d-efterbehandling, efterbehandling, parallel, raster, scallop, konstant scallop, kam, kugle-fræser, bull-nose, overflade, tolerance, stepover, hældning, materiale tilbage, drop cutter, indskæring
-from: e1587d0a
+title: 3D-efterbearbejdning: parallel og kamme
+summary: Efterbearbejd hele modellens buede overflade med en kugleformet, tøndeformet eller plan fræser, i parallelle linjer i enhver vinkel eller i baner med en fast afstand, så kammene mellem dem holder den højde, du beder om. Hvad banerne garanterer, og hvad de ikke gør.
+keywords: 3d-efterbearbejdning, efterbearbejdning, parallel, raster, kamme, konstant kamhøjde, kam, kugleformet fræser, tøndefræser, overflade, tolerance, skridafstand, hældning, efterladt materiale, drop cutter, gennemskæring
+from: 942d2341
 ---
 
-To operationer i Manufacture skærer **hele modellens overflade** med værktøjet holdt lodret (tre akser). De tager ingen valg: de arbejder på alt af modellen, der kan ses oppefra. Grov delen først (adaptiv eller lomme); en efterbehandlingsgang over ubearbejdet materiale advarer om, at den ville skære dybt.
+To operationer under Fremstilling skærer i **hele modellens overflade** med værktøjet holdt lodret (tre akser). De kræver ingen valg: de arbejder på hele den del af modellen, der kan ses oppefra. Grovbearbejd delen først (adaptiv eller lomme); en efterbearbejdningsgang over ubearbejdet råemne advarer om, at den ville skære dybt.
 
 ## Parallel
 
-Lige linjer hen over modellen i den **vinkel**, du sætter, med **stepover** imellem (en brøkdel af fræserens diameter). Hver linje følger overfladen: værktøjsspidsen er så høj, som den skal være, for at ingen del af fræseren går under modellen, og linjen skæres finere, hvor overfladen bøjer. Med **Zig-zag** slået til bliver værktøjet nede mellem linjerne, hvor det kan gøre det sikkert (kontrolleret langs bevægelsen); ellers løfter det sig.
+Lige linjer hen over modellen i den **vinkel**, du angiver, med **skridafstand** imellem (en brøkdel af værktøjsdiameteren). Hver linje følger overfladen: værktøjsspidsen står så højt, som den skal, så ingen del af skæret går under modellen, og linjen skæres finere, hvor overfladen bøjer. Med **Zig-zag** slået til står værktøjet nede mellem linjerne, hvor det kan gøre det sikkert (kontrolleret langs bevægelsen); ellers løftes det.
 
-- **Tolerance**: hvor langt et lige stykke af en linje må være fra den sande spidshøjde (halvdelen bruges som grænse i midten af hvert stykke). Standard 0.01 mm.
-- **Kun hvor overfladen er mindst … og højst … (°)**: efterbehandl kun flade områder eller kun stejle. Hvor overfladen er udenfor intervallet, udelades linjen, og værktøjet løfter sig.
-- **Materiale tilbage**: modellen forskudt med den afstand (fræseren forstørret med den: præcis for kugle- og bull-nose-værktøjer; et fladt værktøj efterlader mindst så meget).
+- **Tolerance**: hvor langt et lige stykke af en linje må ligge fra den rigtige spidshøjde (halvdelen bruges som grænse midt på hvert stykke). Standard 0.01 mm.
+- **Kun hvor overfladen er mindst … og højst … (°)**: efterbearbejd kun flade områder eller kun stejle. Hvor overfladen ligger uden for intervallet, udelades linjen, og værktøjet løftes.
+- **Efterladt materiale**: modellen forskudt med den afstand (skæret forstørret tilsvarende: nøjagtigt for kugle- og tøndeværktøjer; et planværktøj efterlader mindst så meget).
 - **Bund**: intet skæres under denne z.
 
-## Scallop
+## Kamme
 
-Gennemløb, der holder en konstant afstand over overfladen fra hinanden, så kammen (scallop) der står tilbage mellem to naboer-gennemløb har den **højde**, du beder om. Afstanden følger af højden og kuglens radius: s = 2·√(2·R·h − h²), for eksempel cirka 0.69 mm mellem gennemløb for en Ø6-kugle og en 0.02 mm kam. Et bull-nose-værktøj bruger sin hjørneradius. En flad endefræser afvises: den har ingen kam at dimensionere.
+Baner, der holder en konstant afstand over overfladen fra hinanden, så kammen (scallop) mellem to nabobaner får den **højde**, du angiver. Afstanden følger af højden og kuglens radius: s = 2·√(2·R·h − h²), for eksempel ca. 0.69 mm mellem baner for en Ø6-kugle og en 0.02 mm kam. Et tøndeværktøj bruger sin hjørneradius. En planfræser afvises: den har ingen kam at dimensionere.
 
-Gennemløbene starter **fra modellens kant, indad**, eller **fra dens top, nedad**. De er konturer af afstanden over overfladen (ikke af højde), så på en skråning ligger de tæt i plan, og på en flade ligger de langt fra hinanden. Afstanden måles på et gitter over overfladen og er god inden for cirka 1 %; kamhøjden er præcis, hvor overfladen er flad eller blidt buet, og tilnærmet, hvor den bøjer hurtigt. **Medløb** holder den højere side af overfladen på fræserens højre side.
+Banerne starter fra **modellens kant og går indad** eller fra **dens top og går nedad**. De er konturer af afstanden over overfladen (ikke af højden), så de ligger tæt i plan på en skråning og langt fra hinanden på en flade. Afstanden måles på et gitter over overfladen og er god til ca. 1 %; kamhøjden er nøjagtig, hvor overfladen er flad eller blødt buet, og tilnærmet, hvor den bøjer hurtigt. **Medløb** holder den højere side af overfladen på skærets højre side.
 
 ## Hvor gode banerne er
 
-Hvad testene kontrollerer, med lukkede formler eller en uafhængig brute-force-søgning af fræserens fodaftryk:
+Det testene kontrollerer, med lukkede formler eller en uafhængig brute-force-søgning af skærets fodaftryk:
 
-- Spidshøjden under værktøjet er præcis for kugle-, bull-nose- og fladt værktøj på flader, kanter og hjørner af mesh'en og aldrig over den sande højde; for parallelle linjer holder banen sig inden for tolerancen af den, uden indskæring dybere end det.
-- Banelængder på et skråt plan stemmer med den lukkede formel; scallop-gennemløb på et plan er den ønskede afstand fra hinanden, og kammen mellem dem kommer ud i den bedt om højde.
-- Materialesimuleringen viser ingen indskæring efter et gennemløb og viser de kamme, der bliver tilbage.
+- Spidshøjden under værktøjet er nøjagtig for kugle-, tønde- og planværktøjer på flader, kanter og hjørner af nettet, og aldrig over den rigtige højde; for parallelle linjer holder banen sig inden for tolerancen, uden gennemskæring dybere end den.
+- Banelængder på et skråt plan stemmer med den lukkede formel; kamme-baner på et plan ligger den ønskede afstand fra hinanden, og kammen imellem får den ønskede højde.
+- Råemne-simuleringen viser ingen gennemskæring efter en gang og viser de kamme, der er tilbage.
 
-Hvad disse baner ikke er: de er grundlæggende efterbehandlingsgennemløb, ikke alt hvad et produktionssystem tilbyder.
+Disse baner er ikke hele det, et produktionssystem tilbyder: de er grundlæggende efterbearbejdningsgange.
 
-- Ikke lavet: vandlinje (konstant z), pennestreg- og hjørnerydning, radiale og spiralgennemløb, projektion af en kurve på overfladen, detektion af flade områder, restbearbejdning, kontrol af holder- og skaftkollisioner, og enhver vipning af værktøjet.
-- Værktøjets centrum bliver over modellen: banerne stopper ved modellens kant i stedet for at køre ud over den, så en lodret væg lige ved kanten bliver ikke efterbehandlet helt ned til foden.
-- Underskæringer ses ikke (overfladen er det, værktøjet møder oppefra).
-- Modellen er mesh'en fra kernen, så banerne følger mesh'en (dens korde-tolerance er cirka 0.0002 af delens diagonal), ikke den eksakte overflade.
-- Efterbehandling af en stor model med fin tolerance giver et langt program med mange korte bevægelser. Kontrollér output i din maskines egen simulator, før du skærer.
+- Ikke lavet endnu: vandlinje-efterbearbejdning (konstant z), blyant- og hjørnerydning, radiale og spiralformede baner, projicering af en kurve på overfladen, registrering af flade områder, kontrol af kollision med holder og skaft. Grov- og restbearbejdning er egne operationer ([3D-grovbearbejdning og restbearbejdning](topic:rough-3d)); et værktøj, der hælder, er [5-akset efterbearbejdning](topic:multi-axis#5-axis-finishing).
+- Værktøjets centrum bliver over modellen: banerne stopper ved modellens kant i stedet for at køre ud over den, så en lodret væg lige ved kanten ikke efterbearbejdes helt ned til foden.
+- Undersnit ses ikke (overfladen er det, værktøjet møder oppefra).
+- Modellen er nettet fra kernen, så banerne følger nettet (dets kordetolerance er ca. 0.0002 af delens diagonal), ikke den nøjagtige overflade.
+- Efterbearbejdning af en stor model med en fin tolerance giver et langt program med mange korte bevægelser. Kontrollér outputtet i din maskines egen simulator, før du skærer.

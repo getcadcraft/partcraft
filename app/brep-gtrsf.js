@@ -19,6 +19,7 @@
  *   A = { m: 3×3 rows, t: [x, y, z] } with det m > 0.
  */
 import { t as tr } from './i18n.js';
+import { add3 as add, cross3 as cross, dot3 as dot, len3 as len, scale3 as mul, sub3 as sub } from './geom-vec.js';   // shared helpers (0.11 PERF.74; tools/perf/util-copies.mjs)
 
 export const DEV = 4e-7;
 const N_MIN = 32, N_MAX = 720;
@@ -39,12 +40,6 @@ const invM = (m) => {
 const powM = (m, p) => { let r = ID; const b = p < 0 ? invM(m) : m; for (let k = 0; k < Math.abs(p); k++) r = mulM(r, b); return r; };
 const ap = (m, p) => [m[0] * p[0] + m[1] * p[1] + m[2] * p[2] + m[3], m[4] * p[0] + m[5] * p[1] + m[6] * p[2] + m[7], m[8] * p[0] + m[9] * p[1] + m[10] * p[2] + m[11]];
 const av = (m, v) => [m[0] * v[0] + m[1] * v[1] + m[2] * v[2], m[4] * v[0] + m[5] * v[1] + m[6] * v[2], m[8] * v[0] + m[9] * v[1] + m[10] * v[2]];
-const add = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
-const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
-const mul = (a, s) => [a[0] * s, a[1] * s, a[2] * s];
-const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
-const len = (a) => Math.hypot(a[0], a[1], a[2]);
 const norm = (a) => mul(a, 1 / len(a));
 const key = (m) => m.map((v) => Math.round(v * 1e12) / 1e12).join(',');
 const fmt = (v) => (Object.is(v, -0) ? '0' : String(v));

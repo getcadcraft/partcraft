@@ -1,39 +1,39 @@
 ---
-title: 3D-viimistlus: paralleelne ja kaarjoonis
-summary: Viimista kogu mudeli kõver pind kuul-, poolringi- või lameda otsfrees­iga paralleelsete joontena mis tahes nurga all või kindla vahega käikudena, nii et nendevaheline hari jääb sinu soovitud kõrgusele. Mida rajad tagavad ja mida mitte.
-keywords: 3D-viimistlus, viimistlus, paralleelne, rasterjoon, kaarjoonis, konstantne kaarjoonis, hari, kuulfrees, poolringfrees, pind, tolerants, sammuvahe, kalle, jätta materjali, langev lõikur, sissesöök
-from: e1587d0a
+title: 3D-viimistlus: paralleelne ja lainetus
+summary: Viimista kogu mudeli kõver pind kuulotsaga, ümarotsaga või lameotsaga freesiga paralleelsete joontega mis tahes nurga all või läbikäikudena, mis on üksteisest määratud kaugusel, nii et nendevahelised harjad jäävad soovitud kõrgusele. Mida teekonnad tagavad ja mida mitte.
+keywords: 3d-viimistlus, viimistlus, paralleelne, raster, lainetus, konstantne lainetus, hari, kuulotsaga frees, ümarotsaga frees, pind, toleranss, sammu vahe, kalle, jäetav ülemõõt, langev lõikur, ülelõige
+from: 942d2341
 ---
 
-Kaks toimingut tootmistööruumis lõikavad **kogu mudeli pinda**, hoides tööriista vertikaalsena (kolm telge). Need ei võta valikuid: nad töötavad kogu mudeli kohal, mida saab ülevalt näha. Karestada detail esmalt (adaptiivselt või taskuga); viimistlus lõikamata materjali peal hoiatab, et see lõikaks sügavalt.
+Kaks toimingut Valmistamises lõikavad **kogu mudeli pinda**, hoides tööriista vertikaalselt (kolm telge). Need ei vaja valikuid: nad töötavad kogu mudelil, mis on ülevalt nähtav. Esmalt tee detailist jäme lõige (adaptiivne või tasku); viimistlusläbik lõikamata toorikul hoiatab, et see lõikaks sügavale.
 
 ## Paralleelne
 
-Sirged jooned üle mudeli sea **nurgaga**, **sammuvahega** (osa freesi läbimõõdust). Iga joon järgib pinda: tööriista tipp on nii kõrgel, et ükski lõikuri osa ei lähe mudelist allapoole, ja joon lõigatakse peenemaks seal, kus pind kõverdub. Kui **Sikk-sakk** on sees, jääb tööriist joonte vahel alla, kus see saab turvaliselt (kontrollitakse liigutuse ulatuses); muidu ta tõuseb.
+Sirged jooned üle mudeli **nurga** all, mille seate, **sammu vahe** kaugusel (murdosa tööriista läbimõõdust). Iga joon järgib pinda: freesi ots on nii kõrgel, kui peab olema, et ükski osa lõikurist ei jääks mudelist allapoole, ning joont lõigatakse peenemalt seal, kus pind kõverdub. Kui **Siksak** on sisse lülitatud, jääb tööriist joonte vahel alla seal, kus see saab turvaliselt (kontrollitud mööda liikumist); muidu tõuseb üles.
 
-- **Tolerants**: kui kaugel võib joone sirge lõik olla tõelisest tipukõrgusest (pool sellest kasutatakse piirina iga lõigu keskel). Vaikimisi 0.01 mm.
-- **Ainult kus pind on vähemalt … ja kõige rohkem … (°)**: viimista ainult lamedaid või ainult järske alasid. Kus pind on vahemikust väljas, jäetakse joon välja ja tööriist tõuseb.
-- **Jätta materjali**: mudel nihutatud selle kauguse võrra (lõikur kasvatatud selle võrra; täpne kuul- ja poolringtööriistadele, lame tööriist jätab vähemalt nii palju).
-- **Põhi**: midagi ei lõigata selle z alla.
+- **Toleranss**: kui kaugel võib joone sirge lõik olla tõelisest ottsa kõrgusest (selle pool kasutatakse piirina iga lõigu keskel). Vaikimisi 0.01 mm.
+- **Ainult kohas, kus pind on vähemalt … ja kõige rohkem … (°)**: viimistle ainult lamedaid või ainult järske alasid. Kus pind on vahemikust väljas, jäetakse joon välja ja tööriist tõuseb.
+- **Jäetav ülemõõt**: mudel nihutatud selle kauguse võrra (lõikur kasvab selle võrra: täpne kuul- ja ümarotsaga tööriistade puhul; lametööriist jätab vähemalt nii palju).
+- **Põhi**: mitte midagi ei lõigata alla selle z-koordinaadi.
 
-## Kaarjoonis
+## Lainetus
 
-Käigud, mis hoiavad pinna peal konstantset kaugust üksteisest, nii et nende kahe lähima käigu vahele jääv hari (kaarjoonis) on soovitud **kõrgusega**. Kaugus tuleneb kõrgusest ja kuuli raadiusest: s = 2·√(2·R·h − h²), näiteks umbes 0.69 mm käikude vahel Ø6 kuuli ja 0.02 mm hari puhul. Poolringtööriist kasutab oma nurga raadiust. Lame otsfrees lükatakse tagasi: sellel pole harja, mida suurustada.
+Läbikäigud, mis hoiavad pinnal üksteisest konstantset kaugust, nii et kahe naaberläbiku vahele jääv hari (lainetus) on soovitud **kõrgusega**. Kaugus tuleneb kõrgusest ja kuuli raadiusest: s = 2·√(2·R·h − h²); näiteks umbes 0.69 mm läbikäikude vahel Ø6 kuuli ja 0.02 mm hari korral. Ümarotsaga tööriist kasutab oma nurgaraadiust. Lametööriist on tagasi lükatud, sest sellel ei ole harja, mida mõõta.
 
-Käigud algavad **mudeli servast, sissepoole** või **mudeli tipust, allapoole**. Need on kauguse kontuurid üle pinna (mitte kõrguse omad), seega kaldel on nad planeeringus lähestikku ja tasasel alal laialt. Kaugus mõõdetakse pinna kohal olevas ruudustikus ja on täpne umbes 1 %; hari kõrgus on täpne seal, kus pind on tasane või kergelt kõverdunud, ja ligikaudne seal, kus see kõverdub kiiresti. **Päripidi** hoiab pinna kõrgemat külge lõikuri paremal küljel.
+Läbikäigud algavad **mudeli servast, sissepoole** või **mudeli ülaosast, allapoole**. Need on pinna kauguse kontuurid (mitte kõrguse), nii et kaldel on need plaanis lähedal ja tasasel alal laialt. Kaugust mõõdetakse pinna peal oleval ruudustikul ja see on täpne umbes 1 %; harja kõrgus on täpne seal, kus pind on tasane või aeglaselt kõver, ja ligikaudne seal, kus see kõverdub kiiresti. **Päripidi lõige** hoiab pinna kõrgemat poolt lõikuri paremal küljel.
 
-## Kui head rajad on
+## Kui head teekonnad on
 
-Mida testid kontrollivad suletud valemite või sõltumatu jõulise otsinguga lõikuri jalajäljest:
+Mida testid kontrollivad, kas suletud valemite või sõltumatu jõulise otsinguga lõikuri jalajäljest:
 
-- Tööriista all olev tipukõrgus on täpne kuul-, poolring- ja lame tööriistale mudeli tahkudel, servadel ja nurkades ning ei ole kunagi tõelisest kõrgusest kõrgem; paralleelsete joonte puhul jääb rada tolerantsi piiresse, sissesöögid pole sügavamad kui see.
-- Rajapikkused tasasel tasapinnal vastavad suletud valemile; kaarjoonise käigud tasapinnal on nõutud kauguse kaugusel ja nendevaheline hari tuleb välja nõutud kõrgusega.
-- Materjali simulatsioon ei näita pärast käiku sissesööki ja näitab järelejäänud harjasid.
+- Tööriista all olev otsa kõrgus on täpne kuul-, ümar- ja lametööriista puhul tahkudel, servadel ja nurkades ning ei ole kunagi üle tõelise kõrguse; paralleelsete joonte puhul jääb teekond sellest tolerantsi piiresse, ilma ülelõiketa sügavamalt kui see.
+- Teekonna pikkused kaldtasandil vastavad suletud valemile; läbikäigud tasandil on küsitud kaugusel ja nendevaheline hari tuleb välja küsitud kõrgusel.
+- Toorikusimulatsioon ei näita pärast läbikäiku ülelõiget ja näitab järelejäänud harju.
 
-Mida need rajad **ei ole**: need on põhilised viimistluskäigud, mitte kogu, mida tootmissüsteem pakub.
+Need teekonnad **ei ole** kõik, mida tootmissüsteem pakub: need on põhilised viimistlusläbikud.
 
-- Pole veel ehitatud: vesilinjalõige (konstantne z), pliiatsi- ja nurgapuhastus, radiaalsed ja spiraalsed käigud, kõvera projitseerimine pinnale, lameda ala tuvastus, järelejäänud materjali töötlemine, hoidiku ja varre kokkupõrke kontroll ning tööriista kallutamine.
-- Tööriista keskpunkt jääb mudeli kohale: rajad peatuvad mudeli servas, selle asemel et joosta sellest üle, seega ei viimistleta vertikaalset seina servas kuni selle jalani.
-- Allalõikeid ei näe (pind on see, mida tööriist ülevalt kohtab).
-- Mudel on võrgusilma tuumast tulev võrk, seega rajad järgivad võrku (selle kõõluse tolerants on umbes 0.0002 detaili diagonaalist), mitte täpset pinda.
-- Suure mudeli viimistlemine peenel tolerantsil teeb pika programmi paljude lühikeste liigutustega. Kontrolli väljundit oma masina enda simulaatoris enne lõikamist.
+- **Pole ehitatud**: veetaseme (konstantne z) viimistlus, pliiatsi- ja nurgapuhastus, radiaalsed ja spiraalsed läbikäigud, kõvera projitseerimine pinnale, lamedate alade tuvastamine, hoidiku ja varre kokkupõrkekontrollid. Jämedat ja jäägilõiget käsitletakse eraldi toimingutena ([3D-jämedus ja jääk-freesimine](topic:rough-3d)); kallutatud tööriist on [5-teljeline viimistlus](topic:multi-axis#5-axis-finishing).
+- Tööriista keskpunkt jääb mudeli kohale: teekonnad peatuvad mudeli servas, selle asemel et sõita sellest üle, nii et vertikaalne sein täpselt servas ei ole viimistletud kuni jalani.
+- Alalõiked ei ole nähtavad (pind on see, mida tööriist kohtab ülevalt).
+- Mudel on võrgutuumast tulev võrk, nii et teekonnad järgivad võrku (selle kõõlu tolerants on umbes 0.0002 detaili diagonaalist), mitte täpset pinda.
+- Suure mudeli viimistlus peene tolerantsiga teeb pika programmi paljude lühikeste liikumistega. Kontrolli väljundit oma masina simulaatoris enne lõikamist.

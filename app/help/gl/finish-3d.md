@@ -1,39 +1,39 @@
 ---
-title: Acabado 3D: paralelo e escama
-summary: Acabe a superficie curva completa do modelo cunha fresa de punta esférica, de punta redondeada ou plana, en liñas paralelas en calquera ángulo ou en pasadas separadas unha distancia fixa para que as cristas entre elas conserven a altura que pida. Que garanten as traxectorias e que non.
-keywords: acabado 3d, acabado, paralelo, raster, escama, escama constante, cúspide, punta esférica, punta redondeada, superficie, tolerancia, paso lateral, pendente, material a deixar, drop cutter, rebaixe
-from: e1587d0a
+title: Acabado 3D: paralelo e scallop
+summary: Acabe a superficie curva de todo o modelo cunha fresa de punta esférica, redonda ou plana, en liñas paralelas a calquera ángulo ou en pasadas separadas unha distancia fixa, de xeito que as crestas entre elas conserven a altura que pida. O que garanten as traxectorias e o que non.
+keywords: acabado 3D, acabado, paralelo, raster, scallop, scallop constante, cúspide, punta esférica, punta redonda, superficie, tolerancia, paso lateral, pendente, material a deixar, drop cutter, rascadura
+from: 942d2341
 ---
 
-Dúas operacións en Fabricación cortan a **superficie completa do modelo** coa ferramenta mantida vertical (tres eixes). Non precisan selección: traballan sobre todo o modelo que se ve desde arriba. Desbaste primeiro a peza (adaptativo ou cavidade); unha pasada de acabado sobre material sen cortar avisa de que cortaría demasiado fondo.
+Dúas operacións de Fabricación cortan a **superficie completa do modelo** coa ferramenta mantida vertical (tres eixos). Non precisan seleccións: traballan sobre todo o modelo que se ve desde arriba. Desbaste primeiro a peza (adaptativo ou cavidade); unha pasada de acabado sobre material sen cortar avisa de que cortaría fondo.
 
-## Paralelo
+## Paralela
 
-Liñas rectas sobre o modelo no **ángulo** que estableza, separadas **paso lateral** (unha fracción do diámetro da ferramenta). Cada liña segue a superficie: a punta da ferramenta queda tan alta como debe para que ningunha parte do cortador baixe por debaixo do modelo, e a liña córtase máis fina onde a superficie se dobra. Con **Zigzag** activado, a ferramenta mantense baixa entre liñas onde pode facelo con seguridade (comprobado ao longo do movemento); se non, levántase.
+Liñas rectas sobre o modelo no **ángulo** que estableza, separadas un **paso lateral** (unha fracción do diámetro da ferramenta). Cada liña segue a superficie: a punta da ferramenta está tan alta como debe estar para que ningunha parte da fresa baixe por debaixo do modelo, e a liña córtase máis fina onde a superficie se dobra. Con **Ziguezague** activado, a ferramenta mantense baixada entre liñas onde pode facelo con seguridade (comprobado ao longo do movemento); se non, sobe.
 
-- **Tolerancia**: canto pode separarse un tramo recto dunha liña da altura real da punta (usa a metade como límite no centro de cada tramo). Predeterminado 0,01 mm.
-- **Só onde a superficie sexa polo menos … e como máximo … (°)**: acabe só as zonas suaves ou só as inclinadas. Onde a superficie estea fóra do intervalo, a liña omítese e a ferramenta levántase.
-- **Material a deixar**: o modelo desprazado esa distancia (o cortador agrándase en ela: exacto para ferramentas de punta esférica e redondeada; unha ferramenta plana deixa polo menos ese material).
-- **Fondo**: non se corta por debaixo deste z.
+- **Tolerancia**: canto pode afastarse un tramo recto dunha liña da altura real da punta (úsase a metade como límite no centro de cada tramo). Por defecto 0,01 mm.
+- **Só onde a superficie estea polo menos en … e como máximo en … (°)**: acabar só as zonas pouco inclinadas ou só as moi inclinadas. Onde a superficie estea fóra do intervalo, a liña omítese e a ferramenta sobe.
+- **Material a deixar**: o modelo desprazado esa distancia (a fresa agrandada na mesma medida: exacto para ferramentas esféricas e de punta redonda; unha ferramenta plana deixa polo menos ese material).
+- **Fondo**: non se corta nada por debaixo desta altura z.
 
-## Escama
+## Scallop
 
-Pasadas que mantén unha distancia constante sobre a superficie entre elas, así que a crista (a escama) que queda entre dúas pasadas veciñas ten a **altura** que pida. A distancia sae da altura e do raio da esfera: s = 2·√(2·R·h − h²), por exemplo, uns 0,69 mm entre pasadas para unha esfera Ø6 e unha crista de 0,02 mm. Unha ferramenta de punta redondeada usa o raio da súa esquina. Recházase unha fresa plana: non ten crista que dimensionar.
+Pasadas que mantén unha distancia constante sobre a superficie entre si, de xeito que a cresta (o scallop) que queda entre dúas pasadas veciñas teña a **altura** que pida. A distancia depende da altura e do raio da esfera: s = 2·√(2·R·h − h²); por exemplo, uns 0,69 mm entre pasadas para unha esfera Ø6 e unha cresta de 0,02 mm. Unha ferramenta de punta redonda usa o raio da súa esquina. Unha fresa plana non se acepta: non ten cresta que dimensionar.
 
-As pasadas comezan **desde o bordo do modelo, cara a dentro** ou **desde o seu cume, cara abaixo**. Son contornos da distancia sobre a superficie (non da altura), así que nunha pendente quedan próximas en planta e nun plano quedan moi separadas. A distancia mídese sobre unha cuadrícula sobre a superficie e é válida ata un 1 %; a altura da crista é exacta onde a superficie é plana ou suavemente curva, e aproximada onde se curva rápido. **Concordancia** mantén o lado máis alto da superficie á dereita do cortador.
+As pasadas comezan **desde a aresta do modelo, entrando**, ou **desde o seu alto, baixando**. Son curvas de igual distancia sobre a superficie (non de altura): nunha pendente están xuntas en planta e nunha superficie plana están moi separadas. A distancia mídese sobre unha rede sobre a superficie e é boa ata un 1 %; a altura da cresta é exacta onde a superficie é plana ou suavemente curva, e aproximada onde se curva con rapidez. **Concordancia** mantén o lado máis alto da superficie á dereita da fresa.
 
-## Canto de boas son as traxectorias
+## Como de boas son as traxectorias
 
-O que comproban as probas, con formas pechadas ou unha busca independente por forza bruta da pegada do cortador:
+O que comproban as probas, con fórmulas pechadas ou cunha busca independente por forza bruta sobre a pegada da fresa:
 
-- A altura da punta baixo a ferramenta é exacta para unha ferramenta de punta esférica, redondeada e plana en caras, arestas e esquinas da malla, e nunca supera a altura real; nas liñas paralelas a traxectoria mantense dentro da tolerancia, sen rebaixe máis fondo que iso.
-- As lonxitudes das traxectorias nun plano inclinado coinciden coa forma pechada; as pasadas de escama nun plano están separadas a distancia pedida e a crista entre elas sae á altura pedida.
-- A simulación do material non mostra rebaixe despois dunha pasada e mostra as cristas que quedan.
+- A altura da punta baixo a ferramenta é exacta para unha ferramenta esférica, de punta redonda e plana sobre caras, arestas e esquinas da malla, e nunca está por riba da altura real. Nas liñas paralelas, a traxectoria mantense dentro da tolerancia respecto dela, sen rascaduras máis profundas que iso.
+- As lonxitudes das traxectorias nun plano inclinado coinciden coa fórmula pechada. As pasadas de scallop nun plano están separadas a distancia pedida, e a cresta entre elas sae á altura pedida.
+- A simulación do material non amosa rascaduras despois dunha pasada, e amosa as crestas que quedan.
 
-Estas traxectorias non son: son pasadas básicas de acabado, non todo o que ofrece un sistema de produción.
+Estas traxectorias non son o conxunto do que ofrece un sistema de produción: son pasadas básicas de acabado.
 
-- Non construídos: liña de nivel (z constante), limpeza a lapis e de esquinas, pasadas radiais e en espiral, proxección dunha curva sobre a superficie, detección de zonas planas, mecanizado de resto, comprobacións de colisión do portaferramentas e da haste, e calquera inclinación da ferramenta.
-- O centro da ferramenta mantense sobre o modelo: as traxectorias paran no bordo do modelo en vez de sair dela, así que unha parede vertical xusto no bordo non se acaba ata o seu pé.
-- Non se ven os socavados (a superficie é o que a ferramenta atopa desde arriba).
-- O modelo é a malla do núcleo, así que as traxectorias seguen a malla (a súa tolerancia de corda é de uns 0,0002 da diagonal da peza), non a superficie exacta.
-- Acabar un modelo grande con tolerancia fina crea un programa longo con moitos movementos curtos. Comprobe a saída no simulador da súa máquina antes de cortar.
+- Non construído: acabado a nivel de auga (z constante), limpeza de lapis e de esquinas, pasadas radiais e en espiral, proxección dunha curva sobre a superficie, detección de zonas planas, comprobación de colisións do portaferramentas e do vástago. O desbaste e o mecanizado de restos son operacións propias ([Desbaste 3D e mecanizado de restos](topic:rough-3d)); unha ferramenta que se inclina é o [acabado de 5 eixos](topic:multi-axis#5-axis-finishing).
+- O centro da ferramenta mantense sobre o modelo: as traxectorias paran na aresta do modelo en vez de seguir fóra del, así que unha parede vertical xusto na aresta non se acaba ata o seu pé.
+- Os socavados non se ven (a superficie é o que a ferramenta atopa desde arriba).
+- O modelo é a malla do kernel, así que as traxectorias seguen a malla (a súa tolerancia de corda é de uns 0,0002 da diagonal da peza), non a superficie exacta.
+- Acabar un modelo grande cunha tolerancia fina dá un programa longo con moitos movementos curtos. Comprobe a saída no simulador da súa máquina antes de cortar.

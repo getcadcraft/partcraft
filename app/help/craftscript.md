@@ -87,6 +87,10 @@ In Lua and Python they are `cs.param('width')` and `cs.params()`. Scripts only r
 
 Every script in the tabs is kept in the part, so {{ui:Save}} in the File group saves them with it and changes to them can be undone. Opening a part **never runs its scripts**: the console says how many it carries, and they run only when you press Run. A part from someone else can hold any script: read it before you run it. Scripts run in the background on this computer with no network access and cannot touch the page.
 
+## Examples to copy
+
+The library examples (example_cantilever, example_capacitor, example_channel) are also at [github.com/getcadcraft/examples](https://github.com/getcadcraft/examples), each with what it should print and a picture of the finished run, next to LISP routines for CadCraft and recipes for the command line.
+
 ## Related
 
 - [The CraftScript language](topic:craftscript-language)

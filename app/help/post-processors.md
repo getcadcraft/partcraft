@@ -63,6 +63,21 @@ Lines starting `//` and blank lines are ignored. At the top come the settings; t
 
 They run in this order for a program: `start`; then for each operation `operation`, `tool-change` (when the tool changes), `spindle` (when the speed changes), `approach` (the move up to the first point, before the first rapid), `coolant-on`, then its moves as `rapid`, `feed` and `arc`, and each canned cycle as `cycle-start`, one `cycle-hole` per hole and `cycle-end`; at last `end`.
 
+More events, for what goes beyond three axes (a post without the event refuses such a program and names the event it lacks):
+
+| Event | When | Its variables |
+|---|---|---|
+| `index` | Before an operation whose tool direction differs from the last one, and before the first operation on a machine with rotary axes | `rot.a`, `rot.b`, `rot.c` (the positions to go to; empty for an axis the machine does not have), `first.x`, `first.y`, `first.z` |
+| `rapid-rotary`, `feed-rotary` | The moves of an operation whose rotary axes move while it cuts | `x`, `y`, `z`, `rot.a`, `rot.b`, `rot.c`, `f`, `rot.moved`, `inverse` (yes when the feed must be inverse time), `invf` (1/minutes) |
+| `rotary-end` | After such an operation | |
+| `probe-move` | A move that stops when the probe trips | `x`, `y`, `z`, `f`, `probe.n` (1 to 4), `probe.axis` (x, y or z), `probe.k` (1, 2 or 3) |
+| `probe-set` | After the touches of one probing cycle | `probe.kind` (`"z"`, `"x"`, `"y"` or `centre`), `probe.action` (`set` or `measure`), `probe.expect`, `probe.cx`, `probe.cy` |
+| `thread` | A threading move on a lathe | `x`, `z`, `thread.lead` |
+
+Also for every event: `kin` (none, a, b, ac, bc), `rotary` and `tcp` (yes or no, from the machine in Setup), `pivot.x`, `pivot.y`, `pivot.z`, the operation's `op.tilt` and `op.turn`, and on a lathe `spin.mode` (css or rpm), `spin.css`, `spin.max` and `tool.nose`. A letter word whose value is empty, such as `A{rot.a}` on a machine with no A axis, is left out of the line. Compare with x, y and z as text in quotes (`if probe.kind == "z"`): bare, they are the move's coordinates.
+
+Two more lines at the top of a post make it a lathe post: `machine lathe` (it then writes X and Z only, and refuses milling paths as a milling post refuses turning paths) and `lathe-x diameter` or `lathe-x radius`.
+
 Each event can use the variables of its own kind of move, written `{name}`: the program (`name`, `program`, `setup.axis`, `setup.origin`, `setup.coolant`), the stock (`stock.kind`, `stock.d`, `stock.sx`, `stock.sy`, `stock.sz`, `stock.minx` … `stock.maxz`), the tool (`tool.number`, `tool.desc`, `tool.kind`, `tool.d`, `tool.flutes`, `tool.fluteLen`), the operation (`op.name`, `op.type`), `rpm`, the point of a move (`x`, `y`, `z`, `f`, and `moved`: true when an axis changed), arcs (`arc.g` 2 or 3, `arc.i`, `arc.j`, `arc.cx`, `arc.cy`) and holes (`hole.x`, `hole.y`, `hole.z`, `hole.r`, `hole.q`, `hole.return`, `hole.first`, `cycle.kind`, `cycle.init`, `feed`). The editor's **Events and variables** list shows which event sees which. State you can read and set: `cool`, `offset`, and `at.x`, `at.y`, `at.z`, `at.f` (the last values written).
 
 ## Statements
@@ -83,4 +98,4 @@ A word is typed text with `{variable|filter}` holes. The filters are `upper`, `l
 
 ## What a post cannot do
 
-It decides how the moves are written, nothing more. It cannot change a toolpath, order operations, split an arc, add an axis, know your machine's travel or kinematics, or do arithmetic on coordinates (there is no `+`). Probing, tool-life and subprogram cycles, 4th- and 5th-axis output and lathe codes are not built. A `.cps`-style post file from another program cannot be loaded: this is a different, simpler format.
+It decides how the moves are written, nothing more. It cannot change a toolpath, order operations, split an arc, add an axis, know your machine's travel or kinematics, or do arithmetic on coordinates (there is no `+`). The rotary positions themselves come from the machine described in Setup, not from the post: a post can change their sign or their letters, not the kinematics. Tool-life and subprogram cycles are not built. A `.cps`-style post file from another program cannot be loaded: this is a different, simpler format.

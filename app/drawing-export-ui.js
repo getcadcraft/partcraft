@@ -41,7 +41,7 @@ export function mountDrawingExport(ctx) {
     ctx.pick = null; ctx.multi = []; ctx.view.setHighlight(null); ctx.view.setMarks(null);
     if (!ctx.sheetView) ctx.sheetView = new SheetView(ui.sheet, {
       isPad: (e) => looksLikePad(e),   // 0.8 D7.56: a trackpad swipe pans the sheet
-      onClick: (x, y) => drawingClick(x, y),
+      onClick: drawingClick,
       onNoteDown: (id) => { ctx.drawingState.sel = id; ctx.drawingState.tool = null; composeShow(); renderAll(); },
       onNoteDrag: (id, dx, dy) => { ctx.drawingState.drag = { id, dx, dy }; composeShow(); },
       onNoteDrop: (id, dx, dy) => { ctx.drawingState.drag = null; commitDrawing(t('app.undo.move_note'), (d) => { const n = d.notes.find((q) => q.id === id); if (n) n.off = [+(n.off[0] + dx).toFixed(2), +(n.off[1] + dy).toFixed(2)]; }); },

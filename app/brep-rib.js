@@ -11,6 +11,7 @@ import * as V from './vec.js';
 import { pointXY } from './sketch.js';
 import { lineChain } from './sheetmetal.js';
 import { t } from './i18n.js';
+import { len2 as len, sub2 as sub } from './geom-vec.js';   // shared helpers (0.11 PERF.74)
 
 export function installRib(FEATURES, lib) {
   const { fail, SMap, sketchOf } = lib;
@@ -26,7 +27,6 @@ export function installRib(FEATURES, lib) {
     // how far is "beyond the body": the body's whole size, from its box
     const bb = ctx.bbox(ctx.body);
     const E = 4 * Math.max(1, V.len(V.sub(bb.max, bb.min)) + V.len(V.sub(V.mul(V.add(bb.max, bb.min), 0.5), frame.o)));
-    const sub = (a, b) => [a[0] - b[0], a[1] - b[1]], len = (a) => Math.hypot(a[0], a[1]);
     const unit = (a) => [a[0] / len(a), a[1] / len(a)];
     const n = pts.length;
     const d0 = unit(sub(pts[1], pts[0])), d1 = unit(sub(pts[n - 1], pts[n - 2]));

@@ -243,7 +243,8 @@ export function memberTools(f, ctx, lib) {
     let lo = Infinity, hi = -Infinity;
     for (let k = 0; k < P.length; k += np) { const s = (P[k] - m.a[0]) * m.d[0] + (P[k + 1] - m.a[1]) * m.d[1] + (P[k + 2] - m.a[2]) * m.d[2]; if (s < lo) lo = s; if (s > hi) hi = s; }
     const ang = (e) => { const end = m.ends[e]; if (!end.cut) return 0; return Math.round(Math.acos(Math.min(1, Math.abs(V.dot(end.cut, m.d)))) * 180 / Math.PI * 100) / 100; };
-    return { i: m.i, length: Math.round((hi - lo) * 10) / 10, angles: [ang(0), ang(1)], ends: m.ends.map((e, k) => (e.kind === 'cope' ? 'fit' : ang(k) > 0.005 ? 'angle' : 'square')) };
+    const r3 = (v) => Math.round(v * 1000) / 1000;   // 0.11 SU.1811: the line in the world (mm), for "Check this frame"
+    return { i: m.i, a: m.a.map(r3), b: m.b.map(r3), length: Math.round((hi - lo) * 10) / 10, angles: [ang(0), ang(1)], ends: m.ends.map((e, k) => (e.kind === 'cope' ? 'fit' : ang(k) > 0.005 ? 'angle' : 'square')) };
   });
   return {
     tools,

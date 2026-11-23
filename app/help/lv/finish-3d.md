@@ -1,39 +1,39 @@
 ---
-title: 3D apdare: paralēlā un skalopa
-summary: Apdariet visu modeļa izliekto virsmu ar lodveida, apaļstūra vai plakanu frēzi paralēlās līnijās jebkurā leņķī vai gājienos iestatītā attālumā, lai izcilņi starp tiem saglabātu prasīto augstumu. Ko ceļi garantē un ko ne.
-keywords: 3d apdare, apdare, paralēlā, rastra, skalopa, nemainīga skalopa, kusps, lodveida frēze, apaļstūra frēze, virsma, pielaide, solis, nogāze, atstājamais materiāls, nolaižamais griezējs, bojājums
-from: e1587d0a
+title: 3D apstrāde: paralēlā un scallop
+summary: Apstrādājiet visu modeļa izliekto virsmu ar lodveida, ar noapaļotu stūri vai plakanu pirksta frēzi paralēlās līnijās jebkurā leņķī vai gājienos noteiktā attālumā, lai izcilņi starp tiem saglabātu jūsu norādīto augstumu. Ko garantē trajektorijas un ko ne.
+keywords: 3D apstrāde, apstrāde, paralēls, rastrs, scallop, nemainīgs scallop, virsotne, lodveida frēze, frēze ar noapaļotu stūri, virsma, pieļaujamā novirze, soļa solis, nogāze, atstājamais materiāls, pilienu frēze, iegriešanās
+from: 942d2341
 ---
 
-Divas operācijas Manufacture darbvietā griež **visas modeļa virsmu** ar instrumentu, kas turēts vertikāli (trīs asis). Tām nav atlases; tās strādā ar visu modeli, kas redzams no augšas. Vispirms apstrādājiet detaļu ar rupjo apstrādi (adaptīvo vai dobumu); apdares gājiens pāri neapstrādātam materiālam brīdina, ka tas griezīs dziļi.
+Divas operācijas sadaļā Ražošana griež **visu modeļa virsmu**, turot instrumentu vertikāli (trīs asis). Tām nav nepieciešama atlase: tās apstrādā visu modeļa daļu, kas redzama no augšas. Vispirms rupji apstrādājiet detaļu (Adaptīvs vai Kabata); apdares gājiens pār nenogrieztu zagatavi brīdina, ka tas griezīs dziļi.
 
-## Paralēlā
+## Paralēls
 
-Taisnas līnijas pāri modelim leņķī, ko iestatāt, **solis** atstatu (daļa no frēzes diametra). Katra līnija seko virsmai: frēzes uzgalis ir tik augstu, cik jābūt, lai nekāda frēzes daļa nenokļūtu zem modeļa, un līnija tiek griezta smalkāk, kur virsma lūst. Ar ieslēgtu **Zig-zag** instruments paliek lejā starp līnijām, kur to var droši izdarīt (pārbaudīts gar kustību); citādi tas paceļas.
+Taisnas līnijas pāri modelim pie **leņķa**, ko iestatāt, ar **soļa soli** starp tām (daļa no instrumenta diametra). Katra līnija seko virsmai: instrumenta gals atrodas tik augstu, cik nepieciešams, lai neviena frēzes daļa nenonāktu zem modeļa, un līnija tiek griezta smalkāk, kur virsma liecas. Ar ieslēgtu **Zigzags** instruments starp līnijām paliek lejā tur, kur to var droši izdarīt (pārbaudīts pa kustības ceļu); citādi tas paceļas.
 
-- **Pielaide**: cik tālu taisns līnijas gabals drīkst atrasties no patiesā uzgaļa augstuma (puse no tās tiek izmantota kā robeža katra gabala vidū). Noklusējums 0.01 mm.
-- **Apdarināt tikai, kur virsma ir vismaz … un ne vairāk kā … (°)**: apdarināt tikai seklas vai tikai stāvas vietas. Kur virsma ir ārpus diapazona, līnija tiek izlaista un instruments paceļas.
-- **Atstājamais materiāls**: modelis nobīdīts par šo attālumu (frēze palielināta par to: precīzi lodveida un apaļstūra instrumentiem; plakans instruments atstāj vismaz tik daudz).
-- **Apakša**: nekas netiek griezts zem šī z.
+- **Pieļaujamā novirze**: cik tālu taisns līnijas gabals drīkst atrasties no patiesā instrumenta gala augstuma (šīs vērtības puse tiek izmantota kā robeža katra gabala vidū). Noklusējums 0,01 mm.
+- **Tikai tur, kur virsma ir vismaz … un ne vairāk kā … (°)**: apstrādāt tikai lēzenas vai tikai stāvas vietas. Kur virsma atrodas ārpus diapazona, līnija tiek izlaista un instruments paceļas.
+- **Atstājamais materiāls**: modelis nobīdīts par šo attālumu (frēze palielināta par to: precīzi lodveida un ar noapaļotu stūri frēzēm; plakanā frēze atstāj vismaz tik daudz).
+- **Apakša**: zemāk par šo z nekas netiek griezts.
 
-## Skalopa
+## Scallop
 
-Gājieni, kas saglabā nemainīgu attālumu pa virsmu viens no otra, tā ka izcilnis (skalopa) starp diviem blakus gājieniem ir prasītais **augstums**. Attālums izriet no augstuma un lodes rādiusa: s = 2·√(2·R·h − h²), piemēram, apmēram 0.69 mm starp gājieniem Ø6 lodei un 0.02 mm izcilnim. Apaļstūra instruments izmanto savu stūra rādiusu. Plakana frēze tiek noraidīta: tai nav izcilņa, ko izmērīt.
+Gājieni, kas virsmā saglabā savstarpēji nemainīgu attālumu, tāpēc izcilnis (scallop) starp diviem blakus gājieniem iegūst jūsu norādīto **augstumu**. Attālums izriet no augstuma un lodes rādiusa: s = 2·√(2·R·h − h²); piemēram, apmēram 0,69 mm starp gājieniem Ø6 lodei un 0,02 mm izcilnim. Frēze ar noapaļotu stūri izmanto sava stūra rādiusu. Plakanā pirksta frēze netiek pieņemta: tai nav izcilņa, ko izmērīt.
 
-Gājieni sākas **no modeļa malas, ejot iekšā**, vai **no tā augšas, ejot lejā**. Tie ir attāluma kontūras pa virsmu (nevis augstuma), tāpēc uz nogāzes tie ir tuvu plānā, bet uz līdzenas vietas tālu viens no otra. Attālums tiek mērīts pēc režģa uz virsmas un ir precīzs līdz aptuveni 1 %; izcilņa augstums ir precīzs, kur virsma ir plakana vai lēni izliekta, un aptuvens, kur tā strauji izliecas. **Climb** patur augstāko virsmas pusi frēzētāja labajā pusē.
+Gājieni sākas **no modeļa malas, virzoties iekšā**, vai **no tā augšas, virzoties lejup**. Tie ir līnijas ar vienādu attālumu pa virsmu (nevis ar vienādu augstumu), tāpēc nogāzē tie plānā ir tuvu viens otram, bet uz plakanas virsmas – tālu viens no otra. Attālums mērīts režģī pa virsmu, un tā precizitāte ir ap 1 %; izcilņa augstums ir precīzs tur, kur virsma ir plakana vai lēzeni izliekta, un aptuvens tur, kur tā strauji liecas. **Climb** nodrošina, ka virsmas augstākā puse atrodas frēzes labajā pusē.
 
-## Cik labi ir ceļi
+## Cik labas ir trajektorijas
 
-Testi pārbauda, izmantojot slēgtas formulas vai neatkarīgu meklēšanu pa frēzes pēdu:
+Testi pārbauda, izmantojot slēgtās formulas vai neatkarīgu frēzes pēdas pilnu pārmeklēšanu:
 
-- Uzgaļa augstums zem instrumenta ir precīzs lodveida, apaļstūra un plakana instrumenta virsmām, malām un stūriem tīklā, un nekad nav augstāks par patieso augstumu; paralēlajām līnijām ceļš paliek pielaides robežās, bez bojājuma dziļāka par to.
-- Ceļu garumi uz slīpas plaknes sakrīt ar slēgto formulu; skalopas gājieni uz plaknes ir prasītajā attālumā, un starp tiem paliekošais izcilnis ir prasītajā augstumā.
-- Materiāla simulācija pēc gājiena nerāda bojājumu un parāda palikušos izcilņus.
+- Instrumenta gala augstums zem frēzes ir precīzs lodveida, ar noapaļotu stūri un plakanai frēzei uz sejām, malām un stūriem tīklā un nekad nav augstāks par patieso augstumu; paralēlām līnijām trajektorija paliek šīs pieļaujamās novirzes robežās, bez iegriešanās dziļāk par to.
+- Trajektoriju garumi slīpā plaknē atbilst slēgtajai formulai; Scallop gājieni uz plaknes atrodas pieprasītajā attālumā, un izcilnis starp tiem iegūst pieprasīto augstumu.
+- Zagataves simulācija pēc gājiena nerāda iegriešanos un parāda atlikušos izcilņus.
 
-Ko šie ceļi nav: tie ir pamata apdares gājieni, nevis viss, ko piedāvā ražošanas sistēma.
+Šīs trajektorijas nav: tās ir pamata apdares gājieni, nevis viss, ko piedāvā ražošanas sistēma.
 
-- Nav izveidots: konstantas z kontūra (waterline), stūru un pildspalvas tīrīšana, radiālie un spirāles gājieni, līknes projicēšana uz virsmas, plakanu laukumu noteikšana, atlikuma apstrāde, turētāja un kāta sadursmju pārbaudes un jebkāda instrumenta sasvēršana.
-- Instrumenta centrs paliek pāri modelim: ceļi apstājas pie modeļa malas, nevis aizietu pāri tai, tāpēc vertikāla siena tieši malā netiek apdarināta līdz pamatnei.
-- Apakšgriezumi netiek redzēti (virsma ir tas, ko instruments sastop no augšas).
-- Modelis ir tīkls no kodola, tāpēc ceļi seko tīklam (tā akordu pielaide ir aptuveni 0.0002 no detaļas diagonāles), nevis precīzai virsmai.
-- Liela modeļa apdare ar smalku pielaidi rada garu programmu ar daudziem īsiem gājieniem. Pārbaudiet izvadi savā mašīnas simulatorā pirms griešanas.
+- Nav izveidots: ūdenslīnijas (nemainīga z) apdare, zīmuļa un stūru tīrīšana, radiālie un spirālveida gājieni, līknes projicēšana uz virsmas, plakano laukumu noteikšana, turētāja un kāta sadursmju pārbaude. Rupjā apstrāde un atlikuma apstrāde ir atsevišķas operācijas ([3D rupjā apstrāde un atlikuma apstrāde](topic:rough-3d)); instruments, kas noliecas, ir [5 asu apdare](topic:multi-axis#5-axis-finishing).
+- Instrumenta centrs paliek virs modeļa: trajektorijas apstājas pie modeļa malas, nevis aiziet pāri tai, tāpēc vertikāla siena tieši pie malas netiek apdarināta līdz pat pamatnei.
+- Paslēptie izgriezumi nav saskatāmi (virsma ir tas, ko instruments sastop no augšas).
+- Modelis ir tīkls no kodola, tāpēc trajektorijas seko tīklam (tā hordas pieļaujamā novirze ir ap 0,0002 no detaļas diagonāles), nevis precīzai virsmai.
+- Liela modeļa apdare ar smalku pieļaujamo novirzi rada garu programmu ar daudzām īsām kustībām. Pirms griešanas pārbaudiet rezultātu sava iekārtas simulatorā.

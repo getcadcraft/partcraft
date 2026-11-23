@@ -14,8 +14,8 @@
  */
 import * as S from './sketch.js';
 import { projectEdge } from './sketch-tools.js';
+import { dot3 as dot } from './geom-vec.js';   // shared helpers (0.11 PERF.74; tools/perf/util-copies.mjs)
 
-const dot = (u, v) => u[0] * v[0] + u[1] * v[1] + u[2] * v[2];
 
 export function faceOutline(sk, frame, edges, faceName) {
   let made = 0, skipped = 0;

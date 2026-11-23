@@ -15,6 +15,7 @@
  */
 import { CAPS, sizeBytes, readValue } from './cs-values.js';
 import { t } from './i18n.js';
+import { packsForWorker } from './engineer/material-pack.js';
 
 export function createEngine({ makeWorker, onPrint = () => {}, onDisplay = () => {}, onFile = () => {}, mirrorLimit = CAPS.workspace } = {}) {
   let w = null, fresh = true, running = 0, info = null;
@@ -51,7 +52,7 @@ export function createEngine({ makeWorker, onPrint = () => {}, onDisplay = () =>
     async run(source, { lang = 'craft', file = '', budget, files, libBase, part, params } = {}) {
       running++;
       try {
-        const r = await call('csRun', { source: String(source), lang, file, budget, files, libBase, ...(part !== undefined ? { part } : {}), ...(params ? { params } : {}) }, {
+        const r = await call('csRun', { source: String(source), lang, file, budget, files, libBase, packs: packsForWorker(), ...(part !== undefined ? { part } : {}), ...(params ? { params } : {}) }, {
           onProgress: (m) => {
             if (!m || typeof m !== 'object') return;
             if (typeof m.print === 'string') onPrint(m.print);

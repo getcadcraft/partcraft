@@ -3,7 +3,7 @@ title: Design a BimCraft element and save it back
 summary: A part sent from BimCraft opens with the building around it, grey and read-only. Change it, then save it back so BimCraft can accept the new shape.
 section: tasks
 order: 91
-keywords: bimcraft, bim, element, send, save back, link, building, context, neighbours, support, bracket, ifc, accept
+keywords: bimcraft, solid, extrusion, csg, bim, element, send, save back, link, building, context, neighbours, support, bracket, ifc, accept
 ---
 
 ## What you'll do
@@ -25,7 +25,8 @@ Work on a part that came from a BimCraft model, in its place in the building, an
 
 ## Good to know
 
-- The shape goes back as a mesh in millimetres, in the element's own axes. The features stay in PartCraft.
+- The shape always goes back as a mesh in millimetres, in the element's own axes. When the element was a straight prism and you only added extrudes and holes, the part's history goes too, as solids: BimCraft can then keep the element as an extrusion with each feature added or cut. The status bar says which went.
+- Fillets, chamfers, patterns, mirrors, revolves and the rest stay in PartCraft, and the shape goes as a mesh only.
 - {{ui:Save back to BimCraft}} does nothing for a part that did not come from BimCraft.
 - A part with no solid yet has nothing to send.
 - Both apps must be open in the same browser: nothing is uploaded, the two pages pass the element between them.

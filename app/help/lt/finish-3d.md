@@ -1,39 +1,39 @@
 ---
-title: 3D apdaila: lygiagreti ir lankinė
-summary: Apdorokite visą modelio lenktą paviršių rutuliniu, pusapvaliu ar plokščiu galandiniu, lygiagrečiomis linijomis bet kokiu kampu arba praėjimais, nutolusiais per nustatytą atstumą, kad tarp jų esančios briaunos išlaikytų jūsų nurodytą aukštį. Ką trajektorijos garantuoja ir ko ne.
-keywords: 3d apdaila, apdaila, lygiagrečiai, rastras, lankinė, pastovi lankinė, briauna, viršūnė, rutulinis galandinis, pusapvalis galandinis, paviršius, tolerancija, žingsnis, nuolydis, paliekama medžiaga, nuleidimo frezą, įpjova
-from: e1587d0a
+title: 3D apdaila: lygiagrečiai ir banguotumas
+summary: Apdailinkite visą modelio kreivą paviršių rutuliniu, pusapvaliu arba plokščiu galiniu frezu, lygiagrečiomis linijomis bet kuriuo kampu arba perėjimais, nutolusiais per nustatytą atstumą, kad tarp jų likusios keterės išlaikytų jūsų nurodytą aukštį. Ką garantuoja takai ir ko – ne.
+keywords: 3d apdaila, apdaila, lygiagrečiai, rastras, banguotumas, pastovus banguotumas, keterė, rutulinis frezas, pusapvalis frezas, paviršius, tolerancija, žingsnis tarp eilių, nuolydis, paliekamas ruošinys, frezo nuleidimas, įpjova
+from: 942d2341
 ---
 
-Dvi Gamybos (Manufacture) operacijos frezuoja **visą modelio paviršių**, įrankį laikydamos vertikaliai (trys ašys). Jos nereikalauja pasirinkimų: veikia su visa modelio dalimi, kurią matyti iš viršaus. Pirmiausia atlikite šiurkštųjį apdirbimą (adaptyviai arba kišenėmis); apdailos praėjimas per neišpjautą medžiagą įspės, kad pjautų giliai.
+Dvi Gamyboje operacijos pjauna **visą modelio paviršių**, įrankiui išlaikant vertikalią padėtį (trys ašys). Jos nereikalauja pasirinkimų: dirba su visa modelio dalimi, matoma iš viršaus. Pirmiausia nušiurkštinkite detalę (Adaptyvus arba Kišenė); apdailos perėjimas per neapdorotą ruošinį įspės, kad pjaus per giliai.
 
-## Lygiagrečiai
+## Lygiagretumas
 
-Tiesios linijos per visą modelį nustatytu **kampu**, **žingsniu** atstumu viena nuo kitos (dalis nuo frezos skersmens). Kiekviena linija seka paviršių: frezos galas yra tiek aukštai, kiek būtina, kad nė viena frezos dalis nenusileistų žemiau modelio, o linija pjaunama smulkiau, kur paviršius lenkiasi. Įjungus **Zigzagas**, frezos galas lieka nuleistas tarp linijų ten, kur tai saugu (patikrinama palei judėjimą); kitu atveju jis pakyla.
+Tiesios linijos per modelį **kampu**, kurį nustatote, su **žingsniu tarp eilių** (dalis įrankio skersmens). Kiekviena linija seka paviršių: frezo galiukas yra tiek aukštai, kiek būtina, kad nė viena frezo dalis nenusileistų žemiau modelio, o linija pjaunama smulkiau ten, kur paviršius linksta. Įjungus **Zigzagas**, įrankis lieka įleistas tarp linijų tose vietose, kur tai saugu (tikrinama išilgai judesio); kitu atveju jis pakyla.
 
-- **Tolerancija**: kiek tiesi linijos dalis gali nukrypti nuo tikro galo aukščio (vidurio taškuose naudojama pusė jos kaip riba). Numatyta 0.01 mm.
-- **Tik ten, kur paviršius bent … ir daugiausia … (°)**: apdirbkite tik lėkščias sritis arba tik stačias. Kur paviršius už ribų, linija praleidžiama, o frezos galas pakyla.
-- **Paliekama medžiaga**: modelis, poslinkintas tuo atstumu (frezos dydis padidinamas juo: tiksliai rutuliniams ir pusapvaliams įrankiams; plokščias įrankis palieka bent tiek).
-- **Dugnas**: nieko nepjaunama žemiau šio z.
+- **Tolerancija**: kiek tiesi linijos dalis gali nukrypti nuo tikro galiuko aukščio (kiekvienos dalies viduryje kaip riba naudojama pusė šios reikšmės). Numatytoji reikšmė 0.01 mm.
+- **Tik ten, kur paviršius yra bent … ir ne daugiau kaip … (°)**: apdailinkite tik lėkščias arba tik statesnes sritis. Kur paviršius yra už intervalo, linija praleidžiama, o įrankis pakyla.
+- **Paliekamas ruošinys**: modelis, paslinktas per tą atstumą (frezas tiek pat padidintas: tiksliai rutuliniams ir pusapvaliems įrankiams; plokščias įrankis palieka bent tiek).
+- **Apačia**: nieko nepjaunama žemiau šios z koordinatės.
 
-## Lankinė
+## Banguotumas
 
-Praėjimai, išlaikantys pastovų atstumą paviršiuje vienas nuo kito, todėl tarp dviejų gretimų praėjimų likusi briauna (lankas) turi nurodytą **aukštį**. Atstumas išplaukia iš aukščio ir rutulio spindulio: s = 2·√(2·R·h − h²), pavyzdžiui apie 0.69 mm tarp praėjimų Ø6 rutuliui ir 0.02 mm lankui. Pusapvalis įrankis naudoja savo kampo spindulį. Plokščias galandinis atmetamas: jis neturi lanko, kurio dydį reikėtų nustatyti.
+Perėjimai, išlaikantys pastovų atstumą paviršiuje vienas nuo kito, todėl keterė (banguotumas) tarp dviejų gretimų perėjimų turi nurodytą **aukštį**. Atstumas apskaičiuojamas pagal aukštį ir rutulio spindulį: s = 2·√(2·R·h − h²); pavyzdžiui, apie 0.69 mm tarp perėjimų Ø6 rutuliui ir 0.02 mm keterei. Pusapvalis įrankis naudoja savo kampo spindulį. Plokščias galinis frezas atmetamas: jis neturi keterės, kurią būtų galima apskaičiuoti.
 
-Praėjimai prasideda **nuo modelio krašto, eidami į vidų**, arba **nuo jo viršaus, eidami žemyn**. Tai atstumo kontūrai paviršiuje (ne aukščio), todėl ant nuolydžio jie plane arti vienas kito, o ant lygumos plačiai išsidėstę. Atstumas matuojamas paviršiaus tinklelyje ir yra tikslus iki maždaug 1 %; lankų aukštis tikslus ten, kur paviršius plokščias ar lėtai lenktas, ir apytikslis ten, kur jis greitai lenkiasi. **Climb** palieka aukštesnę paviršiaus pusę frezos dešinėje.
+Perėjimai pradedami **nuo modelio krašto, einant į vidų**, arba **nuo jo viršaus, einant žemyn**. Tai yra atstumo paviršiumi kontūrai (ne aukščio kontūrai), todėl ant nuolydžio jie plane arti vienas kito, o ant lygumos – toli. Atstumas matuojamas tinklelyje virš paviršiaus ir yra tikslus maždaug iki 1 %; keterės aukštis tikslus ten, kur paviršius lygus arba švelniai išlenktas, ir apytikslis ten, kur jis greitai linksta. **Sinchroninis frezavimas** išlaiko aukštesnę paviršiaus pusę frezo dešinėje.
 
-## Kaip geros trajektorijos
+## Kaip geri takai
 
-Ką tikrina testai, naudojant uždaras formules ar nepriklausomą visos frezos pėdsakos paiešką:
+Ką patikrina testai, naudodami uždarąsias formules arba nepriklausomą frezo pėdsakų perrinkimą:
 
-- Galo aukštis po įrankiu tikslus rutuliniam, pusapvaliam ir plokščiam įrankiui ant paviršių, briaunų ir kampų tinklo, ir niekada neviršija tikro aukščio; lygiagrečioms linijoms trajektorija lieka tolerancijos ribose, o įpjova nėra gilesnė už ją.
-- Trajektorijų ilgiai ant pasvirusios plokštumos sutampa su uždara formule; lankinių praėjimų atstumas plokštumoje yra prašomas, o lankas tarp jų išeina prašomo aukščio.
-- Medžiagos modeliavimas po praėjimo neparodo įpjovos ir parodo likusius lankus.
+- Galiuko aukštis po įrankiu yra tikslus rutuliniam, pusapvaliam ir plokščiam įrankiui ant tinklo paviršių, kraštų ir kampų ir niekada nėra didesnis už tikrąjį aukštį; lygiagrečioms linijoms takas išlieka tolerancijos ribose, be įpjovos, gilesnės nei ta riba.
+- Takų ilgiai ant pasvirusios plokštumos sutampa su uždarąja formule; banguotumo perėjimai plokštumoje yra prašomu atstumu vienas nuo kito, o tarp jų likusi keterė yra prašomo aukščio.
+- Ruošinio imitavimas po perėjimo nerodo įpjovų į detalę ir parodo likusias keteres.
 
-Ko šios trajektorijos nėra: tai pagrindiniai apdailos praėjimai, o ne viskas, ką siūlo gamybinė sistema.
+Tai nėra visa, ką siūlo gamybinė sistema: tai pagrindiniai apdailos perėjimai.
 
-- Neįdiegta: vandens linija (pastovus z), pieštuko ir kampų valymas, spinduliniai ir spiraliniai praėjimai, kreivės projektavimas ant paviršiaus, plokščių sričių aptikimas, poilsio apdirbimas, laikiklio ir kotelio susidūrimų tikrinimas bei bet koks įrankio pasvirimas.
-- Frezos centras lieka virš modelio: trajektorijos sustoja ties modelio kraštu, o ne tęsiasi už jo, todėl vertikali siena tiesiai ties kraštu nėra apdirbta iki savo pagrindo.
-- Įpjovos nematomos (matomas yra paviršius, kurį freza sutinka iš viršaus).
-- Modelis yra branduolio tinklas, todėl trajektorijos seka tinklą (jo chord tolerancija maždaug 0.0002 detalės įstrižainės), o ne tikrą paviršių.
-- Didelio modelio apdaila smulkia tolerancija sudaro ilgą programą su daugybe trumpų judesių. Prieš frezuodami patikrinkite išvestį savo mašinos simuliatoriuje.
+- Neįgyvendinta: vandens linijos (pastovaus z) apdaila, pieštuko ir kampų valymas, spinduliniai ir spiraliniai perėjimai, kreivės projektavimas ant paviršiaus, plokščių sričių aptikimas, laikiklio ir kočio susidūrimų tikrinimas. Šiurkštinimas ir likučio apdirbimas yra atskiros operacijos ([3D šiurkštinimas ir likučio apdirbimas](topic:rough-3d)); įrankis, kuris pasviręs, yra [5 ašių apdaila](topic:multi-axis#5-axis-finishing).
+- Įrankio centras lieka virš modelio: takai sustoja ties modelio kraštu, o ne išeina už jo, todėl vertikali siena tiesiai prie krašto nėra apdailinama iki pat pagrindo.
+- Paslėpti paviršiai (undercut) nematomi: paviršius yra tai, ką įrankis pasiekia iš viršaus.
+- Modelis yra tinklas iš branduolio, todėl takai seka tinklą (jo akordo tolerancija apie 0.0002 detalės įstrižainės), o ne tikrąjį paviršių.
+- Didelio modelio apdaila smulkia tolerancija sukuria ilgą programą su daugybe trumpų judesių. Prieš pjaudami patikrinkite išvestį savo staklių imitatoriuje.

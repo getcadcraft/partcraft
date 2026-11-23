@@ -23,6 +23,7 @@
 import * as A from './assembly.js';
 import * as V from './vec.js';
 import { t } from './i18n.js';
+import { csvCell as cell, escXml as esc } from './util.js';   // shared helpers (0.11 PERF.74; tools/perf/util-copies.mjs)
 
 export const LAWS = {
   linear: (s) => s,
@@ -198,7 +199,6 @@ export function series(study, what, instName = (id) => id) {
 }
 
 const PALETTE = ['#2b6cb0', '#c05621', '#2f855a', '#b83280', '#6b46c1', '#2c7a7b'];
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const nice = (lo, hi, n = 5) => {
   if (!(hi > lo)) { hi = lo + 1; }
   const raw = (hi - lo) / n, p = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / p, step = (f < 1.5 ? 1 : f < 3 ? 2 : f < 7 ? 5 : 10) * p;
@@ -232,7 +232,6 @@ export function plotSvg(list, opts = {}) {
   return o.join('');
 }
 
-const cell = (v) => { let s = String(v ?? ''); if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
 const f4 = (v) => (Number.isFinite(v) ? String(+v.toFixed(5)) : '');
 
 /** One row per step: time, the driven value and its rate, then per track its position, velocity and speed, the clashes and the least gap. */

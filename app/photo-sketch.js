@@ -23,6 +23,8 @@
  */
 import { toGrey, threshold, despeckle, trace, readScan, RasterError } from './raster/index.js';
 import { addLine, addArc, addCircle, addConstraint, newSketch } from './sketch.js';
+import { ringArea as areaOf } from './geom2d.js';   // shared helpers (0.11 PERF.74; tools/perf/util-copies.mjs)
+import { dist2 as dist } from './geom-vec.js';   // shared helpers (0.11 PERF.74)
 
 const RAD = Math.PI / 180;
 const MAX_PIXELS = 24e6;
@@ -63,7 +65,6 @@ export function outlines(mask, w, h) {
   return loops;
 }
 
-const areaOf = (P) => { let a = 0; for (let i = 0; i < P.length; i++) { const p = P[i], q = P[(i + 1) % P.length]; a += p[0] * q[1] - q[0] * p[1]; } return a / 2; };   // screen y down: clockwise > 0
 
 // ------------------------------------------------------------------------------------------------ fitting
 
@@ -361,7 +362,6 @@ export function sketchFromEntities(entities, loops = []) {
   const sk = newSketch();
   const used = new Set();
   const xy = (id) => { const p = sk.entities.find((q) => q.id === id); return [p.x, p.y]; };
-  const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
   /** Draw e so that it starts at the point id `from` when it has one: an arc is always drawn anticlockwise, from its own start to its own end. */
   const draw = (e, from) => {
     if (e.type === 'circle') return { made: addCircle(sk, e.c, e.r), start: null, end: null };

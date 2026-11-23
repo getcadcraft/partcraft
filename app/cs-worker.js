@@ -3,7 +3,7 @@
  * cs-worker.js — the CraftScript worker's ops (compute-worker.js: host.computeWorker(['cs-worker.js'])). DOM-free; one
  * runtime and one workspace per worker, kept between runs. Protocol (docs/apps/craftscript.md "Worker protocol"):
  *
- *   csRun { source, lang, file, budget, files: [{ name, lang, text }], libBase, part?, bodies? }
+ *   csRun { source, lang, file, budget, files: [{ name, lang, text }], libBase, part?, bodies?, packs? }   (packs: [{ pack, hash }], material-pack.js packsForWorker)
  *         → { ok, error?: { message, line, col, file, stack?, stopped? }, vars, steps, ms }
  *         while running, progress messages: { print: text } · { display: cmd } · { file: { name, bytes, mime } } (a script
  *         saved a file: the page offers it as a download)
@@ -23,6 +23,7 @@ import { addOps } from './worker-ops.js';
 import { makeRuntime, loadLanguage, languageList, builtinList, IO } from './cs-all.js';
 import { readValue, toPlain, typeOf, summary, NAME_RE, CsError } from './cs-values.js';
 import { t } from './i18n.js';
+import { installFromPage } from './engineer/material-pack.js';
 
 let current = null;                       // the running op's ctx (for io's onWrite)
 const fsHost = IO.memoryFs({ onWrite: (name, bytes, mime) => { if (current) current.progress({ file: { name, bytes: bytes.slice(), mime } }); } });
@@ -99,6 +100,8 @@ addOps({
     if (args.part !== undefined || args.bodies !== undefined) {
       IO.setIoHost({ ...fsHost, part: () => (args.part ? readValue(args.part) : null), bodies: () => (Array.isArray(args.bodies) ? args.bodies.map(readValue) : []), params });
     } else IO.setIoHost({ ...fsHost, params });
+    // 0.11 CE.13: the materials packs the page holds (Library add-ons the person added) come with every run; this worker's material_at reads them
+    if (args.packs !== undefined) installFromPage(args.packs);
     current = ctx;
     try {
       return await rt.run(source, { lang: typeof args.lang === 'string' ? args.lang : 'craft', file: typeof args.file === 'string' ? args.file.slice(0, 200) : null });

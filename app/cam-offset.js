@@ -19,18 +19,13 @@
  * chained back into loops (at a pinch point the sharpest left turn wins, which keeps lobes apart).
  * Cost is O(n²) in the number of prims (fine for machining outlines: tens to hundreds of curves).
  */
+import { add2 as add, cross2 as crs, dist2 as dist, dot2 as dot, len2 as len, scale2 as mul, sub2 as sub } from './geom-vec.js';   // shared helpers (0.11 PERF.74; tools/perf/util-copies.mjs)
+export { dist };
 export const TAU = 2 * Math.PI;
 export const EPS = 1e-9;          // parameter tolerance
 export const TOL = 1e-6;          // mm: distance tolerance for trimming
 export const JOIN = 1e-5;         // mm: end points closer than this are the same point when chaining
 
-const sub = (a, b) => [a[0] - b[0], a[1] - b[1]];
-const add = (a, b) => [a[0] + b[0], a[1] + b[1]];
-const mul = (a, s) => [a[0] * s, a[1] * s];
-const dot = (a, b) => a[0] * b[0] + a[1] * b[1];
-const crs = (a, b) => a[0] * b[1] - a[1] * b[0];
-const len = (a) => Math.hypot(a[0], a[1]);
-export const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
 const left = (t) => [-t[1], t[0]];
 const unit = (a) => { const l = len(a) || 1; return [a[0] / l, a[1] / l]; };
 const polar = (c, r, a) => [c[0] + r * Math.cos(a), c[1] + r * Math.sin(a)];

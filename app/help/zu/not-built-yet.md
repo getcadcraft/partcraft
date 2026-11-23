@@ -1,167 +1,168 @@
 ---
-title: Okungakakwakhiwa
-summary: Konke lolu buildi lwe-PartCraft olungakakwenzi, kusukela ezigoqweni ezijikelezayo kuya ekuboniseni kwamayintshi, izilinganiso zemidwebo nezinhlanganisela ezingaphansi, kanye nokwenza okutholakala namuhla.
-keywords: okungekho, okungakakwakhiwa, imikhawulo, izinhlelo, indlela yokuthuthuka, kernel eqondile, fillet, chamfer, shell, sweep, loft, ukungenisa i-step, ukulingisa, ukukhiqiza, isweep sokupha, ukungqubuzana komgogodla we-loft, ubuso be-fillet, izibalo, amayintshi, izilinganiso zemidwebo, izinhlanganisela, ifu, ithebhulethi, ifoni
-from: 9b868162
+title: Okungakakhiwa okwamanje
+summary: Konke okungenziwa yile nguqulo ye-PartCraft okwamanje, kusukela ezindleleni ezigoqayo kuya ekubonisweni ngama-intshi, izilinganiso zokudweba nezinhlelo ezingaphansi, nokuthi yini okufanele wenze esikhundleni salokho namuhla.
+keywords: okungekho, akukakhiwa, imikhawulo, imikhawulo, uhlelo lwesikhathi esizayo, exact kernel, fillet, chamfer, shell, sweep, loft, ukungenisa kwe-step, ukulingisa, manufacture, ukugoqa kwesiphetho, i-face fillet, izibalo, amaintshi, izilinganiso zokudweba, izinhlelo ezingaphansi, cloud, ithebhulethi, ifoni, ukuhamba kumsindo
+from: 97b10a29
 ---
 
-PartCraft iyibuildi lokuqala. Leli khasi libala okungakenziwa yi-PartCraft, ukuze ungasesheli, nokuthi yenzeni namuhla. Akukho usuku lwalokhu.
+I-PartCraft ingunguqulo yokuqala. Leli khasi lidwebe okungenziwa yi-PartCraft yalolu hlobo, ukuze ungazifuni, nokuthi yini okufanele wenze namuhla. Akukho okunalo usuku.
 
-## Idinga i-kernel eqondile
+## Kudinga i-exact kernel
 
-Lolu hlobo lwakha zonke izingxenye nge-mesh kernel (bona [Imesh kernel](topic:solid-kernels)). Konke okungaphansi kudinga i-geometry kernel eqondile, engekho kulolu hlobo. Izingxenye ezigcinwe ngalezi zici ziyavuleka: izici zihlala emlandweni, zimakwe njengokungakakwakhiwa, futhi ziyagcinwa uma ulondoloza.
+Le nguqulo yakha zonke izingxenye nge-mesh kernel (bona [I-mesh kernel](topic:solid-kernels)). Konke okulandelayo kudinga i-exact geometry kernel, engekho kulolu hlobo okwamanje. Izingxenye ezigcinwe nalezi zici ziyavulwa: izici zihlala emlandweni, zimakwe njengezingakakhiwa, futhi ziyagcinwa lapho ulondoloza.
 
-| Akukakwakhiwa | Esikhundleni salokhu, namuhla |
+| Akukakhiwa okwamanje | Esikhundleni salokho, namuhla |
 |---|---|
-| {{ui:Fillet}} kanye {{ui:Chamfer}} emaphethelweni ajikelezayo; ama-fillet anobubanzi oshintsha ngomphetho; amajika ahlanganisa ngobuthambile lapho ahlangana khona (i-mesh kernel iwasika ngama-mitre) | I-Fillet ne-Chamfer zisebenza emaphethelweni aqondile phakathi kobuso obucaba; jikeleza amanye amakhoni eskethini ngaphambi kokuphuma ({{ui:Fillet}} eskethini, {{key:F}}) |
-| {{ui:Shell}} evula ubuso obujikelezayo; izindonga zobukhulu obuhlukene | Vula ubuso obucaba; engeza impahla ngama-extrude lapho udonga kumele lube lukhulu |
-| {{ui:Sweep}}, {{ui:Loft}}, {{ui:Draft}} emabusweni ajikelezayo; ukuphuma kuya ebusweni elilandelayo, ku-vertex noma kuze kube lapho; ama-extrude athambile | Phuma noma jikeleza, ngezinyathelo lapho kudingeka; phuma kubukhulu obulinganiswe nguwe |
-| {{ui:Rib}}, {{ui:Base flange}}, {{ui:Edge flange}} namaphathini aliyisicaba | Phuma ipuleti noma uphrofayili wefini |
-| Ubuso: ukuqeda {{ui:Form}} ibe yingxenye, {{ui:Patch}}, {{ui:Loft surface}}, {{ui:Gordon surface}}, {{ui:Stitch}}, {{ui:Thicken}}, {{ui:Offset surface}}, {{ui:Extend surface}}, {{ui:Trim surface}} | Akutholakali |
-| Izingxenye eziningi: {{ui:Combine}}, {{ui:Move body}}, {{ui:Scale body}}, {{ui:Path pattern}}, izici ezenza umzimba omusha | Isolid eyodwa; amaphethini nezici zokukopisha ngesibonakaliso |
-| Izikethi, amapuleni, ama-axis namaphoyinti ebusweni okuphela i-kernel eqondile ingawathola (ubuso obenziwe i-fillet, udonga lwembobo, ubuso be-solid ethekwe) | Qhoma eskethini ezindizeni eziyisisekelo, ezindizeni zereferensi nasebusweni obucaba be-extrudes ne-revolves |
-| Isizukulwane sedizayini esiphumele esivulwa njengengxenye noma sengezwa kuyo (siba yi-solid ethekiwe) | Landa umphumela njenge-STL noma i-STEP |
-| Ukuhlela ubuso obujikelezayo be-STEP evuliwe njengobuso eqondile; i-STEP eqondile yobuso be-spline, obuhanjisiwe nobuphendulwe kufayela le-STEP, izinhlangothi ze-spline, izinsongo ezenziwe ngomklamo; i-STEP yabanye abenzi bengxenye | {{ui:Vula}} ifunda i-STEP njengama-triangle futhi igcine ubuso obucaba, amasilinda, ama-cone, izindawo nama-torus wefayela ukuze kuthunyelwe ([Vula ifayela le-STEP](topic:import-step)); {{ui:Thumela}} › {{ui:STEP AP242 (isolidi eqondile)}} ibhala zonke izindawo ezinengqondo ngokuqondile futhi izigcina njengama-facet ([Thumela](topic:export-files#for-other-cad-programs-step)); i-macro yomenzi wengxenye yenye ilokhu ibhala |
-| Imijikelezo eqondile ezibonweni zemidwebo | Imibono nemibono yesigaba yenziwa kuma-facet |
-| Izinombolo eziqondile zevolumu, indawo nezikhala | {{ui:Linganisa}} inikeza izinombolo ze-solid enama-facet, incane kancane ezintweni ezijikelezayo; isilungiselelo se-**Amajika** esiphakeme siyazisondeza |
+| {{ui:Fillet}} ne-{{ui:Chamfer}} emaphethelweni ajikeleziwe; ama-fillet anobubanzi oshintshayo ngomphetho; ama-round ahlanganiswa ngokuthambile lapho ehlangana khona (i-mesh kernel iwasika ngama-mitre) | I-Fillet ne-Chamfer zisebenza emaphethelweni aqondile phakathi kobuso obusicaba; gobisa amanye amakhona ngaphambi kokuqunta esketshini ({{ui:Fillet}} esketshini, {{key:F}}) |
+| {{ui:Shell}} ivula ubuso obugobile; izindonga zobukhulu obuhlukile | Vula ubuso obusicaba; engeza izinto ngama-extrude lapho udonga kumele lube lukhulu |
+| {{ui:Sweep}}, {{ui:Loft}}, {{ui:Draft}} ebusweni obugobile; ukuqunta kuya kubuso, kubuso obulandelayo noma kuvertex; ama-extrude athambile | Qunta noma phendula, ngezinyathelo uma kudingeka; qunta ukujula okulinganiswe ngokwakho |
+| {{ui:Rib}}, {{ui:Base flange}}, {{ui:Edge flange}} nezingqwembe ezisicaba | Qunta ipuleti noma iphrofayili yezimfucuza |
+| Izindawo: ukuqeda {{ui:Form}} ngaphakathi engxenyeni, {{ui:Patch}}, {{ui:Loft surface}}, {{ui:Gordon surface}}, {{ui:Stitch}}, {{ui:Thicken}}, {{ui:Offset surface}}, {{ui:Extend surface}}, {{ui:Trim surface}} | Akutholakali |
+| Izingxenye eziningi: {{ui:Combine}}, {{ui:Move body}}, {{ui:Scale body}}, {{ui:Path pattern}}, izici ezenza isigaba esisha | Isolidi eyodwa; amaphethini nezici zokukopisha okuphindwe | 
+| Amasketshi, amapuleni, ama-eksisi namaphoyinti ebusweni okuphela i-exact kernel ingawathola (ubuso olwenziwe yi-fillet, udonga lwembobo, ubuso besolidi elingeniswe) | Dweba ezipuleni eziyisisekelo, ezipuleni zesethulo nasebusweni obusicaba bama-extrude nokuphendula |
+| Isiphetho sedizayini esizuzwe njengengxenye noma sengezwa kuyo (siba yisolidi eyingenisiwe) | Landa umphumela njenge-STL noma STEP |
+| Ukuhlela ubuso obugobile besolidi le-STEP elivuliwe njengobuso oluqondile; i-exact STEP yobuso be-spline, obuphonswa nobuphendulwe kusuka kufayela le-STEP, izinhlangothi ze-spline, izinsimbi ezakhiwe; i-STEP yezinye izinhlelo zokwakha izingxenye | {{ui:Open}} ifunda i-STEP njengezikhonjana futhi igcina ubuso obusicaba, amasilinda, amakhoni, izingqimba nama-torus efayeleni ukuze ihlinzeke ngokuthunyelwa ([Vula ifayela le-STEP](topic:import-step)); {{ui:Export}} › {{ui:STEP AP242 (exact solid)}} ibhala bonke ubuso be-analytic ngokunembile futhi igcina lezo njengama-facet ([Export](topic:export-files#for-other-cad-programs-step)); i-macro yezinye izinhlelo zokwakha izingxenye isabhala |
+| Amawaka eqondile ku-drawing views | Izivivinyo nezivivinyo zesigaba zidwetshwe kusuka kuma-facet |
+| Amavolumu, izindawo namabanga ngokunembile | {{ui:Measure}} inikeza izinombolo zesolidi ye-faceted, zincane kancane ezingxenyeni ezijikelezayo; isethingi ye-**Curves** eshaya kakhulu iyazisondeza |
 
-Amanye amakholomu emitapo engezansi aphakamisa enye yalezi zici njengendlela yokwenza enye into. Lezo zincomo zisebenza uma i-kernel eqondile ibuyile.
+Amanye amakhodi kwamathebula angezansi aphakamisa enye yalezi zici njengendlela yokuzungeza into ethile ngenye. Lezo zincomo zisebenza uma i-exact kernel ibuyile.
 
 ## Izici
 
-| Akukakwakhiwa | Esikhundleni salokhu, namuhla |
+| Akukakhiwa okwamanje | Esikhundleni salokho, namuhla |
 |---|---|
-| Ama-fillet abuso, ama-fillet ajikelezile ngokuphelele, ama-fillet anobubanzi obusethwe emaphointini ngomphetho | {{ui:Fillet}} oshintshayo oqinile noma oshintshayo ngokuqondile; izici eziningi ze-fillet |
-| Amashelu anobukhulu bodonga obuhlukene | Ukukodwa {{ui:Shell}} ubukhulu; engeza impahla ngama-extrude lapho udonga kumele lube lukhulu |
-| I-draft ku-ubuso oluhlaza (spline) | {{ui:Draft}} isebenza kubuso obucaba, obujikelezayo nobuconyiwe |
-| Ama-sweep ajikelezayo, ama-sweep odonga abuncane nobuso; ukuthinta kokugcina kwesici se-Loft; i-loft ngerela elilodwa lesiqondiso; izindlela ze-spline | {{ui:Sweep}} ngokuhlela okulungisiwe noma isikali sokugcina; i-loft ngamarela amabili noma ngaphezulu: bona [Sweep, loft and draft](topic:sweep-loft-draft) |
-| Ama-rib avela kumajika noma kuma-spline; ama-rib akhula asikwele kuskethi (kusuka kumbono ophezulu); i-draft kuma-rib; amanye ama-rib kusketshi kanye | {{ui:Rib}} ngesiqoqo semigqa eyodwa ngendiza yefini ngokwalo: bona [Ribs and gussets](topic:rib) |
-| "Kuze kube" ubuso obujikelezayo, "kuze kube okulandelayo" kuma-stop obusebujikelezayo | Kuze kube ubuso obucaba noma indiza yereferensi |
-| Imbobo ezinjalo ezine-counterdrill, imisongo ye-inch nowepayipi, imisongo emile, ukuphela komsongo kanye nokuqala okuncishisiwe komsongo | Counterbore ngokujula okuncane; imisongo ye-ISO metric ne-trapezoidal, eyenziwe ngokubonakala noma ngokwakhiwa: bona [Imisongo ezinhlamvwini nasembobeni, edwetshiwe noma eyakhiwe](topic:threads) |
-| Ama-extrude adonga elincane | Dweba zombili izindonga zeprofayili |
-| Amakhophi ahlelwe ngokuqondile, ama-fill patterns | Sebenzisa izici ezihlukene; amaphethini asendleleni eyiyo: {{ui:Path pattern}} |
-| Ukukopisha amaphethini, ama-mirror, ama-fillet, ama-chamfer, ama-shell nezolid ezingeniswe | Kopisha iskethi noma isici okwakhiwe kuso, noma yenza iphethini kuso |
-| Ukuthinta okuqondile (G1) emaphointini aphambene e-form; ukuhlanganisa amapetshi e-form ibe ubuso obukhulu | Phakamisa i-Level ye-form: amapetshi acishisiwe ayancipha; bona [Freeform shapes with Form](topic:form-surfaces) |
-| I-form eyenziwe ngezingcezu ezimbalwa eziqondile esici esisodwa; izigaxa phakathi kwama-form | Ingcezu eyodwa evaliwe ngesici se-Form ngasinye; zihlanganise ngo-Join |
-| Ukukhetha imizimba yobuso kumbono (ngaphandle kwamaphoyinti okusika nokufaka ipetshi); ama-fillet obuso; ukungasika; amapetshi we-G2; ama-Gordon surfaces athinte amajika omakhelwane (ukuthinta amapuleni nobuso obucaba kwakhiwe) | Zikhethe ngegama ephaneli yesici; jiyisa kuqala, bese wenza i-fillet ku-solid |
-| Uhlu lwemizimba emlandweni; ukushiya imizimba efihliwe ngaphandle kokuthunyelwa | Qamba futhi ufihle imizimba ohlwini lwemizimba ephaneli yengxenye; susa noma vimbela isici esenze umzimba ukuze uyishiye ngaphandle |
-| Ukushintsha usayizi okungafani okugcina amasilinda namakhoni eqondile; ukushintsha usayizi okungafani kobuso obuhambisiwe | {{ui:Shintsha usayizi womzimba}} yenza ubuso obujikelezayo bube ama-B-spline avaliwe (ngaphakathi kuka-0.0000004 mm); ukushintsha usayizi okulinganayo kuhlala kukhona |
-| Ukuhlanganisa imizimba yobuso; ukufingqa kwe-Minkowski | {{ui:Stitch}} noma {{ui:Thicken}} kuqala, bese {{ui:Combine}} |
-| Ukuhlolwa kwetholerensi: izinkomba zamashelu aguqukayo ezinkomba (izigaxa zevekthafu ezi-2D nezi-3D), ukuzwela okubalwe kusuka ejiyomethrini, i-Monte Carlo ngokusatshalaliswa okunye, izilinganiso zetholerensi kuskethi, itholerensi yebhonasi ekuhleleni kwempahla | {{ui:Isakhiwo setholeransi}} ekuhlanganisweni: indlela eyodwa, okubi kakhulu kanye ne-RSS, amathholerensi abhalwe, noma avela ku-general tolerance yebhulokhi lesihloko noma kumafreyimu we-GD&T: bona [Tolerance stack-ups](topic:tolerance-stackup) |
-| Ukuhlela: ukuhleleka kokusika kanye nokungena, ukusika imiphetho eyabelwanwe kanye, izingxenye okumele zihlale ndawonye; izinsalela zamarola, impahla eyabiwe phakathi kwamaphrojekthi | {{ui:Hlela izingxenye ezibhethiwe ezishidini…}} nebanga, imikhawulo, ukujikeleza nomqondo: bona [Nest flat parts on sheets](topic:nest-flat-parts); amapuleti asele agcinwa futhi asetshenziswe kuqala: bona [Keep and reuse offcuts](topic:nest-offcuts); hlela ukusika ku-software yomshini wakho wokusika |
-| Ishidi lensimbi: amahemu, ama-jogs, ama-miter nama-contour flanges; ama-flanges emaphethelweni ajikelezayo noma ebusweni be-base flange egobile; amajika alotshwe; izivalo zamakhoni; amathuluzi okubumba; ukuguqula i-solid ibe yishidi lensimbi; iphathini eliyisicaba le-base flange egobile elinemigqa ekuyo; amatafula okugoba | {{ui:Iflange yesisekelo}} (ipuleti noma uphrofayili ogobile), {{ui:Iflange yomphetho}} emigqeni eqondile yephuleti nezinciphisi zokugoba, kanye nephathini eliyisicaba nge-K-factor: bona [Sheet metal](topic:sheet-metal) |
-| Ukuhlaziya kohlaka kuzinhlanganisela; ukuthola umugqa wokuhlukana; ukuhlaziya ubukhulu bodonga | {{ui:Ukuhlaziya kohlaka}} kungxenye ku-Design: bona [Check draft for moulding and casting](topic:draft-analysis); vula ingxenye ngayinye yenhlanganisela ukuze uyihlole |
+| Ama-fillet obuso, ama-fillet agcwele ama-round, ama-fillet anobubanzi obusethwe emaphoyinteni ngomphetho | I-{{ui:Fillet}} enobubanzi obungashintshi noma obushintshayo ngokuqondile; izici eziningi ze-fillet |
+| Amashell anezindonga zobukhulu obuhlukile | I-{{ui:Shell}} eyodwa; engeza izinto ngama-extrude lapho udonga kumele lube lukhulu |
+| I-{{ui:Draft}} ebusweni obungaqondile (i-spline) | I-{{ui:Draft}} isebenza ebusweni obusicaba, obungamasilinda nobungamakhoni |
+| Ukuphendula okuphendukayo, ukuphendula kodonga olulincane nobuso; ukuqedela kwe-tangency ku-loft; i-loft enereyili eyodwa yesiqondisi; izindlela ze-spline | {{ui:Sweep}} enokuqondiswa okusetshenzisiwe noma isikali sokuphela; i-loft enereyili ezimbili noma ngaphezulu yesiqondisi: bona [Sweep, loft ne-draft](topic:sweep-loft-draft) |
+| Izimfucuza ezivela emadlumbeni noma ku-spline; izimfucuza ezikhula ziyisikwele kusketshi (kusukela embonweni owuphezulu); i-draft ezimfucuzeni; izimfucuza eziningi kusketshi owodwa | {{ui:Rib}} kusuka kuchungechunge olulodwa lwemigqa endizeni yesimfucuza siqobo: bona [Izimfucuza nama-gusset](topic:rib) |
+| "Kuze kufike" ebusweni obugobile, "kuze kufike kolandelayo" kuma-face agobile | Kuze kufike ebusweni obusicaba noma endizeni yesethulo |
+| Izimbobo ezibhobozwe ngaphansi, imithambo yamaintshi nephayipi, imithambo ethambile, ukuphela kwemithambo namaqalo emithambo anamakhoni | I-counterbore ngokujula okuncane; imithambo ye-ISO metric nethrapezoidal, ukuthi ibukeka kanjani noma ibhalwe: bona [Imithambo esikhundleni sokuzungeza nemibhobo, edwetshiwe noma eyakhiwe](topic:threads) |
+| Ama-extrude ajulile ngokwezici | Dweba izingxenye zombili zephrofayili |
+| Ukukopisha amaphethini okudlulile ngesinyathelo ngasinye, amaphethini okugcwalisa | Sebenzisa izici ezihlukene; amaphethini adlula ngevini: {{ui:Path pattern}} |
+| Ukukopisha amaphethini, amamirror, ama-fillet, ama-chamfer, ama-shell namasolidi angeniswe | Kopisha isketshi noma isici abakhiwe kuso, noma yenza iphethini kuso |
+| I-tangency ye-(G1) emaphoyinteni angajwayelekile e-form; ukuhlanganisa ama-patch e-form ezingxenyeni ezinkulu | Phakamisa i-Level ye-form: ama-patch angalinganiswa aba amancane; bona [Izimo ezingenasici nge-Form](topic:form-surfaces) |
+| I-form eyakhiwe ngezingcezu eziningi ezivaliwe kusici esisodwa; izinkaxa phakathi kwama-form | Ingcezu eyodwa evaliwe ngesici se-Form ngasinye; ihlanganise nge-Join |
+| Ukukhetha izinsizakalo zobuso embonweni (ngaphandle kwamaphoyinti okusika nokuhlanga); ama-fillet obuso; ukungasika; ama-patch e-G2; ama-Gordon ahlangene nobuso obugobile obuseduze (ahlanganiswa namaphuleti nobuso obusicaba kwakhiwe) | Zikhethe ngegama ephaneli yesici; yenza ubukhulu kuqala, bese wenza i-fillet kwisolidi |
+| Uhlu lwezinsizakalo ku-history; ukungabandakanyi izinsizakalo ezifihliwe ekuthunyelweni | Qamba kabusha futhi ufihle izinsizakalo ephaneli yezinsizakalo; susa noma ucindezele isici esakhe insizakalo ukuze uyishiye ngaphandle |
+| Ukulinganisa okungafani okugcina amasilinda namakhoni e-analytic; ukulinganisa okungafani kobuso obucindezelwe | {{ui:Scale body}} yenza ubuso obugobile bube yi-B-splines eduze (ngaphakathi kuka-0.0000004 mm); ukulinganisa okufanayo kuhlala kunembile |
+| Ukuhlanganisa izinsizakalo zobuso; izimfuno zeMinkowski | {{ui:Stitch}} noma {{ui:Thicken}} kuqala, bese {{ui:Combine}} |
+| Ukuhlaziywa kokubekezelela: izitaki ezigoqa amakhona (izilinganiso ze-vector ezimbili nezintathu), ukuzwela okubalwe kusuka ejiyometri, i-Monte Carlo nokusabalala kwamanye, ukubekezelela kobukhulu ezilinganisweni zesketshi, ukubekezelela okuyisiphuthuma kusuka ebunzimbeni | {{ui:Stack-up}} kwi-assembly: enye indlela, okubi kakhulu kanye ne-RSS, ukubekezelela okuthayipheke, okuvela kwi-general tolerance ye-title block noma kuhlaka lwe-GD&T: bona [Izitaki zokubekezelela](topic:tolerance-stackup) |
+| Ukuhlela: ukuhlukanisa ukusika nokungena; ukusika kwezindawo ezabelwanayo kanye kanye; izingxenye okufanele zigcinwe ndawonye; izinsalela zamaroll, nesitoko esabelwane phakathi kwamaphrojekthi | {{ui:Nest flat parts on sheets…}} ngesikhala, imiphetho, ukugoba nendlela yesiqhoqho: bona [Hlela izingxenye ezibhethiwe ezishidini](topic:nest-flat-parts); amapuleti asele ayagcinwa futhi asetshenziswa kuqala: bona [Gcina bese usebenzisa okusele](topic:nest-offcuts); hlela ukusika kusofthiwe wakho wesikhando |
+| Insimbi ebhethiwe: ukuhlanganisa imiphetho, ukugoba, ama-flange ahlanganisiwe nama-contour; ama-flange emiphetheni egobile noma ebusweni be-base flange egobile; izigoba ezidweba; ukuvalwa kwamakhona; izinsimbi zokwakha; ukuguqula isolidi ibe insimbi ebhethiwe; ibhedi ye-base flange egobile enokusika kuyo; amathebula okugoba | {{ui:Base flange}} (ipuleti noma iphrofayili egobile), {{ui:Edge flange}} emiphetheni eqondile yamapuleti nezindawo zokuphumula, nobuso obusicaba nge-K-factor: bona [Insimbi ebhethiwe](topic:sheet-metal) |
+| Ukuhlaziywa kwe-draft kuma-assembly; ukuthola umugqa wokuhlukanisa; ukuhlaziywa kobukhulu bodonga | {{ui:Draft analysis}} engxenyeni ku-Design: bona [Hlola i-draft yokwakha nokufakwa](topic:draft-analysis); vula yonke ingxenye ye-assembly ukuze uyihlole |
 
-## Izikethi
+## Amasketshi
 
-| Akukakwakhiwa | Esikhundleni salokhu, namuhla |
+| Akukakhiwa okwamanje | Esikhundleni salokho, namuhla |
 |---|---|
-| Ama-ellipse, ama-arc athinta, ama-conic, ama-spline anedigri ebekiwe noma izisindo (NURBS) | Ama-spline (cubic), ama-arc namasongo namabhalansi athintayo |
-| Iphoyinti ku-spline (ubudlelwano), ubudlelwano lwe-curvature (G2) | Beka iphoyinti le-spline lalapho kumele idlule khona |
-| Amakhophi okuhlehla ama-spline angalandela ushintsho olwalandela; okuhlehla kwamajika anamakhona abukhali e-spline | Hlehla futhi emva kokushintsha; jikelezisa ikhona kuqala |
-| Amakhophi okuphindaphinda angahlala exhunyiwe kumsuka; amaphethini asendleleni | Phinda emva kokushintsha |
-| Ukuprojekhthela imiphetho eyisiyingi noma ethambekile, ijiyomethri eprojektiwe elandela ingxenye | Prokhetha imiphetho eqondile nekhwaya ezihlanganayo, bese uyilinganisa |
-| Izilinganiso ezishayekayo (zereferensi) | Funda usayizi ophaneli noma kuma-facts engxenye |
-| Ubudlelwano be-Collinear | Parallel ngebanga le-0 |
-| Ukunamathisela kolunye uhlelo (ibhodi lokudlulisa lesistimu) | Thumela i-DXF, STEP, STL noma 3MF |
-| Ukuthayipha ama-arc, izixhumanisi ezihlobene noma ze-polar | Thayipha imigqa namasongo; dweba ama-arc ngethuluzi le-Arc |
-| Ukukhetha ijiyomethri ngaphandle kwesikhombisi | Kudinga ukuchofozwa noma ukuthintwa |
+| Ama-ellipse, ama-arc athintwayo, ama-conic, ama-spline anedigri ethile noma amandla (NURBS) | Ama-spline (cubic), ama-arc namasilinda nobudlelwano bokuthinta |
+| Iphoyinti ku-spline (ubudlelwano), ubudlelwano be-curvature (G2) | Beka iphoyinti le-spline lapho kumele lidlule khona |
+| Amakhophi e-offset ama-spline alandela ushintsho olulandelayo; ama-offset ezinkomba zama-spline abukhali | Phinda i-offset ngemva kwoshintsho; zungeza ikhona kuqala |
+| Amakhophi amaphethini ahlala exhunywe emthonjeni; amaphethini ngevini | Phinda iphethini ngemva koshintsho |
+| Ukuprojekta amaphethelo ajikelezayo akhululekile noma athambekile, ijiyometri eprojekthiwe elandela ingxenye | Projekta amaphethelo ajikelezayo aqondile nalinganayo, bese ulinganisa |
+| Izilinganiso ezishayelwe (ezireferensi) | Funda usayizi kusuka ephaneli noma kuqoqo le-part |
+| Ukuhlanganiswa okuqondile (collinear) | Parallel nekhala elingu-0 |
+| Ukunamathela kolunye uhlelo (i-clipboard yesistimu) | Thumela ngaphandle i-DXF, STEP, STL noma 3MF |
+| Ukuthayipha amaarc, izixhumanisi ezihlobene noma ze-polar | Thayipha imigqa namasirkili; dweba ama-arc nge-Arc tool |
+| Ukukhetha ijiyometri ngaphandle kwepointa | Kudinga ukuchofoza noma ukuthinta |
 
-## Imingcele nezinyunithi
+## Amapharamitha namayunithi
 
-| Akukakwakhiwa | Esikhundleni salokhu, namuhla |
+| Akukakhiwa okwamanje | Esikhundleni salokho, namuhla |
 |---|---|
-| Izinhlobo ezishintsha izinto; itafula lemiklamo ye-CSV elivala izici | Izinhlobo zibeka imingcele futhi zivule noma zivale izici: bona [Configurations and design tables](topic:design-tables); `partcraft variants` yakha izinhlobo ezigciniwe ngegama, nezici ezivaliwe zifakiwe: bona [Make a variant pack from your configurations](topic:variant-pack) |
-| Izibalo zezinombolo zezici ezisha kakhulu ephaneli yazo (indiza, isweep, draft nezinye) | Zibhale ku-script noma nge-`partcraft set` ([Scripts and the command line](topic:scripts-and-cli)) |
-| Ingxenye ebonwe ngamayintshi | Usayizi ubonisa ngamamilimitha; thayipha `2in` ebhokisini lenombolo noma ekunxephezeleni futhi ishintshe ibe ngu-50.8 |
+| Ukumiswa okushintsha izinto; ithebula lodizayini ye-CSV elivala izici | Ukumiswa kusetha amapharamitha futhi kuvula nokuvala izici: bona [Ukumiswa nethebula lodizayini](topic:design-tables); `partcraft variants` yakha ukumiswa okulondoloziwe ngegama, nezici ezivaliwe: bona [Yenza iphakethe lezinguquko kokumiswa kwakho](topic:variant-pack) |
+| Ukulinganisa kwezinombolo zezici zamanje ze-panel yazo (i-plane, sweep, draft nokufana nakho) | Zibhale ku-script noma nge-`partcraft set` ([Ama-script nomugqa womyalo](topic:scripts-and-cli)) |
+| Ingxenye ebonakala ngamaintshi | Usayizi ubonisa ngamamilimitha; thayipha `2in` ebhokisini lenombolo noma ku-expression bese kuba ngu-50.8 |
 
 ## Amafayela
 
-| Akukakwakhiwa | Esikhundleni salokhu, namuhla |
+| Akukakhiwa okwamanje | Esikhundleni salokho, namuhla |
 |---|---|
-| Ukuhlela izici zesolid ezingeniswe ye-STEP (ifika ingenayo umlando) | Engeza noma usike impahla ngezici zakho |
-| Ukufunda imibala, amagama, isakhiwo sezinhlanganisela kanye ne-PMI kusuka ku-STEP | Akutholakali |
-| Ukuthumela i-glTF, OBJ, IGES, Parasolid; i-DWG yengxenye ye-3D (kuphela i-variant pack ibhala i-DWG: ishidi lemidwebo) | I-STL noma i-3MF yama-mesh; i-STEP yama-solid; i-DXF ye-2D |
-| Ukuvula i-IGES, i-DXF noma amafayela ezinye izinhlelo (amafayela `.3dm` avula njengomzimba owodwa: [Vula imodeli ye-.3dm njengomzimba oqinile](topic:open-3dm-files)) | Cela i-STEP, noma i-STL, OBJ noma i-3MF evaliwe: [Vula i-STL, i-OBJ noma i-3MF](topic:open-meshes) |
-| Isakhiwo sezinhlanganisela (isihlahla namagama engxenye) ku-STEP ethunyelwe | I-STEP yenhlanganisela iyisakhiwo esisodwa sama-solid abekiwe |
-| Ukugcina endaweni oyikhethayo ngaphandle kokudawuniloda kwesiphequluli | Vula "ask where to save" ezilungiselelweni zokudawuniloda zesiphequluli |
+| Ukuhlela izici zesolidi ye-STEP eyengeniwe (ifika ingenayo umlando) | Engeza noma sika izinto ngezici zakho |
+| Ukufunda imibala, amagama, isakhiwo se-assembly ne-PMI kusuka ku-STEP | Akutholakali |
+| Ukuthumela i-glTF, OBJ, IGES, Parasolid; i-DWG yengxenye ye-3D (kuphela i-variant pack ibhala i-DWG: ishidi lokudweba) | I-STL noma i-3MF kumesh; i-STEP kumasolidi; i-DXF kwe-2D |
+| Ukuvula i-IGES, i-DXF noma amafayela ezinye izinhlelo (amafayela `.3dm` avulwa njengesisodwa somzimba: [Vula imodeli ye-.3dm njengesolidi](topic:open-3dm-files)) | Cela i-STEP, noma i-mesh evaliwe ye-STL, OBJ noma 3MF: [Vula i-STL, OBJ noma i-3MF](topic:open-meshes) |
+| Isakhiwo se-assembly (ihlelo lamagama engxenye) kusitoko se-STEP esithunyelwe | I-assembly STEP iyi-compound eyodwa yezinsizakalo ezibekiwe |
+| Ukulondoloza kufolda oyikhethayo ngaphandle kokudawuniloda kwesiphequluli | Vula "ask where to save" kumasethingi okudawuniloda kwesiphequluli |
 
-## Imidwebo
+## Izidwewe
 
-| Akukakwakhiwa | Esikhundleni salokhu, namuhla |
+| Akukakhiwa okwamanje | Esikhundleni salokho, namuhla |
 |---|---|
-| Izilinganiso ngaphezu kwezinkulu ezintathu zangaphandle (usayizi wembobo, izindawo, ukubekezelela kusayizi) | Maka i-PDF, noma thumela i-DXF uyilinganise ku-2D CAD |
-| Ngaphezu kwesigaba esisodwa noma umbono oyodwa oqondile; imibono eyodwa ngesigaba esisodwa nomnyango ngamunye ngomdwebo | Isigaba esisodwa nomcibisholo owodwa ngomdwebo ngamunye |
-| Umbhalo wokhululekile, amanothi nezitebhulethi ebhodini (ngaphandle kwebhulokhi lesihloko nelokuguqulwa) | Inothi lokuqedwa, noma umbhalo ongezwe ku-PDF |
-| Ukuprojekhthela kwe-first-angle, imibono enyakazayo, amashidi aphakanyiswe | I-third angle, indawo yokuhlela ezenzakalelayo, amashidi aphansi A4–A0 nama-ANSI A–E |
-| Isigaba esiphilayo: izindiza eziningi noma ibhokisi lesigaba ngesikhathi esisodwa, umkhawulo ozungeze isigaba, ukonga isigaba efayelini | Indiza eyodwa ngesikhathi kusuka ku-{{ui:Imibono}} › {{ui:Umbono wesigaba}}; bona [Look inside with a section view](topic:section-view) |
-| Imidwebo yezinhlanganisela enemibono, izilinganiso noma amabhalo engiwe | Umbono oyodwa we-isometric (noma wokuqhekeka) nama-balloon azenzakalelayo nohlu lwezingxenye |
-| Ukukopisha nokunamathisela izimpawu ze-GD&T nokuqeda | Beka ngayinye nge-Datum, Frame noma Finish |
-| Izinkondlo: amafayela e-STEP ku-{{ui:Kusuka kwenye ifayela…}} ka-Illustrate, imodeli eshayelwa ngqo kusuka ku-ModelCraft noma i-BimCraft, izithombe zomgomo we-path tracer, i-3D ehlanganyelwe ngaphakathi kwe-PDF | Vula i-STEP ku-Design bese uqala inkondlo ngo-{{ui:Kusuka engxenyeni evulekile}}; londoloza imodeli njenge-glTF (.glb); izithombe ze-PNG zombono we-3D; ifayela le-3D elihlanganyelwe: bona [Start a manual in Illustrate](topic:illustrate) |
+| Izilinganiso ezingaphezu kwezinkulu ezintathu zokuphelela (usayizi wemigodi, izindawo, ukubekezelela kobukhulu) | Phawula i-PDF, noma ithumele i-DXF bese uyilinganisa ngohlelo lwe-2D CAD |
+| Okungaphezu kwesigaba esisodwa noma ingxenye eyodwa; amabhuku ahlanganisiwe, ama-angle abonakalayo nezinhlelo ezingeziwe | Isigaba esisodwa nengxenye eyodwa ngesidwe ngasinye |
+| Umbhalo ngokukhululekile, izinkomba nemitapo ekhasini (ngaphandle kwamabhoku wesihloko nokuguqulwa) | Inothi lokuqeda, noma umbhalo owengeziwe kwi-PDF |
+| Ukuprojekta kwe-first-angle, izibonelo ezinyakazayo, amashidi ahlezi ebude | I-third angle, ukwakheka okuzenzakalelayo, amashidi ahlezi A4–A0 nama-ANSI A–E |
+| Ukubuka isigaba ngokuphilayo: izindiza eziningi noma ibhokisi lesigaba ngesikhathi esisodwa, umugqa wangaphandle ozungeze isigaba, ukugcina isigaba efayeleni | Indiza eyodwa ngesikhathi kusuka ku-{{ui:Views}} › {{ui:Section view}}; bona [Bheka ngaphakathi ngokubuka isigaba](topic:section-view) |
+| Imibono ye-assembly enezinye izibonelo, izilinganiso noma ama-balloon onganyakazisa | Isibonelo se-isometric (noma sihlakazwe) esinama-balloon okuzenzakalelayo nohlu lwezingxenye |
+| Ukukopisha nokunamathisela kwe-GD&T nezimpawu zokuqeda | Beka ngalunye nge-Datum, Frame noma Finish |
+| Imibhalo: amafayela e-STEP ku-{{ui:From another file…}} yesifanekiso, imodeli ethunyelwe ngqo kusuka ku-ModelCraft noma BimCraft, izithombe ngekhwalithi ye-path tracer, i-3D ehlanganyelwe ngaphakathi kwe-PDF | Vula i-STEP ku-Design bese uqala umbhalo ngo-{{ui:From the open part}}; londoloza imodeli njenge-glTF (.glb); izithombe ze-PNG zombono we-3D; ifayela le-3D elihlanganyelwe: bona [Qala umbhalo ku-Illustrate](topic:illustrate) |
 
-## Izinhlanganisela
+## Ama-assembly
 
-| Akukakwakhiwa | Esikhundleni salokhu, namuhla |
+| Akukakhiwa okwamanje | Esikhundleni salokho, namuhla |
 |---|---|
-| Amagiya, izinhlangano zerack, cam kanye nezikulufo; ijoyinti lebhola elikhawulelwe ku-cone; amajoyinti ezindawo ezijikelezayo noma phakathi kwamaphoyinti | Amajoyinti aqinile, ajikelezayo, aguqukayo, ama-cylindrical, ama-planar, ebhola nezikhala ze-pin-in-slot ezindaweni ezicaba, ngayinye inamakhawulo ayo: bona [Build an assembly](topic:build-assembly) |
-| Izinyathelo ezihlukanisayo ezijikeleza izingxenye, nokudonsa izingxenye ezibekwe ngamajoyinti | Izinyathelo ezihlukanisayo eziqondile; susa ijoyinti ukuze uhambise ingxenye ngesandla |
-| Izinhlanganisela ezingaphansi | Izingxenye zezinga elilodwa kuphela |
-| Amagiya, ama-cam, ukuthintana | Akutholakali |
+| Amajoyinti egiya, rack, cam nesikulufo; ijoyinti lebhola elikhawulelwe kukhoni; amajoyinti ezindaweni ezigobile noma phakathi kwamaphoyinti | Ama-joint aqinile, ajikelezayo, ayisilayidi, asicaba, ama-cylindrical, aseyizinzwa, ebhola nesikhala se-pin kubuso obusicaba, ngamanani ngamanani anemikhawulo yawo: bona [Yakha i-assembly](topic:build-assembly) |
+| Izinyathelo zokuhlakaza ezihambisa izingxenye nokuhudula izingxenye ama-joint ayibeka | Izinyathelo ezigoqayo zokuhlakaza; susa i-joint ukuze uhambise ingxenye ngesandla |
+| Ama-sub-assembly | Izinga elilodwa lezingxenye kuphela |
+| Amagiya, ama-cam, ukuxhumana | Akutholakali |
 
 ## Ukukhiqiza
 
-| Akukakwakhiwa | Esikhundleni salokhu, namuhla |
+| Akukakhiwa okwamanje | Esikhundleni salokho, namuhla |
 |---|---|
-| Ukuhlanza kwe-3D kwezindawo ezijikelezayo, ukuhlanza okuzivumelanisayo nge-3D, ukuhlanza okuseleyo; ukwenza ngamapasi e-waterline, pencil, radial ne-spiral; amapasi ahlanzayo abhalwa njengama-arc | 2.5-axis face, pocket, 2D adaptive, contour, drill kanye ne-chamfer: bona [Make toolpaths and G-code](topic:manufacture); ukuqeda ngokufana nangokuscallop kwemodeli yonke: bona [3D finishing](topic:finish-3d) |
-| Amaphathi e-4- nama-5-axis, ukutshala, ukuhlola | Lungisa uhlangothi olulodwa ngesikhathi nomugqa wethuluzi kuthebhu lokusetha |
-| Ukuhlolwa kokungqubuzana kwesibambi nesiqu | Qaphela izexwayiso zobude be-flute bese uhlola kusimulator yesilawuli sakho |
-| Ukuhlolwa kwamaprobe, izimpilo zamathuluzi nemijikelezo yezinhlelo ezingaphansi kwe-post; ukulayisha amafayela e-post ezinye izinhlelo | Bhala noma guqula i-post ngefomethi yePartCraft: bona [Post processors you can edit](topic:post-processors) |
-| I-G-code ngamayintshi (G20) | Amamilimitha (G21) kuphela |
+| Ukuhlanza okuguquguqukayo nokuhlanza ngokuphakama kwe-3D; ukuqeda ngomugqa wokuphakama, ngepensela, ngoradial nangesipiral; amapasi ahambisanayo abhalwa njengama-arc | Ukuhlanza nge-3D ngemigqa eqondile: bona [Ukuhlanzwa nge-3D nokusala okusele](topic:rough-3d); Ukuqedwa kwe-Parallel ne-Scallop: bona [Ukuqedwa nge-3D](topic:finish-3d); ubuso be-2.5-eksisi, i-pocket, i-adaptive ye-2D, contour, drill nochamfer: bona [Yenza izindlela zethuluzi ne-G-code](topic:manufacture) |
+| Ukusika i-swarf, izindlela zomugqa wokugeleza nokuhlanza kwama-eksisi amaningi, amakhodi esikhala sokusebenza esithambekile (G68.2), ukuhlolwa kokushayisana kwe-holder nomshini; ukulingiswa kokusika kwe-5-eksisi nokuzungezayo | Ithuluzi elithambekile kunoma yimuphi umsebenzi, ukuqedwa nge-5-eksisi ngebhola lesiphetho nokuqedwa okuzungezayo ngo-4th-axis: bona [Ukusebenza nama-eksisi ama-4 nama-5](topic:multi-axis) |
+| Ukubhoboza nemithambo yangaphakathi ekhalaleni, imiyalo ye-G71/G76, ama-arc ezindleleni zokuthenda, amathuluzi aphilayo, i-sub-spindle | Ukuthenda ngaphandle: ubuso, rough, finish, groove, part off, thread, drill ku-centre: bona [Ukuthenda emshinini wokuthenda](topic:turning) |
+| Ukuhlola i-angle noma ikhona, isethi yethuluzi, ukukala usayizi ngokubekezelela | Ukuhlola ubuso, uhlangothi, imbobo noma ingxenye ukuze usethe ukushintshwa komsebenzi: bona [Iprobhu](topic:probing) |
+| Ukuhlolwa kokushayisana kwe-holder ne-shank | Qaphela izexwayiso zobude be-flute bese uhlola kusimulator somlawuli wakho |
+| Ukuphila kwethuluzi nomjikelezo wezinhlelo ezincane ku-post; ukulayisha amafayela e-post angewakho | Bhala noma shintsha i-post ngefomethi yePartCraft: bona [Ama-post processor ongawahlela](topic:post-processors) |
+| I-G-code yamayunithi e-inch (G20) | Amamilimitha (G21) kuphela |
 
-## Ukulingisa nokwakha kwedizayini
+## Ukulingisa nokuklama okuzenzakalelayo
 
-| Akukakwakhiwa | Esikhundleni salokhu, namuhla |
+| Akukakhiwa okwamanje | Esikhundleni salokho, namuhla |
 |---|---|
-| Izifundo ezingelinear: ukukhiqizwa, ukuguquka okukhulu, ukuthintana phakathi kwezingxenye, ukukhathala | I-linear static kanye nezinzwa zemvelo: bona [Check stress and deflection](topic:simulation); gcina isilinganiso sokuphepha sikhulu kakhulu kuno-1 |
-| Ukuhlehla kwe-buckling engelinear (ukungafani, i-post-buckling, i-snap-through) | Izinombolo zokuhlehla ze-linear buckling ngomphetho omkhulu: bona [Heat, thermal stress and buckling](topic:thermal-and-buckling) |
-| Imitha phakathi kwamabuso (view factors), ukumelana kokuthintana, izinto ezincike ezingeni lokushisa, ukungazinzi ekucindezelekeni kokushisa (amagagasi okushisa okuqhuma) | Imitha kuya ezungezile, ukucindezeleka okuzinzile noma okuqhubekayo kokushisa ngesikhathi, izakhiwo ezingashintshi: bona [Heat, thermal stress and buckling](topic:thermal-and-buckling) |
-| Ukuthuthukiswa okuzenzakalelayo kwezifundo zokushisa ezidlulayo nezinhlobo ezinomthwalo wokushisa; ukwenza umesh ube mncane lapho iphutha lincane; inhloso kwinani lendawo (ukucindezeleka okuphezulu endaweni eyodwa) | **Refine automatically** kwezifundo ezimile, zokuhlehla, zefrikhwensi yemvelo nezokushisa okuzinzile, ngephutha phezu kwengxenye yonke: bona [Check stress and deflection](topic:simulation); noma yehlisa usayizi wenhlayiya |
-| Imithwalo yamabheringi nemibhoxo, imithwalo ekude, izikhathi, izintambo, izinkulumo zokuhamba ezibekiwe | Izinamba nemigcinezelo ezinhlangothini, ukudonsa kwegravithi; izinhlangothi ezimisiwe nezingenayo ukuhwebelana |
-| Ukulingisa kwezinhlanganisela; izinto eziyahlukahluka ngokuqondisa (izingqimba ezishicilelwe, ama-composite) | Ingxenye eyodwa, izinto ezinye ezingashintshi |
-| Izinsizi zesixazululi eziningi zezifundo ze-tetrahedral, ukudluliswa kokushisa nokwakhiwa kwedizayini okuzenzakalelayo; izinsizi kukhasi elingenayo i-cross-origin isolation | Izifundo ze-voxel, i-buckling, ukucindezeleka ngesikhathi nokugeleza okunolaka kusebenzisa izinsizi lapho ikhasi livumela: bona [PartCraft settings](topic:settings) |
-| Ukugeleza okunamagagasi nokunembe kokwakheka (imodeli ye-Spalart–Allmaras ingeniwe njengeyokuhlola: ukumelana kwepayipi kwe-30 kuya ku-34 % ephezulu, ukuhlangana kwe-backward-step kwe-21 kuya ku-39 % kufushane; kuhlelwe: amaseli amahle eduze namadonga), ukushisa ekugelezeni, ukugeleza okungazinzile (ngesikhathi esinembile), izindawo ezikhululekile, izinhlobo ze-non-Newtonian, izingxenye ezijikelezayo | Ukugeleza okunolaka, okuzinzile, okungashintshi izinga lokushisa kolwelo lwe-Newtonian, noma imodeli yamanje yenyeka yokubonisa iziphethu: bona [Simulate fluid flow](topic:flow-simulation); iphaneli ixwayisa lapho inombolo ye-Reynolds idlula ukunolaka |
-| Imingcele yokucindezeleka nemithetho yokukhiqiza (ama-overhang, izinqondiso zokugaya) ekwakhiweni kwedizayini okuzenzakalelayo; izinto eziningi kuwo wonke umumo | Umumo oqinile kakhulu kuvolumu; hlola umphumela ekulinganiseni: bona [Grow a shape from loads](topic:generative-design) |
-| Umphumela njengesolid esihlelekayo (esibushelelezi, esinemingcele) | STL, i-STEP enama-facet noma ingxenye enomphumela njengesolid esingeniswe esinama-facet |
-| Injini yomshini kagesi: irotha ejikeleza kusitatha, ukuwoyela ngokungafani nama-engeli, insimbi egcwele, amamagnethi alahlekelwa amandla angaphezu kwamawele awo, ama-eddy currents nokulahlekelwa kwensimbi nongqinamba; izinkambu zomagnethi ngo-3-D noma emeshini ejikelezayo | Ukulinganisa okulinganiselwe kwe-2-D kwamagnethi kwigridi kumtapo wokuhlaziya: izinsimbi, insimbi, amamagnethi ahlala njalo esiphethweni sawo sokubuyela, amagebe, i-inductance kanye nokudonsa: bona [Magnetic fields in 2-D](topic:magnetic-fields-2d) |
+| Izifundo ezingalingani: ukuvuma, ukuguquka okukhulu, ukuxhumana phakathi kwezingxenye, ukukhathala | Amandla amile nemvelo ezinzile: bona [Hlola ukucindezela nokuguquka](topic:simulation); gcina isilinganiso sokuphepha siphezulu kakhulu kuno-1 |
+| Ukuhlehla kwe-buckling okungalingani (ukungafani, post-buckling, snap-through) | Izinombolo ezilinganayo zokuhlehla ngomkhawulo omkhulu: bona [Ukushisa, ukucindezela okushisayo nokuhlehla](topic:thermal-and-buckling) |
+| Ukukhanya phakathi kwezindawo (view factors), ukumelana nokuxhumana, izinto ezithintwa yizinga lokushisa, ukunyakaza ekucindezelekeni okushisayo (amagagasi okushaqeka okushisayo) | Ukukhanya kubuso bozungezayo, ukucindezela okushisayo okuzinzile noma okuphansi phakathi nesikhathi, izakhiwo ezingashintshi: bona [Ukushisa, ukucindezela okushisayo nokuhlehla](topic:thermal-and-buckling) |
+| Ukuhlukanisa okuzenzakalelayo kokushisa okudlulayo nezifundo ngomthwalo oshisayo; ukwenza i-mesh ibe yincane lapho iphutha lincane; inhloso yesisebenzi esilinganayo (ukucindezela okuphezulu esikhundleni esisodwa) | **Hlukanisa ngokuzenzakalela** ezifundweni ezizinzile, ezihlehla, ezinamafreqansi emvelo nezinzile ezishisayo, ephutheni lonke lengxenye: bona [Hlola ukucindezela nokuguquka](topic:simulation); noma nciphisa usayizi wesakhi |
+| Izimpoqo nezinhlaka ezinenkomba, imithwalo ekude, izikhathi, izinzipho, ukuphindisa okuqondile | Amandla nengcindezi ezinhlangothini, ukudonsa; ubuso obuqinile nobungenayo ukungaphikisani |
+| Ukulingisa kwezinhlanganisela; izinto ezihlukana ngokuqondisa (izingqimba ezishicilelwe, ama-composite) | Ingxenye eyodwa, impahla eyodwa yonke ilingana |
+| Izinhlobo zokukhiqizwa nemithetho yokukhiqiza (okwenza kube nzima, izindlela zokugaya) ekwakhiweni okuzenzakalelayo; izinto ezimbalwa esimweni esisodwa | Isimo esiqinile kakhulu sevolumu; hlola umphumela ku-Simulation: bona [Khulisa isimo ngemithwalo](topic:generative-design) |
+| Umphumela njengesolidi esihlelekayo (esibushelelezi, esinemingcele) | I-STL, i-STEP enobuso oqondile noma ingxenye enomphumela njengesolidi esingeniswe esinobuso |
+| Izinhlelo zezinto ezingokwezinzwa zokwakha (i-electric machine): irotor ejikelezayo ku-stator, i-torque ngokuya ngekona, insimbi egcwele, izinsimbi ezilahlekelwa ngamandla ngaphezu kwesiqu sazo, imibuthano yamanzi nokulahlekelwa kwensimbi nethusi; izinkambu ze-magnetic ku-3D noma ku-mesh egoqayo | I-magnetostatics ye-2-D enomugqa ku-grid ye-analysis library: izinto zokuhlanganiswa, insimbi, izinsimbi zokuhlala ezindaweni zazo, imikhawulo, i-inductance nokuhudulwa: bona [Izinkambu ze-magnetic ku-2-D](topic:magnetic-fields-2d) |
 
-## Izikripthi
+## Ama-script
 
-| Akukakwakhiwa | Esikhundleni salokhu, namuhla |
+| Akukakhiwa okwamanje | Esikhundleni salokho, namuhla |
 |---|---|
-| Usizo lokuhlanganisa, izikhawu nokungena ohlelweni lwe-script | Ukuthola, ukugoqa nokuqedela kukhona (bona [Write and run scripts](topic:craftscript)); okunye, umhleli wakho: {{ui:Londoloza}} no-{{ui:Vula}} kweqembu le-Script bayangenisa nakuphume izikripthi; imisebenzi yangaphakathi ihlinzeka kuthi [The CraftScript language](topic:craftscript-language) |
-| Izikhawu nokungena ngesikripthi | `disp` no-`fprintf` ohambweni; {{key:Mod+Enter}} iqhuba imigqa embalwa ekhethiwe ngesikhathi esisodwa |
-| Izinkambu namapuloti esikripthi esiwabonisa emsebenzini wedizayini; izikripthi eziguqula imingcele yengxenye | Zibonakala emsebenzini we-Script; izikripthi zifunda imingcele nge-`param` (bona [Write and run scripts](topic:craftscript)), zishintshe ethebhulethini le-{{ui:Imingcele}} |
-| Izithombe nezitebhulethi ngokuhlangana namapuloti; ukuhlela iphuloti (ukuzoomela, imikhawulo yeaksi) ngaphambi kokulonga | Ngokuhlanganyela kubonisa amapuloti; londoloza iphuloti njenge-PNG, SVG noma CSV bese uqeda kwenye indawo |
-| I-numpy nezinye izikhwama ze-Python; i-Python ngaphandle kwe-inthanethi; ukufaka i-Python kumhleli; i-Pascal Script | Ilabhulari elijwayelekile le-Python, i-CraftScript ne-Lua: bona [Scripts in Python](topic:craftscript-python) |
-| Ukudlulisa imisebenzi ye-Lua kumisebenzi yangaphakathi; ukubiza umsebenzi welabhulari ngegama elakhiwe ngesikhathi isikripthi sisebenza | Bhala igama lomsebenzi welabhulari esikripthini (`cs.static_tet(…)`), noma ubize kusikripthi se-CraftScript |
+| Usizo lokuhamba phezu kwebhokisi, amaphoyinti okumisa nokuhamba ku-script editor | Ukuthola, ukugoqa nokuqedela kuyakhona (bona [Bhala futhi uqalise ama-script](topic:craftscript)); kwezinye, umhleli wakho: {{ui:Save}} no {{ui:Open}} eqenjini le-Script zithutha ama-script ngaphakathi nangaphandle; imisebenzi yangaphakathi ihlolwe ku-[Ulimi lwe-CraftScript](topic:craftscript-language) |
+| Amaphoyinti okumisa nokuhamba ku-script | `disp` no `fprintf` ngendlela; {{key:Mod+Enter}} iqalisa imigqa ethile ekhethiwe ngesikhathi esisodwa |
+| Izinkambu namapulani ama-script abonisa adwetshwe kwi-Design workspace; ama-script aguqula amapharamitha engxenye | Abonakala kwi-Script workspace; ama-script afunda amapharamitha ngo-`param` (bona [Bhala futhi uqalise ama-script](topic:craftscript)), abashintshe ku-{{ui:Parameters}} tab |
+| Izithombe nemithebula ecaleni kwamapulani; ukuhlela ipulani (ukusondeza, imikhawulo yomugqa) ngaphambi kokulondoloza | Ecaleni kukhombisa amapulani; londoloza ipulani njenge-PNG, SVG noma CSV bese uyiqeda kwenye indawo |
+| I-numpy nezinye izinkomba zephayitoni; i-Python ngaphandle kwe-inthanethi; ukufaka i-Python kumhleli; i-Pascal Script | Ilabrari ejwayelekile ye-Python, CraftScript neLua: bona [Ama-script ku-Python](topic:craftscript-python) |
+| Ukudlulisa imisebenzi ye-Lua kumisebenzi yangaphakathi; ukubiza umsebenzi welabhulari kusuka ku-Lua ngegama elakhelwe ngesikhathi i-script isebenza | Bhala igama lomsebenzi welabhulari ku-script (`cs.static_tet(…)`), noma uwubize ku-script ye-CraftScript |
 
 ## I-app
 
-| Akukakwakhiwa | Esikhundleni salokhu, namuhla |
+| Akukakhiwa okwamanje | Esikhundleni salokho, namuhla |
 |---|---|
-| Ukugcina kuleyo, ukwabelana nomlando wenguqulo | Akutholakali okwamanje. Gcina amafayela kukhompyutha yakho futhi ugcine izinguqulo ngamagama |
-| I-PartCraft njenge-app efakiwe ku-iPad nasei-iPhone | Sebenzisa i-PartCraft kusiphequluli sedivayisi; ku-Android nasedeskithophu isebenza nakwi-CadCraft Studio (getcadcraft.com/download) |
-| Imenyu yokudweba (eyokuchofoza ngokudla) | Ithuluzi lokuthobela nephaneli esekudla |
-| Ukusebenza ngokuphelele ngaphandle kwe-inthanethi kusuka ekuqaleni | Kuphela uma i-app igcinelwe ukusetshenziswa ngaphandle kwe-inthanethi: bona [Working offline](common:offline) |
+| Ukugcina efwini, ukwabelana nomlando wenguqulo | Akutholakali okwamanje. Gcina amafayela kukhompyutha yakho futhi ugcine izinguqulo ngamagama |
+| I-PartCraft njenge-app efakiwe ku-iPad nasku-iPhone | Sebenzisa i-PartCraft kusiphequluli sedivayisi; ku-Android nakwi-desktop iphinde isebenze ku-CadCraft Studio (getcadcraft.com/download) |
+| Imenyu yokudweba (right-click) | Ibha yamathuluzi nephaneli yesokudla |
+| Ukusebenza ngokuphelele ngaphandle kwe-inthanethi ekuqaleni okusha | Kuphela uma i-app ilondolozwe ukuze isetshenziswe ngaphandle kwe-inthanethi: bona [Ukusebenza ngaphandle kwe-inthanethi](common:offline) |
 
-Bika ngalokho ongakukhumbula kakhulu ngekhasi lokusekelwa lwesayithi: lokho kuyabumba okuzayo.
+Biza into oyiphuthelwe kakhulu ngekhasi lokusekela lesayithi: liyakwakha ukuthi kuzolandela yini.
 
-## Engineer (abakhiqizi namasimu)
+## Umakhi (izinkiyi nezinkambu)
 
-| Akukakwakhiwa | Esikhundleni salokhu, namuhla |
+| Akukakhiwa okwamanje | Esikhundleni salokho, namuhla |
 |---|---|
-| Amakhanda, amachweba nezixhumanisi ku-exchanger yokushisa eyakhiwe; amajika ezinga lokushisa lamandla ezinto; ukulahleka kwe-tee emanifoldini | Abakhiqizi bakha umqondo namathubhu; engeza izixhumanisi ku-Design; sebenzisa izibalo zezinto zezinga lokushisa lekamelo nokuphepha okulinganiselwe |
-| Ukwengeza abakhiqizi ohlwini lwe-add-on ngocofo olulodwa | {{ui:Vula}} ku-workspace ye-Engineer yengeza umkhiqizi kusuka kwifayela |
-| Ifayela lensimu elincane kunebanga lesikhombiphikseli somkhiqizi; ukufunda amafayela `.vdb` | Londoloza insimu ebushelelezi kusuka ku-script; i-`.vdb` ibhalwa, ayifundwa |
-| Izibalo zekhodi yesitsha sokucindezela | Amafomula okudonsa-thin-wall nethick-wall esemqondweni, nokuphepha okukhethwe nguwe; hhayi ukuphepha kwekhodi |
-| Abakhiqizi bezinye izinhlelo | I-PartCraft kuphela kulolu hlobo |
+| Izinhloko, amaport nokufakwa kumsebenzi oshisayo wangaphambili; amagrafu ezinga lokushisa lezinto zamandla; ukulahlekelwa kwethi emanifoldini | Abakhi bakha okuyisisekelo nama-tube; engeza ukufakwa ku-Design; sebenzisa izinombolo zezinto zokushisa kwegumbi ngohlelo lokuphepha |
+| Ukungeza abakhi ku-add-on directory ngokucindezela kanye | {{ui:Open}} ku-Engineer workspace ingeza umakhi kusuka ku-fayela |
+| Ifayela lenkambu eliphezulu kunosayizi wevokhseli womakhi; ukufunda amafayela `.vdb` | Londoloza inkambu ephezulu kusuka ku-script; i-`.vdb` iyabhalwa, ayifundwa |
+| Izibalo zekhodi yesitsha sokucindezela | Izibalo zethekisthi ezilula zomdonga nezinjongo ezijulile zomdonga, nengxenye yokuphepha oyikhethayo; hhayi umkhawulo wekhodi |
+| Abakhi ezinye izinhlelo | I-PartCraft kuphela kule nguqulo |
+

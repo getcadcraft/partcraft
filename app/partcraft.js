@@ -35,39 +35,40 @@ import * as P from './part.js';
 import { mountUndoHook } from './undo-hook.js';   // 0.8 EG.77
 import { regenerate, faceRefAt, planeFrame, MESH_BUILT } from './kernel.js';
 import * as X from './export.js';
-import { partIfc } from './ifc-export.js';
-import { evaluateVars } from './params.js';
-import { faceLoops2D, loopCircles } from './faces.js';
-import { composeSheet, meshViews, toPdf as drawingPdf, scaleLabel, sheetLabel, nextRevision, partHoles } from './drawing.js';
-import { MATERIALS, presetOf } from './bom.js';
+import './ifc-export.js';
+import './params.js';
+import './faces.js';
+import './drawing.js';
+import './bom.js';
 import { ExactKernel, exactKernelUrl } from './exact-client.js';
-import { refForName, findEdge, findFace, edgeRef, faceRef, nameFeatures } from './brep.js';
+import { refForName, findEdge } from './brep.js';
 import * as G from './gdt.js';
-import { SheetView } from './sheetview.js';
+import './sheetview.js';
 import * as A from './assembly.js';
 import * as V from './vec.js';
 import * as C from './clipboard.js';
 import { el, fillDl, swapChildren } from './ui-util.js';
 import { mountParams } from './params-panel.js';
 import { installAgents } from './agents.js';   // 0.7 AS.4: tools for the person's own AI assistant (off until Settings › Assistants)
-import { installDesignUI, DESIGN_TYPES, DESIGN_ICONS, EXTRUDE_END_OPTIONS, HOLE_TYPE_OPTIONS } from './design-ui.js';
-import { installSurfaceUI, SURFACE_TYPES, SURFACE_MENU, SURFACE_ICONS } from './surface-ui.js';
-import { installBodiesUI, BODY_TYPES, BODY_MENU, BODY_ICONS } from './bodies-ui.js';
+import { installDesignUI, DESIGN_ICONS } from './design-ui.js';
+import { installSurfaceUI, SURFACE_MENU, SURFACE_ICONS } from './surface-ui.js';
+import { installBodiesUI, BODY_MENU, BODY_ICONS } from './bodies-ui.js';
 import { installSheetUI, SHEET_TYPES, SHEET_MENU, SHEET_ICONS } from './sheet-ui.js';
-import { installRibUI, RIB_TYPES, RIB_MENU, RIB_ICONS } from './rib-ui.js';
-import { installWeldUI, WELD_TYPES, WELD_ICONS } from './weld-ui.js';   // 0.7 D7.50: structural members
+import { installRibUI, RIB_MENU, RIB_ICONS } from './rib-ui.js';
+import './frame-ui.js';   // 0.11 SU.1811: Check this frame
+import { installWeldUI, WELD_ICONS } from './weld-ui.js';   // 0.7 D7.50: structural members
 import { simEnvProblems } from './sim.js';
 import './fem-solid-study.js';   // 0.9 SU.908c: the settings of the Solid FEM add-on in the file (part.studies['fem-solid'])
 import './open-solvers-study.js';   // 0.9.1 (suggestion 1309): the settings of the Open solver cases add-on in the file (part.studies['open-solvers'])
 import { studyProblemsNow } from './study-ui.js';
 import { pcProblems, SRC_ID as PROBLEMS_SRC } from './problems-partcraft.js';   // 0.8 CE.6: the shell's Problems
-import { installGenUI, GEN_TYPES, GEN_ICONS } from './gen-ui.js';   // 0.8 CE.3: a script that adds a body (Generated)
-import { displayName as SECTION_NAME } from './shapes/sections.js';
-import { threadNotes } from './threads.js';
-import { PARAM_FIELDS, linkOf } from './params-part.js';
-import { treeValue } from './tree-value.js';   // 0.6 PU.5: the main value in a history row
-import * as FA from './face-actions.js';   // 0.6 PU.3: Extrude from it, Cut into it, Hole here
-import * as HM from './handle-math.js';   // 0.6 PU.2: drag handles on features
+import { installGenUI, GEN_ICONS } from './gen-ui.js';   // 0.8 CE.3: a script that adds a body (Generated)
+import './shapes/sections.js';
+import './threads.js';
+import './params-part.js';
+import './tree-value.js';   // 0.6 PU.5: the main value in a history row
+import './face-actions.js';   // 0.6 PU.3: Extrude from it, Cut into it, Hole here
+import './handle-math.js';   // 0.6 PU.2: drag handles on features
 import { mountBimLink } from './part-link-pc.js';   // 0.10 BK.179 / SU.1814: Send to PartCraft from BimCraft, Save back to BimCraft
 import * as MI from './meshimport.js';   // 0.7 D7.49: STL / OBJ / 3MF opened as solid bodies
 import { FeatureHandles } from './handles.js';
@@ -78,15 +79,15 @@ import { hiddenGeometry } from './bodies.js';
 import * as WS from './workspaces.js';
 import { computeWorker } from './compute-worker.js';
 import { AUTO_THREADS, MAX_THREADS, isolated as threadsIsolated } from './pool.js';
-import { createMeasure } from './measure-ui.js';
-import { createStackup } from './stackup-ui.js';
-import { createContact, contactProblemsNow } from './asm-contact-ui.js';   // 0.8 SU.891: Assembly › Contact
-import { createMotion } from './motion-ui.js';   // 0.8 EG.7: Assembly › Motion
-import { createSection } from './section-ui.js';
-import { createDraft } from './draft-ui.js';
-import { faceSection } from './section.js';
-import { t, has, locale } from './i18n.js';
-import { createAsmTools } from './asm-ui.js';
+import './measure-ui.js';
+import './stackup-ui.js';
+import { contactProblemsNow } from './asm-contact-ui.js';   // 0.8 SU.891: Assembly › Contact
+import './motion-ui.js';   // 0.8 EG.7: Assembly › Motion
+import './section-ui.js';
+import './draft-ui.js';
+import './section.js';
+import { t, has } from './i18n.js';
+import './asm-ui.js';
 // Workspaces (docs/apps/partcraft-workspaces.md): one import line per ws-<id>.js; each registers itself.
 import './ws-form.js';
 import { simProblemsNow } from './ws-simulation.js';
@@ -96,19 +97,31 @@ import { mountPartShell } from './shell-mount.js';
 import { mountPartAccess } from './access-mount.js';   // 0.8 round 3 (access_PART_3): EG.52, the feature tree without sight
 import { partChanged as nodesChanged } from './nodes-pc.js';   // 0.8 DC.54 (nodes_PART_3): the Nodes workspace (cc-nodes)
 import { partChanged as surfacesChanged, receive as surfacesReceive, snapshot as surfacesSnapshot } from './surfaces-pc.js';   // 0.8 SU.747b (part_PART_3): the Surfaces workspace (cc-nurbs + cc-nurbs-ui)   // 0.8 round 3 (part_PART_3): the shell's calc sheets, reasons, totals, lessons, Suggest, activity, Ask box
-import { exportDeck as ccxExport, importResults as ccxImport } from './nlstudy-ui.js';   // 0.8 SU.891: File › Export CalculiX (.inp) / its results (.frd)
+import './nlstudy-ui.js';   // 0.8 SU.891: File › Export CalculiX (.inp) / its results (.frd)
 import './ws-generative.js';
 import './ws-manufacture.js';
 import './ws-illustrate.js';   // 0.7 Track TP (session illustrate)
 import './ws-engineer.js';   // 0.8 Track CE (session engineer): generators, inputs, data sheet, checks
-import { dockEditor, undockEditor } from './ws-script.js';
+import './ws-script.js';
 import { mountViewCube, mountAxisIcon } from './viewcube.js';
 import { threeCubeOptions } from './viewcube-three.js';
-import { Autosave } from "./app-autosave.js";
-import { followJournal, recoverState } from "./history/index.js";   // 0.10 PERF.24: autosave that writes what changed
-import { getHost } from "./host.js";
-import { mountDrawingExport } from './drawing-export-ui.js';
+import "./app-autosave.js";
+import "./history/index.js";   // 0.10 PERF.24: autosave that writes what changed
+import "./host.js";
+import './drawing-export-ui.js';
 import { mountProps } from './props-ui.js';
+import { mountInput } from './input-ui.js';
+import { mountWorkspaceUi } from './workspaces-ui.js';
+import { mountFiles } from './files-ui.js';
+import { mountDrawingSheet } from './drawing-sheet-ui.js';
+import { mountAssembly } from './assembly-ui.js';
+import { mountEdit } from './edit-ui.js';
+import { mountToolbar } from './toolbar-ui.js';
+import { mountHandles } from './handles-ui.js';
+import { mountTree } from './tree-ui.js';
+import { mountFeatures } from './features-ui.js';
+import { mountSketch } from './sketch-ui.js';
+import { mountPick } from './pick-ui.js';
 
 const root = document.querySelector('[data-partcraft]');
 if (root) init(root);
@@ -122,10 +135,12 @@ const FACE_PICKERS = new Set(['shell', 'draft', 'thread']);
 /** Pickers whose faces or edges the mesh kernel names (K.2b) and builds (K.4, K.5; the thread, 0.5 WL.29). */
 const PICK_ON_MESH = new Set([...MESH_BUILT, 'thread']);   // pickers whose references are faces (the others take edges)   // features whose references are picked in the view
 const DESIGN_GROUPS = ['sketch', 'features', 'drawing', 'assembly'];   // toolbar groups only the Design workspace shows
-const f3 = (v) => V.fmt(v, 3);
+function f3(v) { return V.fmt(v, 3); }
 const ASM_EXPORTS = ['export-print', 'export-stl', 'export-3mf', 'export-step', 'export-step214', 'export-drawing', 'export-bom', 'export-ifc', 'export-nest', 'export-laser', 'export-usd'];   // what an assembly exports as a whole (asm-ui.js)
 
 function init(root) {
+  // PERF.71 round two (perf-finish-11 code): the closure's mutable state in one object (tools/perf/main-state.mjs); was one `let` each
+  const ST = { M: undefined, part: undefined, regen: undefined, shellKit: undefined, problemsSync: undefined, dirty: undefined, bimLink: undefined, sel: undefined, pick: undefined, mode: undefined, multi: undefined, drawingState: undefined, editing: undefined, lastSolve: undefined, pendingSketch: undefined, addons: undefined, asm: undefined, asmBuilds: undefined, asmPlace: undefined, asmSel: undefined, jointPick: undefined, asmDirty: undefined, clashes: undefined, asmSweep: undefined, editPartOf: undefined, measure: undefined, asmTools: undefined, section: undefined, draft: undefined, stackup: undefined, motion: undefined, contactStudy: undefined, clip: undefined, ws: undefined, view: undefined, handles: undefined, dragRaf: undefined, padUntil: undefined, cornerShown: undefined, statusTimer: undefined, useExact: undefined, inflight: undefined, again: undefined, meshMs: undefined, meshMsPart: undefined, meshWorker: undefined, meshWorkerOk: undefined, meshSent: undefined, uid: undefined, numKind: undefined, asmSeq: undefined, asmFit: undefined, asmTreeLimit: undefined, sheetView: undefined, saveTarget: undefined, vaultUi: undefined, vaultRef: undefined, dragDepth: undefined, leaving: undefined, copyPending: undefined };
   const $ = (s) => root.querySelector(s);
   const ui = {
     tools: $('.pc-tools'), tree: $('[data-tree]'), facts: $('[data-facts]'), partName: $('[data-part-name]'),
@@ -136,40 +151,40 @@ function init(root) {
     sheet: $('[data-sheet]'), kernel: $('[data-kernel]'), ws: $('[data-workspace]'),
   };
 
-  let M = null;
-  let part = P.newPart();
-  let regen = null;
-  let shellKit = null;   // shell-mount.js: the shell's seven modules, once mounted (after the assistants' control channel)
-  let problemsSync = null;   // the shell's Problems (manifest "problems"): what a Generated feature's checks found, handed over after every rebuild
+  ST.M = null;
+  ST.part = P.newPart();
+  ST.regen = null;
+  ST.shellKit = null;   // shell-mount.js: the shell's seven modules, once mounted (after the assistants' control channel)
+  ST.problemsSync = null;   // the shell's Problems (manifest "problems"): what a Generated feature's checks found, handed over after every rebuild
   const hist = new P.History();
   mountUndoHook({ hist, undoOne: () => undoRedo(true) });   // 0.8 EG.77: tells Studio each finished step
-  let dirty = false;
-  let bimLink = null;   // 0.10 SU.1814: part-link-pc.js, mounted at the end
-  let sel = null;             // { kind:'feature', id } | { kind:'plane', name }
-  let pick = null;            // picked geometry in the 3D view (face / edge)
-  let mode = 'model';         // 'model' | 'sketch' | 'pick' (references of a fillet/chamfer/shell) | 'drawing' | 'assembly'
-  let multi = [];             // picks added with Shift (edges or faces), for Fillet / Chamfer / Shell
-  let drawingState = null;    // { views, key, sheet, tool, sel } in drawing mode
-  let editing = null;         // sketch feature id while a sketch is open
-  let lastSolve = null;
-  let pendingSketch = false;  // Sketch pressed with nothing picked: the next plane/face pick starts it
+  ST.dirty = false;
+  ST.bimLink = null;   // 0.10 SU.1814: part-link-pc.js, mounted at the end
+  ST.sel = null;             // { kind:'feature', id } | { kind:'plane', name }
+  ST.pick = null;            // picked geometry in the 3D view (face / edge)
+  ST.mode = 'model';         // 'model' | 'sketch' | 'pick' (references of a fillet/chamfer/shell) | 'drawing' | 'assembly'
+  ST.multi = [];             // picks added with Shift (edges or faces), for Fillet / Chamfer / Shell
+  ST.drawingState = null;    // { views, key, sheet, tool, sel } in drawing mode
+  ST.editing = null;         // sketch feature id while a sketch is open
+  ST.lastSolve = null;
+  ST.pendingSketch = false;  // Sketch pressed with nothing picked: the next plane/face pick starts it
   // assembly (mode 'assembly'): its own document, history and selection
-  let addons = null;   // PartCraft's own add-on API 1.0 (addons/partcraft-api.js; 0.5 AO.7, wired by `part`)
-  let asm = null, asmBuilds = new Map(), asmPlace = null, asmSel = null, jointPick = null, asmDirty = false, clashes = null;
-  let asmSweep = null;   // which joint value the clash check sweeps (0.4 P19)
+  ST.addons = null;   // PartCraft's own add-on API 1.0 (addons/partcraft-api.js; 0.5 AO.7, wired by `part`)
+  ST.asm = null; ST.asmBuilds = new Map(); ST.asmPlace = null; ST.asmSel = null; ST.jointPick = null; ST.asmDirty = false; ST.clashes = null;
+  ST.asmSweep = null;   // which joint value the clash check sweeps (0.4 P19)
   const asmHist = new P.History();
-  let editPartOf = null;      // { pid, stash: { part, dirty, undo, redo }, before } while a part of the assembly is open
+  ST.editPartOf = null;      // { pid, stash: { part, dirty, undo, redo }, before } while a part of the assembly is open
   // measure-ui.js (Measure, every workspace), asm-ui.js (assembly tools), section-ui.js (Section view, every workspace) and
   // draft-ui.js (Draft analysis, Design; 0.4 P21), made next to `host`
-  let measure = null, asmTools = null, section = null, draft = null, stackup = null, motion = null, contactStudy = null;
-  let clip = readStoredClip(); // the clipboard (clipboard.js): this tab's copy, or the one another tab stored
-  let ws = WS.DESIGN;          // the active workspace (workspaces.js); Design = everything else in this file
+  ST.measure = null; ST.asmTools = null; ST.section = null; ST.draft = null; ST.stackup = null; ST.motion = null; ST.contactStudy = null;
+  ST.clip = readStoredClip(); // the clipboard (clipboard.js): this tab's copy, or the one another tab stored
+  ST.ws = WS.DESIGN;          // the active workspace (workspaces.js); Design = everything else in this file
 
   // ---------------------------------------------------------------- views
-  let view = null;
-  let handles = null, dragRaf = 0;   // drag handles on the selected feature (0.6 PU.2)
+  ST.view = null;
+  ST.handles = null; ST.dragRaf = 0;   // drag handles on the selected feature (0.6 PU.2)
   try {
-    view = new View3D(ui.gl, { onPick: (h, e) => onPick(h, e), onHover: (h) => onHover(h) });
+    ST.view = new View3D(ui.gl, { onPick, onHover });
     makeHandles();
   } catch (err) {
     ui.busy.hidden = false;
@@ -181,26 +196,26 @@ function init(root) {
   const editor = new SketchEditor(ui.sk, ui.dimInput, {
     addMode: () => touch.add,
     sketch: () => editingFeature()?.sketch || S.newSketch(),
-    commit: (label, fn, opts) => sketchCommit(label, fn, opts),
-    dragStart: (label) => { hist.push(part, label); dirty = true; },
-    dragSolve: (pin, pinRadius) => { lastSolve = solveSketch(editingFeature().sketch, { pin, pinRadius }); showSketchState(); },
+    commit: sketchCommit,
+    dragStart: (label) => { hist.push(ST.part, label); ST.dirty = true; },
+    dragSolve: (pin, pinRadius) => { ST.lastSolve = solveSketch(editingFeature().sketch, { pin, pinRadius }); showSketchState(); },
     dragEnd: () => { rebuild(); renderProps(); },
-    info: () => lastSolve,
+    info: () => ST.lastSolve,
     status: (m) => status(m),
     changed: () => { renderProps(); updateTools(); },
     coords: (p) => { ui.coords.textContent = `${f3(p[0])}, ${f3(p[1])}`; },
-    viewChanged: (v) => { if (mode === 'sketch') view.setSketch(currentFrame(), v); },
-    tokens: () => tokens(),
-    toolChanged: () => updateTools(),
-    refocus: () => focusStage(),
-    isPad: (e) => looksLikePad(e),
+    viewChanged: (v) => { if (ST.mode === 'sketch') ST.view.setSketch(currentFrame(), v); },
+    tokens,
+    toolChanged: updateTools,
+    refocus: focusStage,
+    isPad: looksLikePad,
     // sketch Project: the exact edge under the pointer (null without the exact kernel) and the sketch plane
-    pickEdge: (cx, cy) => { const h = named() ? view.pickAt(cx, cy, { planes: false }) : null; return h && h.kind === 'edge' && h.edge !== undefined ? regen.edges[h.edge] : null; },
-    frame: () => currentFrame(),
-    dimTyped: (cid, raw) => paramsUI.dimTyped(editing, cid, raw),   // "=expr" in the dimension box (params-panel.js)
+    pickEdge: (cx, cy) => { const h = named() ? ST.view.pickAt(cx, cy, { planes: false }) : null; return h && h.kind === 'edge' && h.edge !== undefined ? ST.regen.edges[h.edge] : null; },
+    frame: currentFrame,
+    dimTyped: (cid, raw) => paramsUI.dimTyped(ST.editing, cid, raw),   // "=expr" in the dimension box (params-panel.js)
     pasted: (label, clip, made) => status(t(label === t('app.undo.duplicate') ? 'app.clip.sketch_duplicated' : 'app.clip.sketch_pasted', { what: C.describeClip(clip), relations: made.constraints.length ? t('app.clip.sketch_with_relations', { n: made.constraints.length }) : '', dropped: clip.dropped ? t('app.clip.sketch_dropped', { n: clip.dropped }) : '' })),
   });
-  view.onResize = () => { if (mode === 'sketch') { view.setSketch(currentFrame(), editor.view); editor.draw(); } };
+  ST.view.onResize = () => { if (ST.mode === 'sketch') { ST.view.setSketch(currentFrame(), editor.view); editor.draw(); } };
 
   // ---------------------------------------------------------------- settings (Settings › PartCraft; per viewer conveniences)
   const SET_DEFAULTS = { orbit: 'left', scroll: 'auto', autoRel: true, corner: 'cube', threads: 'auto', bed: null, planes: true, dimDraw: true, lightDisplay: false };   // planes: View › Base planes (0.6 PU.4); dimDraw: Dimension as you draw (0.6 PU.1)
@@ -223,35 +238,35 @@ function init(root) {
     } catch { /* private window or bad data: defaults */ }
     return out;
   })();
-  view.lodMode = settings.lightDisplay ? 'light' : 'auto';   // 0.9 SU.749: the lightweight display (Views menu)
+  ST.view.lodMode = settings.lightDisplay ? 'light' : 'auto';   // 0.9 SU.749: the lightweight display (Views menu)
   const persistSettings = () => { try { localStorage.setItem('partcraft.settings', JSON.stringify(settings)); } catch { /* fine: this visit keeps them */ } };
   const settingsDlg = document.querySelector('[data-app-settings]');
   // Trackpads: in trackpad mode a two-finger swipe turns the part (pans a sketch); in "auto" when the scrolling looks
   // like a trackpad's (sideways, or fine-grained). A pinch arrives as a wheel event with ctrlKey and always zooms.
-  let padUntil = 0;
+  ST.padUntil = 0;
   function looksLikePad(e) {
     if (settings.scroll === 'trackpad') return true;
     if (settings.scroll === 'mouse' || e.deltaMode !== 0) return false;
-    if (e.deltaX !== 0 || (e.deltaY % 1 !== 0 && Math.abs(e.deltaY) < 50)) padUntil = e.timeStamp + 400;
-    return e.timeStamp < padUntil;
+    if (e.deltaX !== 0 || (e.deltaY % 1 !== 0 && Math.abs(e.deltaY) < 50)) ST.padUntil = e.timeStamp + 400;
+    return e.timeStamp < ST.padUntil;
   }
-  view.isPad = looksLikePad;
+  ST.view.isPad = looksLikePad;
   // corner indicator (Settings › PartCraft): the view cube (viewcube.js through viewcube-three.js; PartCraft is Y up, the
   // cube Z up — the adapter maps them) | the X/Y/Z axis icon | none. Neither shows while sketching or on the drawing sheet.
-  const cubeOpts = threeCubeOptions({ camera: () => view.camera, controls: () => view.controls, render: () => view.render(), home: () => view.view('iso'), yUp: true });
+  const cubeOpts = threeCubeOptions({ camera: () => ST.view.camera, controls: () => ST.view.controls, render: () => ST.view.render(), home: () => ST.view.view('iso'), yUp: true });
   cubeOpts.i18n = { t, has };   // the cube's words: viewcube.* keys
   const viewCube = mountViewCube(ui.gl.parentElement, cubeOpts);
   const axisIcon = mountAxisIcon(ui.gl.parentElement, { getView: cubeOpts.getView, i18n: { t, has } });
-  let cornerShown = '';
+  ST.cornerShown = '';
   function syncCorner() {
-    const free = !view.sketchFrame && mode !== 'drawing' && mode !== 'sketch';
+    const free = !ST.view.sketchFrame && ST.mode !== 'drawing' && ST.mode !== 'sketch';
     const want = free ? settings.corner : 'none';
-    if (want !== cornerShown) { cornerShown = want; viewCube.setVisible(want === 'cube'); axisIcon.setVisible(want === 'axes'); }
+    if (want !== ST.cornerShown) { ST.cornerShown = want; viewCube.setVisible(want === 'cube'); axisIcon.setVisible(want === 'axes'); }
   }
-  view.onRender = () => { syncCorner(); viewCube.update(); axisIcon.update(); handles?.update(); };
-  view.controls.addEventListener('start', () => cubeOpts.stop());
+  ST.view.onRender = () => { syncCorner(); viewCube.update(); axisIcon.update(); ST.handles?.update(); };
+  ST.view.controls.addEventListener('start', () => cubeOpts.stop());
   function applySettings() {
-    view.setOrbitButton(settings.orbit);
+    ST.view.setOrbitButton(settings.orbit);
     editor.autoRelations = settings.autoRel;
     editor.dimDraw = settings.dimDraw;
     syncCorner();
@@ -313,11 +328,11 @@ function init(root) {
   }
 
   // ---------------------------------------------------------------- status
-  let statusTimer = 0;
+  ST.statusTimer = 0;
   function status(msg, keep = false) {
     ui.status.textContent = msg || '';
-    clearTimeout(statusTimer);
-    if (msg && !keep) statusTimer = setTimeout(() => { if (ui.status.textContent === msg) ui.status.textContent = ''; }, 9000);
+    clearTimeout(ST.statusTimer);
+    if (msg && !keep) ST.statusTimer = setTimeout(() => { if (ui.status.textContent === msg) ui.status.textContent = ''; }, 9000);
   }
 
   // ---------------------------------------------------------------- kernels
@@ -325,40 +340,40 @@ function init(root) {
   // exact.state is 'off' and the exact-only features say "Not built yet". When a build or a developer supplies OpenCascade
   // (exact-client.js exactKernelUrl), it loads in its worker and builds everything once ready, as up to 0.3.
   ui.busy.hidden = false;
-  let useExact = false;
+  ST.useExact = false;
   const exact = new ExactKernel({ occtUrl: exactKernelUrl() });
   const exactOff = () => exact.state === 'off';
   /** The part on screen has named faces and edges: the exact kernel's, or the mesh kernel's own (0.4 K.2b). */
-  const named = () => !!(regen?.exact || regen?.named);
+  const named = () => !!(ST.regen?.exact || ST.regen?.named);
   /** The words for something only an exact kernel does: "not built yet" in 0.4, else the loading / not loaded wording. */
   const exactWhy = (what, otherwise) => (exactOff() ? t('kernel.not_built', { what }) : otherwise);
   exact.onstate = (st, err) => {
     showKernel();
-    if (st === 'ready') { useExact = true; ui.busy.hidden = true; status(t('app.kernel.ready', { secs: (exact.loadMs / 1000).toFixed(1) })); if (mode === 'assembly') { asmBuilds = new Map(); } rebuild(); }
-    if (st === 'failed') { useExact = false; ui.busy.hidden = !!M; status(t('app.kernel.load_failed', { error: err && err.message ? err.message : err }), true); rebuild(); }
+    if (st === 'ready') { ST.useExact = true; ui.busy.hidden = true; status(t('app.kernel.ready', { secs: (exact.loadMs / 1000).toFixed(1) })); if (ST.mode === 'assembly') { ST.asmBuilds = new Map(); } rebuild(); }
+    if (st === 'failed') { ST.useExact = false; ui.busy.hidden = !!ST.M; status(t('app.kernel.load_failed', { error: err && err.message ? err.message : err }), true); rebuild(); }
   };
   function showKernel() {
     const st = exact.state;
-    if (st === 'off') { ui.kernel.textContent = M ? t('kernel.chip.mesh') : ''; ui.kernel.className = 'pc-chip is-ok'; ui.kernel.title = t('kernel.chip.mesh.title'); return; }
-    ui.kernel.textContent = st === 'ready' ? t('app.kernel.chip_exact') : st === 'loading' ? t('app.kernel.chip_loading') : st === 'failed' ? t('app.kernel.chip_mesh_only') : M ? t('kernel.chip.mesh') : '';
+    if (st === 'off') { ui.kernel.textContent = ST.M ? t('kernel.chip.mesh') : ''; ui.kernel.className = 'pc-chip is-ok'; ui.kernel.title = t('kernel.chip.mesh.title'); return; }
+    ui.kernel.textContent = st === 'ready' ? t('app.kernel.chip_exact') : st === 'loading' ? t('app.kernel.chip_loading') : st === 'failed' ? t('app.kernel.chip_mesh_only') : ST.M ? t('kernel.chip.mesh') : '';
     ui.kernel.className = 'pc-chip ' + (st === 'ready' ? 'is-ok' : st === 'failed' ? 'is-error' : 'is-busy');
     ui.kernel.title = st === 'ready' ? (exact.loadMs ? t('app.kernel.title_ready_loaded', { secs: (exact.loadMs / 1000).toFixed(1) }) : t('app.kernel.title_ready')) : st === 'loading' ? t('app.kernel.title_loading') : t('app.kernel.title_mesh');
   }
-  const ready = Module().then((m) => { m.setup(); M = m; if (!useExact) { ui.busy.hidden = true; rebuild(); renderAll(); } showKernel(); return true; })
-    .catch((err) => { if (!useExact) ui.busyText.textContent = t('app.kernel.solid_failed', { error: err && err.message ? err.message : err }); return false; });
+  const ready = Module().then((m) => { m.setup(); ST.M = m; if (!ST.useExact) { ui.busy.hidden = true; rebuild(); renderAll(); } showKernel(); return true; })
+    .catch((err) => { if (!ST.useExact) ui.busyText.textContent = t('app.kernel.solid_failed', { error: err && err.message ? err.message : err }); return false; });
   // OpenCascade is fetched once the page is up (it is big); nothing waits for it
   if (!exactOff()) setTimeout(() => { exact.start().catch(() => {}); }, 0);
 
-  const editingFeature = () => (editing ? P.featureById(part, editing) : null);
-  const currentFrame = () => (editing && regen ? regen.frames.get(editing) || planeFrame(editingFeature().plane, regen, part) : null);
+  const editingFeature = () => (ST.editing ? P.featureById(ST.part, ST.editing) : null);
+  function currentFrame() { return ST.editing && ST.regen ? ST.regen.frames.get(ST.editing) || planeFrame(editingFeature().plane, ST.regen, ST.part) : null; }
 
   // Rebuilds: synchronous with manifold for a quick part; with the exact kernel, or a mesh-kernel part whose last build took
   // MESH_WORKER_MS or more (0.10 PERF.39), a request goes to a worker and the newest one wins (a rebuild asked for while one
   // runs is sent when it returns; one that has run STALE_MS already is stopped and the newest sent at once). built() resolves
   // once the part on screen matches the part in memory.
-  let inflight = false, again = false;
+  ST.inflight = false; ST.again = false;
   const MESH_WORKER_MS = 80, MESH_WORKER_TOOLS = 150, STALE_MS = 1500;
-  let meshMs = 0, meshMsPart = null, meshWorker = null, meshWorkerOk = true, meshSent = 0;
+  ST.meshMs = 0; ST.meshMsPart = null; ST.meshWorker = null; ST.meshWorkerOk = true; ST.meshSent = 0;
   /** About how many solids a build applies: one per feature, a pattern's copies of its seeds (count × count2), a mirror two. */
   const toolsEstimate = (p) => {
     const n = new Map();
@@ -371,67 +386,67 @@ function init(root) {
     return all;
   };
   /** The mesh kernel's rebuild goes to its worker: this part's last build was slow, or (not built yet: a file just opened) it looks big. */
-  const meshInWorker = () => meshWorkerOk && typeof Worker === 'function'
-    && (meshMsPart === part ? meshMs >= MESH_WORKER_MS : toolsEstimate(part) >= MESH_WORKER_TOOLS);
+  const meshInWorker = () => ST.meshWorkerOk && typeof Worker === 'function'
+    && (ST.meshMsPart === ST.part ? ST.meshMs >= MESH_WORKER_MS : toolsEstimate(ST.part) >= MESH_WORKER_TOOLS);
   const waiters = [];
-  const upToNow = () => (mode === 'sketch' && editing ? P.indexOf(part, editing) + 1 : mode === 'pick' && editing ? P.indexOf(part, editing) : null);
+  const upToNow = () => (ST.mode === 'sketch' && ST.editing ? P.indexOf(ST.part, ST.editing) + 1 : ST.mode === 'pick' && ST.editing ? P.indexOf(ST.part, ST.editing) : null);
   function rebuild() {
-    if (!M && !useExact) return;
-    if (mode === 'assembly') { return rebuildAsm(); }
+    if (!ST.M && !ST.useExact) return;
+    if (ST.mode === 'assembly') { return rebuildAsm(); }
     // the open sketch's state is the page's own solve: shown at once, whatever the kernel is doing
-    if (mode === 'sketch' && editing && editingFeature()) { lastSolve = solveSketch(editingFeature().sketch); showSketchState(); }
-    if (mode === 'drawing') { drawingRefresh(); }
-    if (useExact) { requestExact(); return; }
+    if (ST.mode === 'sketch' && ST.editing && editingFeature()) { ST.lastSolve = solveSketch(editingFeature().sketch); showSketchState(); }
+    if (ST.mode === 'drawing') { drawingRefresh(); }
+    if (ST.useExact) { requestExact(); return; }
     if (meshInWorker()) { requestMesh(); return; }
-    if (inflight) { again = true; return; }   // a worker build is still out: its answer is old, the next build comes after it
+    if (ST.inflight) { ST.again = true; return; }   // a worker build is still out: its answer is old, the next build comes after it
     const t0 = performance.now();
-    const r = regenerate(part, M, { upTo: upToNow() });
-    meshMs = performance.now() - t0; meshMsPart = part;
-    applyRegen(r, meshMs);
+    const r = regenerate(ST.part, ST.M, { upTo: upToNow() });
+    ST.meshMs = performance.now() - t0; ST.meshMsPart = ST.part;
+    applyRegen(r, ST.meshMs);
   }
   /** 0.10 PERF.39: the mesh kernel in mesh-kernel-worker.js; the page shows the part it has until the new one lands. */
   function requestMesh() {
-    if (inflight) {
-      again = true;
+    if (ST.inflight) {
+      ST.again = true;
       // a long build of a part that has changed since: its answer would be thrown away, so stop it and send the newest now
-      if (performance.now() - meshSent > STALE_MS && meshWorker) { meshWorker.terminate(); meshWorker = null; }
+      if (performance.now() - ST.meshSent > STALE_MS && ST.meshWorker) { ST.meshWorker.terminate(); ST.meshWorker = null; }
       return;
     }
-    inflight = true;
-    for (const f of part.features) if (f.type === 'sketch') solveSketch(f.sketch);   // the worker builds the part as the page has it solved
-    const t0 = meshSent = performance.now(), sentPart = part;
+    ST.inflight = true;
+    for (const f of ST.part.features) if (f.type === 'sketch') solveSketch(f.sketch);   // the worker builds the part as the page has it solved
+    const t0 = ST.meshSent = performance.now(), sentPart = ST.part;
     ui.build.textContent = t('app.build.rebuilding'); ui.build.className = 'pc-chip is-busy';
-    if (!meshWorker) meshWorker = computeWorker(['mesh-kernel-worker.js'], { name: 'PartCraft mesh kernel' });   // i18n-ignore: a worker's name for developer tools
-    const w = meshWorker;
-    w.call('meshRegen', { part, upTo: upToNow(), manifoldUrl: import.meta.resolve('manifold-3d') }, {
-      onProgress: (f) => { if (inflight && !again) ui.build.textContent = t('app.build.rebuilding_pct', { pct: Math.round(f * 100) }); },
+    if (!ST.meshWorker) ST.meshWorker = computeWorker(['mesh-kernel-worker.js'], { name: 'PartCraft mesh kernel' });   // i18n-ignore: a worker's name for developer tools
+    const w = ST.meshWorker;
+    w.call('meshRegen', { part: ST.part, upTo: upToNow(), manifoldUrl: import.meta.resolve('manifold-3d') }, {
+      onProgress: (f) => { if (ST.inflight && !ST.again) ui.build.textContent = t('app.build.rebuilding_pct', { pct: Math.round(f * 100) }); },
     }).then((r) => {
-      inflight = false;
-      meshMs = performance.now() - t0; meshMsPart = sentPart;
-      if (again) { again = false; rebuild(); return; }
-      applyRegen(r, meshMs);
+      ST.inflight = false;
+      ST.meshMs = performance.now() - t0; ST.meshMsPart = sentPart;
+      if (ST.again) { ST.again = false; rebuild(); return; }
+      applyRegen(r, ST.meshMs);
     }, (err) => {
-      inflight = false;
-      if (again) { again = false; rebuild(); return; }   // stopped for a newer part (terminate)
+      ST.inflight = false;
+      if (ST.again) { ST.again = false; rebuild(); return; }   // stopped for a newer part (terminate)
       // the worker could not start or failed: build here from now on, as before 0.10
       console.warn('mesh kernel worker failed; building on the page', err);
-      meshWorkerOk = false; meshWorker = null;
+      ST.meshWorkerOk = false; ST.meshWorker = null;
       rebuild();
     });
   }
   function requestExact() {
-    if (inflight) { again = true; return; }
-    inflight = true;
+    if (ST.inflight) { ST.again = true; return; }
+    ST.inflight = true;
     // sketches are solved here too, so the page's part is the solved part the worker builds
-    for (const f of part.features) if (f.type === 'sketch') solveSketch(f.sketch);
+    for (const f of ST.part.features) if (f.type === 'sketch') solveSketch(f.sketch);
     const t0 = performance.now();
     ui.build.textContent = t('app.build.rebuilding'); ui.build.className = 'pc-chip is-busy';
-    exact.call('regen', { part, upTo: upToNow() }).then((r) => {
-      inflight = false;
-      if (again) { again = false; requestExact(); return; }
+    exact.call('regen', { part: ST.part, upTo: upToNow() }).then((r) => {
+      ST.inflight = false;
+      if (ST.again) { ST.again = false; requestExact(); return; }
       applyRegen(r, performance.now() - t0);
     }, (err) => {
-      inflight = false; again = false;
+      ST.inflight = false; ST.again = false;
       if (exact.state !== 'ready') return;   // a failed load is reported by onstate
       status(t('app.kernel.failed_on_part', { error: err.message }));
       ui.build.textContent = t('app.build.kernel_error'); ui.build.className = 'pc-chip is-error';
@@ -440,50 +455,50 @@ function init(root) {
   }
   // FX.239: a file can be opened before the solid kernel has loaded (SuperCad Studio hands the Parts view its project file at once). rebuild() does
   // nothing until then, so "built" first waits for the kernel, whose arrival rebuilds the part that is open by then.
-  const built = () => ready.then(() => new Promise((res) => { if (!inflight && !again) res(); else waiters.push(res); }));
+  function built() { return ready.then(() => new Promise((res) => { if (!ST.inflight && !ST.again) res(); else waiters.push(res); })); }
 
   /** 0.8 DC.117: the display bodies add-ons placed (part.addonBodies) drawn as scene overlays; called after every rebuild, undo, open and workspace change. */
   const bodyOverlays = new Set();
   function syncAddonBodies() {
     const want = new Map();
-    for (const [a, groups] of Object.entries(part.addonBodies || {})) for (const [g, def] of Object.entries(groups)) want.set('addon-bodies:' + a + ':' + g, def);
-    for (const key of [...bodyOverlays]) if (!want.has(key)) { view.setOverlay(key, null); bodyOverlays.delete(key); }
+    for (const [a, groups] of Object.entries(ST.part.addonBodies || {})) for (const [g, def] of Object.entries(groups)) want.set('addon-bodies:' + a + ':' + g, def);
+    for (const key of [...bodyOverlays]) if (!want.has(key)) { ST.view.setOverlay(key, null); bodyOverlays.delete(key); }
     for (const [key, def] of want) {
-      const old = view.overlays.get(key);
+      const old = ST.view.overlays.get(key);
       if (old && old.userData.def === def) continue;   // the same data: already drawn
       const obj = AB.groupObject(THREE, def);
       obj.userData.def = def;
-      view.setOverlay(key, obj); bodyOverlays.add(key);
+      ST.view.setOverlay(key, obj); bodyOverlays.add(key);
     }
-    view.setExtraBounds(AB.boundsOf(part));
+    ST.view.setExtraBounds(AB.boundsOf(ST.part));
   }
   function applyRegen(r, ms) {
-    regen = r;
-    problemsSync?.();
-    shellKit?.changed();
-    view.setMesh(regen.mesh);
-    view.setHidden(hiddenGeometry(part, regen));
+    ST.regen = r;
+    ST.problemsSync?.();
+    ST.shellKit?.changed();
+    ST.view.setMesh(ST.regen.mesh);
+    ST.view.setHidden(hiddenGeometry(ST.part, ST.regen));
     syncAddonBodies();
     syncPlanes();   // the first solid makes the base planes step back (0.6 PU.4), also when the exact kernel answers later
     syncHandles();  // the handle follows the rebuilt feature (0.6 PU.2)
-    SUI.showSheets(regen);
-    measure?.refresh(); section?.refresh(); draft?.refresh();
-    if (pick && pick.kind === 'face') { pick = null; view.setHighlight(null); }
-    if (pick && pick.kind === 'edge' && named() && pick.ref) { const i = findEdge(regen.edges, pick.ref); pick = i >= 0 ? edgePick(i) : null; }
-    multi = multi.map((m) => (m.kind === 'edge' && named() ? (findEdge(regen.edges, m.ref) >= 0 ? edgePick(findEdge(regen.edges, m.ref)) : null) : null)).filter(Boolean);
+    SUI.showSheets(ST.regen);
+    ST.measure?.refresh(); ST.section?.refresh(); ST.draft?.refresh();
+    if (ST.pick && ST.pick.kind === 'face') { ST.pick = null; ST.view.setHighlight(null); }
+    if (ST.pick && ST.pick.kind === 'edge' && named() && ST.pick.ref) { const i = findEdge(ST.regen.edges, ST.pick.ref); ST.pick = i >= 0 ? edgePick(i) : null; }
+    ST.multi = ST.multi.map((m) => (m.kind === 'edge' && named() ? (findEdge(ST.regen.edges, m.ref) >= 0 ? edgePick(findEdge(ST.regen.edges, m.ref)) : null) : null)).filter(Boolean);
     showMarks();
-    const errs = [...regen.results.values()].filter((x) => x.status === 'error').length;
-    ui.build.textContent = errs ? t('app.build.failing', { n: errs }) : mode === 'sketch' ? '' : t('app.build.rebuilt', { ms: Math.round(ms) });
+    const errs = [...ST.regen.results.values()].filter((x) => x.status === 'error').length;
+    ui.build.textContent = errs ? t('app.build.failing', { n: errs }) : ST.mode === 'sketch' ? '' : t('app.build.rebuilt', { ms: Math.round(ms) });
     ui.build.className = 'pc-chip ' + (errs ? 'is-error' : 'is-ok');
-    if (editing && mode === 'sketch') lastSolve = solveSketch(editingFeature().sketch);
+    if (ST.editing && ST.mode === 'sketch') ST.lastSolve = solveSketch(editingFeature().sketch);
     show3DSketches();
     renderTree();
     renderFacts();
-    if (mode === 'sketch') { showSketchState(); editor.draw(); }
+    if (ST.mode === 'sketch') { showSketchState(); editor.draw(); }
     else keepFocus(() => renderProps());
     updateTools();
-    if (ws !== WS.DESIGN) wsCall('rebuilt', host);
-    addons?.changed('rebuild');   // add-ons' part.onChange (an undo and an open rebuild too)
+    if (ST.ws !== WS.DESIGN) wsCall('rebuilt', host);
+    ST.addons?.changed('rebuild');   // add-ons' part.onChange (an undo and an open rebuild too)
     for (const w of waiters.splice(0)) w();
   }
 
@@ -498,9 +513,9 @@ function init(root) {
   }
 
   function commit(label, fn) {
-    hist.push(part, label);
+    hist.push(ST.part, label);
     const r = fn();
-    dirty = true;
+    ST.dirty = true;
     rebuild();
     renderAll();
     return r;
@@ -508,15 +523,15 @@ function init(root) {
 
   /** A change that only touches how bodies are named or shown (part.bodyInfo): one undo step, no rebuild. */
   function commitView(label, fn) {
-    hist.push(part, label);
+    hist.push(ST.part, label);
     const r = fn();
-    dirty = true;
-    const h = hiddenGeometry(part, regen);
-    view.setHidden(h);
+    ST.dirty = true;
+    const h = hiddenGeometry(ST.part, ST.regen);
+    ST.view.setHidden(h);
     // a pick on a body that is now hidden goes
-    if (h && pick && pick.kind === 'face' && h.faces.has(pick.face)) { pick = null; view.setHighlight(null); }
-    if (h && pick && pick.kind === 'edge' && h.edges.has(pick.edge)) { pick = null; view.setHighlight(null); }
-    if (h) multi = multi.filter((m) => !(m.kind === 'face' ? h.faces.has(m.face) : h.edges.has(m.edge)));
+    if (h && ST.pick && ST.pick.kind === 'face' && h.faces.has(ST.pick.face)) { ST.pick = null; ST.view.setHighlight(null); }
+    if (h && ST.pick && ST.pick.kind === 'edge' && h.edges.has(ST.pick.edge)) { ST.pick = null; ST.view.setHighlight(null); }
+    if (h) ST.multi = ST.multi.filter((m) => !(m.kind === 'face' ? h.faces.has(m.face) : h.edges.has(m.edge)));
     showMarks();
     renderAll();
     return r;
@@ -526,12 +541,12 @@ function init(root) {
     const f = editingFeature();
     if (!f) return;
     const before = JSON.stringify(f.sketch);
-    if (!squash) hist.push(part, label);
+    if (!squash) hist.push(ST.part, label);
     try { fn(f.sketch); } catch (err) { f.sketch = JSON.parse(before); if (!squash) hist.undoStack.pop(); throw err; }
-    dirty = true;
-    lastSolve = solveSketch(f.sketch);
-    if (lastSolve.conflicts.length) status(t('app.sketch.over_conflict', { list: [...new Set([...lastSolve.conflicts, ...lastSolve.redundant])].map((id) => describeC(f.sketch, id)).join(', ') }), true);
-    else if (lastSolve.redundant.length) status(t('app.sketch.over_redundant', { n: lastSolve.redundant.length, list: lastSolve.redundant.map((id) => describeC(f.sketch, id)).join(', ') }), true);
+    ST.dirty = true;
+    ST.lastSolve = solveSketch(f.sketch);
+    if (ST.lastSolve.conflicts.length) status(t('app.sketch.over_conflict', { list: [...new Set([...ST.lastSolve.conflicts, ...ST.lastSolve.redundant])].map((id) => describeC(f.sketch, id)).join(', ') }), true);
+    else if (ST.lastSolve.redundant.length) status(t('app.sketch.over_redundant', { n: ST.lastSolve.redundant.length, list: ST.lastSolve.redundant.map((id) => describeC(f.sketch, id)).join(', ') }), true);
     rebuild();
     renderProps();
     updateTools();
@@ -539,580 +554,165 @@ function init(root) {
 
   const describeC = (sk, id) => { const c = sk.constraints.find((k) => k.id === id); return c ? S.describe(c, f3) : id; };
 
-  // ---------------------------------------------------------------- 3D picking
-  function isFlatFace(hit) {
-    if (!hit || hit.kind !== 'face') return false;
-    if (named() && hit.face !== undefined) return regen.faces[hit.face]?.type === 'plane';
-    if (hit.feature && regen && faceRefAt(regen, hit.feature, hit.normal, hit.point).kind === 'face') return true;
-    // a facet of a curved surface has at least one smooth neighbour
-    const mesh = regen?.mesh;
-    if (!mesh) return false;
-    const grp = view.planarGroups();
-    const g = grp.groups[hit.group];
-    const inG = new Set(g.tris);
-    const I = mesh.indices;
-    const key = (a, b) => (a < b ? a + ',' + b : b + ',' + a);
-    const edgeTri = new Map();
-    for (let t = 0; t < I.length / 3; t++) for (let k = 0; k < 3; k++) { const kk = key(I[t * 3 + k], I[t * 3 + (k + 1) % 3]); if (!edgeTri.has(kk)) edgeTri.set(kk, []); edgeTri.get(kk).push(t); }
-    for (const t of g.tris) for (let k = 0; k < 3; k++) {
-      for (const o of edgeTri.get(key(I[t * 3 + k], I[t * 3 + (k + 1) % 3])) || []) {
-        if (inG.has(o)) continue;
-        const n2 = grp.groups[grp.faceOf[o]].n;
-        if (V.dot(n2, g.n) > Math.cos(20 * Math.PI / 180)) return false;
-      }
-    }
-    return true;
-  }
+  const { isFlatFace, edgeHover, edgePick, facePickAt, showMarks, refFeature, startPick, endPick, pickRef } = mountPick({
+    ST, status, exact, named, exactWhy, rebuild, commit, renderAll, focusStage, notInDesign,
+    get exitSketch() { return exitSketch; },
+    get PICKERS() { return PICKERS; },
+    get PICK_ON_MESH() { return PICK_ON_MESH; },
+    get FACE_PICKERS() { return FACE_PICKERS; },
+  });
 
   function onHover(h) {
-    if (addons?.hover(h)) return;   // an add-on is picking faces: the face under the pointer is lit
-    if (measure?.active) return;   // measure-ui.js shows its own snap preview
-    if (ws !== WS.DESIGN) { if (ws.onHover) wsCall('onHover', h, host); else view.setHover(null); return; }
-    if (mode === 'sketch' || mode === 'drawing') return;
-    if (mode === 'pick') {
-      const want = FACE_PICKERS.has(P.featureById(part, editing)?.type) ? 'face' : 'edge';
-      view.setHover(h && h.kind === want ? (want === 'edge' ? edgeHover(h) : { tris: h.tris }) : null);
+    if (ST.addons?.hover(h)) return;   // an add-on is picking faces: the face under the pointer is lit
+    if (ST.measure?.active) return;   // measure-ui.js shows its own snap preview
+    if (ST.ws !== WS.DESIGN) { if (ST.ws.onHover) wsCall('onHover', h, host); else ST.view.setHover(null); return; }
+    if (ST.mode === 'sketch' || ST.mode === 'drawing') return;
+    if (ST.mode === 'pick') {
+      const want = FACE_PICKERS.has(P.featureById(ST.part, ST.editing)?.type) ? 'face' : 'edge';
+      ST.view.setHover(h && h.kind === want ? (want === 'edge' ? edgeHover(h) : { tris: h.tris }) : null);
       return;
     }
-    if (mode === 'assembly') { view.setHover(h && h.kind === 'face' && h.inst ? { tris: h.tris, data: h.data, matrix: h.matrix } : null); return; }
-    if (h && h.kind === 'ref') { view.setHover(null); return; }
-    if (h && h.kind === 'plane') { view.setHover(null); view.setPlaneState(sel?.kind === 'plane' ? sel.name : null, h.name); return; }
-    view.setPlaneState(sel?.kind === 'plane' ? sel.name : null, null);
-    if (!h) { view.setHover(null); return; }
-    if (h.kind === 'edge') { view.setHover(edgeHover(h)); return; }
-    view.setHover({ tris: h.tris });
-  }
-  /** Hover / highlight of a whole exact edge (all its segments), else the one segment. */
-  const edgeHover = (h) => (named() && h.edge !== undefined ? { kind: 'edges', edges: [h.edge] } : h);
-  function edgePick(i) {
-    const e = regen.edges[i];
-    return { kind: 'edge', a: e.a, b: e.b, edge: i, ref: edgeRef(e), info: e };
-  }
-  function facePickAt(fi) {
-    const f = regen.faces[fi];
-    return f ? { kind: 'face', face: fi, ref: faceRef(f), info: f } : null;
-  }
-  /** Marks in the view: Shift-picked edges/faces, and the references of the feature being picked for. */
-  function showMarks() {
-    if (!named()) { view.setMarks(null); return; }
-    const edges = [], faces = [];
-    for (const m of multi) (m.kind === 'edge' ? edges : faces).push(m.kind === 'edge' ? m.edge : m.face);
-    if (mode === 'pick') {
-      const f = P.featureById(part, editing);
-      if (f?.edges) for (const r of f.edges) { const i = findEdge(regen.edges, r); if (i >= 0) edges.push(i); }
-      if (f?.faces) for (const r of f.faces) { const i = findFace(regen.faces, r); if (i >= 0) faces.push(i); }
-    }
-    view.setMarks(edges.length || faces.length ? { edges, faces } : null);
+    if (ST.mode === 'assembly') { ST.view.setHover(h && h.kind === 'face' && h.inst ? { tris: h.tris, data: h.data, matrix: h.matrix } : null); return; }
+    if (h && h.kind === 'ref') { ST.view.setHover(null); return; }
+    if (h && h.kind === 'plane') { ST.view.setHover(null); ST.view.setPlaneState(ST.sel?.kind === 'plane' ? ST.sel.name : null, h.name); return; }
+    ST.view.setPlaneState(ST.sel?.kind === 'plane' ? ST.sel.name : null, null);
+    if (!h) { ST.view.setHover(null); return; }
+    if (h.kind === 'edge') { ST.view.setHover(edgeHover(h)); return; }
+    ST.view.setHover({ tris: h.tris });
   }
 
   function onPick(h, e) {
-    if (addons?.pick(h, e)) return;   // an add-on is picking faces (add-on API 1.3 api.view)
-    if (section?.picking && section.pick(h)) return;
-    if (draft?.picking && draft.pick(h)) return;
-    if (stackup?.picking) { stackup.pick(h, e); return; }
-    if (motion?.picking) { motion.pick(h, e); return; }
-    if (contactStudy?.picking) { contactStudy.pick(h, e); return; }
-    if (measure?.active) { measure.pick(h, e); return; }
-    if (mode === 'assembly' && asmTools?.pick(h)) return;
-    if (ws !== WS.DESIGN) { wsCall('onPick', h, host, e); return; }
-    if (mode === 'sketch' || mode === 'drawing') return;
-    if (mode === 'assembly') { asmPick(h); return; }
-    if (mode === 'pick') { pickRef(h); return; }
+    if (ST.addons?.pick(h, e)) return;   // an add-on is picking faces (add-on API 1.3 api.view)
+    if (ST.section?.picking && ST.section.pick(h)) return;
+    if (ST.draft?.picking && ST.draft.pick(h)) return;
+    if (ST.stackup?.picking) { ST.stackup.pick(h, e); return; }
+    if (ST.motion?.picking) { ST.motion.pick(h, e); return; }
+    if (ST.contactStudy?.picking) { ST.contactStudy.pick(h, e); return; }
+    if (ST.measure?.active) { ST.measure.pick(h, e); return; }
+    if (ST.mode === 'assembly' && ST.asmTools?.pick(h)) return;
+    if (ST.ws !== WS.DESIGN) { wsCall('onPick', h, host, e); return; }
+    if (ST.mode === 'sketch' || ST.mode === 'drawing') return;
+    if (ST.mode === 'assembly') { asmPick(h); return; }
+    if (ST.mode === 'pick') { pickRef(h); return; }
     if (DUI.onPick(h, e)) return;   // a reference slot of a Design feature panel was waiting for this click
     if (SUI.onPick(h, e)) return;   // a Gordon surface's "Pick edges" slot (surface-ui.js)
     if (SH.onPick(h, e)) return;   // a flange's edge slot (sheet-ui.js)
     if (BUI.onPick(h, e)) return;   // a body tool's slot: bodies, points, axes, planes, path edges (bodies-ui.js)
     if (h && h.kind === 'ref') {
-      const rf = P.featureById(part, h.id);
-      if (pendingSketch && rf?.type === 'plane') { startSketchOn({ kind: 'ref', feature: rf.id }); return; }
-      if (rf) { pick = null; view.setHighlight(null); selectFeature(rf.id); }
+      const rf = P.featureById(ST.part, h.id);
+      if (ST.pendingSketch && rf?.type === 'plane') { startSketchOn({ kind: 'ref', feature: rf.id }); return; }
+      if (rf) { ST.pick = null; ST.view.setHighlight(null); selectFeature(rf.id); }
       return;
     }
     if (e?.shiftKey && named() && h && (h.kind === 'edge' ? h.edge !== undefined : h.kind === 'face' && h.face !== undefined)) {
       // Shift+click collects edges (for Fillet / Chamfer) or faces (for Shell)
       const add = h.kind === 'edge' ? edgePick(h.edge) : facePickAt(h.face);
-      if (multi.length && multi[0].kind !== add.kind) multi = [];
-      if (pick && pick.kind === add.kind && !multi.length && (pick.kind === 'edge' ? pick.edge !== undefined : pick.face !== undefined)) multi.push(pick.kind === 'edge' ? edgePick(pick.edge) : facePickAt(pick.face));
-      const at = multi.findIndex((m) => (m.kind === 'edge' ? m.edge === add.edge : m.face === add.face));
-      if (at >= 0) multi.splice(at, 1); else multi.push(add);
-      pick = null; view.setHighlight(null);
+      if (ST.multi.length && ST.multi[0].kind !== add.kind) ST.multi = [];
+      if (ST.pick && ST.pick.kind === add.kind && !ST.multi.length && (ST.pick.kind === 'edge' ? ST.pick.edge !== undefined : ST.pick.face !== undefined)) ST.multi.push(ST.pick.kind === 'edge' ? edgePick(ST.pick.edge) : facePickAt(ST.pick.face));
+      const at = ST.multi.findIndex((m) => (m.kind === 'edge' ? m.edge === add.edge : m.face === add.face));
+      if (at >= 0) ST.multi.splice(at, 1); else ST.multi.push(add);
+      ST.pick = null; ST.view.setHighlight(null);
       showMarks(); renderProps();
-      status(t(add.kind === 'edge' ? 'app.pick.multi_edges' : 'app.pick.multi_faces', { n: multi.length }));
+      status(t(add.kind === 'edge' ? 'app.pick.multi_edges' : 'app.pick.multi_faces', { n: ST.multi.length }));
       return;
     }
-    if (multi.length) { multi = []; showMarks(); }
+    if (ST.multi.length) { ST.multi = []; showMarks(); }
     if (!h) {
-      pick = null; view.setHighlight(null);
-      if (!refFeature()) { sel = null; view.setPlaneState(null, null); renderProps(); renderTree(); }
-      if (pendingSketch) status(t('app.sketch.pick_plane'), true);
+      ST.pick = null; ST.view.setHighlight(null);
+      if (!refFeature()) { ST.sel = null; ST.view.setPlaneState(null, null); renderProps(); renderTree(); }
+      if (ST.pendingSketch) status(t('app.sketch.pick_plane'), true);
       return;
     }
     if (h.kind === 'plane') {
-      pick = null; view.setHighlight(null);
-      sel = { kind: 'plane', name: h.name };
-      view.setPlaneState(h.name, null);
+      ST.pick = null; ST.view.setHighlight(null);
+      ST.sel = { kind: 'plane', name: h.name };
+      ST.view.setPlaneState(h.name, null);
       renderTree(); renderProps();
-      if (pendingSketch) startSketchOn({ kind: 'base', name: h.name });
+      if (ST.pendingSketch) startSketchOn({ kind: 'base', name: h.name });
       return;
     }
     if (h.kind === 'edge') {
-      pick = named() && h.edge !== undefined ? edgePick(h.edge) : { kind: 'edge', a: h.a, b: h.b };
-      view.setHighlight(edgeHover(h));
+      ST.pick = named() && h.edge !== undefined ? edgePick(h.edge) : { kind: 'edge', a: h.a, b: h.b };
+      ST.view.setHighlight(edgeHover(h));
       renderProps();
       return;
     }
     const flat = isFlatFace(h);
     let ref;
     if (named() && h.face !== undefined) {
-      const f = regen.faces[h.face];
+      const f = ST.regen.faces[h.face];
       ref = flat ? (f?.name ? refForName(f.name) : { kind: 'fixed', o: f.o.map((v) => +v.toFixed(9)), n: f.n.map((v) => +v.toFixed(12)) }) : null;
       if (flat && f) h = { ...h, normal: f.n };
-    } else ref = flat && h.feature ? faceRefAt(regen, h.feature, h.normal, h.point) : flat ? { kind: 'fixed', o: h.point, n: h.normal } : null;
-    pick = { kind: 'face', ...h, flat, ref, info: named() && h.face !== undefined ? regen.faces[h.face] : null };
-    view.setHighlight({ tris: h.tris });
-    if (!refFeature()) { sel = null; view.setPlaneState(null, null); renderTree(); }
+    } else ref = flat && h.feature ? faceRefAt(ST.regen, h.feature, h.normal, h.point) : flat ? { kind: 'fixed', o: h.point, n: h.normal } : null;
+    ST.pick = { kind: 'face', ...h, flat, ref, info: named() && h.face !== undefined ? ST.regen.faces[h.face] : null };
+    ST.view.setHighlight({ tris: h.tris });
+    if (!refFeature()) { ST.sel = null; ST.view.setPlaneState(null, null); renderTree(); }
     renderProps();
-    if (pendingSketch) {
+    if (ST.pendingSketch) {
       if (flat) startSketchOn(ref);
       else status(t('app.sketch.face_curved'), true);
     }
   }
 
-  /** The selected feature, when it takes references picked in the view (patterns, mirror). */
-  function refFeature() {
-    if (sel?.kind !== 'feature') return null;
-    const f = P.featureById(part, sel.id);
-    return f && ['lpattern', 'cpattern', 'mirror'].includes(f.type) ? f : null;
-  }
 
-  // ---------------------------------------------------------------- picking references (fillet / chamfer / shell)
-  /** Show the part as it is before the feature, so its edges or faces can be clicked on and off. */
-  function startPick(id) {
-    const f = P.featureById(part, id);
-    if (!f || !PICKERS.has(f.type) || notInDesign()) return;
-    if (!useExact && !(PICK_ON_MESH.has(f.type) && named())) { status(exactWhy(t('kernel.what.pick'), exact.state === 'loading' ? t('app.pick.needs_exact_loading') : t('app.pick.needs_exact_off'))); return; }
-    if (mode === 'sketch') exitSketch();
-    mode = 'pick'; editing = id; sel = { kind: 'feature', id };
-    pick = null; multi = []; view.setHighlight(null);
-    rebuild(); renderAll();
-    status(f.type === 'thread' ? t('thread.ui.pick_start', { name: f.name }) : f.type === 'draft' ? t('app.pick.start_draft', { name: f.name }) : f.type === 'shell' ? t('app.pick.start_shell', { name: f.name }) : t('app.pick.start_edges', { name: f.name }), true);
-    focusStage();
-  }
-  function endPick() {
-    if (mode !== 'pick') return;
-    const id = editing;
-    mode = 'model'; editing = null;
-    sel = id && P.featureById(part, id) ? { kind: 'feature', id } : null;
-    view.setHover(null);
-    rebuild(); renderAll(); status('');
-  }
-  function pickRef(h) {
-    const f = P.featureById(part, editing);
-    if (!f || !named()) return;
-    if (FACE_PICKERS.has(f.type)) {
-      if (!h || h.kind !== 'face' || h.face === undefined) { status(t('app.pick.click_face'), true); return; }
-      const fc = regen.faces[h.face];
-      if (!fc?.name) { status(t('app.pick.face_unnamed'), true); return; }
-      if (f.type === 'thread' && fc.type !== 'cylinder') { status(t('thread.ui.pick_round'), true); return; }
-      const i = f.faces.findIndex((r) => findFace(regen.faces, r) === h.face);
-      commit(i >= 0 ? t('app.undo.drop_face') : t('app.undo.add_face'), () => { const g = P.featureById(part, f.id); if (i >= 0) g.faces.splice(i, 1); else g.faces.push(faceRef(fc)); });
-      status(t('app.pick.faces_open', { name: f.name, n: P.featureById(part, f.id).faces.length }), true);
-      return;
-    }
-    if (!h || h.kind !== 'edge' || h.edge === undefined) { status(t('app.pick.click_edge'), true); return; }
-    const e = regen.edges[h.edge];
-    const i = f.edges.findIndex((r) => findEdge(regen.edges, r) === h.edge);
-    commit(i >= 0 ? t('app.undo.drop_edge') : t('app.undo.add_edge'), () => { const g = P.featureById(part, f.id); if (i >= 0) g.edges.splice(i, 1); else g.edges.push(edgeRef(e)); });
-    status(t('app.pick.edges_count', { name: f.name, n: P.featureById(part, f.id).edges.length }), true);
-  }
 
-  // ---------------------------------------------------------------- sketch mode
-  function startSketch() {
-    if ((!M && !useExact) || notInDesign()) return;
-    if (mode === 'sketch' || mode === 'drawing') return;
-    if (mode === 'pick') endPick();
-    if (sel?.kind === 'feature') {
-      const f = P.featureById(part, sel.id);
-      if (f?.type === 'sketch') { editSketch(f.id); return; }
-      if (f?.type === 'plane' && regen?.refGeom?.get(f.id)) { startSketchOn({ kind: 'ref', feature: f.id }); return; }
-    }
-    if (pick?.kind === 'face') {
-      if (!pick.flat) { status(t('app.sketch.face_curved')); return; }
-      startSketchOn(pick.ref);
-      return;
-    }
-    if (sel?.kind === 'plane') { startSketchOn({ kind: 'base', name: sel.name }); return; }
-    pendingSketch = true;
-    syncPlanes();
-    status(t('app.sketch.pick_plane'), true);
-    updateTools();
-  }
-
-  function startSketchOn(plane) {
-    pendingSketch = false;
-    const f = commit(t('app.undo.new_sketch'), () => P.addFeature(part, 'sketch', { plane }));
-    editSketch(f.id, true);
-  }
-
-  function editSketch(id, fresh = false) {
-    const f = P.featureById(part, id);
-    if (!f || f.type !== 'sketch' || notInDesign()) return;
-    if (regen?.results.get(id)?.status === 'skipped' || (regen && !regen.frames.get(id) && !planeFrame(f.plane, regen, part))) {
-      status(t('app.sketch.cannot_open', { reason: regen.results.get(id)?.message || t('app.sketch.plane_gone') }));
-      return;
-    }
-    section?.stop();   // a sketch is drawn on its plane: no cut
-    mode = 'sketch';
-    editing = id;
-    sel = { kind: 'feature', id };
-    pick = null; view.setHighlight(null); view.setHover(null);
-    rebuild();
-    const frame = currentFrame();
-    if (!frame) { exitSketch(); status(t('app.sketch.no_plane')); return; }
-    ui.sk.hidden = false;
-    editor.active = true;
-    editor.sel.clear();
-    view.setPlanesVisible(false);
-    // start at the model's scale, centred on the model (or fitted to the sketch)
-    const r = ui.sk.getBoundingClientRect();
-    const size = regen?.stats ? Math.max(...regen.stats.bbox.max.map((v, i) => v - regen.stats.bbox.min[i])) : 100;
-    const c = regen?.stats ? V.toPlane(frame, regen.stats.bbox.min.map((v, i) => (v + regen.stats.bbox.max[i]) / 2)) : [0, 0];
-    editor.view = { cx: c[0], cy: c[1], s: Math.max(0.01, Math.min(r.width, r.height) / (size * 1.6 || 160)) };
-    if (!fresh && S.bounds(f.sketch)) editor.fit();
-    view.setSketch(frame, editor.view);
-    editor.setTool(fresh ? 'line' : 'select');
-    ui.skBar.hidden = false;
-    ui.skName.textContent = t('app.sketch.name_on', { name: f.name, plane: planeLabel(f.plane) });
-    ui.hint.hidden = true;
-    showSketchState();
-    renderAll();
-    focusStage();
-    status(fresh ? t('app.sketch.draw_profile') : t('app.sketch.editing', { name: f.name }), true);
-  }
-
-  function exitSketch() {
-    if (mode !== 'sketch') return;
-    editor.hideInput();
-    editor.active = false;
-    editor.step = null;
-    ui.sk.hidden = true;
-    editor.draw();
-    const id = editing;
-    mode = 'model';
-    editing = null;
-    lastSolve = null;
-    view.setSketch(null);
-    ui.skBar.hidden = true;
-    ui.coords.textContent = '';
-    sel = id && P.featureById(part, id) ? { kind: 'feature', id } : null;
-    rebuild();
-    view.view('iso');
-    renderAll();
-    status('');
-  }
-
-  function showSketchState() {
-    if (!lastSolve) return;
-    const s = lastSolve;
-    const word = { empty: () => t('app.sketch.state_empty'), under: () => t('app.sketch.state_under', { n: s.dof }), full: () => t('app.sketch.state_full'), over: () => t('app.sketch.state_over') }[s.status]?.();
-    ui.skState.textContent = word;
-    ui.skState.className = 'pc-chip is-' + (s.status === 'empty' ? 'under' : s.status);
-  }
-
-  function planeLabel(p) {
-    if (!p) return '';
-    if (p.kind === 'base') return V.PLANE_NAMES[p.name];
-    if (p.kind === 'face') { const f = P.featureById(part, p.feature); return t('app.plane.face_of', { name: f ? f.name : t('app.plane.deleted_feature') }); }
-    if (p.kind === 'ref') return P.featureById(part, p.feature)?.name || t('app.plane.deleted_plane');
-    return t('app.plane.fixed');
-  }
-
-  /** World polylines of a sketch (for showing it in the model). */
-  function sketchPolylines(f, color) {
-    const frame = regen?.frames.get(f.id);
-    if (!frame) return [];
-    const sk = f.sketch, out = [];
-    const W = (p) => V.toWorld(frame, p[0], p[1]);
-    for (const e of sk.entities) {
-      let pts = null;
-      if (e.type === 'line') pts = [S.pointXY(sk, e.p1), S.pointXY(sk, e.p2)];
-      else if (e.type === 'circle') { pts = S.tessCircle(S.pointXY(sk, e.c), e.r, 64); pts.push(pts[0]); }
-      else if (e.type === 'arc') pts = S.tessArc(sk, e, 64);
-      else if (e.type === 'spline') { try { pts = S.tessSpline(sk, e, 16); } catch { pts = null; } }
-      if (pts) out.push({ pts: pts.map(W), dashed: !!e.construction, color });
-    }
-    for (const p of S.loosePoints(sk)) {
-      const s = 0.01 * Math.max(10, view.size);
-      out.push({ pts: [W([p.x - s, p.y]), W([p.x + s, p.y])], color }, { pts: [W([p.x, p.y - s]), W([p.x, p.y + s])], color });
-    }
-    return out;
-  }
-
-  function show3DSketches() {
-    if (mode === 'sketch' || !regen) { view.setSketchLines([]); view.setRefs([]); return; }
-    const used = new Set(part.features.filter((f) => f.sketch && typeof f.sketch === 'string').map((f) => f.sketch));
-    const lines = [];
-    const T = tokens();
-    for (const f of part.features) {
-      if (f.type !== 'sketch' || regen.results.get(f.id)?.status !== 'ok') continue;
-      const selected = sel?.kind === 'feature' && sel.id === f.id;
-      if (selected || !used.has(f.id)) lines.push(...sketchPolylines(f, selected ? T.sel : undefined));
-    }
-    // reference planes / axes / points and cosmetic threads (design-ui.js)
-    const dv = DUI.refsForView(sel?.kind === 'feature' ? sel.id : null, view.size);
-    if (dv.regionSketch) { const sf = P.featureById(part, dv.regionSketch); if (sf) lines.push(...sketchPolylines(sf, T.sel)); }
-    lines.push(...dv.lines);
-    view.setRefs(dv.refs);
-    view.setSketchLines(lines);
-  }
-
-  // ---------------------------------------------------------------- features
-  function chooseSketch(need) {
-    if (mode === 'sketch') { const id = editing; exitSketch(); return id; }
-    if (sel?.kind === 'feature') { const f = P.featureById(part, sel.id); if (f?.type === 'sketch') return f.id; }
-    const used = new Set(part.features.filter((f) => typeof f.sketch === 'string').map((f) => f.sketch));
-    const built = part.features.slice(0, P.builtCount(part));
-    const cands = built.filter((f) => f.type === 'sketch' && !used.has(f.id) && regen?.results.get(f.id)?.status === 'ok');
-    const ok = cands.filter((f) => (need === 'points' ? S.loosePoints(f.sketch).length : f.sketch.entities.some((e) => e.type !== 'point' && !e.construction)));
-    return ok.length ? ok[ok.length - 1].id : null;
-  }
-
-  function newFeature(type, props) {
-    const label = P.FEATURE_LABELS[type];   // the feature's name (part.js), also the undo step's label
-    if ((DESIGN_TYPES.has(type) && type !== 'draft') || SURFACE_TYPES.has(type) || BODY_TYPES.has(type) || SHEET_TYPES.has(type) || RIB_TYPES.has(type) || WELD_TYPES.has(type) || GEN_TYPES.has(type)) {
-      // reference geometry, sweep, loft: made from the selection, finished in the panel (design-ui.js)
-      const dp = GEN_TYPES.has(type) ? GU.create() : WELD_TYPES.has(type) ? WU.create() : RIB_TYPES.has(type) ? RB.create() : SHEET_TYPES.has(type) ? SH.create(type) : BODY_TYPES.has(type) ? BUI.create(type) : SURFACE_TYPES.has(type) ? SUI.create(type) : DUI.create(type);
-      if (!dp) return;
-      const f = commit(label, () => P.addFeature(part, type, { ...dp, ...props }));
-      sel = { kind: 'feature', id: f.id }; pick = null; multi = []; view.setHighlight(null); showMarks();
-      if (type === 'sheetflange' && !f.edge) { renderAll(); SH.pickEdge(f); return; }   // no edge picked yet: wait for one
-      renderAll();
-      if (type === 'generated') { built().then(() => GU.run(f)); return; }   // 0.8 CE.3: a new Generated body runs its script at once
-      if (type === 'rib') { built().then(() => RB.afterBuild(f)).then((flipped) => { if (!flipped) { const r = regen.results.get(f.id); status(r?.status === 'error' ? t('app.feature.error', { name: f.name, error: r.message }) : t('rib.ui.added', { name: f.name })); } }); return; }
-      built().then(() => {
-        const r = regen.results.get(f.id);
-        if (r?.status === 'error') status(t('app.feature.error', { name: f.name, error: r.message }));
-        else if (type === 'member') status(t('weld.ui.added', { name: f.name, n: f.segs.length, section: SECTION_NAME(f.section) }));   // D7.50
-        else status(t('app.feature.added_refs', { name: f.name }));
-      });
-      return;
-    }
-    if (PICKERS.has(type)) {
-      if (!useExact && !(PICK_ON_MESH.has(type) && named())) { status(exactWhy(label, exact.state === 'loading' ? t('app.feature.needs_exact_loading', { what: label }) : t('app.feature.needs_exact_off', { what: label }))); return; }
-      if (!regen?.mesh) { status(t('app.feature.build_solid_first')); return; }
-      const want = FACE_PICKERS.has(type) ? 'face' : 'edge';
-      const picked = [...multi, ...(pick && !multi.length ? [pick] : [])].filter((m) => m.kind === want && m.ref && (want === 'edge' || m.ref.name || m.info?.name))
-        .filter((m) => type !== 'thread' || (m.info?.type ?? regen?.faces?.[m.face]?.type) === 'cylinder');
-      props = FACE_PICKERS.has(type)
-        ? { faces: picked.map((m) => (m.ref.name ? m.ref : faceRef(m.info))), ...props }
-        : { edges: picked.map((m) => m.ref), ...props };
-      const f = commit(label, () => P.addFeature(part, type, props));
-      multi = []; pick = null; view.setHighlight(null);
-      sel = { kind: 'feature', id: f.id };
-      if (!picked.length) { startPick(f.id); return; }
-      renderAll();
-      built().then(() => { const r = regen.results.get(f.id); status(r?.status === 'error' ? t('app.feature.error', { name: f.name, error: r.message }) : t(want === 'edge' ? 'app.feature.added_edges' : 'app.feature.added_faces', { name: f.name, n: picked.length })); });
-      return;
-    }
-    if (type === 'extrude' || type === 'revolve' || type === 'hole') {
-      const sk = chooseSketch(type === 'hole' ? 'points' : 'profile');
-      if (!sk) { status(type === 'hole' ? t('app.feature.need_point_sketch') : t('app.feature.need_sketch')); return; }
-      props = { sketch: sk, ...props };
-      if (type === 'hole') {
-        // drill a body that is there: through all when the sketch sits on a face
-        props.through = true;
-      }
-    } else {
-      const seedFrom = sel?.kind === 'feature' ? P.featureById(part, sel.id) : null;
-      const built = part.features.slice(0, P.builtCount(part)).filter((f) => SOLID.has(f.type) && regen?.results.get(f.id)?.status === 'ok');
-      if (type === 'mirror' && !built.length) { status(t('app.feature.build_solid_first')); return; }
-      const seed = seedFrom && SOLID.has(seedFrom.type) ? seedFrom : built[built.length - 1];
-      if (!seed && type !== 'mirror') { status(t('app.feature.build_feature_first')); return; }
-      if (type === 'mirror') {
-        props = { seeds: seedFrom && SOLID.has(seedFrom.type) ? [seedFrom.id] : 'body', ...props };
-        if (pick?.kind === 'face' && pick.flat) props.plane = pick.ref;
-      } else props = { seeds: [seed.id], ...props };
-      if (type === 'cpattern') {
-        const rev = [...built].reverse().find((f) => f.type === 'revolve');
-        if (rev) props.axis = { kind: 'axis', feature: rev.id };
-      }
-      if (pick?.kind === 'edge' && (type === 'lpattern' || type === 'cpattern')) {
-        const d = V.norm(V.sub(pick.b, pick.a));
-        props[type === 'lpattern' ? 'dir' : 'axis'] = { kind: 'fixed', o: pick.a, d };
-      }
-    }
-    const first = !regen?.mesh;
-    const f = commit(label, () => P.addFeature(part, type, props));
-    sel = { kind: 'feature', id: f.id };
-    pick = null; view.setHighlight(null);
-    renderAll();
-    built().then(() => {
-      const r = regen.results.get(f.id);
-      const what = PARAM_FIELDS[type]?.[MAIN_NUMBER[type]]?.label;
-      status(r?.status === 'error' ? t('app.feature.error', { name: f.name, error: r.message }) : what ? t('app.feature.added_type', { name: f.name, what }) : t('app.feature.added', { name: f.name }));
-      if (first && regen?.mesh && mode === 'model') view.fit();   // the first solid fills the view (0.5 usability pass)
-    });
-  }
-
-  function setFeature(id, label, fn) {
-    commit(label, () => { const f = P.featureById(part, id); if (f) fn(f); });
-    built().then(() => { const r = regen.results.get(id); if (r?.status === 'error') status(t('app.feature.error', { name: P.featureById(part, id).name, error: r.message })); });
-  }
-
-  async function deleteSelected() {
-    if (mode === 'sketch') { editor.deleteSelection(); return; }
-    if (sel?.kind !== 'feature') { status(t('app.feature.select_to_delete')); return; }
-    const f = P.featureById(part, sel.id);
-    if (!f) return;
-    const deps = new Set();
-    const walk = (id) => { for (const g of P.dependents(part, id)) if (!deps.has(g.id)) { deps.add(g.id); walk(g.id); } };
-    walk(f.id);
-    if (deps.size) {
-      const names = [...deps].map((id) => P.featureById(part, id).name).join(', ');
-      const ch = await ask({ title: t('app.feature.delete_title', { name: f.name }), text: t('app.feature.delete_deps', { n: deps.size, names, name: f.name }), buttons: [['cancel', t('app.btn.cancel'), 'pc-btn'], ['delete', t('app.btn.delete_all'), 'pc-btn is-primary']] });
-      if (ch !== 'delete') return;
-    }
-    const names = commit(t('app.undo.delete'), () => P.deleteFeatures(part, [f.id]));
-    sel = null;
-    renderAll();
-    status(t('app.feature.deleted', { names: names.join(', ') }));
-  }
-
-  function moveSelected(delta) {
-    if (sel?.kind !== 'feature') return;
-    const i = P.indexOf(part, sel.id);
-    const can = P.canMove(part, sel.id, i + delta);
-    if (!can.ok) { status(can.reason); return; }
-    commit(t('app.undo.reorder'), () => P.moveFeature(part, sel.id, i + delta));
-    status(t(delta < 0 ? 'app.feature.moved_up' : 'app.feature.moved_down', { name: P.featureById(part, sel.id).name }));
-    setTimeout(() => ui.tree.querySelector(`[data-id="${sel.id}"]`)?.focus(), 0);
-  }
-
-  function rollTo(n) { commit(t('app.undo.roll_back'), () => { part.rollback = n >= part.features.length ? null : n; }); }
-
-  // ---------------------------------------------------------------- tree
-  function renderTree() {
-    if (mode === 'assembly') { renderAsmTree(); return; }
-    ui.partName.textContent = editPartOf ? t('app.tree.part_in_asm', { part: part.name, asm: asm.name }) : part.name;
-    const items = [];
-    for (const name of ['front', 'top', 'right']) {
-      items.push(el('li', { role: 'none' }, el('button', {
-        type: 'button', role: 'treeitem', className: 'pc-node', dataset: { plane: name }, 'aria-selected': String(sel?.kind === 'plane' && sel.name === name),
-        onclick: () => { if (mode === 'sketch') return; sel = { kind: 'plane', name }; pick = null; view.setHighlight(null); view.setPlaneState(name, null); renderAll(); if (pendingSketch) startSketchOn({ kind: 'base', name }); },
-      }, el('i', { className: 'bi bi-square', 'aria-hidden': 'true' }), el('span', { className: 'pc-node-name' }, V.PLANE_NAMES[name]), el('span'))));
-    }
-    items.push(el('li', { role: 'none', className: 'pc-tree-sep' }));
-    const built = mode === 'sketch' && editing ? P.indexOf(part, editing) + 1 : mode === 'pick' && editing ? P.indexOf(part, editing) : P.builtCount(part);
-    const used = new Map();
-    for (const f of part.features) if (typeof f.sketch === 'string') used.set(f.sketch, f.id);
-    part.features.forEach((f, i) => {
-      if (i === built && part.rollback !== null && mode !== 'sketch') items.push(el('li', { role: 'none' }, el('button', { type: 'button', className: 'pc-rollbar', title: t('app.tree.rollbar_title'), onclick: () => rollTo(part.features.length) }, t('app.tree.rollbar'))));
-      const r = regen?.results.get(f.id) || { status: 'ok' };
-      const flag = r.status === 'error' ? t('app.tree.flag_error') : r.status === 'suppressed' ? t('app.tree.flag_off') : r.status === 'skipped' ? t('app.tree.flag_not_built') : r.warning ? '⚠' : f.type === 'sketch' && r.solve ? { full: '', under: '−', over: '+', empty: '' }[r.solve.status] : '';
-      const cls = ['pc-node', r.status === 'error' || r.status === 'skipped' ? 'is-error' : '', r.warning ? 'is-warn' : '', f.suppressed ? 'is-off' : '', r.status === 'rolled' ? 'is-rolled' : '', f.type === 'sketch' && used.has(f.id) ? 'is-child' : ''].join(' ');
-      const val = treeValue(f, f3);
-      const b = el('button', {
-        type: 'button', role: 'treeitem', className: cls, dataset: { id: f.id }, 'aria-selected': String(sel?.kind === 'feature' && sel.id === f.id),
-        title: r.message || r.warning || (f.type === 'sketch' && r.solve ? sketchStateWord(r.solve) : P.FEATURE_LABELS[f.type]),
-        onclick: () => selectFeature(f.id),
-        // a double-click on the value (or on a row with nothing else to open) edits the value in the row (0.6 PU.5)
-        ondblclick: (e) => { if (MAIN_NUMBER[f.type] && (e.target.closest('.pc-node-val') || (f.type !== 'sketch' && !PICKERS.has(f.type)))) editTreeValue(f.id); else if (f.type === 'sketch') editSketch(f.id); else if (PICKERS.has(f.type)) startPick(f.id); },
-      }, el('i', { className: 'bi bi-' + (r.status === 'error' ? 'exclamation-triangle-fill' : ICONS[f.type]), 'aria-hidden': 'true' }), el('span', { className: 'pc-node-name' }, f.name),
-      el('span', { className: 'pc-node-val', title: val && MAIN_NUMBER[f.type] ? t('app.tree.val_title') : null }, val), el('span', { className: 'pc-node-flag' }, flag));   // i18n-ignore: icon class names
-      items.push(el('li', { role: 'none' }, b));
-    });
-    if (!part.features.length) items.push(el('li', { role: 'none', className: 'pc-muted' }, t('app.tree.no_features')));
-    swapChildren(ui.tree, items);
-  }
-
-  const sketchStateWord = (s) => ({ full: () => t('app.sketch.state_full'), under: () => t('app.sketch.state_under_title', { n: s.dof }), over: () => t('app.sketch.state_over'), empty: () => t('app.sketch.state_empty') }[s.status]?.());
-
-  function selectFeature(id) {
-    if (mode === 'sketch') { if (id !== editing) { exitSketch(); } else return; }
-    if (mode === 'pick') { if (id !== editing) endPick(); else return; }
-    if (mode === 'drawing') leaveDrawing();
-    sel = { kind: 'feature', id };
-    view.setPlaneState(null, null);
-    renderAll();
-    announcePick();
-  }
-  // 0.8 SC.5 (part-model_PART_4): the picked feature is announced to the page (SuperCad Studio hears `cc-pick`); a pick from another panel
-  // comes back through window.ccPickApply(refs). Both are inert outside Super.
-  function announcePick() {
-    try { window.dispatchEvent(new CustomEvent('cc-pick', { detail: { app: 'partcraft', ids: sel && sel.kind === 'feature' ? [String(sel.id)] : [] } })); } catch { /* no window */ }
-  }
-  const pickApply = (refs) => {
-    const r = (refs || []).find((x) => P.featureById(part, x.id) || P.featureById(part, Number(x.id)));
-    if (!r) return false;
-    selectFeature(P.featureById(part, r.id) ? r.id : Number(r.id)); return true;
-  };
-  window.ccPickApply = pickApply;
-  // SC.5 (sc-r5-select): the same adapter by app name (several apps share one page in Super), with a clear (the app's own Select none, in the model only)
-  (window.ccPickers = window.ccPickers || {}).partcraft = { apply: pickApply, get: () => ({ ids: sel && sel.kind === 'feature' ? [String(sel.id)] : [] }), clear: () => { if (mode === 'model' && sel?.kind === 'feature') modelEdit('select-none'); return true; } };
-
-  /** Edit a feature's main value in its history row (0.6 PU.5): a box over the row's value; Enter (or leaving it) hands the
-   *  text to the feature's main box in the properties panel — the same limits, =expressions and one undo step — Esc keeps
-   *  the old value. */
-  function editTreeValue(id) {
-    const f = P.featureById(part, id), main = f && MAIN_NUMBER[f.type];
-    if (!main || mode === 'assembly') return false;
-    if (sel?.kind !== 'feature' || sel.id !== id || mode !== 'model') selectFeature(id);
-    const src = ui.props.querySelector(`[data-param-key="${id}.${main}"]`);
-    const row = ui.tree.querySelector(`.pc-node[data-id="${id}"]`);
-    if (!src || src.disabled || !row) { status(t('app.tree.val_none', { name: f.name })); return false; }
-    const li = row.parentElement;
-    const inp = el('input', { type: 'text', className: 'pc-input pc-node-edit', value: src.value, inputMode: 'decimal', autocomplete: 'off', spellcheck: false, 'aria-label': t('app.tree.val_label', { name: f.name, what: PARAM_FIELDS[f.type]?.[main]?.label || main }) });
-    let done = false;
-    const finish = (set) => {
-      if (done) return;
-      done = true;
-      const v = inp.value.trim();
-      inp.remove(); row.classList.remove('is-editing');
-      if (set && v && v !== src.value && src.isConnected) { src.value = v; src.dispatchEvent(new Event('change', { bubbles: true })); }
-      const back = () => { if (!document.activeElement || document.activeElement === document.body || !document.activeElement.isConnected) ui.tree.querySelector(`.pc-node[data-id="${id}"]`)?.focus(); };
-      (ui.tree.querySelector(`.pc-node[data-id="${id}"]`) || row).focus();
-      built().then(back);   // the exact kernel answers later and redraws the history: the row keeps the focus
-    };
-    inp.addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); finish(true); } else if (e.key === 'Escape') { e.preventDefault(); finish(false); } });
-    inp.addEventListener('blur', () => finish(true));
-    row.classList.add('is-editing');
-    li.append(inp);
-    inp.focus(); inp.select();
-    status(t('app.tree.val_editing', { name: f.name }), true);
-    return true;
-  }
-
-  ui.tree.addEventListener('keydown', (e) => {
-    const b = e.target.closest('.pc-node');
-    if (!b) return;
-    if (e.key === 'F2' && b.dataset.id) { e.preventDefault(); editTreeValue(b.dataset.id); return; }
-    const all = [...ui.tree.querySelectorAll('.pc-node')];
-    const i = all.indexOf(b);
-    if (e.altKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) { e.preventDefault(); if (b.dataset.id) { if (sel?.id !== b.dataset.id) selectFeature(b.dataset.id); moveSelected(e.key === 'ArrowUp' ? -1 : 1); } return; }
-    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); all[Math.max(0, Math.min(all.length - 1, i + (e.key === 'ArrowDown' ? 1 : -1)))]?.focus(); }
+  const { startSketch, startSketchOn, editSketch, exitSketch, showSketchState, planeLabel, show3DSketches } = mountSketch({
+    ST, ui, editor, tokens, status, currentFrame, rebuild, commit, endPick, renderAll, updateTools, focusStage, notInDesign,
+    get syncPlanes() { return syncPlanes; },
+    get DUI() { return DUI; },
   });
 
-  // ---------------------------------------------------------------- facts
-  function renderFacts() {
-    if (mode === 'assembly') { renderAsmFacts(); return; }
-    const s = regen?.stats;
-    const errs = regen ? [...regen.results.values()].filter((r) => r.status === 'error').length : 0;
-    if (!s) { fillDl(ui.facts, [[t('app.facts.solid'), M ? t('app.facts.none_yet') : t('app.facts.loading_kernel')], [t('app.facts.features'), part.features.length], [t('app.facts.failing'), errs || '']]); return; }
-    const size = s.bbox.max.map((v, i) => f3(v - s.bbox.min[i])).join(' × ');
-    fillDl(ui.facts, [
-      [t('app.facts.volume'), f3(s.volume) + ' mm³'], [t('app.facts.area'), f3(s.area) + ' mm²'], [t('app.facts.size'), size + ' mm'],
-      [t('app.facts.through_holes'), s.bodies === 1 ? String(s.genus) : ''], [t('app.facts.bodies'), s.bodies], [t('app.facts.triangles'), s.tris.toLocaleString('en-US')],
-      [t('app.facts.features'), part.features.length], [t('app.facts.failing'), errs || ''],
-    ]);
-  }
+
+
+
+
+
+
+
+  const { newFeature, setFeature, deleteSelected, moveSelected, rollTo } = mountFeatures({
+    ST, ui, editor, status, exact, named, exactWhy, built, commit, showMarks, startPick, exitSketch, renderAll, ask,
+    get GU() { return GU; },
+    get WU() { return WU; },
+    get RB() { return RB; },
+    get SH() { return SH; },
+    get BUI() { return BUI; },
+    get SUI() { return SUI; },
+    get DUI() { return DUI; },
+    get PICKERS() { return PICKERS; },
+    get PICK_ON_MESH() { return PICK_ON_MESH; },
+    get FACE_PICKERS() { return FACE_PICKERS; },
+    get SOLID() { return SOLID; },
+    get MAIN_NUMBER() { return MAIN_NUMBER; },
+  });
+
+
+
+
+
+
+  const { renderTree, sketchStateWord, selectFeature, announcePick, renderFacts } = mountTree({
+    ST, ui, status, built, startPick, endPick, startSketchOn, editSketch, exitSketch, moveSelected, rollTo, renderAll, f3,
+    get renderAsmTree() { return renderAsmTree; },
+    get leaveDrawing() { return leaveDrawing; },
+    get modelEdit() { return modelEdit; },
+    get renderAsmFacts() { return renderAsmFacts; },
+    get MAIN_NUMBER() { return MAIN_NUMBER; },
+    get PICKERS() { return PICKERS; },
+    get ICONS() { return ICONS; },
+  });
+
+
+
+
+
 
   // ---------------------------------------------------------------- properties
   const field = (label, input) => [el('label', { htmlFor: input.id }, label), input];
-  let uid = 0;
+  ST.uid = 0;
   // { key } = a params-part.js target ("f3.depth"): the field then takes =expressions and solves backward (params-panel.js)
   const numInput = (value, onchange, { min = null, max = null, step = 'any', key = null } = {}) => {
     if (key && paramsUI) return paramsUI.numInput(value, onchange, { min, max, step }, key);
-    const i = el('input', { type: 'number', className: 'pc-input', id: 'pc-f' + (++uid), value: V.fmt(value, 6), step, inputMode: 'decimal' });
+    const i = el('input', { type: 'number', className: 'pc-input', id: 'pc-f' + (++ST.uid), value: V.fmt(value, 6), step, inputMode: 'decimal' });
     if (min !== null) i.min = String(min);
     if (max !== null) i.max = String(max);
     i.addEventListener('change', () => {
@@ -1124,20 +724,20 @@ function init(root) {
   };
   // Parameters tab, =expr fields, sketch-dimension equations, design tables, scripts, rollback steps (params-panel.js)
   const paramsUI = mountParams({
-    root, part: () => part, commit: (label, fn) => commit(label, fn), status: (m, keep) => status(m, keep), ask: (o) => ask(o),
-    download: (text, name, type) => download(text, name, type), openText: (text, name) => openText(text, name), mode: () => mode, fileBase: () => fileBase(),
+    root, part: () => ST.part, commit, status, ask,
+    download, openText, mode: () => ST.mode, fileBase,
     // a parameter's "Used by" entry: select that feature and show its properties (0.5 WL.30)
-    selectFeature: (id) => { if (!P.featureById(part, id)) return; selectFeature(id); paramsUI.showTab('props'); },
-    variantPack: () => openVariantPackDialog(),   // the Configurations block's Variant pack button (variants-ui.js; 0.7 W3.19)
+    selectFeature: (id) => { if (!P.featureById(ST.part, id)) return; selectFeature(id); paramsUI.showTab('props'); },
+    variantPack: openVariantPackDialog,   // the Configurations block's Variant pack button (variants-ui.js; 0.7 W3.19)
   });
   /** A one-line text box; onchange gets the cleaned text (control characters out, trimmed, cut at max). */
   const textInput = (value, onchange, { max = 60, placeholder = '', attrs = {} } = {}) => {
-    const i = el('input', { type: 'text', className: 'pc-input', id: 'pc-f' + (++uid), value: value || '', maxLength: max, placeholder, ...attrs });
+    const i = el('input', { type: 'text', className: 'pc-input', id: 'pc-f' + (++ST.uid), value: value || '', maxLength: max, placeholder, ...attrs });
     i.addEventListener('change', () => onchange(i.value.replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, max)));
     return i;
   };
   const selectInput = (options, value, onchange) => {
-    const s = el('select', { className: 'pc-select', id: 'pc-f' + (++uid) }, ...options.map(([v, l]) => el('option', { value: v, selected: v === value }, l)));
+    const s = el('select', { className: 'pc-select', id: 'pc-f' + (++ST.uid) }, ...options.map(([v, l]) => el('option', { value: v, selected: v === value }, l)));
     s.addEventListener('change', () => onchange(s.value));
     return s;
   };
@@ -1148,21 +748,21 @@ function init(root) {
   };
   const { addonSections, partProps, faceProps, featureProps, faceWords, refList, sketchProps, entityName } = mountProps({
     hist, editor, tokens, status, exact, exactOff, named, exactWhy, editingFeature, built, commit, describeC, showMarks, startPick, endPick, startSketchOn, editSketch, exitSketch, planeLabel, newFeature, setFeature, deleteSelected, moveSelected, rollTo, sketchStateWord, field, numInput, selectInput, check, renderProps, numericEntry, constraintList, renderAll,
-    get addons() { return addons; },
-    get sel() { return sel; }, set sel(v) { sel = v; },
-    get part() { return part; },
-    get dirty() { return dirty; }, set dirty(v) { dirty = v; },
-    get useExact() { return useExact; },
+    get addons() { return ST.addons; },
+    get sel() { return ST.sel; }, set sel(v) { ST.sel = v; },
+    get part() { return ST.part; },
+    get dirty() { return ST.dirty; }, set dirty(v) { ST.dirty = v; },
+    get useExact() { return ST.useExact; },
     get BUI() { return BUI; },
-    get pick() { return pick; }, set pick(v) { pick = v; },
+    get pick() { return ST.pick; }, set pick(v) { ST.pick = v; },
     get btn() { return btn; },
-    get view() { return view; },
+    get view() { return ST.view; },
     get exportDxf() { return exportDxf; },
-    get mode() { return mode; },
-    get regen() { return regen; },
-    get multi() { return multi; }, set multi(v) { multi = v; },
+    get mode() { return ST.mode; },
+    get regen() { return ST.regen; },
+    get multi() { return ST.multi; }, set multi(v) { ST.multi = v; },
     get msg() { return msg; },
-    get editing() { return editing; },
+    get editing() { return ST.editing; },
     get SH() { return SH; },
     get GU() { return GU; },
     get WU() { return WU; },
@@ -1170,7 +770,7 @@ function init(root) {
     get TU() { return TU; },
     get SUI() { return SUI; },
     get DUI() { return DUI; },
-    get lastSolve() { return lastSolve; },
+    get lastSolve() { return ST.lastSolve; },
     get f3() { return f3; },
     get FACE_PICKERS() { return FACE_PICKERS; },
     get PICK_ON_MESH() { return PICK_ON_MESH; },
@@ -1180,41 +780,41 @@ function init(root) {
   const msg = (text, kind = '') => el('div', { className: 'pc-msg ' + kind }, el('p', {}, text));
   // the Design features' panels and reference picking (design-ui.js): it reads this page's state through getters
   const DUI = installDesignUI({
-    el, field, numInput, selectInput, check, btn, msg, status, renderProps: () => { renderProps(); show3DSketches(); }, focusStage: () => focusStage(),
-    setFeature: (id, label, fn) => setFeature(id, label, fn), refList: (f, key) => refList(f, key), faceWords: (n) => faceWords(n), startSketchOn: (p) => startSketchOn(p),
-    get part() { return part; }, get regen() { return regen; }, get pick() { return pick; }, get sel() { return sel; }, get multi() { return multi; },
-    get useExact() { return useExact; }, get view() { return view; },
+    el, field, numInput, selectInput, check, btn, msg, status, renderProps: () => { renderProps(); show3DSketches(); }, focusStage,
+    setFeature, refList: (f, key) => refList(f, key), faceWords: (n) => faceWords(n), startSketchOn,
+    get part() { return ST.part; }, get regen() { return ST.regen; }, get pick() { return ST.pick; }, get sel() { return ST.sel; }, get multi() { return ST.multi; },
+    get useExact() { return ST.useExact; }, get view() { return ST.view; },
   });
   // surface features' panels (surface-ui.js); editForm opens a form feature's cage in the Form workspace (ws-form.js)
   const SUI = installSurfaceUI({
-    el, field, numInput, selectInput, check, btn, msg, status, renderProps: () => renderProps(), setFeature: (id, label, fn) => setFeature(id, label, fn),
+    el, field, numInput, selectInput, check, btn, msg, status, renderProps, setFeature,
     editForm: (id) => WS.getWorkspace('form')?.editFeature?.(id, host), faceWords: (n) => faceWords(n),
-    get part() { return part; }, get regen() { return regen; }, get pick() { return pick; }, get sel() { return sel; }, get multi() { return multi; },
-    get useExact() { return useExact; }, get view() { return view; },
+    get part() { return ST.part; }, get regen() { return ST.regen; }, get pick() { return ST.pick; }, get sel() { return ST.sel; }, get multi() { return ST.multi; },
+    get useExact() { return ST.useExact; }, get view() { return ST.view; },
   });
   // the body tools' panels and slots (bodies-ui.js): Combine, Move/Copy body, Scale body, Path pattern, pattern bodies
   const BUI = installBodiesUI({
-    el, field, numInput, selectInput, check, btn, msg, status, renderProps: () => renderProps(), focusStage: () => focusStage(),
-    setFeature: (id, label, fn) => setFeature(id, label, fn), faceWords: (n) => faceWords(n),
-    commitView: (label, fn) => commitView(label, fn),
-    get part() { return part; }, get regen() { return regen; }, get pick() { return pick; }, get sel() { return sel; }, get multi() { return multi; },
-    get useExact() { return useExact; }, get view() { return view; },
+    el, field, numInput, selectInput, check, btn, msg, status, renderProps, focusStage,
+    setFeature, faceWords: (n) => faceWords(n),
+    commitView,
+    get part() { return ST.part; }, get regen() { return ST.regen; }, get pick() { return ST.pick; }, get sel() { return ST.sel; }, get multi() { return ST.multi; },
+    get useExact() { return ST.useExact; }, get view() { return ST.view; },
   });
   // sheet metal panels and the flange's edge slot (sheet-ui.js, 0.4 P15/P16)
   // the rib's panel (rib-ui.js, 0.4 P20)
   const RB = installRibUI({
-    el, field, numInput, selectInput, check, btn, msg, status, setFeature: (id, label, fn) => setFeature(id, label, fn), built: () => built(),
-    get part() { return part; }, get regen() { return regen; }, get sel() { return sel; }, get useExact() { return useExact; },
+    el, field, numInput, selectInput, check, btn, msg, status, setFeature, built,
+    get part() { return ST.part; }, get regen() { return ST.regen; }, get sel() { return ST.sel; }, get useExact() { return ST.useExact; },
   });
   const WU = installWeldUI({
-    el, field, numInput, selectInput, check, btn, status, setFeature: (id, label, fn) => setFeature(id, label, fn), fmt: (v) => f3(v),
-    download: (data, name, mime) => download(data, name, mime),
-    get part() { return part; }, get regen() { return regen; }, get sel() { return sel; },
+    el, field, numInput, selectInput, check, btn, status, setFeature, fmt: f3,
+    download,
+    get part() { return ST.part; }, get regen() { return ST.regen; }, get sel() { return ST.sel; },
   });
   const GU = installGenUI({
-    el, field, numInput, selectInput, check, btn, textInput, status, setFeature: (id, label, fn) => setFeature(id, label, fn), renderProps: () => renderProps(), built: () => built(),
-    computeWorker: (modules, opts) => host.computeWorker(modules, opts), download: (data, name, mime) => download(data, name, mime),
-    get part() { return part; }, get regen() { return regen; },
+    el, field, numInput, selectInput, check, btn, textInput, status, setFeature, renderProps, built,
+    computeWorker: (modules, opts) => host.computeWorker(modules, opts), download,
+    get part() { return ST.part; }, get regen() { return ST.regen; },
   });
   // ---- Problems (0.8 CE.6; docs/0.8-PROBLEMS-SPEC.md): what a Generated feature's manufacturing checks found, in the shell's ⚠ panel.
   // Accepting a problem lasts for the session: the part file does not keep accepted problems yet.
@@ -1223,59 +823,59 @@ function init(root) {
       const CP = window.ccProblems;
       if (!CP) return;
       const src = CP.source({ id: PROBLEMS_SRC, kind: 'check', label: t('problems.src.partcraft') });
-      problemsSync = () => src.set([...pcProblems(part, regen, { labelOf: (f) => f.name }), ...simEnvProblems(part.studies), ...studyProblemsNow(), ...simProblemsNow(), ...breakProblemsNow(), ...magnetProblemsNow(), ...contactProblemsNow()]);
+      ST.problemsSync = () => src.set([...pcProblems(ST.part, ST.regen, { labelOf: (f) => f.name }), ...simEnvProblems(ST.part.studies), ...studyProblemsNow(), ...simProblemsNow(), ...breakProblemsNow(), ...magnetProblemsNow(), ...contactProblemsNow()]);
       CP.adapter({
-        t, file: () => part.name,
-        select: (p) => { const a = p.about.find((x) => x.kind === 'feature' && P.featureById(part, x.id)); if (a) selectFeature(a.id); },
+        t, file: () => ST.part.name,
+        select: (p) => { const a = p.about.find((x) => x.kind === 'feature' && P.featureById(ST.part, x.id)); if (a) selectFeature(a.id); },
         focus: () => {},
         saveAccepted: () => {},
       });
-      problemsSync();
+      ST.problemsSync();
     };
     if (window.ccProblems) go(); else document.addEventListener('cc-problems-ready', go, { once: true });
   }
   const TU = installThreadUI({
-    el, field, numInput, selectInput, check, setFeature: (id, label, fn) => setFeature(id, label, fn),
-    get regen() { return regen; },
+    el, field, numInput, selectInput, check, setFeature,
+    get regen() { return ST.regen; },
   });
   const SH = installSheetUI({
-    flatPattern: () => exact.call('sheetFlat', { part }), saveText: (name, text, type) => download(text, name, type), fileBase: () => fileBase(),
-    nest: (flat) => openNest(flat),
-    el, field, numInput, selectInput, check, btn, msg, status, renderProps: () => renderProps(), focusStage: () => focusStage(),
-    setFeature: (id, label, fn) => setFeature(id, label, fn), faceWords: (n) => faceWords(n),
-    commitView: (label, fn) => commitView(label, fn),
-    get part() { return part; }, get regen() { return regen; }, get pick() { return pick; }, get sel() { return sel; }, get multi() { return multi; },
-    get useExact() { return useExact; }, get view() { return view; },
+    flatPattern: () => exact.call('sheetFlat', { part: ST.part }), saveText: (name, text, type) => download(text, name, type), fileBase,
+    nest: openNest,
+    el, field, numInput, selectInput, check, btn, msg, status, renderProps, focusStage,
+    setFeature, faceWords: (n) => faceWords(n),
+    commitView,
+    get part() { return ST.part; }, get regen() { return ST.regen; }, get pick() { return ST.pick; }, get sel() { return ST.sel; }, get multi() { return ST.multi; },
+    get useExact() { return ST.useExact; }, get view() { return ST.view; },
   });
 
   function renderProps() {
-    if (ws !== WS.DESIGN) { renderWsPanel(); return; }
-    if (mode === 'assembly') { renderAsmProps(); return; }
-    if (mode === 'drawing') { renderDrawingProps(); return; }
+    if (ST.ws !== WS.DESIGN) { renderWsPanel(); return; }
+    if (ST.mode === 'assembly') { renderAsmProps(); return; }
+    if (ST.mode === 'drawing') { renderDrawingProps(); return; }
     const out = [];
     let head = t('app.props.head');
-    if (mode === 'sketch') { head = editingFeature()?.name || t('app.props.sketch'); out.push(...sketchProps()); }
-    else if (mode === 'pick' && P.featureById(part, editing)) { const f = P.featureById(part, editing); head = t('app.props.picking', { name: f.name }); out.push(...featureProps(f)); }
-    else if (sel?.kind === 'feature' && P.featureById(part, sel.id)) { const f = P.featureById(part, sel.id); head = f.name; out.push(...featureProps(f)); }
-    else if (sel?.kind === 'plane') {
-      head = V.PLANE_NAMES[sel.name];
-      out.push(el('p', { className: 'pc-note' }, t('app.props.base_plane')), el('div', { className: 'pc-actions' }, btn(t('app.props.sketch_on_it'), () => startSketchOn({ kind: 'base', name: sel.name }), 'pc-btn is-primary')));
-    } else if (pick?.kind === 'face') { head = t('app.props.face'); out.push(...faceProps()); }
-    else if (multi.length) {
-      head = t(multi[0].kind === 'edge' ? 'app.props.n_edges' : 'app.props.n_faces', { n: multi.length });
-      out.push(el('p', { className: 'pc-note' }, multi[0].kind === 'edge' ? t('app.props.multi_edges_note') : t('app.props.multi_faces_note')));
-      out.push(el('div', { className: 'pc-actions' }, ...(multi[0].kind === 'edge' ? [btn(t('app.btn.fillet'), () => newFeature('fillet', {}), 'pc-btn is-primary'), btn(t('app.btn.chamfer'), () => newFeature('chamfer', {}))] : [btn(t('app.btn.shell'), () => newFeature('shell', {}), 'pc-btn is-primary')]), btn(t('app.btn.clear'), () => { multi = []; showMarks(); renderProps(); })));
-    } else if (pick?.kind === 'edge') {
+    if (ST.mode === 'sketch') { head = editingFeature()?.name || t('app.props.sketch'); out.push(...sketchProps()); }
+    else if (ST.mode === 'pick' && P.featureById(ST.part, ST.editing)) { const f = P.featureById(ST.part, ST.editing); head = t('app.props.picking', { name: f.name }); out.push(...featureProps(f)); }
+    else if (ST.sel?.kind === 'feature' && P.featureById(ST.part, ST.sel.id)) { const f = P.featureById(ST.part, ST.sel.id); head = f.name; out.push(...featureProps(f)); }
+    else if (ST.sel?.kind === 'plane') {
+      head = V.PLANE_NAMES[ST.sel.name];
+      out.push(el('p', { className: 'pc-note' }, t('app.props.base_plane')), el('div', { className: 'pc-actions' }, btn(t('app.props.sketch_on_it'), () => startSketchOn({ kind: 'base', name: ST.sel.name }), 'pc-btn is-primary')));
+    } else if (ST.pick?.kind === 'face') { head = t('app.props.face'); out.push(...faceProps()); }
+    else if (ST.multi.length) {
+      head = t(ST.multi[0].kind === 'edge' ? 'app.props.n_edges' : 'app.props.n_faces', { n: ST.multi.length });
+      out.push(el('p', { className: 'pc-note' }, ST.multi[0].kind === 'edge' ? t('app.props.multi_edges_note') : t('app.props.multi_faces_note')));
+      out.push(el('div', { className: 'pc-actions' }, ...(ST.multi[0].kind === 'edge' ? [btn(t('app.btn.fillet'), () => newFeature('fillet', {}), 'pc-btn is-primary'), btn(t('app.btn.chamfer'), () => newFeature('chamfer', {}))] : [btn(t('app.btn.shell'), () => newFeature('shell', {}), 'pc-btn is-primary')]), btn(t('app.btn.clear'), () => { ST.multi = []; showMarks(); renderProps(); })));
+    } else if (ST.pick?.kind === 'edge') {
       head = t('app.props.edge');
-      const d = V.sub(pick.b, pick.a);
+      const d = V.sub(ST.pick.b, ST.pick.a);
       const p = el('dl', { className: 'pc-dl' });
-      if (pick.info) {
-        const e = pick.info;
+      if (ST.pick.info) {
+        const e = ST.pick.info;
         fillDl(p, [[t('app.props.kind'), t('app.props.exact', { kind: { line: () => t('app.edge.straight'), circle: () => t('app.edge.circle'), curve: () => t('app.edge.curve') }[e.type]?.() })], [t('app.props.length'), f3(e.len) + ' mm'], [t('app.props.between'), e.faces.map(faceWords).join(t('app.edge.and_sep'))], [t('app.props.from'), e.type === 'line' ? e.a.map(f3).join(', ') : ''], [t('app.props.to'), e.type === 'line' ? e.b.map(f3).join(', ') : '']]);
         out.push(p, el('div', { className: 'pc-actions' }, btn(t('app.btn.fillet'), () => newFeature('fillet', {}), 'pc-btn is-primary'), btn(t('app.btn.chamfer'), () => newFeature('chamfer', {}))));
         out.push(el('p', { className: 'pc-note' }, e.type === 'line' ? t('app.edge.note_line') : t('app.edge.note')));
       } else {
-        fillDl(p, [[t('app.props.length'), f3(V.len(d)) + ' mm'], [t('app.props.from'), pick.a.map(f3).join(', ')], [t('app.props.to'), pick.b.map(f3).join(', ')]]);
+        fillDl(p, [[t('app.props.length'), f3(V.len(d)) + ' mm'], [t('app.props.from'), ST.pick.a.map(f3).join(', ')], [t('app.props.to'), ST.pick.b.map(f3).join(', ')]]);
         out.push(p, el('p', { className: 'pc-note' }, t('app.edge.note_mesh')));
       }
     } else { head = t('app.props.part'); out.push(...partProps()); }
@@ -1297,24 +897,24 @@ function init(root) {
 
 
   /** Add geometry by typing coordinates (sketch units, mm): works without a pointer. */
-  let numKind = 'line';
+  ST.numKind = 'line';
   function numericEntry() {
     // [label, takes "x, y"]
     const kinds = { point: [[t('app.num.at'), true]], line: [[t('app.num.from'), true], [t('app.num.to'), true]], centerline: [[t('app.num.from'), true], [t('app.num.to'), true]], rect: [[t('app.num.corner'), true], [t('app.num.opposite'), true]], circle: [[t('app.num.centre'), true], [t('app.num.radius'), false]] };
-    const kind = selectInput([['line', t('app.num.line')], ['centerline', t('app.num.centerline')], ['rect', t('app.num.rect')], ['circle', t('app.num.circle')], ['point', t('app.num.point')]], numKind, (v) => { numKind = v; renderProps(); });
-    const inputs = kinds[numKind].map(([label, xy], i) => { const inp = el('input', { type: 'text', className: 'pc-input', id: 'pc-num-' + i, inputMode: 'decimal', autocomplete: 'off', placeholder: xy ? '0, 0' : '10' }); return [label, inp, xy]; });
+    const kind = selectInput([['line', t('app.num.line')], ['centerline', t('app.num.centerline')], ['rect', t('app.num.rect')], ['circle', t('app.num.circle')], ['point', t('app.num.point')]], ST.numKind, (v) => { ST.numKind = v; renderProps(); });
+    const inputs = kinds[ST.numKind].map(([label, xy], i) => { const inp = el('input', { type: 'text', className: 'pc-input', id: 'pc-num-' + i, inputMode: 'decimal', autocomplete: 'off', placeholder: xy ? '0, 0' : '10' }); return [label, inp, xy]; });
     const pair = (s) => { const m = /^\s*(-?[\d.]+(?:e-?\d+)?)\s*[, ]\s*(-?[\d.]+(?:e-?\d+)?)\s*$/i.exec(s); return m ? [Number(m[1]), Number(m[2])] : null; };
     const add = () => {
       const vals = inputs.map(([, inp, xy]) => (xy ? pair(inp.value) : Number(inp.value)));
       if (vals.some((v) => v === null || (typeof v === 'number' && !(v > 0)) || (Array.isArray(v) && !v.every(Number.isFinite)))) { status(t('app.num.bad_input')); return; }
       try {
-        sketchCommit({ point: () => t('app.num.undo_point'), line: () => t('app.num.undo_line'), centerline: () => t('app.num.undo_centerline'), rect: () => t('app.num.undo_rect'), circle: () => t('app.num.undo_circle') }[numKind](), (sk) => {
-          if (numKind === 'point') S.addPoint(sk, ...vals[0]);
-          else if (numKind === 'line' || numKind === 'centerline') S.addLine(sk, vals[0], vals[1], { construction: numKind === 'centerline' });
-          else if (numKind === 'rect') S.addRect(sk, vals[0], vals[1]);
+        sketchCommit({ point: () => t('app.num.undo_point'), line: () => t('app.num.undo_line'), centerline: () => t('app.num.undo_centerline'), rect: () => t('app.num.undo_rect'), circle: () => t('app.num.undo_circle') }[ST.numKind](), (sk) => {
+          if (ST.numKind === 'point') S.addPoint(sk, ...vals[0]);
+          else if (ST.numKind === 'line' || ST.numKind === 'centerline') S.addLine(sk, vals[0], vals[1], { construction: ST.numKind === 'centerline' });
+          else if (ST.numKind === 'rect') S.addRect(sk, vals[0], vals[1]);
           else S.addCircle(sk, vals[0], vals[1]);
         });
-        status({ point: () => t('app.num.added_point'), line: () => t('app.num.added_line'), centerline: () => t('app.num.added_centerline'), rect: () => t('app.num.added_rect'), circle: () => t('app.num.added_circle') }[numKind]());
+        status({ point: () => t('app.num.added_point'), line: () => t('app.num.added_line'), centerline: () => t('app.num.added_centerline'), rect: () => t('app.num.added_rect'), circle: () => t('app.num.added_circle') }[ST.numKind]());
       } catch (err) { status(err.message); }
     };
     const form = el('form', { className: 'pc-props', onsubmit: (e) => { e.preventDefault(); add(); } },
@@ -1326,7 +926,7 @@ function init(root) {
 
   const openRelGroups = new Set();   // relation kinds whose group the person opened (0.6 PU.6), kept across redraws
   function constraintList(sk, list, title) {
-    const bad = new Set([...(lastSolve?.conflicts || []), ...(lastSolve?.redundant || [])]);
+    const bad = new Set([...(ST.lastSolve?.conflicts || []), ...(ST.lastSolve?.redundant || [])]);
     const row = (c, inGroup = false) => {
       const isDim = S.CONSTRAINTS[c.type].dim, what = c.refs.map((r) => entityName(sk, r)).join(', ');
       return el('li', {},
@@ -1351,119 +951,132 @@ function init(root) {
 
   // found once and kept: the panel may move to the panels window, out of root's reach
   function modeNotes() { return modeNotes.c || (modeNotes.c = { tree: $('[data-tree-note]'), asm: $('[data-asm-note]'), factsH: $('[data-facts-h]') }); }
-  /** The base planes (0.6 PU.4): full while choosing where to sketch, or with one selected; faint (drawn, not picked) once
-   *  the part has a solid; View › Base planes off hides them except while choosing where to sketch. Sketches, drawings and
-   *  assemblies set their own (hidden). */
-  // ---------------------------------------------------------------- drag handles (0.6 PU.2, handles.js + handle-math.js)
-  // The selected Extrude (blind or both sides) or Revolve, built, its value not driven by an equation, in the Design
-  // workspace: an arrow (a curved one on a Revolve) to drag; the drag changes the part live and is one undo step at the end.
-  function syncHandles() {
-    if (!handles) return;
-    let h = null;
-    if (mode === 'model' && ws === WS.DESIGN && sel?.kind === 'feature' && regen?.mesh) {
-      const f = P.featureById(part, sel.id), r = regen.results.get(sel.id);
-      const key = f && { extrude: 'depth', revolve: 'angle' }[f.type];
-      if (key && r?.status === 'ok' && !linkOf(part, f.id + '.' + key)) {
-        const sf = typeof f.sketch === 'string' ? P.featureById(part, f.sketch) : null, frame = sf ? regen.frames.get(sf.id) : null;
-        h = f.type === 'extrude' ? HM.extrudeHandle(f, frame, sf?.sketch) : HM.revolveHandle(f, regen.axes?.get(f.id), frame, sf?.sketch);
-      }
-    }
-    handles.show(h);
-  }
+  const { syncHandles, syncPlanes } = mountHandles({
+    ST, settings,
+  });
   function makeHandles() {
-    handles = new FeatureHandles(view, ui.gl.parentElement, {
-      t, fmt: (v) => f3(v),
+    ST.handles = new FeatureHandles(ST.view, ui.gl.parentElement, {
+      t, fmt: f3,
       onDragStart: (h) => status(t(h.kind === 'extrude' ? 'app.handle.dragging_depth' : 'app.handle.dragging_angle'), true),
       onDrag: (h, v) => {
-        const f = P.featureById(part, h.id);
+        const f = P.featureById(ST.part, h.id);
         if (!f) return;
         f[h.key] = v;   // live: the undo step is made when the drag ends
-        if (!dragRaf) dragRaf = requestAnimationFrame(() => { dragRaf = 0; rebuild(); });
+        if (!ST.dragRaf) ST.dragRaf = requestAnimationFrame(() => { ST.dragRaf = 0; rebuild(); });
       },
       onDragEnd: (h, v, v0) => {
-        const f = P.featureById(part, h.id);
+        const f = P.featureById(ST.part, h.id);
         if (!f) return;
         f[h.key] = v0;
         if (v !== v0) commit(t(h.kind === 'extrude' ? 'app.handle.undo_depth' : 'app.handle.undo_angle', { name: f.name }), () => { f[h.key] = v; });
         else { rebuild(); renderAll(); }
-        built().then(() => { const r = regen.results.get(f.id); status(r?.status === 'error' ? t('app.feature.error', { name: f.name, error: r.message }) : t(h.kind === 'extrude' ? 'app.handle.done_depth' : 'app.handle.done_angle', { name: f.name, v: f3(f[h.key]) })); });
+        built().then(() => { const r = ST.regen.results.get(f.id); status(r?.status === 'error' ? t('app.feature.error', { name: f.name, error: r.message }) : t(h.kind === 'extrude' ? 'app.handle.done_depth' : 'app.handle.done_angle', { name: f.name, v: f3(f[h.key]) })); });
       },
-      onCancel: (h, v0) => { const f = P.featureById(part, h.id); if (f) f[h.key] = v0; rebuild(); renderAll(); status(t('app.handle.cancelled', { v: f3(v0) })); },
+      onCancel: (h, v0) => { const f = P.featureById(ST.part, h.id); if (f) f[h.key] = v0; rebuild(); renderAll(); status(t('app.handle.cancelled', { v: f3(v0) })); },
       // the box beside the handle hands what was typed to the feature's own box (limits, =expressions, one undo step)
       onType: (h, text) => { const src = ui.props.querySelector(`[data-param-key="${h.id}.${h.key}"]`); if (src && !src.disabled) { src.value = text.replace(/\s*(mm|°)$/, ''); src.dispatchEvent(new Event('change', { bubbles: true })); } },
     });
   }
 
-  function syncPlanes() {
-    if (!view || (mode !== 'model' && mode !== 'pick')) return;
-    const want = pendingSketch || sel?.kind === 'plane';
-    view.setPlanesFaint(!want && !!regen?.mesh);
-    view.setPlanesVisible(want || settings.planes);
-  }
 
   function renderAll() {
-    modeNotes().tree.hidden = mode === 'assembly';
-    modeNotes().asm.hidden = mode !== 'assembly';
-    modeNotes().factsH.textContent = mode === 'assembly' ? t('app.facts.h_assembly') : t('app.props.part');
-    if (mode === 'assembly') { renderAsmTree(); renderProps(); renderAsmFacts(); updateTools(); ui.hint.hidden = true; return; }   // renderProps: the assembly's panel in Design, an assemblies:true workspace's own otherwise (illustrate)
+    modeNotes().tree.hidden = ST.mode === 'assembly';
+    modeNotes().asm.hidden = ST.mode !== 'assembly';
+    modeNotes().factsH.textContent = ST.mode === 'assembly' ? t('app.facts.h_assembly') : t('app.props.part');
+    if (ST.mode === 'assembly') { renderAsmTree(); renderProps(); renderAsmFacts(); updateTools(); ui.hint.hidden = true; return; }   // renderProps: the assembly's panel in Design, an assemblies:true workspace's own otherwise (illustrate)
     paramsUI.render();   // first: it drops equations whose numbers were deleted
     syncPlanes(); syncHandles();
-    shellKit?.selChanged();
-    renderTree(); renderProps(); renderFacts(); updateTools(); show3DSketches(); ui.hint.hidden = ws !== WS.DESIGN || mode === 'sketch' || mode === 'drawing' || part.features.length > 0;
-    bimLink?.sync();
+    ST.shellKit?.selChanged();
+    renderTree(); renderProps(); renderFacts(); updateTools(); show3DSketches(); ui.hint.hidden = ST.ws !== WS.DESIGN || ST.mode === 'sketch' || ST.mode === 'drawing' || ST.part.features.length > 0;
+    ST.bimLink?.sync();
   }
 
-  // ---------------------------------------------------------------- toolbar
-  const SKETCH_TOOLS = { 'tool-line': 'line', 'tool-rect': 'rect', 'tool-circle': 'circle', 'tool-arc': 'arc', 'tool-point': 'point', 'tool-centerline': 'centerline', 'tool-fillet': 'fillet', 'tool-dimension': 'dimension',
-    'tool-spline': 'spline', 'tool-cspline': 'cspline', 'tool-project': 'project', 'tool-trim': 'trim', 'tool-extend': 'extend', 'tool-offset': 'offset', 'tool-mirror': 'mirror', 'tool-polygon': 'polygon', 'tool-slot': 'slot', 'tool-lpattern': 'lpattern', 'tool-cpattern': 'cpattern' };
+  const { SKETCH_TOOLS, applyEditState, editState, run, undoRedo } = mountToolbar({
+    ST, ui, hist, asmHist, editor, settings, persistSettings, status, exactOff, editingFeature, rebuild, built, commit, endPick, startSketch, exitSketch, newFeature, btn, syncPlanes, renderAll, updateTools, download, fileBase, confirmDiscard, openNest, ask, focusStage,
+    get wsCall() { return wsCall; },
+    get host() { return host; },
+    get checkPrint() { return checkPrint; },
+    get openSheets() { return openSheets; },
+    get printExport() { return printExport; },
+    get setWorkspace() { return setWorkspace; },
+    get openLaser() { return openLaser; },
+    get newPart() { return newPart; },
+    get openStandardPart() { return openStandardPart; },
+    get openVault() { return openVault; },
+    get fileHost() { return fileHost; },
+    get openFromHost() { return openFromHost; },
+    get savePart() { return savePart; },
+    get saveOlder() { return saveOlder; },
+    get exportMesh() { return exportMesh; },
+    get exportIfc() { return exportIfc; },
+    get exportUsd() { return exportUsd; },
+    get exportStep() { return exportStep; },
+    get exportForSw() { return exportForSw; },
+    get enterDrawing() { return enterDrawing; },
+    get leaveDrawing() { return leaveDrawing; },
+    get drawingTool() { return drawingTool; },
+    get exportDrawing() { return exportDrawing; },
+    get exportDxf() { return exportDxf; },
+    get editAct() { return editAct; },
+    get enterAssembly() { return enterAssembly; },
+    get backToAssembly() { return backToAssembly; },
+    get asmInsertCopy() { return asmInsertCopy; },
+    get asmStartJoint() { return asmStartJoint; },
+    get asmCheck() { return asmCheck; },
+    get asmEditPart() { return asmEditPart; },
+    get closeAssembly() { return closeAssembly; },
+    get noteChange() { return noteChange; },
+    get rebuildAsm() { return rebuildAsm; },
+    get ASM_EXPORTS() { return ASM_EXPORTS; },
+  });
   function updateTools() {
     showTouchBar();
-    const inSk = mode === 'sketch', inAsm = mode === 'assembly', inDr = mode === 'drawing', inPick = mode === 'pick';
+    const inSk = ST.mode === 'sketch', inAsm = ST.mode === 'assembly', inDr = ST.mode === 'drawing', inPick = ST.mode === 'pick';
     // contextual: sketch tools only while sketching, features only on the part, drawing tools on the sheet, assembly tools only in an assembly
     for (const g of ui.tools.querySelectorAll('[data-group]')) g.hidden = (inAsm && ['sketch', 'features', 'drawing'].includes(g.dataset.group)) || (inSk && ['features', 'drawing'].includes(g.dataset.group)) || (inDr && ['sketch', 'features', 'assembly'].includes(g.dataset.group)) || (inPick && ['sketch', 'drawing', 'assembly'].includes(g.dataset.group));
     // workspaces: Design's groups only in Design; each other workspace's groups only in it
-    for (const g of ui.tools.querySelectorAll('[data-group]')) { const w = g.dataset.workspaceGroup; if (w) g.hidden = w !== ws.id; else if (ws !== WS.DESIGN && DESIGN_GROUPS.includes(g.dataset.group)) g.hidden = true; }
+    for (const g of ui.tools.querySelectorAll('[data-group]')) { const w = g.dataset.workspaceGroup; if (w) g.hidden = w !== ST.ws.id; else if (ST.ws !== WS.DESIGN && DESIGN_GROUPS.includes(g.dataset.group)) g.hidden = true; }
     for (const b of ui.tools.querySelectorAll('[data-group="drawing"] [data-cmd]')) b.hidden = b.dataset.cmd === 'drawing' ? inDr : !inDr;
     for (const b of ui.tools.querySelectorAll('[data-group="features"] [data-cmd]')) b.hidden = b.dataset.cmd === 'pick-done' ? !inPick : inPick;
     const fm = ui.tools.querySelector('[data-features-menu]'); if (fm) fm.hidden = inPick;
-    for (const b of ui.tools.querySelectorAll('[data-group="drawing"] [data-cmd^="dr-"]')) b.setAttribute('aria-pressed', String(!!drawingState && drawingState.tool === b.dataset.cmd.slice(3)));
+    for (const b of ui.tools.querySelectorAll('[data-group="drawing"] [data-cmd^="dr-"]')) b.setAttribute('aria-pressed', String(!!ST.drawingState && ST.drawingState.tool === b.dataset.cmd.slice(3)));
     for (const b of ui.tools.querySelectorAll('[data-group="sketch"] [data-cmd]')) b.hidden = b.dataset.cmd === 'sketch' ? inSk : !inSk;
     for (const d of ui.tools.querySelectorAll('[data-sketch-menu]')) d.hidden = !inSk;
     for (const b of ui.tools.querySelectorAll('[data-cmd^="asm-"]')) {
       const c = b.dataset.cmd;
-      b.hidden = inAsm ? ['asm-new', 'asm-back'].includes(c) : !(c === 'asm-new' || (c === 'asm-back' && editPartOf));
-      if (c === 'asm-new') b.hidden = inAsm || !!editPartOf;
+      b.hidden = inAsm ? ['asm-new', 'asm-back'].includes(c) : !(c === 'asm-new' || (c === 'asm-back' && ST.editPartOf));
+      if (c === 'asm-new') b.hidden = inAsm || !!ST.editPartOf;
     }
     for (const b of ui.tools.querySelectorAll('[data-cmd="export-bom"]')) b.hidden = !inAsm;
     // File › Standard part opens a new part: not offered inside a sketch, which keeps the sketch toolbar to one row at 1440 px
     for (const b of ui.tools.querySelectorAll('[data-cmd="std-part"]')) b.hidden = inSk;
-    for (const b of ui.tools.querySelectorAll('[data-cmd="view-measure"]')) b.setAttribute('aria-checked', String(!!measure?.active));
-    for (const b of ui.tools.querySelectorAll('[data-cmd="view-section"]')) b.setAttribute('aria-checked', String(!!section?.active));
-    for (const b of ui.tools.querySelectorAll('[data-cmd="view-light"]')) { b.setAttribute('aria-checked', String(settings.lightDisplay)); b.hidden = mode !== 'assembly'; }
+    for (const b of ui.tools.querySelectorAll('[data-cmd="view-measure"]')) b.setAttribute('aria-checked', String(!!ST.measure?.active));
+    for (const b of ui.tools.querySelectorAll('[data-cmd="view-section"]')) b.setAttribute('aria-checked', String(!!ST.section?.active));
+    for (const b of ui.tools.querySelectorAll('[data-cmd="view-light"]')) { b.setAttribute('aria-checked', String(settings.lightDisplay)); b.hidden = ST.mode !== 'assembly'; }
     for (const b of ui.tools.querySelectorAll('[data-cmd="view-planes"]')) b.setAttribute('aria-checked', String(settings.planes));
-    for (const [c, m] of [['view-draft', 'draft'], ['view-zebra', 'zebra'], ['view-curvature', 'curvature']]) for (const b of ui.tools.querySelectorAll(`[data-cmd="${c}"]`)) b.setAttribute('aria-checked', String(!!draft?.active && draft.mode === m));
+    for (const [c, m] of [['view-draft', 'draft'], ['view-zebra', 'zebra'], ['view-curvature', 'curvature']]) for (const b of ui.tools.querySelectorAll(`[data-cmd="${c}"]`)) b.setAttribute('aria-checked', String(!!ST.draft?.active && ST.draft.mode === m));
     // a workspace with its own history (Illustrate's manual) says when Undo / Redo can act (0.7, asked by illustrate)
-    const wsUndo = ws !== WS.DESIGN && typeof ws.undoState === 'function' ? wsCall('undoState', host) : null;
+    const wsUndo = ST.ws !== WS.DESIGN && typeof ST.ws.undoState === 'function' ? wsCall('undoState', host) : null;
     for (const b of ui.tools.querySelectorAll('[data-cmd]')) {
       const c = b.dataset.cmd;
       if (b.closest('[data-workspace-group]')) { wsToolState(b); continue; }
       if (wsUndo && (c === 'undo' || c === 'redo')) { b.disabled = !wsUndo[c]; continue; }
-      let dis = !M && !['new', 'open'].includes(c);
+      let dis = !ST.M && !['new', 'open'].includes(c);
       if (inAsm) {
-        if (c === 'asm-insert-copy') dis = dis || !asm?.instances.length;
-        if (c === 'asm-edit') dis = dis || asmSel?.kind !== 'inst';
-        if (c === 'asm-joint') { dis = dis || (asm?.instances.length || 0) < 2; b.setAttribute('aria-pressed', String(!!jointPick)); }
-        if (c === 'asm-stackup') b.setAttribute('aria-pressed', String(!!stackup?.active));
-        if (c === 'asm-contact') { dis = dis || (asm?.instances.length || 0) < 2; b.setAttribute('aria-pressed', String(!!contactStudy?.active)); }
-        if (c === 'asm-motion') { dis = dis || !asm?.joints.some((j) => (A.JOINT_DOF[j.type] || []).length); b.setAttribute('aria-pressed', String(!!motion?.active)); }
+        if (c === 'asm-insert-copy') dis = dis || !ST.asm?.instances.length;
+        if (c === 'asm-edit') dis = dis || ST.asmSel?.kind !== 'inst';
+        if (c === 'asm-joint') { dis = dis || (ST.asm?.instances.length || 0) < 2; b.setAttribute('aria-pressed', String(!!ST.jointPick)); }
+        if (c === 'asm-stackup') b.setAttribute('aria-pressed', String(!!ST.stackup?.active));
+        if (c === 'asm-contact') { dis = dis || (ST.asm?.instances.length || 0) < 2; b.setAttribute('aria-pressed', String(!!ST.contactStudy?.active)); }
+        if (c === 'asm-motion') { dis = dis || !ST.asm?.joints.some((j) => (A.JOINT_DOF[j.type] || []).length); b.setAttribute('aria-pressed', String(!!ST.motion?.active)); }
         if ((/^export-/.test(c) && !ASM_EXPORTS.includes(c)) || c === 'view-normal') dis = true;
-        if (['export-step', 'export-step214', 'export-drawing'].includes(c)) { dis = dis || !useExact; if (exactOff()) b.title = (b.title.replace(/ — .*$/, '') || b.textContent.trim()) + ' — ' + t('kernel.not_built.short'); }
+        if (['export-step', 'export-step214', 'export-drawing'].includes(c)) { dis = dis || !ST.useExact; if (exactOff()) b.title = (b.title.replace(/ — .*$/, '') || b.textContent.trim()) + ' — ' + t('kernel.not_built.short'); }
         if (c === 'undo') dis = !asmHist.undoStack.length;
         if (c === 'redo') dis = !asmHist.redoStack.length;
         b.disabled = dis;
         continue;
       }
-      if (c === 'asm-new') dis = dis || inSk || !(regen?.mesh || asm);
+      if (c === 'asm-new') dis = dis || inSk || !(ST.regen?.mesh || ST.asm);
       if (SKETCH_TOOLS[c] || ARC_CMDS[c] || c === 'construction' || c === 'exit-sketch') dis = dis || !inSk;
       if (c === 'sketch') dis = dis || inSk;
       if (['extrude', 'cut-extrude', 'revolve', 'revolve-cut', 'hole', 'lpattern', 'cpattern', 'mirror', 'view-normal'].includes(c) || /^view-(iso|front|back|top|bottom|right|left)$/.test(c)) dis = dis || inSk || inDr;
@@ -1471,868 +1084,92 @@ function init(root) {
       // with no exact kernel at all (0.4) these stay clickable and answer "Not built yet" (run), so touch users get the words too
       if (MESH_BUILT.has(c) && exactOff()) { dis = dis || inSk || inDr; b.title = b.title.replace(/ — .*$/, '') || b.textContent.trim(); delete b.dataset.notBuilt; }   // the mesh kernel builds these (K.4)
       else if (['fillet', 'chamfer', 'shell', 'sweep', 'loft', 'draft', ...SURFACE_MENU, ...BODY_MENU, ...SHEET_MENU, ...RIB_MENU].includes(c) && exactOff()) { dis = dis || inSk || inDr; b.title = (b.title.replace(/ — .*$/, '') || b.textContent.trim()) + ' — ' + t('kernel.not_built.short'); b.dataset.notBuilt = ''; }
-      else if (['fillet', 'chamfer', 'shell', 'sweep', 'loft', 'draft', ...SURFACE_MENU, ...BODY_MENU, ...SHEET_MENU, ...RIB_MENU].includes(c)) { dis = dis || inSk || inDr || !useExact; const base = b.dataset.exactBase ?? (b.dataset.exactBase = b.title.replace(/ — needs.*$/, '')); b.title = useExact ? base : t(exact.state === 'loading' ? 'app.tools.needs_exact_loading' : 'app.tools.needs_exact_off', { title: base }); }
-      if (c === 'drawing') dis = dis || inSk || !regen?.mesh;
-      if (/^export-step(214)?$/.test(c)) { dis = dis || inSk || !regen?.mesh; b.title = b.title.replace(/ — .*$/, '') || b.textContent.trim(); }   // 0.9.1: exact STEP is written from the mesh kernel too (step-exact.js)
+      else if (['fillet', 'chamfer', 'shell', 'sweep', 'loft', 'draft', ...SURFACE_MENU, ...BODY_MENU, ...SHEET_MENU, ...RIB_MENU].includes(c)) { dis = dis || inSk || inDr || !ST.useExact; const base = b.dataset.exactBase ?? (b.dataset.exactBase = b.title.replace(/ — needs.*$/, '')); b.title = ST.useExact ? base : t(exact.state === 'loading' ? 'app.tools.needs_exact_loading' : 'app.tools.needs_exact_off', { title: base }); }
+      if (c === 'drawing') dis = dis || inSk || !ST.regen?.mesh;
+      if (/^export-step(214)?$/.test(c)) { dis = dis || inSk || !ST.regen?.mesh; b.title = b.title.replace(/ — .*$/, '') || b.textContent.trim(); }   // 0.9.1: exact STEP is written from the mesh kernel too (step-exact.js)
       if (c === 'asm-new') dis = dis || inDr || inPick;
       if (c === 'undo') dis = !hist.undoStack.length;
       if (c === 'redo') dis = !hist.redoStack.length;
       b.disabled = dis;
       if (SKETCH_TOOLS[c]) b.setAttribute('aria-pressed', String(inSk && editor.tool === SKETCH_TOOLS[c]));
       if (ARC_CMDS[c]) b.setAttribute('aria-pressed', String(inSk && editor.tool === 'arc' && editor.arcM === ARC_CMDS[c]));
-      if (c === 'sketch') b.setAttribute('aria-pressed', String(pendingSketch));
+      if (c === 'sketch') b.setAttribute('aria-pressed', String(ST.pendingSketch));
     }
     applyEditState();
     syncWsSwitcher();
   }
 
-  /** Edit commands: enabled by context; a disabled one says why in its title. */
-  const EDIT_CMDS = ['copy', 'cut', 'paste', 'paste-in-place', 'duplicate', 'delete', 'select-all', 'select-none'];
-  function applyEditState() {
-    const st = editState();
-    for (const b of ui.tools.querySelectorAll('[data-cmd]')) {
-      const c = b.dataset.cmd;
-      if (!EDIT_CMDS.includes(c)) continue;
-      if (b.dataset.baseTitle === undefined) b.dataset.baseTitle = b.getAttribute('title') || '';
-      const s0 = st[c];
-      b.disabled = !s0.ok;
-      const base = b.dataset.baseTitle;
-      const ttl = s0.ok ? base : (base ? base + ' — ' : '') + s0.why;
-      if (ttl) b.setAttribute('title', ttl); else b.removeAttribute('title');
-    }
-  }
-  function editState() {
-    const yes = { ok: true, why: '' }, no = (why) => ({ ok: false, why });
-    const all = (v) => Object.fromEntries(EDIT_CMDS.map((c) => [c, v]));
-    if (!M && !useExact) return all(no(t('app.edit.loading')));
-    const clipWord = clip ? C.describeClip(clip) : '';
-    if (ws !== WS.DESIGN) return { ...all(no(t('app.edit.other_ws', { ws: ws.label }))), ...(wsCall('editState', host) || {}) };
-    if (mode === 'pick') return all(no(t('app.edit.picking')));
-    if (mode === 'drawing') {
-      const s = drawingState?.sel;
-      return {
-        ...all(no(t('app.edit.drawing'))),
-        delete: s ? yes : no(t('app.edit.select_note')),
-        'select-all': no(t('app.edit.notes_one_at_a_time')),
-        'select-none': s ? yes : no(t('app.edit.nothing_selected')),
-      };
-    }
-    if (mode === 'sketch') {
-      const sk = editingFeature()?.sketch;
-      const ents = sk ? [...editor.sel].filter((id) => id !== S.ORIGIN && sk.entities.some((e) => e.id === id)) : [];
-      const any = [...editor.sel].some((id) => id !== S.ORIGIN);
-      const can = ents.length ? yes : no(t('app.edit.select_geometry'));
-      const paste = clip?.kind === 'sketch' ? yes : clip ? no(t(clip.kind === 'instance' ? 'app.edit.clip_part_to_asm' : 'app.edit.clip_features_exit_sketch', { what: clipWord })) : no(t('app.edit.nothing_to_paste_sketch'));
-      return {
-        copy: can, cut: can, duplicate: can, paste, 'paste-in-place': paste,
-        delete: any ? yes : no(t('app.edit.select_geometry_any')),
-        'select-all': sk?.entities.length ? yes : no(t('app.edit.sketch_empty')),
-        'select-none': editor.sel.size || editor.tool !== 'select' ? yes : no(t('app.edit.nothing_selected')),
-      };
-    }
-    if (mode === 'assembly') {
-      const inst = asmSel?.kind === 'inst';
-      const can = inst ? yes : no(asmSel ? t('app.edit.joint_no_copy') : t('app.edit.select_part'));
-      const paste = clip?.kind === 'instance' ? yes : clip ? no(t(clip.kind === 'sketch' ? 'app.edit.clip_sketch_to_sketch' : 'app.edit.clip_features_to_part', { what: clipWord })) : no(t('app.edit.nothing_to_paste_part'));
-      return {
-        copy: can, duplicate: can, paste, 'paste-in-place': paste,
-        cut: !inst ? can : asm.instances.length > 1 ? yes : no(t('app.edit.asm_keeps_one')),
-        delete: asmSel ? yes : no(t('app.edit.select_part_or_joint')),
-        'select-all': no(t('app.edit.parts_one_at_a_time')),
-        'select-none': asmSel || jointPick ? yes : no(t('app.edit.nothing_selected')),
-      };
-    }
-    const f = sel?.kind === 'feature' ? P.featureById(part, sel.id) : null;
-    const can = !f ? no(t('app.edit.select_copyable')) : C.COPYABLE.has(f.type) ? yes : no(t('app.edit.not_copyable', { name: f.name }));
-    const paste = clip?.kind === 'features' ? yes : clip ? no(t(clip.kind === 'sketch' ? 'app.edit.clip_sketch_open_first' : 'app.edit.clip_part_to_asm', { what: clipWord })) : no(t('app.edit.nothing_to_paste_feature'));
-    return {
-      copy: can, cut: can, duplicate: can, paste, 'paste-in-place': paste,
-      delete: f ? yes : no(t('app.edit.select_feature')),
-      'select-all': no(t('app.edit.history_one_at_a_time')),
-      'select-none': sel || pick || multi.length || pendingSketch ? yes : no(t('app.edit.nothing_selected')),
-    };
-  }
 
-  async function run(cmd) {
-    shellKit?.tool(cmd);   // lessons: where a command runs
-    if (addons?.runCommand(cmd)) return;   // an add-on's command ('<add-on id>:<name>')
-    for (const d of ui.tools.querySelectorAll('details[open]')) d.open = false;
-    // the active workspace sees every command first; its own (<id>-…) never reach Design
-    if (ws !== WS.DESIGN && wsCall('command', cmd, host) === true) return;
-    if (WS.workspaceOfCmd(cmd)) return;
-    if (measure?.active && !/^(view-|export-|undo$|redo$|save$)/.test(cmd)) measure.stop();
-    if (cmd === 'view-planes') { settings.planes = !settings.planes; persistSettings(); syncPlanes(); updateTools(); status(t(settings.planes ? 'app.planes.shown' : 'app.planes.hidden')); return; }
-    if (cmd === 'view-section') { section.toggle(); updateTools(); return; }
-    if (cmd === 'view-light') { settings.lightDisplay = !settings.lightDisplay; persistSettings(); view.setLod(settings.lightDisplay ? 'light' : 'auto'); updateTools(); status(t(settings.lightDisplay ? 'asm.light.on' : 'asm.light.off')); return; }
-    if (cmd === 'view-draft') { draft.toggle('draft'); updateTools(); return; }
-    if (cmd === 'view-zebra') { draft.toggle('zebra'); updateTools(); return; }
-    if (cmd === 'view-curvature') { draft.toggle('curvature'); updateTools(); return; }
-    if (cmd === 'view-measure') { if (mode === 'sketch' || mode === 'drawing') { status(t('app.measure.model_only')); return; } measure.toggle(); updateTools(); return; }
-    if (cmd === 'view-mass') { if (mode === 'sketch' || mode === 'drawing') { status(t('app.measure.mass_model_only')); return; } measure.mass(); updateTools(); return; }
-    if (cmd === 'export-print') return checkPrint();
-    if (cmd === 'export-nest') return openNest();
-    if (cmd === 'export-sheets') return openSheets();
-    if (cmd === 'export-ccx') return ccxExport(host);
-    if (cmd === 'export-scaled' || cmd === 'export-split') return printExport(cmd);
-    if (cmd === 'sketch-magnet') {   // 0.8 SG.7+: Sketch › Magnet study… (magnet-study-ui.js on physics_PART_3's magnetSolve)
-      if (mode === 'assembly') { status(t('study.mag.ui.no_sketch'), true); return; }
-      if (mode === 'sketch') exitSketch();
-      const MU = await import('./magnet-study-ui.js');
-      return MU.openMagnetDialog({ ask, el, status, part: () => part, computeWorker: (mods, o) => host.computeWorker(mods, o), refreshProblems: () => problemsSync?.(), download: (bytes, name, mime) => download(bytes, name, mime) });
-    }
-    if (cmd === 'sketch-photo') {   // 0.8 EG.38: Sketch › From a photo… (photo-sketch-ui.js on part_PART_2's photo-sketch.js)
-      if (mode === 'assembly') { status(t('pexp.part_only'), true); return; }
-      if (mode === 'sketch') exitSketch();
-      const PU = await import('./photo-sketch-ui.js');
-      return PU.openPhotoDialog({ ask, el, status, commit: (label, fn) => commit(label, fn), part: () => part, addFeature: (p, type, props) => P.addFeature(p, type, props), built: () => built() });
-    }
-    if (cmd === 'import-frd') { if (ws.id !== 'simulation' && !setWorkspace('simulation')) return; return ccxImport(host); }
-    if (cmd === 'export-laser') return openLaser();
-    if (mode === 'assembly' && ASM_EXPORTS.includes(cmd)) return asmTools.exportCmd(cmd);
-    if (ARC_CMDS[cmd]) { if (mode === 'sketch') { editor.setArcMethod(ARC_CMDS[cmd]); editor.setTool('arc'); updateTools(); } focusStage(); return; }   // 0.9 FX.137
-    if (SKETCH_TOOLS[cmd]) { if (mode === 'sketch') editor.setTool(editor.tool === SKETCH_TOOLS[cmd] ? 'select' : SKETCH_TOOLS[cmd]); focusStage(); return; }
-    if (exactOff() && P.EXACT_ONLY.has(cmd) && !MESH_BUILT.has(cmd)) { status(t('kernel.not_built', { what: P.FEATURE_LABELS[cmd] }), true); return; }
-    if (cmd === 'link-save-back') return bimLink?.saveBack();   // 0.10 SU.1814
-    switch (cmd) {
-      case 'new': return newPart();
-      case 'std-part': return openStandardPart();
-      case 'documents': return openVault();   // 0.8 SU.1058 (vault-08)
-      case 'open': if (await confirmDiscard()) { const [hf] = await fileHost.openFile({ types: [{ description: 'PartCraft, STEP, STL, OBJ, 3MF, 3DM', extensions: ['.json', '.step', '.stp', '.stl', '.obj', '.3mf', '.3dm'] }] }); await openFromHost(hf); } return;   // i18n-ignore: a file type label the OS shows
-      case 'save': return savePart();
-      case 'export-stl': return exportMesh('stl');
-      case 'export-3mf': return exportMesh('3mf');
-      case 'export-ifc': return exportIfc();
-      case 'export-usd': return exportUsd();   // 0.7 XF.8 (session usd)
-      case 'export-step': return exportStep('AP242');
-      case 'export-step214': return exportStep('AP214');
-      case 'export-step-faceted': return exportMesh('step');
-      case 'export-step214-faceted': return exportMesh('step214');
-      case 'export-sw-step': return exportForSw(false);
-      case 'export-sw-macro': return exportForSw(true);
-      case 'fillet': return newFeature('fillet', {});
-      case 'chamfer': return newFeature('chamfer', {});
-      case 'shell': return newFeature('shell', {});
-      case 'plane': case 'axis': case 'point': case 'sweep': case 'loft': case 'draft': return newFeature(cmd, {});
-      case 'patch': case 'surfloft': case 'stitch': case 'thicken': case 'offsetsurf': case 'extendsurf': case 'trimsurf': case 'gordon': return newFeature(cmd, {});
-      case 'combine': case 'movebody': case 'scalebody': case 'pathpattern': return newFeature(cmd, {});
-      case 'sheetbase': case 'sheetflange': case 'rib': case 'member': case 'generated': return newFeature(cmd, {});
-      case 'thread': return newFeature('thread', {});
-      case 'pick-done': return endPick();
-      case 'drawing': return enterDrawing();
-      case 'dr-back': return leaveDrawing();
-      case 'dr-datum': case 'dr-fcf': case 'dr-finish': case 'dr-detail': return drawingTool(cmd.slice(3));
-      case 'dr-pdf': return exportDrawing();
-      case 'export-dxf': return exportDxf();
-      case 'export-drawing': return exportDrawing();
-      case 'sketch': return startSketch();
-      case 'exit-sketch': return exitSketch();
-      case 'construction': editor.toggleConstruction(); return;
-      case 'extrude': return newFeature('extrude', { op: 'add' });
-      case 'cut-extrude': return newFeature('extrude', { op: 'cut', end: 'through' });
-      case 'revolve': return newFeature('revolve', { op: 'add' });
-      case 'revolve-cut': return newFeature('revolve', { op: 'cut' });
-      case 'hole': return newFeature('hole', {});
-      case 'lpattern': return newFeature('lpattern', {});
-      case 'cpattern': return newFeature('cpattern', {});
-      case 'mirror': return newFeature('mirror', {});
-      case 'undo': return undoRedo(true);
-      case 'redo': return undoRedo(false);
-      case 'delete': return editAct('delete');
-      case 'copy': case 'cut': case 'paste': case 'paste-in-place': case 'duplicate': case 'select-all': case 'select-none': return editAct(cmd);
-      case 'asm-new': return enterAssembly();
-      case 'asm-back': return backToAssembly();
-      case 'asm-insert-copy': return asmInsertCopy();
-      case 'asm-insert-file': ui.insertFile.click(); return;
-      case 'asm-joint': return asmStartJoint();
-      case 'asm-check': return asmCheck();
-      case 'asm-stackup': stackup.toggle(); updateTools(); return;
-      case 'asm-motion': motion.toggle(); updateTools(); return;
-      case 'asm-contact': contactStudy.toggle(); updateTools(); return;
-      case 'asm-edit': return asmEditPart();
-      case 'asm-close': return closeAssembly();
-      case 'view-fit': if (mode === 'sketch') editor.fit(); else view.fit(); return;
-      case 'view-normal': return normalTo();
-      default: if (cmd.startsWith('view-')) view.view(cmd.slice(5));
-    }
-  }
-  ui.tools.addEventListener('click', (e) => { const b = e.target.closest('button[data-cmd]'); if (b && !b.disabled) run(b.dataset.cmd); });
-  document.addEventListener('click', (e) => { for (const d of ui.tools.querySelectorAll('details[open]')) if (!d.contains(e.target)) d.open = false; });
 
-  function normalTo() {
-    if (mode === 'sketch') return;
-    if (pick?.kind === 'face') { view.normalTo(V.frameFor(pick.normal, pick.point)); return; }
-    if (sel?.kind === 'plane') { view.normalTo(V.BASE_PLANES[sel.name]); return; }
-    if (sel?.kind === 'feature') { const fr = regen?.frames.get(sel.id); if (fr) { view.normalTo(fr); return; } }
-    status(t('app.view.normal_needs_pick'));
-  }
 
-  function undoRedo(isUndo) {
-    // a workspace with its own history (Illustrate's manual) takes the keys as it takes the buttons (asked by illustrate, 0.7)
-    if (ws !== WS.DESIGN && wsCall('command', isUndo ? 'undo' : 'redo', host) === true) return;
-    queueMicrotask(() => noteChange());   // autosave: an undo or redo is an edit too
-    if (mode === 'assembly') {
-      const r = isUndo ? asmHist.undo(asm) : asmHist.redo(asm);
-      if (!r) { status(isUndo ? t('app.undo.nothing_undo') : t('app.undo.nothing_redo')); return; }
-      // an undone interference filter (0.5 WL.33) leaves the parts where they were: the check's results stay
-      const bare = (a) => JSON.stringify({ ...a, clashFilter: undefined, version: undefined });
-      const before = bare(asm);
-      asm = A.readAssembly(r.part);
-      const sameParts = bare(asm) === before;
-      asmDirty = true; jointPick = null;
-      if (!sameParts) clashes = null;
-      if (asmSel && !(asmSel.kind === 'inst' ? asm.instances : asm.joints).some((x) => x.id === asmSel.id)) asmSel = null;
-      rebuildAsm(); renderAll();
-      status(t(isUndo ? 'app.undo.undid' : 'app.undo.redid', { what: r.label.toLowerCase() }));
-      return;
-    }
-    const r = isUndo ? hist.undo(part) : hist.redo(part);
-    if (!r) { status(isUndo ? t('app.undo.nothing_undo') : t('app.undo.nothing_redo')); return; }
-    part = r.part;
-    dirty = true;
-    if (editing && !P.featureById(part, editing)) { if (mode === 'sketch') { editor.active = false; ui.sk.hidden = true; view.setSketch(null); ui.skBar.hidden = true; } mode = 'model'; editing = null; }
-    if (sel?.kind === 'feature' && !P.featureById(part, sel.id)) sel = null;
-    editor.sel.clear();
-    rebuild();
-    renderAll();
-    status(t(isUndo ? 'app.undo.undid' : 'app.undo.redid', { what: r.label.toLowerCase() }));
-  }
 
   // ---------------------------------------------------------------- edit: copy, cut, paste, duplicate, select
   function readStoredClip() {
     try { const raw = localStorage.getItem(C.STORAGE_KEY); return raw ? C.readClip(raw) : null; } catch { return null; }
   }
-  window.addEventListener('storage', (e) => { if (e.key === C.STORAGE_KEY) { clip = readStoredClip(); updateTools(); } });
-  function setClip(c) {
-    clip = c;
-    try { localStorage.setItem(C.STORAGE_KEY, JSON.stringify(c)); } catch { /* too big (a STEP inside) or a private window: this tab keeps it */ }
-    updateTools();
-  }
+  const { editAct, modelEdit } = mountEdit({
+    ST, ui, editor, status, editingFeature, built, commit, sketchCommit, showMarks, deleteSelected, announcePick, renderProps, renderAll, updateTools, editState, readStoredClip, focusStage,
+    get buildPart() { return buildPart; },
+    get placeBeside() { return placeBeside; },
+    get wsCall() { return wsCall; },
+    get host() { return host; },
+    get deleteNote() { return deleteNote; },
+    get composeShow() { return composeShow; },
+    get asmDelete() { return asmDelete; },
+    get highlightAsm() { return highlightAsm; },
+    get instById() { return instById; },
+    get commitAsm() { return commitAsm; },
+  });
 
-  /** Where a pasted / duplicated part goes: beside every part (keeping the copy's own turn), or exactly in place. */
-  async function pastePlace(c, inPlace) {
-    if (inPlace) return [...c.place];
-    let build = null;
-    const want = P.toJSON(P.readPart(c.part));
-    for (const [pid, p] of Object.entries(asm.parts)) if (asmBuilds.get(pid)?.stats && P.toJSON(P.readPart(p.part)) === want) build = asmBuilds.get(pid);
-    if (!build) build = await buildPart(P.readPart(c.part));
-    let minX = 0;
-    if (build?.stats) {
-      minX = Infinity;
-      const b = build.stats.bbox;
-      for (const x of [b.min[0], b.max[0]]) for (const y of [b.min[1], b.max[1]]) for (const z of [b.min[2], b.max[2]]) minX = Math.min(minX, V.applyMat(c.place, [x, y, z])[0]);
-    }
-    return V.matMul(V.translation([placeBeside() + 20 - minX, 0, 0]), c.place);
-  }
 
-  async function editAct(cmd) {
-    const st = editState()[cmd];
-    if (!st.ok) { status(st.why); return; }
-    for (const d of ui.tools.querySelectorAll('details[open]')) d.open = false;
-    if (ws !== WS.DESIGN) { wsCall('command', cmd, host); return; }
-    if (mode === 'drawing') {
-      if (cmd === 'delete') deleteNote();
-      else if (cmd === 'select-none') { drawingState.sel = null; composeShow(); renderProps(); updateTools(); }
-      return;
-    }
-    if (mode === 'sketch') return sketchEdit(cmd);
-    if (mode === 'assembly') return asmEdit(cmd);
-    return modelEdit(cmd);
-  }
 
-  function sketchEdit(cmd) {
-    const f = editingFeature();
-    const ents = () => [...editor.sel].filter((id) => id !== S.ORIGIN && f.sketch.entities.some((e) => e.id === id));
-    if (cmd === 'copy' || cmd === 'cut') {
-      const c = C.copySketch(f.sketch, ents());
-      setClip(c);
-      const drop = c.dropped ? t('app.clip.will_drop', { n: c.dropped }) : '';
-      if (cmd === 'cut') {
-        const ids = ents();
-        sketchCommit(t('app.undo.cut'), (sk) => S.removeEntities(sk, ids));
-        editor.sel.clear(); editor.draw(); updateTools();
-        status(t('app.clip.sketch_cut', { what: C.describeClip(c), dropped: drop }));
-      } else status(t('app.clip.sketch_copied', { what: C.describeClip(c), relations: c.sketch.constraints.length ? t('app.clip.sketch_with_relations', { n: c.sketch.constraints.length }) : '', dropped: drop }));
-      focusStage();
-      return;
-    }
-    if (cmd === 'paste') { editor.startPaste(clip, t('app.undo.paste')); updateTools(); focusStage(); return; }
-    if (cmd === 'paste-in-place') {
-      let made = null;
-      sketchCommit(t('app.undo.paste_in_place'), (sk) => { made = C.pasteSketch(sk, clip, [0, 0]); });
-      editor.setTool('select');
-      editor.sel = new Set(made.ids);
-      editor.draw(); renderProps(); updateTools();
-      status(t('app.clip.sketch_pasted_in_place', { what: C.describeClip(clip), dropped: clip.dropped ? t('app.clip.sketch_dropped', { n: clip.dropped }) : '' }));
-      focusStage();
-      return;
-    }
-    if (cmd === 'duplicate') { editor.startPaste(C.copySketch(f.sketch, ents()), t('app.undo.duplicate')); updateTools(); focusStage(); return; }
-    if (cmd === 'delete') { editor.deleteSelection(); return; }
-    if (cmd === 'select-all') { editor.setTool('select'); editor.sel = new Set(f.sketch.entities.map((e) => e.id)); editor.draw(); renderProps(); updateTools(); status(t('app.sketch.selected_n', { n: f.sketch.entities.length })); return; }
-    if (cmd === 'select-none') { editor.setTool('select'); editor.sel.clear(); editor.draw(); renderProps(); updateTools(); }
-  }
 
-  async function modelEdit(cmd) {
-    if (cmd === 'delete') return deleteSelected();
-    if (cmd === 'select-none') { pick = null; sel = null; multi = []; pendingSketch = false; showMarks(); view.setHighlight(null); view.setPlaneState(null, null); renderAll(); announcePick(); return; }
-    if (cmd === 'paste' || cmd === 'paste-in-place') {
-      let out = null;
-      try { out = commit(cmd === 'paste' ? t('app.undo.paste') : t('app.undo.paste_in_place'), () => C.pasteFeatures(part, clip)); } catch (err) { status(t('app.clip.paste_failed', { error: err.message })); return; }
-      const last = out.features[out.features.length - 1];
-      sel = { kind: 'feature', id: last.id };
-      renderAll();
-      await built();
-      const bad = out.features.map((g) => regen.results.get(g.id)).find((r) => r?.status === 'error');
-      const names = out.features.map((g) => g.name).join(t('app.edge.and_sep'));
-      status((clip.from && clip.from !== part.name ? t('app.clip.features_pasted_from', { names, from: clip.from }) : t('app.clip.features_pasted', { names })) + (out.note ? ' ' + out.note : '') + ' ' + (bad ? bad.message : t('app.clip.change_on_right')), true);
-      return;
-    }
-    let c;
-    try { c = C.copyFeature(part, sel.id); } catch (err) { status(err.message); return; }
-    if (cmd === 'copy') { setClip(c); status(t('app.clip.feature_copied', { what: C.describeClip(c) })); return; }
-    if (cmd === 'cut') { setClip(c); await deleteSelected(); return; }
-    if (cmd === 'duplicate') {
-      const out = commit(t('app.undo.duplicate'), () => C.pasteFeatures(part, c));
-      sel = { kind: 'feature', id: out.features[out.features.length - 1].id };
-      renderAll();
-      await built();
-      status(t('app.clip.feature_duplicated', { names: out.features.map((g) => g.name).join(t('app.edge.and_sep')) }), true);
-    }
-  }
 
-  async function asmEdit(cmd) {
-    if (cmd === 'delete') return asmDelete();
-    if (cmd === 'select-none') { asmSel = null; jointPick = null; renderAll(); highlightAsm(); return; }
-    if (cmd === 'copy' || cmd === 'cut') {
-      const c = C.copyInstance(asm, asmSel.id);
-      setClip(c);
-      if (cmd === 'cut') { await asmDelete(); return; }
-      status(t('app.clip.part_copied', { name: instById(asmSel.id).name }));
-      return;
-    }
-    const inPlace = cmd === 'paste-in-place';
-    const c = cmd === 'duplicate' ? C.copyInstance(asm, asmSel.id) : clip;
-    let place;
-    try { place = await pastePlace(c, inPlace); } catch (err) { status(t('app.clip.paste_failed', { error: err.message })); return; }
-    if (mode !== 'assembly' || !asm) return;
-    let inst;
-    try { inst = commitAsm({ duplicate: () => t('app.undo.duplicate'), paste: () => t('app.undo.paste'), 'paste-in-place': () => t('app.undo.paste_in_place') }[cmd](), () => C.pasteInstance(asm, c, place)); } catch (err) { status(t('app.clip.paste_failed', { error: err.message })); return; }
-    asmSel = { kind: 'inst', id: inst.id };
-    renderAll(); highlightAsm();
-    status(t(inPlace ? (cmd === 'duplicate' ? 'app.clip.part_duplicated_in_place' : 'app.clip.part_pasted_in_place') : (cmd === 'duplicate' ? 'app.clip.part_duplicated' : 'app.clip.part_pasted'), { name: inst.name }));
-  }
 
-  // ---------------------------------------------------------------- assembly
-  function enterAssembly() {
-    if ((!M && !useExact) || notInDesign()) return;
-    if (mode === 'sketch') exitSketch();
-    if (mode === 'pick') endPick();
-    if (mode === 'drawing') return;
-    if (!asm) {
-      if (!regen?.mesh) { status(t('app.asm.build_first')); return; }
-      asm = A.newAssembly((part.name || 'Part') + ' assembly');   // i18n-ignore: a default name saved in the file (data)
-      A.insertPart(asm, part);
-      asmHist.clear(); asmDirty = true;
-      status(t('app.asm.started', { name: part.name }));
-    } else status(t('app.asm.back_in', { name: asm.name }));
-    mode = 'assembly';
-    sel = null; pick = null; asmSel = null; jointPick = null; clashes = null;
-    view.setPlanesVisible(false);
-    rebuildAsm(); renderAll(); view.view('iso');
-  }
+  const { enterAssembly, buildPart, rebuildAsm, asmBuilt, showInstances, highlightAsm, commitAsm, instById, jointById, asmPick, asmStartJoint, placeBeside, asmInsertCopy, asmDelete, asmCheck, asmEditPart, backToAssembly, closeAssembly, saveAssembly, openAssemblyText, renderAsmTree, renderAsmFacts, renderAsmProps } = mountAssembly({
+    ST, ui, hist, asmHist, status, exact, rebuild, keepFocus, endPick, exitSketch, field, numInput, selectInput, check, btn, msg, renderProps, renderAll, updateTools, download, ask, notInDesign, f3,
+    get wsCall() { return wsCall; },
+    get host() { return host; },
+  });
 
-  /** One part built by whichever kernel is in use (a promise either way). */
-  const buildPart = (p) => (useExact ? exact.call('regen', { part: p }) : Promise.resolve(regenerate(p, M, { checkpoints: false })));   // an assembly rebuilds many parts in turn: no checkpoints (kernel.js, 0.7 D7.51) to throw away each time
   /** Variant pack (variants.js): every chosen configuration built with the kernel in use, as one zip. */
   async function openVariantPackDialog() {
-    if (mode === 'sketch') exitSketch();
-    if (!M && !useExact) { status(t('app.export.no_solid')); return; }
+    if (ST.mode === 'sketch') exitSketch();
+    if (!ST.M && !ST.useExact) { status(t('app.export.no_solid')); return; }
     await built();
     const { openVariantPack } = await import('./variants-ui.js');
     await openVariantPack({
-      ask, status, download: (data, name, mime) => download(data, name, mime), part: () => part, fileBase: () => fileBase(),
-      buildPart: (p) => buildPart(p),
-      stepFor: useExact ? (p) => exact.call('step', { part: p, schema: 'AP242' }).then((r) => r.text)
+      ask, status, download, part: () => ST.part, fileBase,
+      buildPart,
+      stepFor: ST.useExact ? (p) => exact.call('step', { part: p, schema: 'AP242' }).then((r) => r.text)
         : (p, r) => import('./step-exact.js').then((SE) => SE.stepExact(r, p.name || 'part', { segments: p.resolution || 64 }).text),   // 0.9.1: exact STEP from the mesh kernel
     });
   }
-  let asmSeq = 0, asmFit = false;
-  let asmTreeLimit = 300;
-  const asmTreeStep = 700;   // 0.9 SU.749: rows listed in the assembly tree before 'Show more'
-  async function rebuildAsm() {
-    if ((!M && !useExact) || !asm) return;
-    const t0 = performance.now();
-    const seq = ++asmSeq;
-    for (const [pid, p] of Object.entries(asm.parts)) {
-      const have = asmBuilds.get(pid);
-      if (!have || have.src !== p.part) {
-        const src = p.part;
-        const r = await buildPart(src);
-        if (seq !== asmSeq || !asm) return;
-        r.src = src; asmBuilds.set(pid, r);
-      }
-    }
-    for (const pid of [...asmBuilds.keys()]) if (!asm.parts[pid]) asmBuilds.delete(pid);
-    asmPlace = A.placeAll(asm, asmBuilds, { prev: asmPlace });   // only what moved is placed again (0.9 SU.749)
-    view.setSketchLines([]);
-    showInstances();
-    if (asmFit) { asmFit = false; view.view('iso'); }
-    const bad = asmPlace.problems.filter((x) => !x.free).length;
-    ui.build.textContent = bad ? t('app.asm.joint_problems', { n: bad }) : t('app.asm.placed', { ms: Math.round(performance.now() - t0) });
-    ui.build.className = 'pc-chip ' + (bad ? 'is-error' : 'is-ok');
-    if (mode === 'assembly') { renderAsmTree(); renderAsmFacts(); keepFocus(() => renderProps()); }
-    for (const w of asmWaiters.splice(0)) w();
-  }
-  const asmWaiters = [];
-  const asmBuilt = () => new Promise((res) => { if (asm && asmPlace && Object.keys(asm.parts).every((pid) => asmBuilds.get(pid)?.src === asm.parts[pid].part)) res(); else asmWaiters.push(res); });
-
-  function showInstances() {
-    const shown = asmTools ? asmTools.displayWorld(asmPlace.world) : asmPlace.world;   // an exploded view moves what is drawn only
-    view.setInstances(asm.instances.filter((i) => asmBuilds.get(i.part)?.mesh).map((i) => ({ id: i.id, data: asmBuilds.get(i.part).mesh, matrix: shown.get(i.id) })));
-    highlightAsm();
-    asmTools?.afterShow(); measure?.refresh(); section?.refresh(); draft?.refresh(); stackup?.refresh(); motion?.refresh();
-    if (ws !== WS.DESIGN) wsCall('rebuilt', host);   // a workspace that owns the screen in an assembly hides them again (illustrate)
-  }
-
-  function highlightAsm() {
-    const inst = asmSel?.kind === 'inst' ? asmSel.id : null;
-    const it = inst && view.instances.find((o) => o.id === inst);
-    if (it) view.setHighlight({ tris: [...Array(it.data.indices.length / 3).keys()], data: it.data, matrix: it.matrix });
-    else if (jointPick?.a?.hit) { const h = jointPick.a.hit; const o = view.instances.find((x) => x.id === h.inst); view.setHighlight({ tris: h.tris, data: h.data, matrix: o ? o.matrix : h.matrix }); }
-    else view.setHighlight(null);
-  }
-
-  function commitAsm(label, fn) {
-    asmHist.push(asm, label);
-    const r = fn();
-    asmDirty = true; clashes = null;
-    rebuildAsm(); renderAll();
-    return r;
-  }
-
-  const instById = (id) => asm.instances.find((i) => i.id === id);
-  const jointById = (id) => asm.joints.find((j) => j.id === id);
-
-  /** A flat face picked on an instance → its mate plane in the part (stable when the face was made by a sketch edge). */
-  function mateFromHit(h) {
-    const inst = instById(h.inst), build = asmBuilds.get(inst.part);
-    if ((build?.exact || build?.named) && h.face !== undefined) {
-      const f = build.faces[h.face];
-      if (!f || f.type !== 'plane') return null;
-      return { inst: h.inst, plane: f.name ? refForName(f.name) : { kind: 'fixed', o: f.o.map((v) => +v.toFixed(9)), n: f.n.map((v) => +v.toFixed(12)) } };
-    }
-    const grp = view.instances.find((o) => o.id === h.inst).groups;
-    const g = grp.groups[h.group];
-    const I = h.data.indices;
-    const key = (a, b) => (a < b ? a + ',' + b : b + ',' + a);
-    const inG = new Set(g.tris);
-    const edgeTri = new Map();
-    for (let t = 0; t < I.length / 3; t++) for (let k = 0; k < 3; k++) { const kk = key(I[t * 3 + k], I[t * 3 + (k + 1) % 3]); if (!edgeTri.has(kk)) edgeTri.set(kk, []); edgeTri.get(kk).push(t); }
-    let flat = true;
-    for (const t of g.tris) for (let k = 0; k < 3 && flat; k++) for (const o of edgeTri.get(key(I[t * 3 + k], I[t * 3 + (k + 1) % 3])) || []) {
-      if (!inG.has(o) && V.dot(grp.groups[grp.faceOf[o]].n, g.n) > Math.cos(20 * Math.PI / 180)) flat = false;
-    }
-    if (!flat) return null;
-    const plane = h.feature ? faceRefAt(build, h.feature, g.n, h.point) : { kind: 'fixed', o: h.point, n: g.n };
-    return { inst: h.inst, plane };
-  }
-
-  function asmPick(h) {
-    if (jointPick) {
-      if (!h || h.kind !== 'face' || !h.inst) { status(t('app.joint.pick_flat'), true); return; }
-      const end = mateFromHit(h);
-      if (!end) { status(t('app.joint.face_curved'), true); return; }
-      if (!jointPick.a) {
-        jointPick.a = { ...end, hit: h };
-        highlightAsm(); renderAsmProps();
-        status(t('app.joint.pick_second', { name: instById(h.inst).name }), true);
-        return;
-      }
-      if (end.inst === jointPick.a.inst) { status(t('app.joint.different_part'), true); return; }
-      const a = { inst: jointPick.a.inst, plane: jointPick.a.plane }, b = end;
-      const revolveFace = (e) => { const pr = asm.parts[instById(e.inst).part].part; return e.plane.kind === 'face' && pr.features.find((f) => f.id === e.plane.feature)?.type === 'revolve'; };
-      const type = revolveFace(a) && revolveFace(b) ? 'revolute' : 'rigid';
-      jointPick = null;
-      const j = commitAsm(t('app.undo.joint'), () => A.addJoint(asm, type, a, b));
-      asmSel = { kind: 'joint', id: j.id };
-      renderAll(); highlightAsm();
-      const pr = asmPlace.problems.find((x) => x.joint === j.id);
-      status(pr ? pr.message : t('app.joint.joins', { joint: j.name, a: instById(a.inst).name, b: instById(b.inst).name }));
-      return;
-    }
-    asmSel = h && h.kind === 'face' && h.inst ? { kind: 'inst', id: h.inst } : null;
-    renderAll(); highlightAsm();
-  }
-
-  function asmStartJoint() {
-    if (mode !== 'assembly') return;
-    if (asm.instances.length < 2) { status(t('app.joint.need_two')); return; }
-    jointPick = { a: null };
-    asmSel = null;
-    highlightAsm(); updateTools(); renderAsmProps();
-    status(t('app.joint.start'), true);
-  }
-
-  function placeBeside() {
-    let maxX = -Infinity;
-    for (const i of asm.instances) {
-      const b = asmBuilds.get(i.part)?.stats;
-      if (!b) continue;
-      const W = asmPlace.world.get(i.id);
-      for (const x of [b.bbox.min[0], b.bbox.max[0]]) for (const y of [b.bbox.min[1], b.bbox.max[1]]) for (const z of [b.bbox.min[2], b.bbox.max[2]]) maxX = Math.max(maxX, V.applyMat(W, [x, y, z])[0]);
-    }
-    return maxX === -Infinity ? 0 : maxX;
-  }
-
-  function asmInsertCopy() {
-    const src = asmSel?.kind === 'inst' ? instById(asmSel.id) : asm.instances[asm.instances.length - 1];
-    if (!src) return;
-    const b = asmBuilds.get(src.part)?.stats;
-    const dx = placeBeside() + 20 - (b ? b.bbox.min[0] : 0);
-    const inst = commitAsm(t('app.undo.insert_copy'), () => A.insertPart(asm, null, { pid: src.part, place: V.translation([dx, 0, 0]) }));
-    asmSel = { kind: 'inst', id: inst.id };
-    renderAll(); highlightAsm();
-    status(t('app.asm.inserted', { name: inst.name }));
-  }
-
-  ui.insertFile.addEventListener('change', async () => {
-    const f = ui.insertFile.files[0]; ui.insertFile.value = '';
-    if (!f || !asm) return;
-    let p;
-    try { p = P.readPart(await f.text()); } catch (err) { status(err.message); return; }
-    const r = await buildPart(p);
-    if (!r.mesh) { status(t('app.asm.no_solid', { file: f.name })); return; }
-    const dx = placeBeside() + 20 - r.stats.bbox.min[0];
-    const inst = commitAsm(t('app.undo.insert_part'), () => A.insertPart(asm, p, { place: V.translation([dx, 0, 0]) }));
-    asmSel = { kind: 'inst', id: inst.id };
-    renderAll(); highlightAsm();
-    status(t('app.asm.inserted_from', { name: inst.name, file: f.name }));
-  });
-
-  async function asmDelete() {
-    if (!asmSel) { status(t('app.asm.select_to_remove')); return; }
-    if (asmSel.kind === 'joint') { const j = jointById(asmSel.id); commitAsm(t('app.undo.remove_joint'), () => { asm.joints = asm.joints.filter((x) => x.id !== j.id); }); asmSel = null; renderAll(); highlightAsm(); status(t('app.asm.removed', { name: j.name })); return; }
-    const inst = instById(asmSel.id);
-    if (asm.instances.length === 1) { status(t('app.asm.keep_one')); return; }
-    const nj = asm.joints.filter((j) => j.a.inst === inst.id || j.b.inst === inst.id).length;
-    if (nj) {
-      const ch = await ask({ title: t('app.asm.remove_title', { name: inst.name }), text: t('app.asm.remove_joints', { n: nj }), buttons: [['cancel', t('app.btn.cancel'), 'pc-btn'], ['remove', t('app.btn.remove'), 'pc-btn is-primary']] });
-      if (ch !== 'remove') return;
-    }
-    commitAsm(t('app.undo.remove_part'), () => A.removeInstance(asm, inst.id));
-    asmSel = null; renderAll(); highlightAsm();
-    status(t('app.asm.removed', { name: inst.name }));
-  }
-
-  function asmCheck() {
-    const t0 = performance.now();
-    clashes = A.interference(asm, asmBuilds, asmPlace.world, M, { touch: true });   // with kinds and touching faces (0.5 WL.33)
-    renderAll();
-    const name = (id) => instById(id)?.name || id;
-    const { shown, hidden } = A.filterClashes(asm, clashes);
-    const more = hidden.length ? t('asm.clash.hidden_note', { n: hidden.length }) : '';
-    status(shown.length ? t('app.asm.interference', { list: shown.map((c) => clashWords(c, name)).join('; ') }) + more : t('app.asm.no_interference', { n: asm.instances.length, ms: Math.round(performance.now() - t0) }) + more, true);
-  }
-  /** One interference result in words: "Flange1 and Bolt1: thread depth mismatch, 12.3 mm³". */
-  const clashWords = (c, name) => (c.kind === 'touch' ? t('asm.clash.row_touch', { a: name(c.a), b: name(c.b) }) : t('asm.clash.row', { a: name(c.a), b: name(c.b), kind: t('asm.clash.kind.' + c.kind), vol: f3(c.volume) }));
-  /** A filter change: one undo step, saved with the assembly; the results stay (only what is shown changes). */
-  function setClashFilter(label, fn) {
-    asmHist.push(asm, label);
-    fn();
-    asmDirty = true;
-    renderAll();
-  }
-  /** The interference results under the assembly's name: shown ones with "Hide this pair", the kinds to show, hidden counts. */
-  function clashBlock() {
-    const name = (id) => instById(id)?.name || id;
-    const { shown, hidden } = A.filterClashes(asm, clashes || []);
-    const hide = new Set(asm.clashFilter?.hide || []), pairs = asm.clashFilter?.pairs || [];
-    const out = [];
-    if (shown.length) out.push(el('ul', { className: 'pc-list', dataset: { clashes: '' } }, ...shown.map((c) => el('li', { dataset: { clashKind: c.kind, clashPair: c.a + '|' + c.b } },
-      el('span', { className: 'grow' + (c.kind === 'overlap' || c.kind === 'thread-depth' ? ' is-bad' : '') }, clashWords(c, name)),
-      btn(t('asm.clash.hide_pair'), () => setClashFilter(t('asm.clash.undo.hide_pair'), () => A.setPairHidden(asm, c.a, c.b, true)), 'pc-linkbtn', { dataset: { clashHide: '' } })))));
-    const kinds = el('div', { className: 'pc-props', dataset: { clashKinds: '' } }, el('span', { className: 'span pc-props-sub' }, t('asm.clash.show')),
-      ...A.CLASH_KINDS.map((k) => { const c = check(t('asm.clash.kind.' + k), !hide.has(k), (v) => setClashFilter(t('asm.clash.undo.kind'), () => A.setKindHidden(asm, k, !v))); c.dataset.clashKindToggle = k; return c; }));
-    out.push(kinds);
-    if (hidden.length || pairs.length) out.push(el('p', { className: 'pc-note', dataset: { clashHidden: String(hidden.length) } }, hidden.length ? t('asm.clash.hidden', { n: hidden.length }) + ' ' : '',
-      pairs.length ? btn(t('asm.clash.show_pairs', { n: pairs.length }), () => setClashFilter(t('asm.clash.undo.show_pairs'), () => { for (const [a, b] of [...pairs]) A.setPairHidden(asm, a, b, false); }), 'pc-linkbtn', { dataset: { clashShowPairs: '' } }) : null));
-    return el('div', { className: 'pc-block', dataset: { clashBlock: '' } }, el('p', { className: 'pc-props-sub', style: 'margin-top:0' }, t('asm.clash.title')), ...out);
-  }
-
-  function asmEditPart() {
-    if (asmSel?.kind !== 'inst') { status(t('app.asm.select_to_edit')); return; }
-    const inst = instById(asmSel.id);
-    asmTools.reset(); measure.stop(); stackup?.stop(); motion?.stop();
-    editPartOf = { pid: inst.part, stash: { part, dirty, undo: hist.undoStack, redo: hist.redoStack }, before: JSON.stringify(asm.parts[inst.part].part) };
-    part = JSON.parse(JSON.stringify(asm.parts[inst.part].part));
-    hist.undoStack = []; hist.redoStack = []; dirty = false;
-    mode = 'model'; sel = null; pick = null;
-    view.setPlanesVisible(false);
-    rebuild(); renderAll(); view.view('iso');
-    status(t('app.asm.editing_part', { part: asm.parts[inst.part].name, asm: asm.name }), true);
-  }
-
-  function backToAssembly() {
-    if (!editPartOf) return;
-    if (mode === 'sketch') exitSketch();
-    const { pid, stash, before } = editPartOf;
-    if (JSON.stringify(part) !== before) {
-      asmHist.push(asm, t('app.undo.edit_part', { name: asm.parts[pid].name }));
-      asm.parts[pid].part = JSON.parse(JSON.stringify(part));
-      asm.parts[pid].name = part.name;
-      asmDirty = true; clashes = null;
-    }
-    part = stash.part; dirty = stash.dirty; hist.undoStack = stash.undo; hist.redoStack = stash.redo;
-    editPartOf = null;
-    regen = null;
-    mode = 'assembly';
-    rebuildAsm(); renderAll();
-    status(t('app.asm.back_in', { name: asm.name }));
-  }
-
-  async function closeAssembly() {
-    if (editPartOf) backToAssembly();
-    if (!asm) return true;
-    if (asmDirty) {
-      const ch = await ask({ title: t('app.asm.unsaved_title'), text: t('app.asm.unsaved_text', { name: asm.name }), buttons: [['cancel', t('app.btn.cancel'), 'pc-btn'], ['discard', t('app.asm.discard'), 'pc-btn'], ['save', t('app.btn.save_first'), 'pc-btn is-primary']] });
-      if (ch === 'cancel') return false;
-      if (ch === 'save') saveAssembly();
-    }
-    asmTools.reset(); measure.stop(); stackup?.stop(); motion?.stop();
-    asm = null; asmBuilds = new Map(); asmSel = null; jointPick = null; asmDirty = false; clashes = null; asmHist.clear();
-    mode = 'model';
-    rebuild(); renderAll(); view.view('iso');
-    status(t('app.asm.closed'));
-    return true;
-  }
-
-  function saveAssembly() {
-    const name = (asm.name || 'assembly').replace(/[^A-Za-z0-9 _.-]+/g, '_').trim().slice(0, 80) || 'assembly';
-    download(A.toJSON(asm), name + '.partcraft-asm.json', 'application/json');
-    asmDirty = false;
-    status(t('app.asm.saved', { file: name + '.partcraft-asm.json' }));
-  }
-
-  async function openAssemblyText(text, name) {
-    let a;
-    try { a = A.readAssembly(text); } catch (err) { status(err.message); await ask({ title: t('app.file.cannot_open', { name }), text: err.message, buttons: [['cancel', t('app.btn.ok'), 'pc-btn is-primary']] }); return; }
-    if (mode === 'sketch') exitSketch();
-    if (editPartOf) backToAssembly();
-    asmTools.reset(); measure.stop(); stackup?.stop(); motion?.stop();
-    asm = a; asmBuilds = new Map(); asmHist.clear(); asmDirty = false; asmSel = null; jointPick = null; clashes = null;
-    asmTreeLimit = 300; asmFit = true;   // the view fits the parts once they are placed
-    mode = 'assembly';
-    view.setPlanesVisible(false);
-    rebuildAsm(); renderAll(); view.view('iso');
-    status(t('app.asm.opened', { name, parts: asm.instances.length, joints: asm.joints.length }));
-  }
-
-  // ---- assembly panels
-  function renderAsmTree() {
-    ui.partName.textContent = asm.name;
-    const probs = { inst: new Map(), joint: new Map() };   // one pass, so a long list does not search the problems per row
-    for (const x of asmPlace?.problems || []) for (const k of ['inst', 'joint']) if (x[k] && !probs[k].has(x[k])) probs[k].set(x[k], x);
-    const problem = (kind, id) => probs[kind].get(id);
-    // a long assembly lists its first rows (and the selected one) and says so (0.9 SU.749): 20,000 rows made every click take seconds
-    const limit = asmTreeLimit;
-    const moreBtn = (shown, total, grow) => (shown < total ? el('li', { role: 'none', className: 'pc-muted' }, t('app.asm.tree_shown', { shown, total }) + ' ', btn(t('app.asm.tree_more', { n: Math.min(asmTreeStep, total - shown) }), () => { asmTreeLimit += asmTreeStep; renderAsmTree(); }, 'pc-linkbtn', { dataset: { treeMore: grow } })) : null);
-    const items = [el('li', { role: 'none', className: 'pc-props-sub' }, t('app.asm.tree_parts'))];
-    const selIdx = asmSel?.kind === 'inst' ? asm.instances.findIndex((i) => i.id === asmSel.id) : -1;
-    const rows = asm.instances.map((i, n) => [i, n]).filter(([, n]) => n < limit || n === selIdx);
-    rows.forEach(([i, n]) => {
-      const pr = problem('inst', i.id);
-      items.push(el('li', { role: 'none' }, el('button', {
-        type: 'button', role: 'treeitem', className: 'pc-node' + (pr ? ' is-warn' : ''), dataset: { inst: i.id }, 'aria-selected': String(asmSel?.kind === 'inst' && asmSel.id === i.id), title: pr ? pr.message : '',
-        onclick: () => { asmSel = { kind: 'inst', id: i.id }; jointPick = null; renderAll(); highlightAsm(); },
-        ondblclick: () => { asmSel = { kind: 'inst', id: i.id }; asmEditPart(); },
-      }, el('i', { className: 'bi bi-box', 'aria-hidden': 'true' }), el('span', { className: 'pc-node-name' }, i.name), el('span', { className: 'pc-node-flag' }, n === 0 ? t('app.asm.flag_grounded') : pr ? t('app.asm.flag_free') : ''))));
-    });
-    const more1 = moreBtn(Math.min(limit, asm.instances.length), asm.instances.length, 'parts');
-    if (more1) items.push(more1);
-    items.push(el('li', { role: 'none', className: 'pc-props-sub' }, t('app.asm.tree_joints')));
-    const selJ = asmSel?.kind === 'joint' ? asm.joints.findIndex((j) => j.id === asmSel.id) : -1;
-    for (const j of asm.joints.filter((_, n) => n < limit || n === selJ)) {
-      const pr = problem('joint', j.id);
-      const ls = asmPlace?.loops?.joints.get(j.id);   // on a loop (0.7 D7.40): under (can still move) / full / over (does not close)
-      items.push(el('li', { role: 'none' }, el('button', {
-        type: 'button', role: 'treeitem', className: 'pc-node' + (pr ? ' is-error' : ''), dataset: { joint: j.id, ...(ls ? { loopState: ls } : {}) }, 'aria-selected': String(asmSel?.kind === 'joint' && asmSel.id === j.id), title: pr ? pr.message : ls ? t('asm.joint.type.' + j.type) + ' — ' + t('asm.loop.' + ls) : t('asm.joint.type.' + j.type),
-        onclick: () => { asmSel = { kind: 'joint', id: j.id }; jointPick = null; renderAll(); highlightAsm(); },
-      }, el('i', { className: 'bi bi-' + (pr ? 'exclamation-triangle-fill' : 'link-45deg'), 'aria-hidden': 'true' }), el('span', { className: 'pc-node-name' }, j.name), el('span', { className: 'pc-node-flag' }, pr ? '⚠' : t('asm.joint.type.' + j.type).toLowerCase()))));   // i18n-ignore: icon class names
-    }
-    if (!asm.joints.length) items.push(el('li', { role: 'none', className: 'pc-muted' }, t('app.asm.no_joints')));
-    const more2 = moreBtn(Math.min(limit, asm.joints.length), asm.joints.length, 'joints');
-    if (more2) items.push(more2);
-    swapChildren(ui.tree, items);
-  }
-
-  function renderAsmFacts() {
-    const free = asmPlace ? asmPlace.problems.filter((x) => x.free).length : 0;
-    const L = asmPlace?.loops, nLoops = L ? L.equations / 6 : 0;
-    const loops = !L || L.status === 'none' ? '' : L.status === 'over' ? t('app.asm.loops_over', { loops: nLoops, n: L.conflicts.length }) : L.status === 'under' ? t('app.asm.loops_under', { loops: nLoops, n: L.mobility }) : t('app.asm.loops_full', { loops: nLoops });
-    fillDl(ui.facts, [[t('app.asm.tree_parts'), Object.keys(asm.parts).length], [t('app.asm.facts_instances'), asm.instances.length], [t('app.asm.tree_joints'), asm.joints.length], [t('app.asm.facts_not_joined'), free || ''], [t('app.asm.facts_loops'), loops],
-      [t('app.asm.facts_interference'), clashes === null ? t('app.asm.not_checked') : ((n) => (n ? t('asm.clash.facts', { n }) : t('app.asm.none')))(A.filterClashes(asm, clashes).shown.length)]]);
-  }
-
-  function endLabel(e) {
-    const inst = instById(e.inst);
-    const pr = asm.parts[inst.part].part;
-    const f = e.plane.kind === 'face' ? pr.features.find((x) => x.id === e.plane.feature) : null;
-    return t('app.joint.end_label', { name: inst.name, plane: e.plane.kind === 'base' ? V.PLANE_NAMES[e.plane.name] : f ? t('app.plane.face_of', { name: f.name }) : t('app.plane.fixed') });
-  }
-
-  function renderAsmProps() {
-    const out = [];
-    let head = t('app.facts.h_assembly');
-    if (jointPick) {
-      head = t('app.joint.new');
-      out.push(msg(jointPick.a ? t('app.joint.pick_second_face') : t('app.joint.pick_first_face')), el('p', { className: 'pc-note' }, t('app.joint.new_note')));
-    } else if (asmSel?.kind === 'joint' && jointById(asmSel.id)) {
-      const j = jointById(asmSel.id);
-      head = j.name;
-      const pr = asmPlace?.problems.find((x) => x.joint === j.id);
-      if (pr) out.push(msg(pr.message, 'is-error'));
-      const ls = asmPlace?.loops?.joints.get(j.id);
-      if (ls && ls !== 'over') out.push(el('p', { className: 'pc-note', dataset: { loopNote: ls } }, t('asm.loop.' + ls)));
-      const setJ = (label, fn) => { commitAsm(label, () => fn(jointById(j.id))); };
-      // a value that moves (0.7 D7.40): held while the loop it is on follows, and the loop's answer kept in the same undo step
-      const hold = (key) => new Set([j.id + '.' + key]);
-      const setValue = (label, key, v) => setJ(label, (x) => { x[key] = v; A.applySolved(asm, A.placeAll(asm, asmBuilds, { hold: hold(key) }).loops); });
-      const grid = [];
-      grid.push(...field(t('asm.joint.type'), selectInput(Object.keys(A.JOINT_TYPES).map((k) => [k, t('asm.joint.type.' + k)]), j.type, (v) => setJ(t('asm.joint.undo.type'), (x) => { x.type = v; if (x.limits && !A.readLimitsSafe(x.limits, v)) delete x.limits; }))));
-      const rangeRow = (label, key, min, max, step) => {
-        const start = j[key] || 0;
-        const n = numInput(j[key] || 0, (v) => setValue(label, key, v));
-        const r = el('input', { type: 'range', className: 'span pc-range', min: String(min), max: String(max), step: String(step), value: String(j[key] || 0), 'aria-label': t('asm.joint.drag', { label }), dataset: { jointRange: key } });
-        r.addEventListener('input', () => { const x = jointById(j.id); x[key] = Number(r.value); asmPlace = A.placeAll(asm, asmBuilds, { hold: hold(key), start: asmPlace?.loops?.values, prev: asmPlace }); showInstances(); n.value = r.value; });
-        r.addEventListener('change', () => { const v = Number(r.value); jointById(j.id)[key] = start; setValue(label, key, v); });
-        n.dataset.jointValue = key;
-        return [...field(label, n), r];
-      };
-      const size = Math.max(10, ...asm.instances.map((i) => { const b = asmBuilds.get(i.part)?.stats?.bbox; return b ? Math.max(...b.max.map((v, k) => v - b.min[k])) : 10; }));
-      const valueLabel = (k) => t('asm.joint.value.' + k.toLowerCase());
-      const span = (k) => { const L = A.limitOf(j, k); return L ? [L.min, L.max] : A.VALUE_UNIT[k] === 'deg' ? (k === 'angle' ? [-180, 180] : [-90, 90]) : [-Math.round(size), Math.round(size)]; };
-      // the values the joint lets move: a number and a slider each; the values set once: a number
-      for (const k of A.JOINT_DOF[j.type]) { const [lo, hi] = span(k); grid.push(...rangeRow(valueLabel(k), k, lo, hi, A.VALUE_UNIT[k] === 'deg' ? 1 : 0.5)); }
-      for (const k of A.JOINT_SETUP[j.type]) { const n = numInput(j[k] || 0, (v) => setJ(valueLabel(k), (x) => { x[k] = v; })); n.dataset.jointValue = k; grid.push(...field(valueLabel(k), n)); }
-      for (const [side, e] of [['a', j.a], ['b', j.b]]) {
-        const inst = instById(e.inst), build = asmBuilds.get(inst.part), prt = asm.parts[inst.part].part;
-        grid.push(el('span', { className: 'pc-props-sub' }, t(side === 'a' ? 'app.joint.first' : 'app.joint.second', { end: endLabel(e) })));
-        const axes = A.axesOf(build, prt);
-        const cur = e.axis ? e.axis.feature + (e.axis.index !== undefined ? ':' + e.axis.index : '') : '';
-        grid.push(...field(t('app.joint.centre_on'), selectInput([['', t('app.joint.face_origin')], ...axes.map((a) => [a.key, a.label])], cur, (v) => setJ(t('app.undo.joint_centre'), (x) => {
-          const en = x[side];
-          if (!v) delete en.axis; else { const [fid, idx] = v.split(':'); en.axis = { feature: fid, ...(idx !== undefined ? { index: Number(idx) } : {}) }; }
-        }))));
-      }
-      out.push(el('div', { className: 'pc-props' }, ...grid));
-      out.push(...asmTools.jointSections(j));
-      out.push(el('p', { className: 'pc-note', dataset: { jointNote: j.type } }, t('asm.joint.note.' + j.type)));
-      // the clash check sweeps one value (a choice when the joint has several) across its limits, or a default span
-      const dof = A.JOINT_DOF[j.type];
-      if (!dof.includes(asmSweep)) asmSweep = dof[0] || null;
-      const sweepSel = dof.length > 1 ? selectInput(dof.map((k) => [k, valueLabel(k)]), asmSweep, (v) => { asmSweep = v; }) : null;
-      if (sweepSel) sweepSel.dataset.jointSweep = '';
-      const motion = btn(t('asm.joint.check'), () => {
-        const key = asmSweep || dof[0];
-        const [from, to] = span(key);
-        const res = A.motionCheck(asm, asmBuilds, M, j.id, from, to, 24, key).map((x) => ({ ...x, pairs: A.filterClashes(asm, x.pairs).shown }));   // the filters apply (0.5 WL.33)
-        const bad = res.filter((x) => x.pairs.length);
-        const open = res.filter((x) => x.closed === false);   // a loop that cannot follow there (0.7 D7.40)
-        status((bad.length ? t('asm.joint.check_bad', { n: bad.length, of: res.length, value: valueLabel(key), at: f3(bad[0].value), vol: f3(bad[0].pairs[0].volume) }) : t('asm.joint.check_ok', { value: valueLabel(key), from: f3(from), to: f3(to), n: res.length }))
-          + (open.length ? ' ' + t('asm.joint.check_open', { n: open.length, of: res.length, at: f3(open[0].value) }) : ''), true);
-      }, 'pc-btn', { disabled: !dof.length, dataset: { jointCheck: '' } });
-      if (sweepSel) out.push(el('div', { className: 'pc-props' }, ...field(t('asm.joint.sweep'), sweepSel)));
-      out.push(el('div', { className: 'pc-block pc-actions' }, motion, btn(t('app.undo.remove_joint'), () => asmDelete(), 'pc-btn is-danger')));
-    } else if (asmSel?.kind === 'inst' && instById(asmSel.id)) {
-      const i = instById(asmSel.id);
-      head = i.name;
-      const n = asm.instances.indexOf(i);
-      const dl = el('dl', { className: 'pc-dl' });
-      const b = asmBuilds.get(i.part)?.stats;
-      fillDl(dl, [[t('app.props.part'), asm.parts[i.part].name], [t('app.inst.copies'), asm.instances.filter((x) => x.part === i.part).length], [t('app.facts.volume'), b ? f3(b.volume) + ' mm³' : ''], [t('app.asm.tree_joints'), asm.joints.filter((j) => j.a.inst === i.id || j.b.inst === i.id).length], [t('app.inst.position'), n === 0 ? t('app.inst.grounded') : asmPlace?.problems.some((x) => x.inst === i.id) ? t('app.inst.not_joined') : t('app.inst.by_joints')]]);
-      out.push(dl);
-      const nameIn = el('input', { type: 'text', className: 'pc-input', id: 'pc-inst-name', value: i.name, maxLength: 80 });
-      nameIn.addEventListener('change', () => { const v = nameIn.value.replace(/[\u0000-\u001f]/g, '').trim().slice(0, 80); if (v) commitAsm(t('app.undo.rename'), () => { instById(i.id).name = v; }); });
-      out.push(el('div', { className: 'pc-block pc-props' }, ...field(t('app.props.name'), nameIn)));
-      out.push(...asmTools.instSections(i));
-      out.push(el('div', { className: 'pc-block pc-actions' },
-        btn(t('app.inst.edit'), () => asmEditPart(), 'pc-btn is-primary'),
-        btn(t('app.inst.insert_copy'), () => asmInsertCopy()),
-        n > 0 ? btn(t('app.inst.make_grounded'), () => commitAsm(t('app.undo.ground'), () => { asm.instances.splice(n, 1); asm.instances.unshift(i); })) : null,
-        btn(t('app.btn.remove'), () => asmDelete(), 'pc-btn is-danger')));
-    } else {
-      const nameIn = el('input', { type: 'text', className: 'pc-input', id: 'pc-asm-name', value: asm.name, maxLength: 120 });
-      nameIn.addEventListener('change', () => { const v = nameIn.value.replace(/[\u0000-\u001f]/g, '').trim().slice(0, 120); if (v) commitAsm(t('app.undo.rename_assembly'), () => { asm.name = v; }); });
-      out.push(el('div', { className: 'pc-props' }, ...field(t('app.props.name'), nameIn)));
-      out.push(el('p', { className: 'pc-note' }, t('app.asm.note')));
-      for (const pr of asmPlace?.problems || []) out.push(msg(pr.message, pr.free ? '' : 'is-error'));
-      if (clashes || asm.clashFilter) out.push(clashBlock());
-      if (asmPlace) out.push(...asmTools.rootSections());
-    }
-    ui.propsH.textContent = head;
-    swapChildren(ui.props, out);
-  }
 
 
-  // ---------------------------------------------------------------- drawing sheet
-  // The views come from OpenCascade's hidden-line removal (exact kernel) or from the mesh (fallback);
-  // the sheet is composed here (drawing.js) with the part's notes (gdt.js) and shown as SVG (sheetview.js).
-  let sheetView = null;
-  // 0.8 Track ID: hand the view to the input-device layer (assets/js/app-devices-ui.js)
-  // three views, each moved the way its own wheel and drags move it: the sketch canvas (SketchEditor.zoomAt / setView / fit), the drawing sheet
-  // (SheetView.zoomAt / panBy / fit; its host is in the page from the start, hidden until a drawing opens; nothing moves before the sheet is made) and the 3D view (OrbitControls' own steps, so zoom-to-cursor and the
-  // 'change' → render path are the wheel's and the drag's). The sketch canvas and the sheet lie over the 3D canvas, so a move that lands on the
-  // 3D view while one of them is open goes to it (the 3D camera is locked to the sketch then anyway).
-  const skDev = {
-    el: ui.sk, kind: '2d',
-    pan(dx, dy) { if (!editor.active) return; const v = editor.view; editor.setView({ s: v.s, cx: v.cx - dx / v.s, cy: v.cy + dy / v.s }); },
-    zoom(f, x, y) { if (!editor.active || !(f > 0)) return; const r = ui.sk.getBoundingClientRect(); editor.zoomAt(x ?? r.width / 2, y ?? r.height / 2, f); },
-    fit() { if (editor.active) editor.fit(); },
-  };
-  const sheetDev = {
-    el: ui.sheet, kind: '2d',
-    pan(dx, dy) { sheetView?.panBy(dx, dy); },
-    zoom(f, x, y) { if (!sheetView || !(f > 0)) return; const r = ui.sheet.getBoundingClientRect(); sheetView.zoomAt(f, r.left + (x ?? r.width / 2), r.top + (y ?? r.height / 2)); },
-    fit() { sheetView?.fit(); },
-  };
-  const over3d = () => (mode === 'sketch' && editor.active ? skDev : mode === 'drawing' && sheetView && !ui.sheet.hidden ? sheetDev : null);
-  (window.ccViews ||= []).push(skDev, sheetDev, {
-    el: ui.gl, kind: '3d',
-    pan(dx, dy) { const o = over3d(); if (o) { o.pan(dx, dy); return; } const c = view.controls; if (!c.enabled || view.sketchFrame) return; c._pan(dx, dy); c.update(); },
-    orbit(dx, dy) {
-      if (over3d() || view.sketchFrame) return;
-      const c = view.controls, h = Math.max(ui.gl.clientHeight, 1);
-      if (!c.enabled) return;
-      c._rotateLeft(2 * Math.PI * dx * c.rotateSpeed / h); c._rotateUp(2 * Math.PI * dy * c.rotateSpeed / h);   // as _handleMouseMoveRotate
-      c.update();
-    },
-    zoom(f, x, y) {
-      const o = over3d(); if (o) { o.zoom(f, x, y); return; }
-      const c = view.controls; if (!c.enabled || view.sketchFrame || !(f > 0)) return;
-      const r = ui.gl.getBoundingClientRect();
-      c._updateZoomParameters(r.left + (x ?? r.width / 2), r.top + (y ?? r.height / 2));   // zoomToCursor, as the wheel
-      c._dollyIn(1 / f); c.update();
-    },
-    fit() { const o = over3d(); if (o) o.fit(); else view.fit(); },
-  });
-  const { enterDrawing, leaveDrawing, drawingRefresh, composeShow, commitDrawing, drawingTool, drawingClick, renderDrawingProps, deleteNote, exportMesh, checkPrint, exportIfc, exportUsd, exportDrawing, exportForSw, exportStep, exportDxf, exportSet, importStep, importKicadBoard, importMesh } = mountDrawingExport({
-    ui, hist, settings, looksLikePad, status, exact, exactOff, named, exactWhy, editingFeature, built, keepFocus, commit, endPick, exitSketch, field, numInput, textInput, selectInput, check, btn, msg, renderProps, renderAll, updateTools, download, openText, confirmDiscard, ask, focusStage, notInDesign,
-    get part() { return part; }, set part(v) { part = v; },
-    get regen() { return regen; },
-    get mode() { return mode; }, set mode(v) { mode = v; },
-    get section() { return section; },
-    get drawingState() { return drawingState; }, set drawingState(v) { drawingState = v; },
-    get pick() { return pick; }, set pick(v) { pick = v; },
-    get multi() { return multi; }, set multi(v) { multi = v; },
-    get view() { return view; },
-    get sheetView() { return sheetView; }, set sheetView(v) { sheetView = v; },
-    get useExact() { return useExact; },
-    get M() { return M; },
-    get dirty() { return dirty; }, set dirty(v) { dirty = v; },
-    get fileBase() { return fileBase; },
-    get asmTools() { return asmTools; },
-    get sel() { return sel; }, set sel(v) { sel = v; },
-    get f3() { return f3; },
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  const { drawingRefresh, leaveDrawing, exportDxf, renderDrawingProps, checkPrint, exportMesh, exportIfc, exportUsd, exportStep, exportForSw, enterDrawing, drawingTool, exportDrawing, deleteNote, composeShow, importStep, importMesh, importKicadBoard, commitDrawing, exportSet, drawingClick } = mountDrawingSheet({
+    ST, ui, hist, editor, settings, looksLikePad, status, exact, exactOff, named, exactWhy, editingFeature, built, keepFocus, commit, endPick, exitSketch, field, numInput, textInput, selectInput, check, btn, msg, renderProps, renderAll, updateTools, download, fileBase, openText, confirmDiscard, ask, focusStage, notInDesign, f3,
   });
 
 
@@ -2356,56 +1193,12 @@ function init(root) {
     document.body.append(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 60000);
   }
-  const fileBase = () => (part.name || 'part').replace(/[^A-Za-z0-9 _.-]+/g, '_').trim().slice(0, 80) || 'part';
+  function fileBase() { return (ST.part.name || 'part').replace(/[^A-Za-z0-9 _.-]+/g, '_').trim().slice(0, 80) || 'part'; }
 
-  // Files through the shell's host adapter (0.4 W.2 / 1.4): the browser's picker or the desktop's dialogs, the recent list
-  // on the start hint, files handed over at launch. Saving a part writes in place on the desktop (a download in the browser).
-  const fileHost = getHost({ app: 'partcraft' });
-  let saveTarget = null;   // the HostFile the open part came from, when it can be written in place
-  const PART_TYPES = [{ description: 'PartCraft', extensions: ['.json'] }];   // i18n-ignore: a file type label the OS shows
-  async function openFromHost(hf) {
-    if (!hf) return;
-    await openFile(hf);
-    saveTarget = /\.json$/i.test(hf.name) && hf.writable ? hf : null;
-  }
-  fileHost.onOpenFiles(async (files) => { if (files[0] && await confirmDiscard()) await openFromHost(files[0]); });
-  ready.then(async () => { const [first] = await fileHost.launchFiles(); if (first) await openFromHost(first); });   // desktop: the file it was started with
-  // Studio Live from a link (#live=<code> on a host's LAN page, ?live=<ROOM>#<secret> from an invite): join; the part comes from the host
-  if (/[#&]live=|[?&]live=/.test(location.hash + location.search)) ready.then(() => import('./live.js')).then((m) => m.joinFromPage(window.partcraft, fileHost), (err) => status(err.message));
-  // ---- the Documents panel (0.8 SU.1058, session vault-08; mounted by engineer): vault/vault-app.js, loaded on first use. A file opened from a
-  // project folder is saved over only while it is checked out to you (the panel's saveBlocked), and check-in writes the open part's bytes.
-  let vaultUi = null, vaultRef = null;
-  async function openVault() {
-    if (!vaultUi) {
-      const { installVaultPanel } = await import('./vault/vault-app.js');
-      vaultUi = installVaultPanel({
-        stage: ui.gl.parentElement, el, t, print: (m) => status(m), focusCommandLine: () => {}, fileHost, kinds: ['part', 'assembly'],
-        openFile: (f) => openFile(f),
-        currentFile: (rec) => {
-          if (mode === 'sketch') exitSketch();
-          const asmOpen = mode === 'assembly';
-          if ((rec.kind === 'assembly') !== asmOpen) return { wrong: true };
-          return { bytes: new TextEncoder().encode(asmOpen ? A.toJSON(asm) : P.toJSON(part)) };
-        },
-        getRef: () => vaultRef, setRef: (r) => { vaultRef = r; }, afterCheckin: () => { dirty = false; },
-        saveBlob: (name, text, mime) => download(text, name, mime),
-      });
-    }
-    await vaultUi.open();
-  }
-
-  async function savePart() {
-    if (vaultUi && vaultRef) { const ro = await vaultUi.saveBlocked(); if (ro) { status(ro); return; } }   // a vault file: only while checked out to you
-    if (mode === 'assembly') { saveAssembly(); return; }
-    if (mode === 'sketch') exitSketch();
-    const name = fileBase() + '.partcraft.json';
-    shellKit?.stampSave?.();   // 0.9 DI.1
-    const r = await fileHost.save({ target: saveTarget, data: P.toJSON(part), name, types: PART_TYPES });
-    if (!r.ok) { if (!r.cancelled) status(t('app.file.save_failed', { error: String(r.error?.message || r.error || '') })); return; }
-    if (r.target?.writable) saveTarget = r.target;
-    dirty = false;
-    status(r.how === 'written' ? t('app.file.written', { file: r.path || r.name || name }) : t('app.file.saved', { file: name }));
-  }
+  const { fileHost, openFromHost, openVault, savePart, saveOlder, newPart, openStandardPart, openSwExport, noteChange, openSheets, printExport, openLaser } = mountFiles({
+    ST, $, ui, hist, asmHist, status, exact, exactOff, ready, rebuild, built, endPick, exitSketch, btn, syncPlanes, renderAll, closeAssembly, saveAssembly, leaveDrawing, importStep, importMesh, importKicadBoard, download, fileBase, openText, confirmDiscard, ask,
+    get host() { return host; },
+  });
 
 
 
@@ -2415,181 +1208,44 @@ function init(root) {
 
 
 
-  async function newPart() {
-    if (mode === 'assembly' || editPartOf) { if (!(await closeAssembly())) return; }
-    if (!(await confirmDiscard())) return;
-    if (mode === 'sketch') exitSketch();
-    if (mode === 'pick') endPick();
-    if (mode === 'drawing') leaveDrawing();
-    part = P.newPart();
-    hist.clear(); dirty = false; sel = null; pick = null; pendingSketch = false;
-    view.setHighlight(null);
-    rebuild(); renderAll(); view.view('iso');
-    shellKit?.opened(); surfacesChanged(host); nodesChanged(host);
-    status(t('app.file.new_part'));
-  }
 
-  /**
-   * File › Standard part (0.5 MQ.4): a bolt, nut, washer, pin, bearing or key from the standard's table (stdparts.js), opened
-   * as a new part with one configuration per size (Parameters › Configurations switches it).
-   */
-  async function openStandardPart() {
-    if (mode === 'assembly' || editPartOf) { if (!(await closeAssembly())) return; }
-    if (!(await confirmDiscard())) return;
-    const SP = await import('./stdparts.js');
-    const fam = el('select', { className: 'pc-select', id: 'pc-std-fam' }, ...SP.TEMPLATES.map((x) => el('option', { value: x.id }, x.name + ' (' + x.standard + ')')));
-    const size = el('select', { className: 'pc-select', id: 'pc-std-size' });
-    const fill = () => size.replaceChildren(...SP.templateSizes(fam.value).map((z) => el('option', { value: z.size }, z.name)));
-    fam.addEventListener('change', fill);
-    fill();
-    const body = el('div', { className: 'pc-std' },
-      el('label', { htmlFor: 'pc-std-fam' }, t('app.std.part')), fam,
-      el('label', { htmlFor: 'pc-std-size' }, t('app.std.size')), size,
-      el('p', { className: 'pc-muted' }, t('app.std.note')));
-    const ch = await ask({ title: t('app.std.title'), body, buttons: [['cancel', t('app.btn.cancel'), 'pc-btn'], ['open', t('app.std.open'), 'pc-btn is-primary']] });
-    if (ch !== 'open') return;
-    const made = SP.makeTemplate(fam.value, size.value);
-    await openText(P.toJSON(made), made.name);
-    dirty = true;   // a new part, not a file on disk yet
-    status(t('app.std.opened', { name: made.name, size: made.configs.active }));
-  }
 
-  /** A cadcraft-sw-export file (CadCraftExport.swb run in SolidWorks): rebuilt by swimport.js in the exact kernel's worker. */
-  async function openSwExport(text, name) {
-    if (exactOff()) { status(t('kernel.not_built', { what: t('kernel.what.sw_open') }), true); return; }
-    if (exact.state !== 'ready') {
-      ui.busy.hidden = false; ui.busyText.textContent = t('app.sw.loading_exact');
-      try { await exact.start(); } catch (err) { status(t('app.sw.open_needs_exact', { error: err.message })); return; } finally { ui.busy.hidden = true; }
-    }
-    status(t('app.sw.rebuilding', { name }), true);
-    let r;
-    try { r = await exact.call('swImport', { json: text }); } catch (err) { status(err.message); await ask({ title: t('app.file.cannot_open', { name }), text: err.message, buttons: [['cancel', t('app.btn.ok'), 'pc-btn is-primary']] }); return; }
-    let p;
-    try { p = P.readPart(JSON.stringify(r.part)); } catch (err) { status(err.message); return; }
-    if (mode === 'sketch') exitSketch();
-    part = p;
-    hist.clear(); dirty = true; sel = null; pick = null; multi = []; pendingSketch = false;
-    view.setHighlight(null);
-    rebuild(); renderAll();
-    await built();
-    syncPlanes(); view.view('iso');
-    status(t('app.sw.opened_status', { report: r.report.lines[0] }), true);
-    await ask({ title: t('app.sw.opened_title', { name }), text: r.report.lines.join(' '), buttons: [['cancel', t('app.btn.ok'), 'pc-btn is-primary']] });
-  }
+
+
 
   async function openText(text, name) {
-    vaultRef = null;   // the vault sets its own mark after it opens a file (vault-app.js)
-    if (mode === 'pick') endPick();
-    if (mode === 'drawing') leaveDrawing();
+    ST.vaultRef = null;   // the vault sets its own mark after it opens a file (vault-app.js)
+    if (ST.mode === 'pick') endPick();
+    if (ST.mode === 'drawing') leaveDrawing();
     if (/"format"\s*:\s*"partcraft-assembly"/.test(text.slice(0, 400))) { await openAssemblyText(text, name); return; }
     if (/"format"\s*:\s*"cadcraft-sw-export"/.test(text.slice(0, 400))) { await openSwExport(text, name); return; }
     let p;
     try { p = P.readPart(text); } catch (err) { status(err.message); await ask({ title: t('app.file.cannot_open', { name }), text: err.message, buttons: [['cancel', t('app.btn.ok'), 'pc-btn is-primary']] }); return; }
-    if (mode === 'assembly' && !(await closeAssembly())) return;   // a part file leaves the open assembly (asking when it has changes)
-    if (mode === 'sketch') exitSketch();
-    part = p;
-    hist.clear(); dirty = false; sel = null; pick = null; multi = []; pendingSketch = false;
-    view.setHighlight(null);
+    if (ST.mode === 'assembly' && !(await closeAssembly())) return;   // a part file leaves the open assembly (asking when it has changes)
+    if (ST.mode === 'sketch') exitSketch();
+    P.takeIdBlock(p);   // 0.11 DC.27: this session's new feature ids come from a block of its own
+    ST.part = p;
+    hist.clear(); ST.dirty = false; ST.sel = null; ST.pick = null; ST.multi = []; ST.pendingSketch = false;
+    ST.view.setHighlight(null);
     rebuild(); renderAll();
     await built();
-    syncPlanes(); view.view('iso');
-    shellKit?.opened(); surfacesChanged(host); nodesChanged(host);
-    const errs = regen ? [...regen.results.values()].filter((r) => r.status === 'error').length : 0;   // no kernel at all: the file is open, nothing is built
-    status(errs ? t('app.file.opened_failing', { name, n: part.features.length, errs }) : t('app.file.opened', { name, n: part.features.length }));
-  }
-
-  ui.file.addEventListener('change', async () => { const f = ui.file.files[0]; ui.file.value = ''; if (f) openFile(f); });
-  // 2026-11-12: the start card's "Try a sample file" button (and the same entry in the command palette): opens a small bracket through the normal open path
-  async function openSample() {
-    try {
-      if (!(await confirmDiscard())) return;
-      const r = await fetch(new URL('./samples/sample-bracket.partcraft.json', import.meta.url));
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      await openText(await r.text(), 'sample-bracket.partcraft.json');
-    } catch (err) { status(t('app.sample.noload', { why: err && err.message ? err.message : String(err) })); }
-  }
-  document.querySelector('[data-hint-sample]')?.addEventListener('click', openSample);
-  { const regSample = () => window.ccPalette?.register?.([{ id: 'partcraft-sample', label: t('ui.hint.trysample'), group: 'file', keywords: 'sample example demo try', run: openSample }]); if (window.ccPalette) regSample(); else window.addEventListener('load', regSample); }
-  async function openFile(f) {
-    try { if (await addons?.openFromAddon(f)) return; } catch (e) { status(t('app.file.addon_failed', { name: f.name, error: e && e.message ? e.message : String(e) })); return; }   // an add-on's importer
-    if (/\.(step|stp)$/i.test(f.name)) { await importStep(f); return; }
-    if (/\.(stl|obj|3mf)$/i.test(f.name)) { await importMesh(f); return; }
-    if (/\.kicad_pcb$/i.test(f.name)) { await importKicadBoard(f); return; }   // 0.8 SU.897: a KiCad board, parts as boxes (kicad.js)
-    if (/\.3dm$/i.test(f.name)) { await importMesh(f, { threedm: true }); return; }   // 0.7 SU.810: a .3dm's meshes and surfaces as one body (mesh3dm.js)
-    if (f.size > 50 * 1024 * 1024) { status(t('app.file.too_big')); return; }
-    if (!/\.json$/i.test(f.name)) { status(t('app.file.unknown_kind', { name: f.name })); return; }
-    await openText(await f.text(), f.name);
+    syncPlanes(); ST.view.view('iso');
+    ST.shellKit?.opened(); surfacesChanged(host); nodesChanged(host);
+    const errs = ST.regen ? [...ST.regen.results.values()].filter((r) => r.status === 'error').length : 0;   // no kernel at all: the file is open, nothing is built
+    status(errs ? t('app.file.opened_failing', { name, n: ST.part.features.length, errs }) : t('app.file.opened', { name, n: ST.part.features.length }));
   }
 
 
 
 
-  const stage = $('[data-stage]');
-  let dragDepth = 0;
-  stage.addEventListener('dragenter', (e) => { if (e.dataTransfer?.types.includes('Files')) { dragDepth++; ui.drop.hidden = false; e.preventDefault(); } });
-  stage.addEventListener('dragover', (e) => { if (e.dataTransfer?.types.includes('Files')) e.preventDefault(); });
-  stage.addEventListener('dragleave', () => { dragDepth = Math.max(0, dragDepth - 1); if (!dragDepth) ui.drop.hidden = true; });
-  stage.addEventListener('drop', async (e) => {
-    e.preventDefault(); dragDepth = 0; ui.drop.hidden = true;
-    const f = e.dataTransfer?.files?.[0];
-    if (f && (await confirmDiscard())) openFile(f);
-  });
 
-  // Leaving by a link on the page asks in the page; the browser's own "Leave site?" is left for what no page can
-  // catch (closing the tab, reloading, typing an address). After "save first", wait for the download to start.
-  let leaving = false;
 
-  // Autosave and crash recovery (0.4 item 1.2; the shell's app-autosave.js): the open part, or the open assembly, is one
-  // document. Every undoable edit goes through hist / asmHist.push (and undo/redo), so those mark it changed; a copy is written a
-  // moment later. Saving, New, Open and closing clear `dirty` / `asmDirty`, and the watcher below then drops the copy.
-  const autosave = new Autosave({ app: 'partcraft' });
-  const asmShown = () => !!asm && !editPartOf;
-  // 0.10 PERF.24: the first copy is the whole document, then only the chunks each edit changed (lib/history); the history that is followed is the shown document's
-  const adoc = autosave.doc({ id: 'open', name: fileBase(), journal: followJournal(() => (asmShown()
-    ? asmHist.journal(() => asm, () => ({ docKind: 'assembly', name: (asm.name || 'assembly') + '.partcraft-asm.json' }))
-    : hist.journal(() => part, () => ({ docKind: 'part', name: fileBase() + '.partcraft.json' })))) });
-  let copyPending = false;
-  const noteChange = () => {
-    if (!(dirty || asmDirty)) return;
-    adoc.rename(asmShown() ? asm.name || 'assembly' : fileBase());
-    adoc.changed(); copyPending = true;
-  };
-  for (const h of [hist, asmHist]) { const push = h.push.bind(h); h.push = (...a) => { const r = push(...a); queueMicrotask(noteChange); return r; }; }
-  setInterval(() => { if (copyPending && !dirty && !asmDirty) { adoc.clean(); copyPending = false; } }, 1500);
-  ready.then(() => autosave.offer({
-    onRecover: async (rec) => {
-      const d = rec.data;
-      const chunks = d && d.kind === 'chunks';   // 0.10: a base and its changes
-      const docKind = chunks ? rec.meta?.docKind : d?.kind;
-      let text = d?.text;
-      if (chunks) { const doc = recoverState(rec, P.HISTORY_SPEC); text = docKind === 'assembly' ? A.toJSON(doc) : P.toJSON(doc); }
-      if (typeof text !== 'string') throw new Error('This copy is empty.');   // i18n-ignore: shown by the shell's dialog for a damaged copy
-      await openText(text, rec.meta?.name || rec.name || t('app.file.recovered'));
-      if (docKind === 'assembly') asmDirty = true; else dirty = true;   // recovered work is not saved to a file yet
-      noteChange(); renderAll();
-    },
-  }));
 
-  window.addEventListener('beforeunload', (e) => { if ((dirty || asmDirty) && !leaving) { e.preventDefault(); e.returnValue = ''; } });
-  document.addEventListener('click', async (e) => {
-    const a = e.target.closest?.('a[href]');
-    if (!a || !(dirty || asmDirty) || e.defaultPrevented || e.button || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey || a.hasAttribute('download') || (a.target && a.target !== '_self')) return;
-    const url = new URL(a.href, location.href);
-    if (!/^https?:$/.test(url.protocol) || (url.hash && url.href.split('#')[0] === location.href.split('#')[0])) return;
-    e.preventDefault();
-    if (!(await confirmDiscard())) return;
-    if (asmDirty) {
-      const ch = await ask({ title: t('app.asm.unsaved_title'), text: t('app.asm.unsaved_text', { name: asm.name }), buttons: [['cancel', t('app.btn.cancel'), 'pc-btn'], ['discard', t('app.asm.discard'), 'pc-btn'], ['save', t('app.btn.save_first'), 'pc-btn is-primary']] });
-      if (ch === 'cancel') return;
-      if (ch === 'save') saveAssembly();
-    }
-    leaving = true;
-    setTimeout(() => location.assign(url.href), dirty || asmDirty ? 0 : 800);
-  });
+
 
   async function confirmDiscard() {
-    if (!dirty) return true;
-    const ch = await ask({ title: t('app.file.unsaved_title'), text: t('app.file.unsaved_text', { name: part.name }), buttons: [['cancel', t('app.btn.cancel'), 'pc-btn'], ['discard', t('app.file.discard'), 'pc-btn'], ['save', t('app.btn.save_first'), 'pc-btn is-primary']] });
+    if (!ST.dirty) return true;
+    const ch = await ask({ title: t('app.file.unsaved_title'), text: t('app.file.unsaved_text', { name: ST.part.name }), buttons: [['cancel', t('app.btn.cancel'), 'pc-btn'], ['discard', t('app.file.discard'), 'pc-btn'], ['save', t('app.btn.save_first'), 'pc-btn is-primary']] });
     if (ch === 'save') { savePart(); return true; }
     return ch === 'discard';
   }
@@ -2601,69 +1257,33 @@ function init(root) {
     const parts = [], why = [];
     const isSheet = (pt) => (pt?.features || []).some((f) => SHEET_TYPES.has(f.type));
     const unfold = async (pt, name, qty) => {
-      if (!useExact) { why.push(t('nest.from.needs_exact', { name })); return; }
+      if (!ST.useExact) { why.push(t('nest.from.needs_exact', { name })); return; }
       try { const p = NU.flatToPart(await exact.call('sheetFlat', { part: pt }), name, qty); if (p) parts.push(p); else why.push(t('nest.from.no_outline', { name })); } catch (e) { why.push(name + ': ' + e.message); }
     };
-    if (flat) { const p = NU.flatToPart(flat, part?.name || fileBase(), 1); if (p) parts.push(p); }
-    else if (mode === 'assembly' && asm) {
+    if (flat) { const p = NU.flatToPart(flat, ST.part?.name || fileBase(), 1); if (p) parts.push(p); }
+    else if (ST.mode === 'assembly' && ST.asm) {
       status(t('nest.from.unfolding'), true);
-      for (const [pid, entry] of Object.entries(asm.parts)) {
-        const qty = asm.instances.filter((i) => i.part === pid).length;
+      for (const [pid, entry] of Object.entries(ST.asm.parts)) {
+        const qty = ST.asm.instances.filter((i) => i.part === pid).length;
         if (qty && isSheet(entry.part)) await unfold(entry.part, entry.name || entry.part?.name || pid, qty);
       }
       status('');
-    } else if (isSheet(part)) await unfold(part, part.name || fileBase(), 1);
+    } else if (isSheet(ST.part)) await unfold(ST.part, ST.part.name || fileBase(), 1);
     if (why.length) status(why.join(' '), true);
     // the offcut stock lives in the open assembly's or part's file (0.7 SU.755); changing it is a change to the file
-    const holder = () => (mode === 'assembly' && asm ? asm : part);
-    await NU.openNest({ ask, el, btn, status, download: (text, name, type) => download(text, name, type), fileBase: () => fileBase(),
+    const holder = () => (ST.mode === 'assembly' && ST.asm ? ST.asm : ST.part);
+    await NU.openNest({ ask, el, btn, status, download, fileBase,
       getStock: () => holder()?.stock || null,
-      setStock: (stock) => { const h = holder(); if (!h) return; h.stock = stock; if (h === asm) asmDirty = true; else dirty = true; } }, parts);
+      setStock: (stock) => { const h = holder(); if (!h) return; h.stock = stock; if (h === ST.asm) ST.asmDirty = true; else ST.dirty = true; } }, parts);
   }
 
-  /** Nested sheets to G-code (0.8 SU.1035 step 4b, fab-08's cam-sheets-ui.js): a program per sheet of a nested DXF through the posts of
-   *  this part's Manufacture study (its own posts and the post last chosen), else the built-in ones. */
-  async function openSheets() {
-    const SU = await import('./cam-sheets-ui.js');
-    const mfg = () => part?.studies?.manufacture || null;
-    await SU.openSheets({ ask, el, btn, status, download: (text, name, type) => download(text, name, type), fileBase: () => fileBase(),
-      posts: () => (mfg()?.posts || []), post: () => mfg()?.setup?.machine?.post });
-  }
 
-  /** SU.934 / SU.929 step 5 (print-export.js): the part's mesh scaled for printing, or cut into pieces for the bed (a zip). Actions on the export,
-   *  not features: the mesh kernel holds one body (engineer.md § Inbox). */
-  async function printExport(cmd) {
-    if (mode === 'assembly') { status(t('pexp.part_only'), true); return; }
-    await built();
-    const PX = await import('./print-export.js');
-    const ctx = { ask, el, status, download: (bytes, name, type) => download(bytes, name, type), mesh: () => regen?.mesh, name: () => fileBase(), manifold: M };
-    return cmd === 'export-scaled' ? PX.openScaleDialog(ctx) : PX.openSplitDialog(ctx);
-  }
 
-  /** Laser program (0.7 SU.772, laser-ui.js on make-07's panel): the flat patterns of this part's or the assembly's sheet metal
-   *  parts (the exact kernel unfolds them) and/or outlines from a DXF; the settings are saved in the file (`laser`). */
-  async function openLaser() {
-    const LU = await import('./laser-ui.js');
-    const flats = [], why = [];
-    const isSheet = (pt) => (pt?.features || []).some((f) => SHEET_TYPES.has(f.type));
-    const unfold = async (pt, name) => {
-      if (!useExact) { why.push(t('nest.from.needs_exact', { name })); return; }
-      try { flats.push(await exact.call('sheetFlat', { part: pt })); } catch (e) { why.push(name + ': ' + e.message); }
-    };
-    if (mode === 'assembly' && asm) { for (const [pid, entry] of Object.entries(asm.parts)) if (asm.instances.some((i) => i.part === pid) && isSheet(entry.part)) await unfold(entry.part, entry.name || pid); }
-    else if (isSheet(part)) await unfold(part, part.name || fileBase());
-    if (why.length) status(why.join(' '), true);
-    const holder = () => (mode === 'assembly' && asm ? asm : part);
-    await LU.openLaser({ ask, el, btn, status, download: (text, name, type) => download(text, name, type), fileBase: () => fileBase(),
-      getJob: () => holder()?.laser || null,
-      setJob: (label, next) => { const h = holder(); if (!h) return; (h === asm ? asmHist : hist).push(h, label); h.laser = next; if (h === asm) asmDirty = true; else dirty = true; },
-      confirm: async (text) => (await ask({ title: t('pclaser.title'), text, buttons: [['ok', t('app.btn.ok'), 'pc-btn is-primary'], ['cancel', t('app.btn.cancel'), 'pc-btn']] })) === 'ok' }, flats);
-  }
 
   /** A small in-page dialog; resolves with the chosen button's key ('cancel' on Esc). */
-  function ask({ title, text, body, buttons }) {
+  function ask({ title, text, body, buttons, wide }) {
     return new Promise((done) => {
-      const dlg = el('dialog', { className: 'pc-dialog', 'aria-labelledby': 'pc-ask-h' },
+      const dlg = el('dialog', { className: 'pc-dialog' + (wide ? ' pc-dialog-wide' : ''), 'aria-labelledby': 'pc-ask-h' },
         el('div', { className: 'pc-dialog-head' }, el('h2', { className: 'pc-h', id: 'pc-ask-h' }, title)),
         body ? el('div', { className: 'pc-dialog-text' }, body) : el('p', { className: 'pc-dialog-text' }, text),
         el('div', { className: 'pc-dialog-foot' }, ...buttons.map(([key, label, cls]) => el('button', { type: 'button', className: cls, dataset: { key } }, label))));
@@ -2685,409 +1305,87 @@ function init(root) {
   }
 
   function focusStage() {
-    const t = mode === 'sketch' ? ui.sk : ui.gl;
+    const t = ST.mode === 'sketch' ? ui.sk : ui.gl;
     if (!t.hasAttribute('tabindex')) t.tabIndex = 0;
     if (document.activeElement === t) t.blur();
     t.focus({ preventScroll: true });
   }
-  ui.gl.tabIndex = 0; ui.sk.tabIndex = 0;
 
-  // ---------------------------------------------------------------- workspaces (workspaces.js, ws-*.js)
-  // Design is everything above; another workspace gets the toolbar group(s) it registered, the right panel, picks,
-  // hovers and keys, and works on the same part through `host` (docs/apps/partcraft-workspaces.md).
-  // Measure (every workspace) and the assembly tools (docs/apps/partcraft.md, measuring / BOM / exploded views)
-  const IDENT4 = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
-  measure = createMeasure({
-    view, THREE, el, exact, stage: ui.gl.parentElement, tokens: () => tokens(),
-    status: (m, keep) => status(m, keep), useExact: () => useExact, changed: () => updateTools(),
-    blocked: () => (mode === 'sketch' || mode === 'drawing' ? t('app.measure.model_only') : ''),
-    targets: () => {
-      if (mode === 'assembly') {
-        if (!asm || !asmPlace) return [];
-        const shown = asmTools.displayWorld(asmPlace.world);
-        return asm.instances.filter((i) => asmBuilds.get(i.part)?.mesh).map((i) => ({ id: i.id, name: i.name, pid: i.part, partName: asm.parts[i.part].name, part: asm.parts[i.part].part, build: asmBuilds.get(i.part), matrix: shown.get(i.id), density: asm.parts[i.part].material?.density ?? null }));
-      }
-      return regen?.mesh ? [{ id: null, name: part.name, pid: null, partName: part.name, part, build: regen, matrix: IDENT4, density: part.material?.density ?? null, materialName: part.material?.name ?? null }] : [];
-    },
+  const { host, wsCall, syncWsSwitcher, wsToolState, renderWsPanel, setWorkspace } = mountWorkspaceUi({
+    ST, $, ui, hist, settings, tokens, status, exact, rebuild, built, bodyOverlays, syncAddonBodies, keepFocus, commit, endPick, exitSketch, field, numInput, paramsUI, selectInput, check, btn, GU, renderProps, renderAll, updateTools, buildPart, showInstances, commitAsm, instById, jointById, leaveDrawing, download, fileBase, fileHost, ask, focusStage, root,
   });
-  section = createSection({
-    view, el, stage: ui.gl.parentElement, status: (m, keep) => status(m, keep), changed: () => updateTools(),
-    blocked: () => (mode === 'sketch' || mode === 'drawing' ? t('section.blocked') : ''),
-    // a flat face: the exact kernel's face record (placed by the instance's matrix in an assembly); the mesh kernel has
-    // no face records, so the clicked facet's plane stands in
-    facePlane: (h) => {
-      if (!h || h.kind !== 'face') throw new Error(t('section.need_flat'));
-      const build = h.inst !== undefined ? asmBuilds.get(instById(h.inst)?.part) : regen;
-      const rec = build?.faces?.[h.face];
-      if (rec) return faceSection(rec, h.inst !== undefined ? h.matrix : null);
-      const n = h.normal, p = h.worldPoint || h.point;
-      if (h.inst !== undefined) { const M = h.matrix; const w = [M[0] * n[0] + M[4] * n[1] + M[8] * n[2], M[1] * n[0] + M[5] * n[1] + M[9] * n[2], M[2] * n[0] + M[6] * n[1] + M[10] * n[2]]; return faceSection({ type: 'plane', n: w, o: p }); }
-      return faceSection({ type: 'plane', n, o: p });
-    },
-  });
-  draft = createDraft({
-    view, el, stage: ui.gl.parentElement, status: (m, keep) => status(m, keep), changed: () => updateTools(),
-    blocked: () => (ws !== WS.DESIGN || mode === 'sketch' || mode === 'drawing' || mode === 'assembly' ? t('draft.blocked') : ''),
-    mesh: () => (mode === 'assembly' ? null : regen?.mesh || null),
-    faceNormal: (h) => {
-      const rec = h && h.kind === 'face' && h.inst === undefined ? regen?.faces?.[h.face] : null;
-      if (rec && rec.type === 'plane') return rec.n;
-      if (h && h.kind === 'face' && !regen?.exact && h.normal) return h.normal;   // the mesh kernel: the clicked facet
-      throw new Error(t('draft.need_flat'));
-    },
-    viewDir: () => { const d = new THREE.Vector3(); view.camera.getWorldDirection(d); return [d.x, d.y, d.z]; },
-    color: (tok) => { const v = getComputedStyle(document.documentElement).getPropertyValue(tok).trim(); const m = /^#?([0-9a-f]{6})$/i.exec(v); const n = m ? parseInt(m[1], 16) : 0x808080; return [(n >> 16 & 255) / 255, (n >> 8 & 255) / 255, (n & 255) / 255]; },
-  });
-  // Tolerance stack-ups (0.6 LC.18, stackup-ui.js): Assembly › Stack-up, a card over the stage; edits are assembly undo steps
-  stackup = createStackup({
-    el, btn, view, THREE, stage: ui.gl.parentElement, tokens: () => tokens(), status: (m, keep) => status(m, keep),
-    asm: () => (mode === 'assembly' ? asm : null), world: () => asmPlace?.world || new Map(),
-    instName: (id) => (asm && instById(id)?.name) || '', partOf: (id) => { const i = asm && instById(id); return i ? asm.parts[i.part]?.part : null; },
-    commit: (label, fn) => commitAsm(label, fn), download: (text, name, type) => download(text, name, type), fileBase: () => asm?.name || fileBase(),
-  });
-  // Motion studies (0.8 EG.7, motion-ui.js): Assembly › Motion, a card over the stage; a study is not saved in the file
-  motion = createMotion({
-    el, btn, stage: ui.gl.parentElement, status: (m, keep) => status(m, keep),
-    asm: () => (mode === 'assembly' ? asm : null), builds: () => asmBuilds, M: () => M,
-    instName: (id) => (asm && instById(id)?.name) || '', download: (text, name, type) => download(text, name, type), fileBase: () => asm?.name || fileBase(),
-    // 0.8 EG.7 (round 3): the study's settings kept in the assembly file, and the scrub bar's pose (shown only; the joint keeps its value)
-    save: (spec) => { if (!asm) return; asm.motion = spec; asmDirty = true; },
-    pose: (jid, key, v) => { const x = asm && jointById(jid); if (!x) return; const keep = x[key]; x[key] = v; try { asmPlace = A.placeAll(asm, asmBuilds, { hold: new Set([jid + '.' + key]), start: asmPlace?.loops?.values }); } finally { x[key] = keep; } showInstances(); },
-    unpose: () => { if (!asm) return; asmPlace = A.placeAll(asm, asmBuilds); showInstances(); },
-  });
-  // Contact studies (0.8 SU.891, asm-contact-ui.js): Assembly › Contact, a card over the stage; the pairs and settings are kept in the assembly file
-  contactStudy = createContact({
-    el, btn, stage: ui.gl.parentElement, status: (m, keep) => status(m, keep),
-    asm: () => (mode === 'assembly' ? asm : null), builds: () => asmBuilds, world: () => asmPlace?.world || new Map(),
-    instName: (id) => (asm && instById(id)?.name) || '', fileBase: () => asm?.name || fileBase(), download: (text, name, type) => download(text, name, type),
-    refSide: (h) => { const i = asm && instById(h.inst), b = i && asmBuilds.get(i.part), f = b && b.faces && b.faces[h.face]; return f && f.name ? faceRef(f) : null; },
-    save: (spec) => { if (!asm) return; if (spec) asm.contactStudy = spec; else delete asm.contactStudy; asmDirty = true; },
-    computeWorker: (modules, opts) => host.computeWorker(modules, opts), refreshProblems: () => problemsSync?.(),
-    openText: async (types) => { const [hf] = await fileHost.openFile({ types }); return hf ? { name: hf.name, text: await hf.text() } : null; },   // a CalculiX .frd
-  });
-  asmTools = createAsmTools({
-    el, view, THREE, A, V, X, exact, toPdf: (sh) => drawingPdf(sh), tokens: () => tokens(),
-    get asm() { return asm; }, get builds() { return asmBuilds; }, get place() { return asmPlace; },
-    useExact: () => useExact, status: (m, keep) => status(m, keep), download: (b, n, t) => download(b, n, t),
-    commitAsm: (label, fn) => commitAsm(label, fn), showInstances: () => { if (asm && asmPlace) showInstances(); }, renderAll: () => renderAll(),
-    field, numInput, selectInput, btn, check,
-  });
-  const host = {
-    get part() { return part; }, get regen() { return regen; }, get useExact() { return useExact; }, get mode() { return mode; },
-    get workspace() { return ws.id; }, get manifold() { return M; },
-    exact, view, THREE, el, P,
-    status: (m, keep = false) => status(m, keep),
-    rebuild: () => rebuild(), built: () => built(), renderAll: () => renderAll(), renderPanel: () => keepFocus(() => renderProps()),
-    /** One undo step on the part: fn() changes host.part. rebuild false = data only (studies), no kernel run. */
-    commit: (label, fn, { rebuild: rb = true } = {}) => { if (rb) return commit(label, fn); hist.push(part, label); const r = fn(); dirty = true; renderAll(); return r; },
-    buildPart: (p) => buildPart(p),   // a copy of the part built with the kernel in use (design studies)
-    refreshProblems: () => problemsSync?.(),
-    markDirty: () => { dirty = true; },   // data kept outside the part's undo (the Surfaces patch set)
-    study: (key) => P.study(part, key),
-    setStudy: (key, value, label = t('app.undo.change_study')) => (host.commit(label, () => P.setStudy(part, key, value), { rebuild: false }), problemsSync?.()),
-    downloadBlob: (name, blob, mime) => download(blob, name, mime || blob.type || 'application/octet-stream'),
-    openText: async (types) => { const [hf] = await fileHost.openFile({ types }); return hf ? { name: hf.name, text: await hf.text() } : null; },   // SU.891: a CalculiX .frd
-    ask: (o) => ask(o),
-    confirm: async (title, text, yes = t('app.btn.ok')) => (await ask({ title, text, buttons: [['cancel', t('app.btn.cancel'), 'pc-btn'], ['yes', yes, 'pc-btn is-primary']] })) === 'yes',
-    computeWorker: (modules, opts = {}) => {   // opts.threads: every call's args get the Settings thread count (compute-worker.js)
-      const w = computeWorker(modules, opts);
-      if (!opts.threads) return w;
-      const n = () => (settings.threads === 'auto' ? AUTO_THREADS() : settings.threads);
-      return { call: (op, args, o) => w.call(op, args && typeof args === 'object' && !Array.isArray(args) ? { ...args, threads: n() } : args, o), terminate: () => w.terminate(), get busy() { return w.busy; } };
-    },
-    focusStage: () => focusStage(), tokens: () => tokens(),
-    /** The Generated feature's panel and generator list (gen-ui.js, 0.8 CE.3 / CE.9), for the Engineer workspace. */
-    get generated() { return GU; },
-    /** The open assembly, read-only (0.7, for Illustrate): its instances' builds and world placements, or null. */
-    assembly: () => (mode === 'assembly' && asm ? { asm, builds: asmBuilds, world: asmPlace?.world || null } : null),
-  };
-  /** Call a hook of the active workspace; a throw becomes a status message (never a console error). */
-  function wsCall(name, ...args) {
-    const fn = ws[name];
-    if (typeof fn !== 'function') return undefined;
-    try { return fn.apply(ws, args); } catch (err) { status(t('app.ws.error', { ws: ws.label, error: err && err.message ? err.message : err }), true); return undefined; }
-  }
   function notInDesign() {
-    if (ws === WS.DESIGN) return false;
-    status(t('app.ws.design_only', { ws: ws.label }));
+    if (ST.ws === WS.DESIGN) return false;
+    status(t('app.ws.design_only', { ws: ST.ws.label }));
     return true;
   }
-  /** Why the other workspaces are off just now ('' = they are not). A workspace that says `assemblies: true` (Illustrate) also
-   *  opens while an assembly is open. */
-  function wsBlocked(target = null) {
-    if (mode === 'assembly') return target && target.assemblies ? '' : t('app.ws.blocked_asm');
-    return editPartOf ? t('app.ws.blocked_asm_part') : '';
-  }
-  function syncWsSwitcher() {
-    if (!ui.ws) return;
-    const why = wsBlocked();
-    if (ui.ws.dataset.baseTitle === undefined) ui.ws.dataset.baseTitle = ui.ws.getAttribute('title') || '';
-    for (const o of ui.ws.options) { const off = !!why && o.value !== 'design' && !!wsBlocked(WS.getWorkspace(o.value)); o.disabled = off; if (off) o.title = why; else o.removeAttribute('title'); }
-    ui.ws.title = ui.ws.dataset.baseTitle + (why ? ' — ' + why : '');
-    if (ui.ws.value !== ws.id) ui.ws.value = ws.id;
-  }
-  function wsToolState(b) {
-    if (b.closest('[data-workspace-group]').dataset.workspaceGroup !== ws.id) return;
-    if (b.dataset.baseTitle === undefined) b.dataset.baseTitle = b.getAttribute('title') || '';
-    let st = !M && !useExact ? { ok: false, why: t('app.edit.loading') } : { ok: true, why: '' };
-    if (st.ok && ws.toolState) st = wsCall('toolState', b.dataset.cmd, host) || st;
-    b.disabled = !st.ok;
-    b.title = st.ok || !st.why ? b.dataset.baseTitle : b.dataset.baseTitle + ' — ' + st.why;
-  }
-  function renderWsPanel() {
-    // a node the workspace marks data-ws-keep="<its id>" stays in place: moving a textarea out of the page loses the
-    // browser's own undo (the Script editor; 0.4 P7)
-    const keep = [...ui.props.children].filter((c) => c.dataset && c.dataset.wsKeep === ws.id);
-    if (!keep.length) { swapChildren(ui.props, []); ui.props.replaceChildren(); }
-    else for (const c of [...ui.props.children]) if (!keep.includes(c)) c.remove();
-    const head = ws.renderPanel ? wsCall('renderPanel', host, ui.props) : (ui.props.append(WS.placeholderPanel(ws, el)), null);
-    ui.propsH.textContent = typeof head === 'string' && head ? head : ws.label;
-  }
-  /** Switch workspace (by the switcher, or tests). Leaves a sketch, pick mode or the drawing sheet first; assemblies stay in Design. */
-  function setWorkspace(id) {
-    const next = WS.getWorkspace(id);
-    if (!next || next === ws) { syncWsSwitcher(); return false; }
-    const why = next === WS.DESIGN ? '' : wsBlocked(next);
-    if (why) { status(why); syncWsSwitcher(); return false; }
-    if (mode === 'sketch') exitSketch();
-    if (mode === 'pick') endPick();
-    if (mode === 'drawing') leaveDrawing();
-    pendingSketch = false; pick = null; multi = []; sel = null;
-    view.setHighlight(null); view.setHover(null); view.setMarks(null); view.setPlaneState(null, null);
-    measure?.stop(); draft?.stop();
-    if (ws === WS.DESIGN) paramsUI.showTab('props');   // the Design tab's script editor goes home first (0.5 WL.31)
-    wsCall('exit', host);
-    view.clearOverlays(); bodyOverlays.clear(); syncAddonBodies(); view.setFaceColors(null); view.setPartVisible(true);
-    ws = next;
-    root.dataset.activeWorkspace = ws.id;
-    wsCall('enter', host);
-    renderAll();
-    if (ws === WS.DESIGN) status(t('app.ws.design'));
-    else if (!ws.renderPanel) status(t('app.ws.being_built', { ws: ws.label }));
-    return true;
-  }
-  // the Script tab of Design's right panel (0.5 WL.31): the Script workspace's editor, while the tree and the view work as in
-  // Design; shown only in Design (the Script workspace has the editor as its panel)
-  {
-    const sec = $('#pc-sec-script'), box = $('[data-script-tab]'), tab = $('#pc-tab-script');
-    // open: the editor moves in and the panel widens as in the Script workspace (data-script-tab-open, partcraft.css)
-    if (sec && box) new MutationObserver(() => {
-      const open = !sec.hidden && ws === WS.DESIGN;
-      if (open) dockEditor(host, box); else undockEditor(host);
-      if (open) root.dataset.scriptTabOpen = ''; else delete root.dataset.scriptTabOpen;
-    }).observe(sec, { attributes: true, attributeFilter: ['hidden'] });
-    const syncTab = () => { if (tab) tab.hidden = ws !== WS.DESIGN; };
-    syncTab();
-    new MutationObserver(syncTab).observe(root, { attributes: true, attributeFilter: ['data-active-workspace'] });
-  }
-  if (ui.ws) {
-    ui.ws.replaceChildren(...WS.listWorkspaces().map((w) => el('option', { value: w.id }, w.label)));
-    ui.ws.addEventListener('change', () => setWorkspace(ui.ws.value));
-  }
-  { const editGroup = ui.tools.querySelector('[data-group="edit"]'); for (const w of WS.listWorkspaces()) if (!w.builtin) for (const g of WS.toolbarGroups(w, el)) ui.tools.insertBefore(g, editGroup); }
-  root.dataset.activeWorkspace = ws.id;
 
-  // ---------------------------------------------------------------- keys
-  // ---------------------------------------------------------------- touch (0.4 S.8)
-  // Shown once a finger touches the page, hidden again by a mouse: Add (sticky Shift for sketch selections), Done (finish a
-  // line chain, a right-click's job) and Esc (the Esc key, sent to the view in use). A long press does Done / Add for one tap.
-  function showTouchBar() {
-    const bar = $('[data-touchbar]');
-    if (!bar) return;
-    bar.hidden = !touch.on;
-    if (!touch.on) return;
-    const inSk = mode === 'sketch';
-    const btn = (k) => bar.querySelector(`[data-touch="${k}"]`);
-    btn('add').hidden = !(inSk && editor.tool === 'select');
-    if (btn('add').hidden && touch.add) touch.add = false;
-    btn('add').setAttribute('aria-pressed', String(touch.add));
-    btn('done').hidden = !(inSk && editor.tool !== 'select' && editor.step);
-  }
-  document.addEventListener('pointerdown', (e) => {
-    const on = e.pointerType === 'touch' ? true : e.pointerType === 'mouse' ? false : touch.on;
-    if (on === touch.on) return;
-    touch.on = on;
-    if (!on) touch.add = false;
-    showTouchBar();
-    if (on) status(t('touch.long_press'));
-  }, true);
-  // the editor's step changes on taps that call no updateTools: keep Done in step while a finger is in use
-  for (const ev of ['pointerup', 'pointercancel']) ui.sk.addEventListener(ev, () => { if (touch.on) setTimeout(showTouchBar, 0); });
-  $('[data-touchbar]')?.addEventListener('click', (e) => {
-    const b = e.target.closest('[data-touch]');
-    if (!b) return;
-    const k = b.dataset.touch;
-    if (k === 'add') { touch.add = !touch.add; showTouchBar(); return; }
-    if (k === 'done') { if (mode === 'sketch' && editor.step) editor.finishStep(); showTouchBar(); updateTools(); return; }
-    if (k === 'esc') {
-      const target = mode === 'sketch' ? ui.sk : mode === 'drawing' ? (ui.sheet.querySelector('svg') || ui.sheet) : ui.gl;
-      target.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', bubbles: true, cancelable: true }));
-      setTimeout(showTouchBar, 0);
-    }
+  const { showTouchBar } = mountInput({
+    ST, $, ui, touch, editor, status, showMarks, endPick, startSketch, exitSketch, show3DSketches, deleteSelected, paramsUI, DUI, BUI, SH, renderProps, syncPlanes, renderAll, updateTools, run, undoRedo, editAct, highlightAsm, asmStartJoint, asmDelete, drawingTool, composeShow, leaveDrawing, deleteNote, commitDrawing, savePart, host, wsCall,
+    get MAIN_NUMBER() { return MAIN_NUMBER; },
   });
 
-  document.addEventListener('keydown', (e) => {
-    if (e.defaultPrevented) return;
-    const tgt = e.target;
-    const typing = tgt && (tgt.tagName === 'INPUT' || tgt.tagName === 'TEXTAREA' || tgt.tagName === 'SELECT' || tgt.isContentEditable);
-    if (document.querySelector('dialog[open]')) return;
-    const k = e.key.toLowerCase();
-    if ((e.ctrlKey || e.metaKey) && !e.altKey) {
-      if (k === 'z' && !e.shiftKey) { if (typing && tgt !== ui.dimInput) return; e.preventDefault(); undoRedo(true); return; }
-      if (k === 'y' || (k === 'z' && e.shiftKey)) { if (typing && tgt !== ui.dimInput) return; e.preventDefault(); undoRedo(false); return; }
-      if (k === 's') { e.preventDefault(); if (ws !== WS.DESIGN && wsCall('command', 'save', host) === true) return; savePart(); return; }
-      if (k === 'o') { e.preventDefault(); run('open'); return; }
-      const EDIT_KEYS = { c: 'copy', x: 'cut', v: e.shiftKey ? 'paste-in-place' : 'paste', d: 'duplicate', a: 'select-all' };
-      if (EDIT_KEYS[k]) {
-        if (typing) return;   // text fields keep their own copy and paste
-        // text selected on the page (outside the views) is copied by the browser as usual
-        const txt = String(window.getSelection?.() || '');
-        if ((k === 'c' || k === 'x') && txt.trim() && tgt !== ui.gl && tgt !== ui.sk) return;
-        e.preventDefault();
-        editAct(EDIT_KEYS[k]);
-      }
-      return;
-    }
-    if (typing) return;
-    // 0.5 usability pass: with a feature selected, typing a number starts editing its main value (an Extrude's depth, a Hole's
-    // diameter …) in the panel; Enter sets it. Digits are no shortcut anywhere else
-    if (/^[0-9.]$/.test(e.key) && !e.altKey && mode === 'model' && ws === WS.DESIGN && sel?.kind === 'feature') {
-      const f = P.featureById(part, sel.id), main = f && MAIN_NUMBER[f.type];
-      const inp = main && ui.props.querySelector(`[data-param-key="${f.id}.${main}"]`);
-      if (inp && !inp.disabled) {
-        e.preventDefault(); inp.focus(); inp.value = e.key; inp.setSelectionRange(1, 1); status(t('app.feature.type_main', { name: f.name }));
-        // FX.252: the box now belongs to the shared property grid, which sets a value on "change". A browser sends no "change" on Enter for a
-        // value put there by code (the first digit), so a single typed digit was never set. Enter in this box now says "change" itself.
-        if (!inp.ccEnterSets) { inp.ccEnterSets = true; inp.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') { ev.preventDefault(); inp.dispatchEvent(new Event('change', { bubbles: true })); } }); }
-        return;
-      }
-    }
-    if (tgt && tgt.closest && tgt.closest('.pc-tree') && (e.altKey || e.key.startsWith('Arrow'))) return;
-    if (stackup?.active && stackup.keydown(e)) { e.preventDefault(); return; }
-    if (motion?.active && motion.keydown(e)) { e.preventDefault(); return; }
-    if (contactStudy?.active && contactStudy.keydown(e)) { e.preventDefault(); return; }
-    if (measure?.active && measure.keydown(e)) { e.preventDefault(); return; }
-    if (section?.active && section.keydown(e)) { e.preventDefault(); return; }
-    if (draft?.active && draft.keydown(e)) { e.preventDefault(); return; }
-    if (mode === 'assembly' && asmTools?.keydown(e)) { e.preventDefault(); return; }
-    if (ws !== WS.DESIGN) {
-      if (wsCall('keydown', e, host) === true) { e.preventDefault(); return; }
-      if (e.key === 'Delete' || e.key === 'Backspace' || (k === 's' && !e.altKey && !e.shiftKey)) return;   // Design's keys
-    }
-    if (k === 'm' && !e.altKey && !e.shiftKey && mode !== 'sketch' && mode !== 'drawing') { e.preventDefault(); run('view-measure'); return; }
-    if (k === 'x' && !e.altKey && !e.shiftKey && mode !== 'sketch' && mode !== 'drawing') { e.preventDefault(); run('view-section'); return; }
-    if (mode === 'drawing') {
-      if (e.key === 'Escape') { e.preventDefault(); if (drawingState.tool) drawingTool(drawingState.tool); else if (drawingState.sel) { drawingState.sel = null; composeShow(); renderProps(); } else leaveDrawing(); return; }
-      if ((e.key === 'Delete' || e.key === 'Backspace') && drawingState.sel) { e.preventDefault(); deleteNote(); return; }
-      if (drawingState.sel && !e.shiftKey && e.key.startsWith('Arrow')) {
-        e.preventDefault();
-        const dx = e.key === 'ArrowLeft' ? -1 : e.key === 'ArrowRight' ? 1 : 0, dy = e.key === 'ArrowUp' ? 1 : e.key === 'ArrowDown' ? -1 : 0;
-        commitDrawing(t('app.undo.nudge_note'), (d) => { const q = d.notes.find((x) => x.id === drawingState.sel); if (q) q.off = [+(q.off[0] + dx).toFixed(2), +(q.off[1] + dy).toFixed(2)]; });
-        return;
-      }
-      if (k === 'f' && !e.altKey) { e.preventDefault(); sheetView.fit(); return; }
-      return;
-    }
-    if (mode === 'pick') {
-      if (e.key === 'Escape' || e.key === 'Enter') { e.preventDefault(); endPick(); return; }
-      if (k === 'f' && !e.altKey) { e.preventDefault(); view.fit(); return; }
-      if (tgt === ui.gl && e.key.startsWith('Arrow')) { e.preventDefault(); const dx = e.key === 'ArrowLeft' ? -1 : e.key === 'ArrowRight' ? 1 : 0, dy = e.key === 'ArrowUp' ? 1 : e.key === 'ArrowDown' ? -1 : 0; if (e.shiftKey) view.panBy(-dx * 0.1, -dy * 0.1); else view.orbitBy(-dx * 15, dy * 15); }
-      return;
-    }
-    if (mode === 'sketch') {
-      if (editor.key(e)) { e.preventDefault(); updateTools(); return; }
-      if (e.key === 'Escape') { e.preventDefault(); exitSketch(); return; }
-      if (k === 'f' && !e.shiftKey) { e.preventDefault(); editor.fit(); }
-      return;
-    }
-    if (mode === 'assembly') {
-      if (e.key === 'Escape') { if (jointPick) { jointPick = null; highlightAsm(); renderAll(); status(t('app.joint.cancelled')); } else if (asmSel) { asmSel = null; renderAll(); highlightAsm(); } return; }
-      if (e.key === 'Delete' || (e.key === 'Backspace' && asmSel)) { e.preventDefault(); asmDelete(); return; }
-      if (k === 'f' && !e.altKey) { e.preventDefault(); view.fit(); return; }
-      if (k === 'j') { e.preventDefault(); asmStartJoint(); return; }
-    }
-    if (e.key === 'Escape') {
-      if (handles?.cancel()) return;   // a handle being dragged goes back (0.6 PU.2)
-      if (DUI.cancel()) { show3DSketches(); return; }
-      if (SH.cancel()) return;
-      if (BUI.cancel()) return;
-      if (pendingSketch) { pendingSketch = false; status(''); syncPlanes(); updateTools(); return; }
-      if (pick || sel || multi.length) { pick = null; sel = null; multi = []; showMarks(); view.setHighlight(null); view.setPlaneState(null, null); renderAll(); }
-      return;
-    }
-    if (e.key === 'Delete' || (e.key === 'Backspace' && sel)) { e.preventDefault(); deleteSelected(); return; }
-    if (paramsUI.key(e)) { e.preventDefault(); return; }   // [ ] End: rollback bar back / forward / to the end
-    if (k === 'f' && !e.altKey) { e.preventDefault(); view.fit(); return; }
-    if (tgt === ui.gl && e.key.startsWith('Arrow')) {
-      e.preventDefault();
-      const dx = e.key === 'ArrowLeft' ? -1 : e.key === 'ArrowRight' ? 1 : 0, dy = e.key === 'ArrowUp' ? 1 : e.key === 'ArrowDown' ? -1 : 0;
-      if (e.shiftKey) view.panBy(-dx * 0.1, -dy * 0.1); else view.orbitBy(-dx * 15, dy * 15);
-      return;
-    }
-    if (tgt === ui.gl && (e.key === '+' || e.key === '=' || e.key === '-')) { e.preventDefault(); view.zoomBy(e.key === '-' ? 1 / 1.25 : 1.25); return; }
-    if (k === 's' && !e.altKey && !e.shiftKey) { e.preventDefault(); startSketch(); }
-  });
 
 
   // ---- AI assistants and scripts (0.7 AS.4, session assistants; agents.js on host.js's control channel): tools only, off until Settings › Assistants ----
-  installAgents({ part: () => part, regen: () => regen, mode: () => mode, commit: (label, fn) => commit(label, fn), built: async () => { await ready; await built(); },
-    savePart: () => savePart(), download: (bytes, name, mime) => download(bytes, name, mime), computeWorker: (modules, opts) => host.computeWorker(modules, opts),
-    fileBase: () => fileBase(), undo: () => undoRedo(true), lastUndo: () => (hist.undoStack.length ? hist.undoStack[hist.undoStack.length - 1].label : null),
+  installAgents({ part: () => ST.part, regen: () => ST.regen, mode: () => ST.mode, commit, built: async () => { await ready; await built(); },
+    savePart, download, computeWorker: (modules, opts) => host.computeWorker(modules, opts),
+    fileBase, undo: () => undoRedo(true), lastUndo: () => (hist.undoStack.length ? hist.undoStack[hist.undoStack.length - 1].label : null),
     foldUndo: () => { hist.undoStack.pop(); }, say: (s) => status(s) });   // 0.9 SU.810b: a live link's pushes share one undo step; its update in the status bar
   // ---- the shell's modules (0.8 round 3, docs/apps/shell-modules.md § Mounting): calc sheets drive parameters, reasons on features, the part's weight
-  shellKit = mountPartShell({ part: () => part, regen: () => regen, control: fileHost.control, commit: (label, fn) => commit(label, fn), undo: () => undoRedo(true),
-    undoDepth: () => hist.undoStack.length, sel: () => sel, selectFeature: (id) => selectFeature(id), labelOf: (f) => f.name || P.FEATURE_LABELS[f.type] || f.type,
-    name: () => part.name || fileBase(), path: () => saveTarget?.path || '', markDirty: () => { dirty = true; }, statusBar: document.querySelector('.pc-status') });
+  ST.shellKit = mountPartShell({ part: () => ST.part, regen: () => ST.regen, control: fileHost.control, commit, undo: () => undoRedo(true),
+    undoDepth: () => hist.undoStack.length, sel: () => ST.sel, selectFeature, labelOf: (f) => f.name || P.FEATURE_LABELS[f.type] || f.type,
+    name: () => ST.part.name || fileBase(), path: () => ST.saveTarget?.path || '', markDirty: () => { ST.dirty = true; }, statusBar: document.querySelector('.pc-status') });
 
-  mountPartAccess({ part: () => part, regen: () => regen, stage: ui.tree, status: ui.status, facts: () => [...(ui.facts?.querySelectorAll('dt') || [])].map((dt) => dt.textContent.trim() + ' ' + (dt.nextElementSibling?.textContent || '').trim()).filter((x) => /\S\s+\S/.test(x)).join('. ') + '.', sel: () => sel,
-    selectFeature: (id) => selectFeature(id), partName: () => part.name || fileBase(), labelOf: (f) => f.name || P.FEATURE_LABELS[f.type] || f.type });   // EG.52
+  mountPartAccess({ part: () => ST.part, regen: () => ST.regen, stage: ui.tree, status: ui.status, facts: () => [...(ui.facts?.querySelectorAll('dt') || [])].map((dt) => dt.textContent.trim() + ' ' + (dt.nextElementSibling?.textContent || '').trim()).filter((x) => /\S\s+\S/.test(x)).join('. ') + '.', sel: () => ST.sel,
+    selectFeature, partName: () => ST.part.name || fileBase(), labelOf: (f) => f.name || P.FEATURE_LABELS[f.type] || f.type });   // EG.52
   window.partcraft = {
     get exportSet() { return exportSet; },   // Finalize and export in SuperCad Studio (SC.7)
-    ready, built, asmBuilt, exact, get useExact() { return useExact; }, get multi() { return multi; }, get drawing() { return drawingState; }, startPick, endPick, enterDrawing, leaveDrawing, drawingClick, G,
+    ready, built, asmBuilt, exact, get useExact() { return ST.useExact; }, get multi() { return ST.multi; }, get drawing() { return ST.drawingState; }, startPick, endPick, enterDrawing, leaveDrawing, drawingClick, G,
     exactReady: () => (exactOff() ? built() : exact.start().then(() => built())),   // no exact kernel (0.4): the mesh kernel's build
     viewCube, axisIcon, cubeView: cubeOpts.getView, get settings() { return settings; },
-    get part() { return part; }, get regen() { return regen; }, get mode() { return mode; }, get editing() { return editing; },
-    get lastSolve() { return lastSolve; }, get sel() { return sel; }, get pick() { return pick; },
-    get asm() { return asm; }, get contactStudy() { return contactStudy; }, get asmBuilds() { return asmBuilds; }, get asmPlace() { return asmPlace; }, get clashes() { return clashes; }, get asmSel() { return asmSel; }, A,
-    get workspace() { return ws.id; }, setWorkspace, host, WS,
-    surfaces: { receive: (doc, label) => { if (ws.id !== 'surfaces' && !setWorkspace('surfaces')) return { ok: false, error: { key: 'nurbs.ui.err.failed', vars: { error: 'workspace' } } }; return surfacesReceive(host, doc, label); }, snapshot: () => surfacesSnapshot(host) },   // 0.9 DC.54: SuperCad Studio's Surfaces panel sends to / brings back from here (surfaces-pc.js)
-    control: fileHost.control, get shellKit() { return shellKit; },   // the assistants' channel and the shell's modules (tests, 0.8 round 3)
+    get part() { return ST.part; }, get regen() { return ST.regen; }, get mode() { return ST.mode; }, get editing() { return ST.editing; },
+    get lastSolve() { return ST.lastSolve; }, get sel() { return ST.sel; }, get pick() { return ST.pick; },
+    get asm() { return ST.asm; }, get contactStudy() { return ST.contactStudy; }, get asmBuilds() { return ST.asmBuilds; }, get asmPlace() { return ST.asmPlace; }, get clashes() { return ST.clashes; }, get asmSel() { return ST.asmSel; }, A,
+    get workspace() { return ST.ws.id; }, setWorkspace, host, WS,
+    surfaces: { receive: (doc, label) => { if (ST.ws.id !== 'surfaces' && !setWorkspace('surfaces')) return { ok: false, error: { key: 'nurbs.ui.err.failed', vars: { error: 'workspace' } } }; return surfacesReceive(host, doc, label); }, snapshot: () => surfacesSnapshot(host) },   // 0.9 DC.54: SuperCad Studio's Surfaces panel sends to / brings back from here (surfaces-pc.js)
+    control: fileHost.control, get shellKit() { return ST.shellKit; },   // the assistants' channel and the shell's modules (tests, 0.8 round 3)
     // 0.7 WS.14 (session ws-partcraft, workspace-partcraft.js): unsaved changes, the running tool, the part panel's list of bodies
-    get dirty() { return dirty; },
-    get tool() { return mode === 'sketch' ? 'sketch' : mode === 'pick' ? 'pick' : mode === 'drawing' && drawingState?.tool ? 'drawing' : pendingSketch ? 'sketch-plane' : measure?.active ? 'measure' : section?.active ? 'section' : draft?.active ? 'draft' : 'select'; },
+    get dirty() { return ST.dirty; },
+    get tool() { return ST.mode === 'sketch' ? 'sketch' : ST.mode === 'pick' ? 'pick' : ST.mode === 'drawing' && ST.drawingState?.tool ? 'drawing' : ST.pendingSketch ? 'sketch-plane' : ST.measure?.active ? 'measure' : ST.section?.active ? 'section' : ST.draft?.active ? 'draft' : 'select'; },
     bodiesBlock: () => BUI.bodiesBlock(),
-    view, editor, S, P, V, C, run, rebuild, editSketch, exitSketch, selectFeature, openText, commit, undoRedo, hist, asmHist, settings, editState, editAct, paramsUI,
-    clip: () => clip, DUI, get section() { return section; }, get handles() { return handles; },
-    exportBytes: (kind) => (kind === 'stl' ? X.stlBinary(regen.mesh) : kind === '3mf' ? X.threeMf(regen.mesh) : kind === 'step' ? X.stepFaceted(regen.mesh, part.name).text : null),
-    stepText: (schema = 'AP242') => exact.call('step', { part, schema }).then((r) => r.text),
+    view: ST.view, editor, S, P, V, C, run, rebuild, editSketch, exitSketch, selectFeature, openText, commit, undoRedo, hist, asmHist, settings, editState, editAct, paramsUI,
+    clip: () => ST.clip, DUI, get section() { return ST.section; }, get handles() { return ST.handles; },
+    exportBytes: (kind) => (kind === 'stl' ? X.stlBinary(ST.regen.mesh) : kind === '3mf' ? X.threeMf(ST.regen.mesh) : kind === 'step' ? X.stepFaceted(ST.regen.mesh, ST.part.name).text : null),
+    stepText: (schema = 'AP242') => exact.call('step', { part: ST.part, schema }).then((r) => r.text),
     // Studio Live (0.5 LV.20, live.js): someone else's edits landed in `part`; a joiner's part arrived; the session's messages
     status: (m) => status(m),
     liveApplied: () => {
-      if (editing && !P.featureById(part, editing)) { if (mode === 'sketch') { editor.active = false; ui.sk.hidden = true; view.setSketch(null); ui.skBar.hidden = true; } mode = 'model'; editing = null; }
-      if (sel?.kind === 'feature' && !P.featureById(part, sel.id)) sel = null;
-      dirty = true; rebuild(); renderAll();
+      if (ST.editing && !P.featureById(ST.part, ST.editing)) { if (ST.mode === 'sketch') { editor.active = false; ui.sk.hidden = true; ST.view.setSketch(null); ui.skBar.hidden = true; } ST.mode = 'model'; ST.editing = null; }
+      if (ST.sel?.kind === 'feature' && !P.featureById(ST.part, ST.sel.id)) ST.sel = null;
+      ST.dirty = true; rebuild(); renderAll();
     },
-    liveReplace: (p) => { if (mode === 'sketch') exitSketch(); part = p; hist.clear(); sel = null; pick = null; multi = []; dirty = true; rebuild(); renderAll(); },
+    liveReplace: (p) => { if (ST.mode === 'sketch') exitSketch(); ST.part = p; hist.clear(); ST.sel = null; ST.pick = null; ST.multi = []; ST.dirty = true; rebuild(); renderAll(); },
   };
   // the menu styles (0.5 IP.3, input-partcraft.js + the shell's app-input-ui.js): their messages go to the status bar
   window.ccInputHooks = { status: (text, bad) => status(text || '', bad) };
   // add-ons (0.5 AO.7): PartCraft's own loader and API; their exporters join the Export menu
   const syncAddonExports = () => {
     const list = $('[data-export-menu] .pc-menu-list');   // i18n-ignore: a selector
-    if (!list || !addons) return;
+    if (!list || !ST.addons) return;
     for (const b of list.querySelectorAll('[data-addon-export]')) b.remove();
-    for (const ex of addons.exporters()) {
+    for (const ex of ST.addons.exporters()) {
       list.append(el('button', { type: 'button', role: 'menuitem', dataset: { addonExport: ex.id }, onclick: async () => {
         list.closest('details')?.removeAttribute('open');
-        try { const name = fileBase() + '.' + ex.extension; download(await ex.write(addons.exportInput(part.name)), name, ex.mime); status(t('app.export.addon', { file: name })); }
+        try { const name = fileBase() + '.' + ex.extension; download(await ex.write(ST.addons.exportInput(ST.part.name)), name, ex.mime); status(t('app.export.addon', { file: name })); }
         catch (e) { status(t('app.export.addon_failed', { what: ex.label, error: e && e.message ? e.message : String(e) })); }
       } }, ex.label));
     }
   };
   // 0.8 EG.78 (studio_PART_2): drag the part to another app in Studio (drag-out.js, part-item.js; Studio's window.cadcraftStudio.drag)
-  if (window.cadcraftStudio?.drag) import('./drag-out.js').then((m) => m.mountDragOut({ current: () => (regen?.mesh ? { part, mesh: regen.mesh } : null), status, t })).catch((e) => console.warn('drag to another app did not start:', e));   // i18n-ignore: a developer message
-  startAddons({ host, faceView: { mark: (faces) => view.setMarks(faces.length ? { faces } : null), hover: (tris) => view.setHover(tris ? { tris } : null) }, bodies: { sync: () => syncAddonBodies(), fit: () => { syncAddonBodies(); view.view('iso'); } }, selection: () => sel, select: (id) => selectFeature(id), find: (q) => root.querySelector(q), showTab: (k) => paramsUI.showTab(k || 'props') })
-    .then((a) => { addons = a; a.onChange(() => { syncAddonExports(); renderProps(); }); syncAddonExports(); renderProps(); })
+  if (window.cadcraftStudio?.drag) import('./drag-out.js').then((m) => m.mountDragOut({ current: () => (ST.regen?.mesh ? { part: ST.part, mesh: ST.regen.mesh } : null), status, t })).catch((e) => console.warn('drag to another app did not start:', e));   // i18n-ignore: a developer message
+  startAddons({ host, faceView: { mark: (faces) => ST.view.setMarks(faces.length ? { faces } : null), hover: (tris) => ST.view.setHover(tris ? { tris } : null) }, bodies: { sync: syncAddonBodies, fit: () => { syncAddonBodies(); ST.view.view('iso'); } }, selection: () => ST.sel, select: selectFeature, find: (q) => root.querySelector(q), showTab: (k) => paramsUI.showTab(k || 'props') })
+    .then((a) => { ST.addons = a; a.onChange(() => { syncAddonExports(); renderProps(); }); syncAddonExports(); renderProps(); })
     .catch((e) => console.warn('add-ons did not start:', e));   // i18n-ignore: a developer message
   // the layouts of Settings › Global › Layout (0.7 WS.14): the shell's engine builds a layout file's blocks, workspace-partcraft.js
   // fills them; only builds whose manifest lists layouts carry the engine (#cc-workspace)
@@ -3096,7 +1394,7 @@ function init(root) {
       .catch((e) => { document.documentElement.removeAttribute('data-cc-ws-boot'); console.warn('layouts did not start:', e); });   // i18n-ignore: a developer message
   }
   // 0.10 BK.179 / SU.1814 (bim-part-link-10): a part sent from BimCraft opens here with the building around it; Save back sends it home
-  bimLink = mountBimLink({ t, status: (m, bad) => status(m, bad), P, MI, THREE, view, part: () => part, openPartText: (text, name) => openText(text, name), regenMesh: () => regen?.mesh || null, markDirty: () => { dirty = true; }, chip: $('[data-bim-link]') });
-  ready.then(() => bimLink.receive()).catch((e) => console.warn('part link:', e));   // i18n-ignore: a developer message
+  ST.bimLink = mountBimLink({ t, status, P, MI, THREE, view: ST.view, part: () => ST.part, openPartText: openText, regenMesh: () => ST.regen?.mesh || null, regen: () => ST.regen, markDirty: () => { ST.dirty = true; }, chip: $('[data-bim-link]') });   // regen: 0.11 SU.1814, the history as solids
+  ready.then(() => ST.bimLink.receive()).catch((e) => console.warn('part link:', e));   // i18n-ignore: a developer message
   renderAll();
 }

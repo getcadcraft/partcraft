@@ -207,7 +207,7 @@ export function readClip(raw) {
     if (!okShape) throw new Error(t('xch.clip.features_bad'));
     // the plane may name a face of another part: check its shape here, whether it fits when pasted
     const plane = f[0].plane;
-    const ids = new Set(plane && plane.kind === 'face' ? [plane.feature, ...(plane.name ? P.nameFeatures(plane.name) : [])].filter((x) => /^f\d{1,9}$/.test(x)) : []);
+    const ids = new Set(plane && plane.kind === 'face' ? [plane.feature, ...(plane.name ? P.nameFeatures(plane.name) : [])].filter((x) => /^f\d{1,16}$/.test(x)) : []);
     const cleanPlane = P.readPlane(plane, ids);
     const tmp = P.readPart({ format: P.FORMAT, version: P.VERSION, name: 'clip', features: f.map((x, i) => (i === 0 ? { ...x, plane: { kind: 'base', name: 'front' } } : x)) });
     tmp.features[0].plane = cleanPlane;

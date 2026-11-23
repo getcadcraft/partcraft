@@ -1,39 +1,39 @@
 ---
-title: 3B yüzey bitirme: paralel ve pürüz (scallop)
-summary: Modelin tüm eğri yüzeyini bir top, burun yuvarlak ya da düz uçlu freze ile; istediğiniz açıda paralel çizgilerle ya da aralarındaki sırtların istediğiniz yüksekliği koruyacak şekilde belirli bir mesafede aralıklı geçişlerle bitirin. Yolların neyi garanti ettiği ve neyi etmediği.
-keywords: 3B bitirme, bitirme, paralel, raster, pürüz, sabit pürüz, sivri uç, küresel uç, burun yuvarlak, yüzey, tolerans, adım aralığı, eğim, bırakılacak stok, düşen kesici, aşırı kesme, gouge
-from: e1587d0a
+title: "3D yüzey işlemi: paralel ve scallop"
+summary: "Bütün modelin eğri yüzeyini bir bilyalı, yuvarlak uçlu ya da düz uçlu freze ile bitirin; istediğiniz açıda paralel çizgiler halinde ya da aralarındaki sırtların istediğiniz yüksekliği koruyacak şekilde belirli bir mesafe aralıklı geçişlerle. Yolların neyi garanti ettiği ve neyi etmediği."
+keywords: "3d yüzey işlemi, bitirme, paralel, raster, scallop, sabit scallop, sırt, bilyalı uçlu, yuvarlak uç, yüzey, tolerans, adım aralığı, eğim, bırakılacak malzeme, düşen freze, yanlış kesim"
+from: 942d2341
 ---
 
-Üretim'de iki işlem, takımı dik (üç eksen) tutarak **modelin tüm yüzeyini** keser. Seçim almazlar: yukarıdan görülebilen modelin tamamı üzerinde çalışırlar. Önce parçayı kabaca işleyin (uyarlanabilir ya da cep); kesilmemiş stok üzerinde bir bitirme geçişi, derin keseceğini uyarır.
+İmalat'taki iki işlem, **modelin bütün yüzeyini** takımı dik tutarak (üç eksen) keser. Hiç seçim istemezler; yukarıdan görülebilen modelin tamamıyla çalışırlar. Önce parçayı kabaca işleyin (uyarlanabilir ya da cep); üzerinde kesilmemiş malzeme bulunan bir bitirme geçişi derin keseceği konusunda uyarır.
 
 ## Paralel
 
-Modelin üzerinde, ayarladığınız **açıda**, birbirinden **adım aralığı** (takım çapının bir kesri) kadar uzakta düz çizgiler. Her çizgi yüzeyi izler: takım ucu, kesicinin hiçbir parçası modelin altına inmeyecek kadar yüksektedir ve yüzey büküldüğü her yerde çizgi daha ince kesilir. **Zikzak** açıkken, takım çizgiler arasında güvenli olabildiği yerde indirilmiş kalır (hareket boyunca denetlenir); aksi halde kalkar.
+Modelin üzerinden, ayarladığınız **açıda** düz çizgiler, her biri **adım aralığı** (takım çapının bir kesri) kadar aralıklı. Her çizgi yüzeyi izler: takım ucu, kesicinin hiçbir parçası modelin altına inmeyecek kadar yüksektedir ve çizgi yüzey büküldüğü her yerde daha ince kesilir. **Zig-zag** açıkken takım, güvenli olduğu yerde çizgiler arasında indirili kalır (hareket boyunca denetlenir); aksi halde kalkar.
 
-- **Tolerans**: bir çizginin düz bir parçasının gerçek uç yüksekliğinden ne kadar uzak olabileceği (yarısı, her parçanın ortasındaki sınır olarak kullanılır). Varsayılan 0.01 mm.
-- **Yalnızca yüzey en az … ve en fazla … (°) olduğu yerde**: yalnızca sığ alanları ya da yalnızca dik alanları bitirin. Yüzey aralığın dışında olduğu yerde çizgi atlanır ve takım kalkar.
-- **Bırakılacak stok**: model bu mesafe kadar ofset edilir (kesici bu kadar büyütülmüş olur: küresel ve burun yuvarlak takımlarda kesindir; düz bir takım en az bu kadar bırakır).
+- **Tolerans**: bir çizginin düz bir parçası gerçek uç yüksekliğinden ne kadar uzakta olabilir (her parçanın ortasında sınır olarak yarısı kullanılır). Varsayılan 0.01 mm.
+- **Yalnızca yüzeyin en az … ve en çok … (°) olduğu yerde**: yalnızca sığ alanları ya da yalnızca dik alanları bitirin. Yüzey aralığın dışındaysa çizgi atlanır ve takım kalkar.
+- **Bırakılacak malzeme**: model o mesafe kadar ofsetlenir (kesici o kadar büyütülür: bilyalı ve yuvarlak uçlu takımlar için tam; düz takım en azından o kadar bırakır).
 - **Taban**: bu z'nin altında hiçbir şey kesilmez.
 
-## Pürüz (scallop)
+## Scallop
 
-Yüzey boyunca birbirinden sabit bir mesafede tutulan geçişler; böylece iki komşu geçiş arasında kalan sırt (pürüz), istediğiniz **yüksekliğe** sahip olur. Mesafe yükseklikten ve topun yarıçapından türetilir: s = 2·√(2·R·h − h²); örneğin Ø6 bir top ve 0.02 mm'lik bir sırt için geçişler arasında yaklaşık 0.69 mm. Burun yuvarlak bir takım köşe yarıçapını kullanır. Düz uçlu bir freze reddedilir: boyutlandırılacak bir sırtı yoktur.
+Yüzey üzerinde birbirinden sabit bir uzaklıkta geçişler; böylece iki komşu geçiş arasında kalan sırt (scallop), istediğiniz **yükseklikte** olur. Uzaklık yükseklikten ve bilyanın yarıçapından çıkar: s = 2·√(2·R·h − h²); örneğin Ø6 bilya ve 0.02 mm sırt için geçişler arası yaklaşık 0.69 mm. Yuvarlak uçlu takım kendi köşe yarıçapını kullanır. Düz uçlu freze reddedilir: boyutlandıracak bir sırtı yoktur.
 
-Geçişler **modelin kenarından, içe doğru** ya da **üstünden, aşağı doğru** başlar. Yüzey üzerindeki mesafenin (yüksekliğin değil) konturlarıdırlar; bu yüzden eğimde planda birbirine yakındırlar, düzlükte ise geniş aralıklıdırlar. Mesafe, yüzey üzerindeki bir ızgarada ölçülür ve yaklaşık %1 doğrudur; sırt yüksekliği, yüzeyin düz ya da yavaş eğildiği yerlerde kesin, hızlı büküldüğü yerlerde yaklaşıktır. **Tırmanma** (climb), yüzeyin yüksek tarafını kesicinin sağında tutar.
+Geçişler **modelin kenarından içeri doğru** ya da **üstünden aşağı doğru** başlar. Bunlar yüzey üzerindeki uzaklığın eş eğrileridir (yüksekliğin değil), bu nedenle eğimde planda birbirine yakın, düzlükte geniş aralıklıdır. Uzaklık, yüzey üzerinde bir ızgarada ölçülür ve yaklaşık %1 doğrudur; sırt yüksekliği yüzeyin düz ya da yavaşça eğri olduğu yerlerde tam, hızlıca büküldüğü yerlerde yaklaşıktır. **Climb** yüzeyin daha yüksek tarafını kesicinin sağında tutar.
 
 ## Yolların ne kadar iyi olduğu
 
-Testlerin kapalı formüllerle ya da kesicinin izi üzerinde bağımsız bir kaba kuvvet aramasıyla denetlediği şeyler:
+Testlerin denetlediği, kapalı formüllerle ya da kesicinin ayak izinin bağımsız kaba kuvvet aramasıyla:
 
-- Takımın altındaki uç yüksekliği, örgünün yüzeylerinde, kenarlarında ve köşelerinde top, burun yuvarlak ve düz takımlar için kesindir ve hiçbir zaman gerçek yüksekliğin üstüne çıkmaz; paralel çizgiler için yol bu tolerans içinde kalır ve bundan daha derin bir aşırı kesme (gouge) olmaz.
-- Eğik bir düzlemdeki yol uzunlukları kapalı formülle uyuşur; bir düzlemde pürüz geçişleri istenen mesafede aralıklıdır ve aralarındaki sırt istenen yükseklikte çıkar.
-- Stok simülasyonu, bir geçişten sonra aşırı kesme olmadığını ve kalan sırtları gösterir.
+- Takımın altındaki uç yüksekliği bilyalı, yuvarlak uçlu ve düz takım için ağın yüzlerinde, kenarlarında ve köşelerinde tam olarak hesaplanır ve gerçek yükseklikten asla yüksek değildir; paralel çizgilerde yol toleransı içinde kalır ve bundan daha derin bir yanlış kesim (gouge) olmaz.
+- Eğik bir düzlemdeki yol uzunlukları kapalı formülle uyuşur; bir düzlem üzerindeki scallop geçişleri istenen uzaklıkta aralıklıdır ve aralarındaki sırt istenen yükseklikte çıkar.
+- Malzeme simülasyonu bir geçişten sonra hiçbir yanlış kesim göstermez ve kalan sırtları gösterir.
 
-Bu yollar neyi değildir: bunlar temel bitirme geçişleridir, bir üretim sisteminin sunduğu her şeyin tamamı değildir.
+Bunlar ne değildir: temel bitirme geçişleridir, bir üretim sisteminin sunduğu her şeyin tamamı değildir.
 
-- Henüz yapılmadı: su hattı (sabit z), kalem ve köşe temizliği, radyal ve spiral geçişler, bir eğriyi yüzeye yansıtma, düz alan algılama, kalan işleme, tutucu ve sap çarpışma denetimleri ve takımın herhangi bir eğimi.
-- Takım merkezi modelin üzerinde kalır: yollar, modelin dışına taşmak yerine kenarında durur; bu yüzden kenarda tam duran dik bir duvar, dibine kadar bitirilmez.
-- Alt kesikler görülmez (yüzey, takımın yukarıdan karşılaştığı şeydir).
-- Model, çekirdekten gelen örgüdür; bu yüzden yollar kesin yüzeyi değil örgüyü izler (kiriş toleransı parçanın köşegeninin yaklaşık 0.0002'sidir).
-- İnce bir tolerans ile büyük bir modeli bitirmek, çok sayıda kısa hareketli uzun bir program üretir. Kesmeden önce çıktıyı makinenizin kendi simülatöründe denetleyin.
+- Yapılmadı: su hattı (sabit z) bitirme, kalem ve köşe temizliği, radyal ve spiral geçişler, bir eğriyi yüzeye yansıtma, düz alan algılama, tutucu ve sap çarpışma denetimleri. Kaba işleme ve artık işleme kendi işlemleridir ([3D kaba işleme ve artık işleme](topic:rough-3d)); eğilen bir takım [5 eksen bitirme](topic:multi-axis#5-axis-finishing)dir.
+- Takımın merkezi modelin üzerinde kalır: yollar modelin kenarında durur, dışarıya taşmaz; bu yüzden kenardaki dik bir duvar tabanına kadar bitirilmez.
+- Alt kesimler görülmez (yüzey, takımın yukarıdan karşılaştığı şeydir).
+- Model, çekirdekten gelen ağdır; yollar ağı izler (kiriş toleransı parçanın köşegeninin yaklaşık 0.0002'si), tam yüzeyi değil.
+- Büyük bir modeli ince bir toleransla bitirmek, çok sayıda kısa hareketli uzun bir program yapar. Üretmeden önce çıktıyı makinenizin kendi simülatöründe kontrol edin.

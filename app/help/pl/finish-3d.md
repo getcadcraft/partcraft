@@ -1,39 +1,39 @@
 ---
-title: Wykańczanie 3D: równoległe i łuskowe
-summary: Wykończ zakrzywioną powierzchnię całego modelu frezem kulistym, frezem z zaokrąglonym narożnikiem lub płaskim, w liniach równoległych pod dowolnym kątem albo w przejściach oddalonych o ustaloną odległość, tak aby grzbiety między nimi miały żądaną wysokość. Co gwarantują ścieżki, a czego nie.
-keywords: wykańczanie 3d, wykańczanie, równoległe, raster, łuska, stała łuska, grzbiet, frez kulisty, frez z zaokrąglonym narożnikiem, powierzchnia, tolerancja, krok boczny, nachylenie, naddatek, drop cutter, wrypanie
-from: e1587d0a
+title: Obróbka wykończeniowa 3D: równoległa i grzebieniowa (scallop)
+summary: Wykończ zakrzywioną powierzchnię całego modelu frezem kulistym, zaokrąglonym albo płaskim, liniami równoległymi pod dowolnym kątem albo przejściami oddalonymi o zadaną odległość, tak aby grzbiety między nimi zachowały żądaną wysokość. Co gwarantują ścieżki, a czego nie.
+keywords: obróbka wykończeniowa 3D, wykończenie, równoległa, raster, scallop, stała wysokość grzbietu, cusp, frez kulisty, zaokrąglenie narożnika, powierzchnia, tolerancja, krok boczny, nachylenie, naddatek, drop cutter, wgryzienie
+from: 942d2341
 ---
 
-Dwie operacje w Manufacture obrabiają **całą powierzchnię modelu**, z narzędziem trzymanym pionowo (trzy osie). Nie wymagają wskazywania: działają na całym modelu, który widać z góry. Najpierw wykonaj obróbkę zgrubną części (adaptacyjną lub kieszeniową); przejście wykańczające po nieobrobionym materiale ostrzega, że narzędzie wejdzie zbyt głęboko.
+Dwie operacje w Wytwarzaniu obrabiają **całą powierzchnię modelu** z narzędziem utrzymywanym pionowo (trzy osie). Nie wymagają wskazywania: pracują na całym modelu, który jest widoczny z góry. Najpierw zgrubnie obrób część (adaptacyjnie albo kieszenią); przejście wykończeniowe po nieobrobionym półfabrykacie ostrzeże, że narzędzie wejdzie zbyt głęboko.
 
-## Równoległe
+## {{ui:Równoległość}}
 
-Proste linie przez model pod ustawionym **kątem**, w odstępie **krok boczny** (ułamek średnicy narzędzia). Każda linia podąża za powierzchnią: wierzchołek narzędzia jest tak wysoko, jak musi być, aby żadna część frezu nie zeszła poniżej modelu, a linia jest dzielona na drobniejsze odcinki tam, gdzie powierzchnia się wygina. Przy włączonym **Zygzak** narzędzie pozostaje w materiale między liniami, gdzie może to zrobić bezpiecznie (sprawdzane wzdłuż ruchu); w przeciwnym razie się podnosi.
+Proste linie przez model pod **kątem**, który ustawisz, w odstępach **kroku bocznego** (ułamek średnicy narzędzia). Każda linia podąża za powierzchnią: czubek narzędzia jest tak wysoko, jak musi być, aby żadna część frezu nie zeszła poniżej modelu, a linia jest frezowana drobniej tam, gdzie powierzchnia się wygina. Przy włączonym **Zygzak** narzędzie pozostaje w materiale między liniami tam, gdzie może to zrobić bezpiecznie (sprawdzane wzdłuż ruchu); w przeciwnym razie się podnosi.
 
-- **Tolerancja**: jak daleko prosty odcinek linii może być od prawdziwej wysokości wierzchołka (połowa tej wartości jest używana jako granica w środku każdego odcinka). Domyślnie 0.01 mm.
-- **Tylko tam, gdzie powierzchnia ma co najmniej … i co najwyżej … (°)**: wykańcza tylko płytkie obszary albo tylko strome. Tam, gdzie powierzchnia jest poza zakresem, linia jest pomijana, a narzędzie się podnosi.
-- **Naddatek**: model przesunięty o tę odległość (frez powiększony o nią: dokładne dla frezów kulistych i z zaokrąglonym narożnikiem; płaski frez zostawia co najmniej tyle).
-- **Dno**: nic nie jest obrabiane poniżej tej wartości z.
+- **Tolerancja**: jak daleko prosty odcinek linii może być od prawdziwej wysokości czubka (połowa tej wartości jest używana jako granica w środku każdego odcinka). Domyślnie 0,01 mm.
+- **Tylko tam, gdzie powierzchnia ma co najmniej … i co najwyżej … (°)**: wykańczaj tylko płaskie obszary albo tylko strome. Tam, gdzie powierzchnia jest poza zakresem, linia jest pomijana, a narzędzie się podnosi.
+- **Naddatek**: model przesunięty o tę odległość (narzędzie powiększone o nią: dokładne dla narzędzi kulistych i zaokrąglonych; narzędzie płaskie zostawi co najmniej tyle).
+- **Dno**: nic nie jest frezowane poniżej tej wysokości z.
 
-## Łuska (scallop)
+## {{ui:Grzebieniowe (scallop)}}
 
-Przejścia zachowujące stałą odległość na powierzchni od siebie, tak aby grzbiet (łuska) pozostały między dwoma sąsiednimi przejściami miał żądaną **wysokość**. Odległość wynika z wysokości i promienia kuli: s = 2·√(2·R·h − h²), na przykład około 0.69 mm między przejściami dla kuli Ø6 i grzbietu 0.02 mm. Frez z zaokrąglonym narożnikiem używa promienia narożnika. Płaski frez palcowy jest odrzucany: nie ma grzbietu do wymiarowania.
+Przejścia zachowujące stałą odległość na powierzchni od siebie, tak aby grzbiet (scallop) pozostający między dwoma sąsiednimi przejściami miał żądaną **wysokość**. Odległość wynika z wysokości i promienia kuli: s = 2·√(2·R·h − h²), na przykład około 0,69 mm między przejściami dla kuli Ø6 i grzbietu 0,02 mm. Narzędzie zaokrąglone używa swojego promienia zaokrąglenia narożnika. Frez płaski jest odrzucany: nie ma grzbietu, który dałoby się wymiarować.
 
-Przejścia zaczynają się **od krawędzi modelu, idąc do środka** albo **od jego góry, idąc w dół**. Są to kontury odległości po powierzchni (a nie wysokości), więc na zboczu leżą blisko siebie w rzucie, a na płaszczyźnie są szeroko rozstawione. Odległość mierzy się na siatce po powierzchni i jest dokładna do około 1 %; wysokość grzbietu jest dokładna tam, gdzie powierzchnia jest płaska lub łagodnie zakrzywiona, i przybliżona tam, gdzie szybko się zakrzywia. **Współbieżnie** zachowuje wyższą stronę powierzchni po prawej stronie frezu.
+Przejścia zaczynają się od **krawędzi modelu, idąc do środka**, albo od **jego góry, idąc w dół**. Są konturami odległości na powierzchni (a nie wysokości), więc na zboczu leżą blisko siebie w rzucie, a na płaszczyźnie są szeroko rozstawione. Odległość mierzona jest na siatce nałożonej na powierzchnię i jest dokładna do około 1 %; wysokość grzbietu jest dokładna tam, gdzie powierzchnia jest płaska lub łagodnie zakrzywiona, a przybliżona tam, gdzie szybko się zakrzywia. **Frezowanie współbieżne** utrzymuje wyższą stronę powierzchni po prawej stronie narzędzia.
 
 ## Jak dobre są ścieżki
 
-Co sprawdzają testy, za pomocą wzorów zamkniętych lub niezależnego przeszukiwania siłowego śladu frezu:
+Co sprawdzają testy, z wzorami zamkniętymi albo niezależnym przeszukiwaniem siłowym śladu narzędzia:
 
-- Wysokość wierzchołka pod narzędziem jest dokładna dla frezu kulistego, z zaokrąglonym narożnikiem i płaskiego na ścianach, krawędziach i narożnikach siatki, i nigdy nie jest wyższa niż prawdziwa wysokość; w przypadku linii równoległych ścieżka mieści się w jej tolerancji, bez wrypania głębszego niż ta wartość.
-- Długości ścieżek na pochylonej płaszczyźnie zgadzają się ze wzorem zamkniętym; przejścia łuskowe na płaszczyźnie są oddalone o żądaną odległość, a grzbiet między nimi ma żądaną wysokość.
-- Symulacja materiału nie pokazuje wrypania po przejściu i pokazuje pozostałe grzbiety.
+- Wysokość czubka pod narzędziem jest dokładna dla narzędzia kulistego, zaokrąglonego i płaskiego na ścianach, krawędziach i narożnikach siatki i nigdy nie jest wyższa niż prawdziwa wysokość; dla linii równoległych ścieżka mieści się w tolerancji, bez wgryzienia głębszego niż ona.
+- Długości ścieżek na pochylonej płaszczyźnie zgadzają się z wzorem zamkniętym; przejścia grzebieniowe na płaszczyźnie są oddalone o żądaną odległość, a grzbiet między nimi wychodzi na żądanej wysokości.
+- Symulacja półfabrykatu nie pokazuje wgryzienia po przejściu i pokazuje grzbiety, które pozostają.
 
-Czym te ścieżki nie są: to podstawowe przejścia wykańczające, a nie całość tego, co oferuje system produkcyjny.
+Czym te ścieżki nie są: to podstawowe przejścia wykończeniowe, a nie pełen zestaw możliwości systemu produkcyjnego.
 
-- Nie zbudowano: linia poziomicowa (stała z), czyszczenie narożników i ołówkiem, przejścia promieniowe i spiralne, rzutowanie krzywej na powierzchnię, wykrywanie płaskich obszarów, obróbka resztek, sprawdzanie kolizji oprawki i trzonu oraz pochylanie narzędzia.
-- Środek narzędzia pozostaje nad modelem: ścieżki zatrzymują się na krawędzi modelu zamiast za nią wychodzić, więc pionowa ściana tuż przy krawędzi nie jest wykończona aż do podstawy.
-- Podcięcia nie są widoczne (widać powierzchnię, na którą narzędzie trafia z góry).
-- Model to siatka z jądra, więc ścieżki podążają za siatką (jej tolerancja cięciwy wynosi około 0.0002 przekątnej części), a nie za dokładną powierzchnią.
-- Wykańczanie dużego modelu przy drobnej tolerancji daje długi program z wieloma krótkimi ruchami. Sprawdź wynik w symulatorze maszyny przed frezowaniem.
+- Nie zbudowano: wykańczania na stałej wysokości z (waterline), czyszczenia narożników i krawędzi (pencil), przejść promieniowych i spiralnych, rzutowania krzywej na powierzchnię, wykrywania płaskich obszarów, sprawdzania kolizji oprawki i trzonu. Zgrubną obróbkę i obróbkę resztek wykonują osobne operacje ([Obróbka zgrubna 3D i obróbka resztek](topic:rough-3d)); narzędzie pochylone to [wykańczanie 5-osiowe](topic:multi-axis#5-axis-finishing).
+- Środek narzędzia pozostaje nad modelem: ścieżki zatrzymują się na krawędzi modelu zamiast wychodzić poza nią, więc pionowa ściana dokładnie na krawędzi nie jest wykończona aż do podstawy.
+- Podcięć nie widać (powierzchnia to to, co narzędzie spotyka z góry).
+- Model to siatka z jądra, więc ścieżki podążają za siatką (jej tolerancja cięciwy wynosi około 0,0002 przekątnej części), a nie za dokładną powierzchnią.
+- Wykańczanie dużego modelu z drobną tolerancją daje długi program z wieloma krótkimi ruchami. Sprawdź wynik w symulatorze swojej maszyny przed frezowaniem.

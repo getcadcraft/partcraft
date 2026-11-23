@@ -33,7 +33,7 @@ What the tests check, with closed forms or an independent brute-force search of 
 
 What these paths are not: they are basic finishing passes, not the whole of what a production system offers.
 
-- Not built: waterline (constant z), pencil and corner clean-up, radial and spiral passes, projecting a curve onto the surface, flat-area detection, rest machining, holder and shank collision checks, and any tilting of the tool.
+- Not built: waterline (constant z) finishing, pencil and corner clean-up, radial and spiral passes, projecting a curve onto the surface, flat-area detection, holder and shank collision checks. Roughing and rest machining are their own operations ([3D roughing and rest machining](topic:rough-3d)); a tool that leans is [5-axis finishing](topic:multi-axis#5-axis-finishing).
 - The tool centre stays over the model: the paths stop at the model's edge instead of running off it, so a vertical wall right at the edge is not finished to its foot.
 - Undercuts are not seen (the surface is what the tool meets from above).
 - The model is the mesh from the kernel, so the paths follow the mesh (its chord tolerance is about 0.0002 of the part's diagonal), not the exact surface.

@@ -1,92 +1,94 @@
 ---
-title: Vytvorenie dráh nástroja a G-kódu (Výroba)
-summary: Nastavte polotovar a nulu práce, vyberte nástroje, pridajte operácie plochy, kapsy, kontúry, vŕtania a skosenia výberom plôch, dokončite celý model v 3D (rovnobežné, hrebienkové), simulujte polotovar voči modelu kvôli zárezom a času cyklu a stiahnite G-kód z jedného z troch vstavaných postprocesorov alebo z vlastného.
-keywords: presný STEP, STEP pre dielňu, pracovné súradnice, odovzdanie CAM, rovnobežné, hrebienkové, 3D dokončovanie, dokončovanie, guľová fréza, knižnica nástrojov, upraviť postprocesor, vlastný postprocesor, editor postprocesora, adaptívne, adaptívne odoberanie, konštantný záber, trochoidálne, HSM, vysokorýchlostné obrábanie, výroba, CAM, dráha nástroja, G-kód, NC, CNC, frézovanie, kapsa, kontúra, profil, čelné frézovanie, vŕtanie, peck, G83, G81, G73, skosenie, polotovar, posun nulovania, G54, postprocesor, GRBL, LinuxCNC, posuvy a otáčky, simulácia, zárez, čas cyklu
-from: beeb29aa
+title: Vytvoriť dráhy nástroja a G-kód (Výroba)
+summary: Nastavte polotovar a pracovný začiatok, zvoľte nástroje, pridajte operácie čela, kapsy, kontúry, vŕtania a skosenia výberom plôch, dokončite celý model v 3D (rovnobežne, hrebienkovanie), simulujte polotovar voči modelu na zarezania a čas cyklu a stiahnite G-kód z jedného z troch vstavaných postprocesorov alebo z vlastného, ktorý upravíte.
+keywords: presný STEP, STEP pre dielňu, pracovné súradnice, odovzdanie CAM, rovnobežné, hrebienkovanie, 3D dokončovanie, dokončovanie, guľová fréza, knižnica nástrojov, upraviť postprocesor, vlastný postprocesor, editor postprocesora, adaptívne, adaptívne vyčistenie, konštantný záber, trochoidné, HSM, vysokorýchlostné obrábanie, výroba, CAM, dráha nástroja, G-kód, NC, CNC, frézka, frézovanie, kapsa, kontúra, profil, čelné frézovanie, vŕtanie, vŕtanie s odsúvaním, G83, G81, G73, skosenie, polotovar, posun nulového bodu, G54, postprocesor, GRBL, LinuxCNC, posuvy a otáčky, simulácia, zarezanie, čas cyklu
+from: f8a03be8
 ---
 
-Pracovný priestor Výroba mení súčiastku na dráhy nástroja pre 3-osovú frézku a zapisuje ich ako G-kód. Väčšina operácií je **2.5-osová**: nástroj zostáva zvislý, steny sa režú rovno nadol a dná sú rovné. **Rovnobežné** a **Hrebienkové** dokončujú zakrivené plochy v 3D (pozri [3D dokončovanie](topic:finish-3d)); nástroj stále zostáva zvislý (tri osi, bez naklápania). Pracuje s pomenovanými plochami, ktoré jadro sietí dáva súčiastke (pozri [Jadro sietí](topic:solid-kernels)).
+Pracovný priestor Výroba mení súčiastku na dráhy nástroja a zapisuje ich ako G-kód. Väčšina operácií je **2.5-osové** frézovanie: nástroj stojí zvisle, steny sa režú rovno dolu a dná sú rovné. **3D hrubovanie** a **Zvyšky** vyčisťujú zakrivené súčiastky v 3D ([3D hrubovanie a obrábanie zvyškov](topic:rough-3d)); **Rovnobežnosť** a **Hrebienkové** ich dokončujú ([3D dokončovanie](topic:finish-3d)). Na stroji s otočnými osami môže mať ľubovoľná operácia naklonený nástroj a dve operácie pohybujú otočnými osami počas rezania ([4- a 5-osové obrábanie](topic:multi-axis)). Existujú operácie pre sústruh ([Sústruženie na sústruhu](topic:turning)) a pre dotykovú sondu ([Snímanie sondou](topic:probing)). Pracuje s pomenovanými plochami, ktoré jadro siete dáva súčiastke (pozri [Sieťové jadro](topic:solid-kernels)).
 
-Laboratórna verzia: každý program overte v simulátore vášho riadiaceho systému a najprv ho spustite vo vzduchu nad polotovarom.
+Laboratórne zostavenie: skontrolujte každý program v simulátore vášho riadiaceho systému a najprv ho spustite vo vzduchu nad polotovarom.
 
 ## Nastavenie
 
-1. Zvoľte **Výroba** v prepínači pracovných priestorov, potom {{ui:Nové nastavenie}}.
-2. Na karte **Nastavenie** zvoľte:
-   - **Os nástroja (+Z)**: ktorým smerom nástroj smeruje do súčiastky. Predvolene je to svetové +Y (hore v PartCraft); strojové X je potom svetové X a strojové Y je svetové −Z.
-   - **Nula práce (G54)**: roh alebo stred polotovaru, vrch alebo spodok, horný stred modelu, alebo počiatok modelu.
-   - **Polotovar**: škatuľa alebo valec, buď model plus odsadenia (strany, vrch, spodok), alebo pevný rozmer.
-   - **Materiál** (nastaví začiatočné posuvy a otáčky), **postprocesor** (riadiaca jednotka), maximálne otáčky vretena stroja, rýchloposuv a čas výmeny nástroja, chladenie a číslo programu.
+1. V prepínači pracovného priestoru vyberte **Výroba**, potom {{ui:Nové nastavenie}}.
+2. Na karte **Nastavenie** vyberte:
+   - **Os nástroja (+Z)**: ktorým smerom nástroj smeruje do súčiastky. Predvolene je svetový +Y (hore v PartCraft); strojová X je potom svetová X a strojová Y je svetové −Z.
+   - **Pracovný začiatok (G54)**: roh alebo stred polotovaru, vrch alebo spodok, horný stred modelu alebo počiatok modelu.
+   - **Polotovar**: kváder alebo valec, buď model plus prídavky (strany, vrch, spodok), alebo pevná veľkosť.
+   - **Materiál** (nastaví začiatočné posuvy a otáčky), **postprocesor** (riadenie), maximálne otáčky vretena stroja, rýchlosť rýchleho posuvu a čas výmeny nástroja, chladiacu kvapalinu a číslo programu.
 
 ## Nástroje
 
-Karta **Nástroje** obsahuje knižnicu: stopkové frézy plochej, guľovej a s polomerom rohu, vrtáky, skosovacie frézy a čelné frézy, každá s číslom T, priemerom, počtom zubov a dĺžkou zubov (plus polomer rohu, uhol hrotu alebo skosenia, kde sa uplatňujú).
+Karta **Nástroje** obsahuje knižnicu: ploché, guľové a zaoblené stopkové frézy, vrtáky, skosovacie frézy a čelné frézy, každá s číslom T, priemerom, počtom zubov a dĺžkou zubov (plus polomer rohu, hrot alebo uhol skosenia, kde sa uplatňujú).
 
 Moje nástroje sa dajú uložiť v prehliadači a presunúť medzi počítačmi ako súbor: pozri [Knižnica nástrojov](topic:tool-library).
 
-Otáčky vretena a posuv sa berú z materiálu: n = 1000 × rezná rýchlosť / (π × priemer), posuv = n × počet zubov × posuv na zub (vrtáky: n × posuv na otáčku). Čísla sú konzervatívne začiatočné hodnoty z publikovaných rozsahov, nie vyladené pre váš stroj; ak máte reznú rýchlosť, posuv na zub, otáčky alebo posuv od výrobcu nástroja, zadajte ich a prepíšu ich. Keď otáčky prekročia maximum stroja, drží sa na ňom a posuv ju nasleduje, aby zostal posuv na zub.
+Otáčky vretena a posuv vychádzajú z materiálu: n = 1000 × rezná rýchlosť / (π × priemer), posuv = n × počet zubov × hrúbka triesky (vrtáky: n × posuv na otáčku). Čísla sú konzervatívne východiskové hodnoty z publikovaných rozsahov, nie sú doladené pre váš stroj; na ich prepísanie zadajte reznú rýchlosť, hrúbku triesky, otáčky alebo posuv od výrobcu nástroja. Keď otáčky prekročia maximum stroja, zostanú na ňom a posuv sa prispôsobí, aby sa udržala hrúbka triesky.
 
 ## Pridanie operácií
 
-Každé tlačidlo na paneli nástrojov pridá operáciu a tam, kde potrebuje geometriu, začne výber: kliknite na plochy alebo hrany v zobrazení (kliknutím znova jednu odoberiete), potom {{ui:Výber hotový}} alebo {{key:Esc}}.
+Každé tlačidlo na paneli nástrojov pridá operáciu a tam, kde potrebuje geometriu, spustí výber: kliknite na plochy alebo hrany v pohľade (kliknutím znova jednu odstránite), potom {{ui:Výber hotový}} alebo {{key:Esc}}.
 
 | Operácia | Výber | Čo robí |
 |---|---|---|
-| {{ui:Plocha}} | nič | Zig-zag priechody cez celý polotovar, za jeho hranami, dole k hornej časti modelu |
-| {{ui:Kapsa}} | rovná plocha dna, okrúhla diera alebo uzavretá reťaz hrán | Vyčistí oblasť odsadenými priechodmi zvnútra von, pri každom kroku nadol; ostrovy (plochy vystupujúce vnútri dna) zostanú; dno otvorené dookola (nič vyššie vonku) sa vyčistí až k hrane polotovaru |
-| {{ui:Adaptívne}} | to isté ako Kapsa | Vyčistí rovnakú oblasť priechodmi, z ktorých každý reže nastavenú šírku (**Záber**, zlomok priemeru), takže rez nikdy nerobí plnú šírku drážky, ani v rohoch; vstupuje po špirále a dokončí steny na každej úrovni. Úzke rezy dovoľujú hlbší krok a vyšší posuv |
-| {{ui:Kontúra}} | rovná plocha (jej obrys), okrúhla plocha alebo hrany | Sleduje obrys odsadený o polomer nástroja, vonku alebo vnútri, s oblúkmi nábehu a výjazdu a voliteľnými priduškami |
-| {{ui:Vŕtanie}} | diery (kliknite na stenu diery alebo na jej okraj) | Vyvŕta každú dieru pevným cyklom: peck (G83), vŕtanie (G81) alebo lámanie triesky (G73); alebo zadajte priemer, aby sa vyvŕtali všetky diery tej veľkosti |
-| {{ui:Skosenie}} | obrys plochy alebo hrany | Vedie skosovaciu frézu po hrane tak, aby rezala šírku, ktorú nastavíte |
-| {{ui:Rovnobežnosť}} | nič (celý model) | 3D dokončovanie v rovnobežných čiarach pod ľubovoľným uhlom, sleduje povrch guľovou, s polomerom rohu alebo plochou frézou. Pozri [3D dokončovanie](topic:finish-3d) |
-| {{ui:Hrebienkové}} | nič (celý model) | 3D dokončovanie v priechodoch vzdialených nastavenú vzdialenosť nad povrchom, takže hrebeň medzi nimi má výšku, ktorú žiadate |
+| {{ui:Plocha}} | nič | Zig-zag prechody cez celý polotovar, za jeho hranami, až k vrchu modelu |
+| {{ui:Kapsa}} | rovnú plochu dna, okrúhly otvor alebo uzavretú reťaz hrán | Vyčistí oblasť ofsetovými prechodmi zvnútra von, pri každom kroku hĺbky; ostrovy (plochy stojace vo vnútri dna) sa nechajú; dno otvorené na všetky strany (nič vyššie vonku) sa vyčistí až k hrane polotovaru |
+| {{ui:Adaptívne}} | to isté ako pri {{ui:Kapsa}} | Vyčistí rovnakú oblasť prechodmi, z ktorých každý reže nastavenú šírku (**Záber**, zlomok priemeru), takže fréza nikdy neberie plnú šírku drážky, ani v rohoch; zavŕta sa po špirále a na každej úrovni dokončí steny. Úzke rezy umožňujú hlbší krok a vyšší posuv |
+| {{ui:Kontúra}} | rovnú plochu (jej obrys), okrúhlu plochu alebo hrany | Ide po obryse ofsetovanom o polomer nástroja, von alebo dovnútra, s nábehovými a výbehovými oblúkmi a voliteľnými mostíkmi |
+| {{ui:Vŕtanie}} | otvory (kliknite na stenu otvoru alebo na jeho okraj) | Vyvŕta každý otvor pevným cyklom: vŕtanie s odsúvaním (G83), vŕtanie (G81) alebo lámanie triesky (G73); alebo zadajte priemer a vyvŕtajte každý otvor tejto veľkosti |
+| {{ui:Skosenie}} | obrys alebo hrany plochy | Prejde skosovacou frézou pozdĺž hrany tak, aby odrezala šírku, ktorú nastavíte |
+| {{ui:Rovnobežnosť}} | nič (celý model) | 3D dokončovanie v rovnobežných čiarach pod ľubovoľným uhlom, po povrchu guľovou, zaoblenou alebo plochou stopkovou frézou. Pozri [3D dokončovanie](topic:finish-3d) |
+| {{ui:Hrebienkové}} | nič (celý model) | 3D dokončovanie v prechodoch nastavenej vzdialenosti od seba po povrchu, takže hrebeň medzi nimi má výšku, ktorú zadáte |
 
-Vyberte operáciu v zozname a zmeňte jej nástroj, výšky (bezpečná, odvod, výška posuvu, vrch, spodok), krok nadol, krok bočného rezu, prídavok na obrobenie, dokončovací priechod, vstup (špirála, rampa alebo zapichnutie), súhlasné frézovanie, priduchy alebo cyklus. {{ui:Hore}} a {{ui:Dole}} zmenia poradie, {{ui:Potlačiť}} ju vynechá, {{ui:Zmazať}} ju odstráni. Všetko je v histórii späť a uložené v súbore súčiastky.
+Vyberte operáciu v zozname a zmeňte jej nástroj, výšky (bezpečná výška, odsun, výška posuvu, vrch, spodok), hĺbku kroku, priečny krok, prídavok na dokončenie, dokončovací prechod, vstup (špirála, rampa alebo zavŕtanie), súhlasné frézovanie, mostíky alebo cyklus. {{ui:Hore}} a {{ui:Dole}} zmenia poradie, {{ui:Potlačiť}} ju vynechá, {{ui:Zmazať}} ju odstráni. Všetko je v histórii späť a uložené v súbore súčiastky.
 
-Krok bočného rezu kapsy je najviac polovica priemeru nástroja, takže každý bod jej dna leží do jedného polomeru nástroja od priechodu. Vnútorné rohy si zachovávajú polomer nástroja.
+Priečny krok kapsy je najviac polovica priemeru nástroja, takže každý bod jej dna leží v okruhu jedného polomeru nástroja od prechodu. Vnútorné rohy si zachovávajú polomer nástroja.
 
-**Adaptívne odoberanie** udržiava záber nástroja blízko jednej hodnoty. Záber 0.15 priemeru je uhol záberu asi 46°: oblúk hrany nástroja v materiáli. Odsadená kapsa naopak reže na prvom priechode plnú šírku a v každom vnútornom rohu sa obtáča ďalej. Medzi priechodmi nástroj zostáva dole tam, kde sa pohybuje cez vyrezaný vzduch, a inde sa zdvihne a spustí vo vyrezanom vzduchu. Priechody sa počítajú na jemnej mriežke cez oblasť (bunky asi jedna dvanástina polomeru nástroja), takže záber môže byť o bunku širší než nastavený; steny sa dokončujú presne. Veľká otvorená oblasť dá dlhý program s mnohými krátkymi pohybmi.
+**Adaptívne vyčistenie** udržiava záber frézy blízko jednej hodnoty. Záber 0.15 priemeru zodpovedá uhlu záberu približne 46°: oblúk hrany frézy v materiáli. Ofsetová kapsa naopak reže plnú šírku pri prvom prechode a v každom vnútornom rohu sa obtáča ďalej. Medzi prechodmi nástroj zostáva v materiáli tam, kde sa pohybuje vo vyrezanom priestore, a inde sa zdvihne a spustí do vyrezaného priestoru. Prechody sa vypočítajú na jemnej mriežke nad oblasťou (bunky asi jednu dvanástinu polomeru nástroja), takže záber môže byť až asi o jednu bunku širší, než je nastavený; steny sú dokončené presne. Veľká otvorená oblasť vytvorí dlhý program s mnohými krátkymi pohybmi.
 
 ## Simulácia
 
-Dráhy sa znovu vytvárajú po každej zmene (aj súčiastky). {{ui:Simulovať}} tiež ukáže polotovar, ktorý zostane po celom programe. Panel zobrazuje:
+Dráhy nástroja sa znovu vygenerujú po každej zmene (aj súčiastky). {{ui:Simulovať}} zobrazí aj polotovar, ktorý zostane po celom programe. Panel zobrazuje:
 
-- **Čas cyklu**: pohyby posuvu pri svojom posuve, rýchloposuvy ako priame čiary pri rýchloposuve z nastavenia a čas výmeny nástroja. Skutočné stroje zrýchľujú, takže trvajú dlhšie.
-- **Zárezy**: miesta, kde sa nástroj dostal viac ako 0.02 mm pod povrch súčiastky. Červené značky ich ukazujú v zobrazení.
-- **Zostávajúci polotovar na súčiastke**.
+- **Čas cyklu**: pracovné pohyby s ich posuvom, rýchle pohyby ako priame čiary pri rýchlosti rýchleho posuvu z nastavenia, plus čas výmeny nástroja. Skutočné stroje zrýchľujú, takže trvajú dlhšie.
+- **Zarezania**: miesta, kde nástroj išiel viac než 0.02 mm pod povrch súčiastky. Červené značky ich ukazujú v pohľade.
+- **Polotovar zostávajúci na súčiastke**.
 
-Polotovar je výšková mapa vrchu (Z-mapa), takže nemôže ukázať podrezania. Ťahajte **Prehrávanie**, aby sa nástroj pohyboval pozdĺž programu. V zobrazení sú pohyby posuvu plné a rýchloposuvy čiarkované, jedna farba na operáciu.
+Polotovar je výškova mapa vrchu (Z-mapa), preto nemôže zobraziť podrezy. Potiahnutím **Prehrávanie** posuniete nástroj pozdĺž programu. V pohľade sú pracovné pohyby plné a rýchle pohyby prerušované, jedna farba na operáciu.
 
-Keď je zapnuté **Zobraziť simulovaný polotovar**, polotovar sa farbí podľa modelu, bunka po bunke: **zelená** tam, kde je na modeli (do 0.02 mm), **červená** tam, kde nástroj zarezal do modelu, a tam, kde na modeli zostáva polotovar, **žltá** pre tenkú vrstvu, **oranžová** pre viac, a prechádza do **sivej** nezrezaného polotovaru pri 1 mm alebo viac. Farby sa počítajú znova pri každej zmene z tej istej výškovej mapy ako čísla v paneli, takže zelená a červená súhlasia s riadkom Zárezy. Skosenie reže do modelu úmyselne a pozdĺž svojej hrany ukazuje červenú.
+Keď je zapnuté **Zobraziť simulovaný polotovar**, polotovar sa sfarbí voči modelu bunku po bunke: **zelená** tam, kde je na modeli (v rámci 0.02 mm), **červená** tam, kde nástroj zarezal do modelu, a tam, kde na modeli zostáva polotovar, **žltá** pre tenkú vrstvu, **oranžová** pre viac, plynule prechádzajúc do **sivej** nevyrezaného polotovaru pri 1 mm alebo viac. Farby sa znovu vygenerujú pri každej zmene z tej istej výškovej mapy ako čísla v paneli, takže zelená a červená súhlasia s riadkom Zarezania. Skosenie zámerne zareže do modelu a pozdĺž svojej hrany zobrazí červenú.
 
 ## Postprocesor G-kódu
 
-Vyberte riadiacu jednotku pod **Postprocesor** a stlačte {{ui:Stiahnuť G-kód}} (alebo {{ui:Postprocesor}} na paneli nástrojov):
+Vyberte riadenie pod **Postprocesor** a stlačte {{ui:Stiahnuť G-kód}} (alebo {{ui:Postprocesor}} na paneli nástrojov):
 
-| Riadiaca jednotka | Súbor | Poznámky |
+| Riadenie | Súbor | Poznámky |
 |---|---|---|
-| Fanuc-style ISO | .nc | %, číslo O, čísla riadkov, T M6 s G43 H, pevné cykly |
-| GRBL | .nc | Žiadna výmena nástrojov ani pevné cykly: výmena nástroja pozastaví s M0, vŕtanie sa zapíše ako obyčajné pohyby |
+| ISO v štýle Fanuc | .nc | %, číslo O, čísla riadkov, T M6 s G43 H, pevné cykly |
+| GRBL | .nc | Bez výmenníka nástrojov a pevných cyklov: výmena nástroja sa zastaví s M0, vŕtanie sa zapisuje ako obyčajné pohyby |
 | LinuxCNC | .ngc | T M6 s G43 H, pevné cykly, M2 |
-| Váš vlastný | ľubovoľný | Postprocesor, ktorý ste napísali alebo zmenili: {{ui:Upraviť postprocesor…}}, {{ui:Nový postprocesor…}}, {{ui:Importovať súbor postprocesora…}} |
+| Sústruh v štýle Fanuc | .nc | Pre programy sústruženia: X ako priemer, posuv na otáčku, G96 pod limitom G50, závitovanie G32 |
+| Sústruh LinuxCNC | .ngc | Pre programy sústruženia: priemery G7, G95, G96, závitovanie G33; nezapisuje pohyb na referenciu |
+| Vlastný | ľubovoľný | Postprocesor, ktorý ste napísali alebo zmenili: {{ui:Upraviť postprocesor…}}, {{ui:Nový postprocesor…}}, {{ui:Importovať súbor postprocesora…}} |
 
-Každý súbor začína komentármi o programe, polotovare, posune nuly a nástrojoch. Súradnice sú v milimetroch s 3 desatinnými miestami. {{ui:CSV dráhy nástroja}} a {{ui:JSON dráhy nástroja}} exportujú samotné pohyby.
+Každý súbor začína komentármi k programu, polotovaru, posunu nulového bodu a nástrojom. Súradnice sú v milimetroch s 3 desatinnými miestami. {{ui:CSV dráhy nástroja}} a {{ui:JSON dráhy nástroja}} exportujú samotné pohyby.
 
-**Výstup skontrolujte v simulátore vášho stroja pred obrábaním a najprv ho spustite vo vzduchu nad polotovarom.** Tri vstavané postprocesory sú východiská, ktoré sledujú zdokumentované správanie riadiacich jednotiek; neboli overené na žiadnom konkrétnom stroji. Postprocesor, ktorý zmeníte, musíte overiť sami. Ako ho napísať: [Postprocesory](topic:post-processors).
+**Pred rezaním skontrolujte výstup v simulátore vášho stroja a najprv ho spustite vo vzduchu nad polotovarom.** Tri vstavané postprocesory sú východiskové body, ktoré sledujú zdokumentované správanie riadiacich systémov; neboli overené na žiadnom konkrétnom stroji. Postprocesor, ktorý zmeníte, musíte overiť vy. Ako ho napísať: [Postprocesory](topic:post-processors).
 
 ## Presný STEP pre dielňu
 
-Pod tlačidlami G-kódu na karte **Operácie** {{ui:Presný STEP (pracovné súradnice)}} stiahne `<part>-work.step`: súčiastku ako presné teleso (skutočné valce pre diery a výstupky, skutočné kružnice pre ich hrany) s počiatkom v nulovom bode práce tohto nastavenia a osou Z pozdĺž osi nástroja. Sú to súradnice, ktoré G-kód používa, takže vlastný CAM program dielne alebo kontrola zarovná model s programom bez jeho posúvania. Súbor obsahuje len súčiastku, nie polotovar ani dráhy nástroja.
+Pod tlačidlami G-kódu na karte **Operácie** {{ui:Presný STEP (pracovné súradnice)}} stiahne `<part>-work.step`: súčiastku ako presné teleso (skutočné valce pre otvory a výstupky, skutočné kružnice pre ich hrany) s počiatkom v pracovnom začiatku tohto nastavenia a Z pozdĺž osi nástroja. Sú to súradnice, ktoré G-kód používa, takže vlastný CAM program alebo kontrola dielne zarovná model s programom bez jeho presúvania. Súbor obsahuje len súčiastku, nie polotovar ani dráhy nástroja.
 
-{{ui:Export}} › {{ui:STEP AP242 (presné teleso)}} zapíše to isté teleso na jeho vlastnej pozícii (Z hore): pozri [Export na tlač, STEP a DXF](topic:export-files#for-other-cad-programs-step).
+{{ui:Export}} › {{ui:STEP AP242 (presné teleso)}} zapíše to isté teleso v pôvodnej polohe súčiastky (Z nahor): pozri [Export na tlač, STEP a DXF](topic:export-files#for-other-cad-programs-step).
 
-## Limity
+## Obmedzenia
 
-- Kapsy, kontúry, vŕtania a skosenia sú 2.5-osové. Zakrivené plochy sa dajú dokončiť v 3D ([rovnobežné a hrebienkové](topic:finish-3d)), ale nie hrubo obrábať v 3D (kužeľ zostane ako schody, kým ho nedokončíte), a nie je tu obrábanie zvyškov. Adaptívne odoberanie je 2D (rovné dná).
-- Len tri osi: žiadne naklápanie, žiadne sústruženie, žiadna kontrola.
-- Držiaky a stopky sa nekontrolujú na kolízie; varovanie sa objaví, keď je rez hlbší než dĺžka zubov.
-- Posuvy a otáčky sú začiatočné hodnoty. Postprocesor je text, ktorý môžete upraviť, ale rozhoduje len o tom, ako sa pohyby zapíšu; nemôže zmeniť dráhu nástroja, pridať osi ani poznať váš stroj ([Postprocesory](topic:post-processors) uvádza, čo nedokáže).
+- Kapsy, kontúry, vŕtanie a skosenia sú 2.5-osové. Zakrivené súčiastky sa hrubujú a dokončujú v 3D vlastnými operáciami ([3D hrubovanie a obrábanie zvyškov](topic:rough-3d), [3D dokončovanie](topic:finish-3d)). Adaptívne vyčistenie je 2D (ploché dná).
+- Naklonené nástroje, 5-osové a 4-osové dokončovanie, sústruženie a snímanie sondou sú k dispozícii, každé s vlastnými obmedzeniami, a **žiadne z nich nebolo spustené na stroji**: pozri [4- a 5-osové obrábanie](topic:multi-axis), [Sústruženie na sústruhu](topic:turning) a [Snímanie sondou](topic:probing).
+- Držiaky a stopky sa nekontrolujú na kolízie; upozornenie sa zobrazí, keď je rez hlbší ako dĺžka zubov.
+- Posuvy a otáčky sú východiskové hodnoty. Postprocesor je text, ktorý môžete upraviť, ale určuje len, ako sa pohyby zapisujú; nemôže zmeniť dráhu nástroja, pridať osi ani poznať váš stroj ([Postprocesory](topic:post-processors) uvádza, čo nedokáže).
 
 ## Odoslanie programu na stroj
 
-V CadCraft Studio na počítači, s strojom nastaveným v Studiu, sa vedľa {{ui:Stiahnuť G-kód}} objaví **Odoslať na stroj…** a nahrá ten istý program na stroj vo vašej sieti. Nikdy sa nespúšťa z PartCraft: spustite ho na stroji, keď je jasné, že je to v poriadku. V prehliadači sa tlačidlo nezobrazuje (webová stránka nedosiahne stroj vo vašej sieti): namiesto toho stiahnite program.
+V CadCraft Studio na počítači, s strojom nastaveným v Studiu, sa **Odoslať na stroj…** zobrazí vedľa **Stiahnuť G-kód** a nahrá rovnaký program na stroj vo vašej sieti. Nikdy sa nespúšťa z PartCraft: spustite ho na stroji, keď je jasné, že je to bezpečné. V prehliadači sa tlačidlo nezobrazí (webová stránka nedosiahne stroj vo vašej sieti): namiesto toho program stiahnite.

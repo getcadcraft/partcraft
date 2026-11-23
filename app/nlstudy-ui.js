@@ -32,7 +32,7 @@ export function install(ctx, { show }) {
   U.ITEM.contacts = {
     prefix: 'p', label: () => t('study.nl.pair'), icon: (it) => (it.type === 'bonded' ? 'link' : 'arrows-angle-contract'),
     make: (id) => ({ id, type: 'frictionless', faces: [], master: [], factor: 20 }),
-    editor: (g, it, set, K, host) => pairEditor(g, it, set, K, host),
+    editor: pairEditor,
     shown: (st) => st.kind === 'contact',
   };
 }

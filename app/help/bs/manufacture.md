@@ -1,92 +1,94 @@
 ---
-title: Napravi putanje alata i G-kod (Manufacture)
-summary: Postavi pripremak i radni ishodište, izaberi alate, dodaj operacije površine, džepa, konture, bušenja i skošenja biranjem površina, završi cijeli model u 3D (paralelno, scallop), simuliraj pripremak naspram modela zbog grešaka i vremena ciklusa, i preuzmi G-kod iz jednog od tri ugrađena posta ili onog koji sam uređuješ.
-keywords: tačan STEP, STEP za radionicu, radne koordinate, CAM predaja, paralelno, scallop, 3D završna obrada, završna obrada, kuglasta glava, biblioteka alata, uredi post, prilagođeni post, uređivač posta, adaptivno, adaptivno čišćenje, konstantno angažovanje, trohoidalno, hsm, obrada velikim brzinama, manufacture, CAM, putanja alata, G-kod, NC, CNC, glodalica, glodanje, džep, kontura, profil, planiranje, bušenje, peck, G83, G81, G73, skošenje, pripremak, radni ofset, G54, post procesor, GRBL, LinuxCNC, posmak i brzine, simulacija, zarez, vrijeme ciklusa
-from: beeb29aa
+title: Izradi putanje alata i G-kod (Izrada)
+summary: Postavi sirovac i radni početak, izaberi alate, dodaj operacije lica, džepa, konture, bušenja i skošenja odabirom površina, završi cijeli model u 3D (paralelno, scallop), simuliraj sirovac naspram modela radi urezivanja i vremena ciklusa, i preuzmi G-kod s jednog od tri ugrađena postprocesora ili onog koji sami uredite.
+keywords: exact step, step za radionicu, radne koordinate, cam predaja, paralelno, scallop, 3d završna obrada, završna obrada, kuglasto glodalo, biblioteka alata, uredi postprocesor, prilagođeni postprocesor, uređivač postprocesora, adaptive, adaptivno čišćenje, konstantan angažman, trochoidal, hsm, glodanje velikom brzinom, izrada, CAM, putanja alata, G-kod, NC, CNC, glodalica, glodanje, džep, kontura, profil, planiranje lica, bušenje, peck, G83, G81, G73, skošenje, sirovac, pomak radnog koordinatnog sistema, G54, postprocesor, GRBL, LinuxCNC, brzine i posmaci, simulacija, urezivanje, vrijeme ciklusa
+from: f8a03be8
 ---
 
-Radni prostor Manufacture pretvara dio u putanje alata za glodalicu sa tri ose i upisuje ih kao G-kod. Većina operacija je **2.5-osna**: alat ostaje vertikalan, zidovi se režu ravno dolje, a podovi ravno. **Paralelno** i **Scallop** završavaju zakrivljene površine u 3D (vidi [3D završna obrada](topic:finish-3d)); alat i dalje ostaje vertikalan (tri ose, bez naginjanja). Radi nad imenovanim površinama koje mesh kernel daje dijelu (vidi [Mesh kernel](topic:solid-kernels)).
+Radni prostor Izrada pretvara dio u putanje alata i zapisuje ih kao G-kod. Većina operacija je **2,5-osno** glodanje: alat ostaje vertikalan, zidovi se režu ravno dolje, a podovi su ravni. **3D grubo** i **{{ui:Ostatak}}** čiste zakrivljene dijelove u 3D ([3D grubo obrađivanje i obrada preostalog materijala](topic:rough-3d)); **{{ui:Paralelno}}** i **{{ui:Scallop}}** ih završavaju ([3D završna obrada](topic:finish-3d)). Na mašini s rotacionim osama bilo koja operacija može imati nagnut alat, a dvije operacije pomjeraju rotacione ose dok režu ([4- i 5-osna obrada](topic:multi-axis)). Postoje operacije za tokarilicu ([Struganje](topic:turning)) i za dodirnu sondu ([Sondiranje](topic:probing)). Radi na imenovanim površinama koje mrežni kernel daje dijelu (vidi [Mrežni kernel](topic:solid-kernels)).
 
-Probna verzija: provjeri svaki program u simulatoru svog upravljača i prvo ga pokreni u zraku iznad pripremka.
+Laboratorijska verzija: provjerite svaki program u simulatoru vaše upravljačke jedinice i prvo ga pustite u zraku iznad sirovca.
 
 ## Postavljanje
 
-1. Odaberi **Manufacture** u prebacivaču radnog prostora, zatim {{ui:Novo podešavanje}}.
-2. Na kartici **Podešavanje** odaberi:
-   - **Osa alata (+Z)**: u kom smjeru alat ulazi u dio. Svijet +Y (gore u PartCraft-u) je podrazumijevan; X mašine je tada X svijeta, a Y mašine je −Z svijeta.
-   - **Radni ishodište (G54)**: ugao ili centar pripremka, gore ili dolje, gornji centar modela ili ishodište modela.
-   - **Pripremak**: kutija ili valjak, ili model plus odmaci (bočno, gore, dolje) ili fiksna veličina.
-   - **Materijal** (postavlja početne posmake i brzine), **post** (upravljač), maksimalnu brzinu vretena mašine, brzinu brzog hoda i vrijeme promjene alata, rashladno sredstvo i broj programa.
+1. Izaberite **Izrada** u prekidaču radnog prostora, zatim {{ui:Novo podešavanje}}.
+2. Na kartici **Podešavanje** izaberite:
+   - **Osa alata (+Z)**: u kojem smjeru alat ulazi u dio. Svjetski +Y (gore u PartCraftu) je zadano; tada je mašinski X svjetski X, a mašinski Y je svjetski −Z.
+   - **Radni početak (G54)**: ugao ili centar sirovca, gornja ili donja strana, gornji centar modela ili početak modela.
+   - **Sirovac**: kocka ili valjak, bilo model plus dodaci (strane, vrh, dno) ili fiksna veličina.
+   - **Materijal** (postavlja početne brzine i posmake), **postprocesor** (upravljačka jedinica), maksimalnu brzinu vretena mašine, brzi hod i vrijeme promjene alata, rashladno sredstvo i broj programa.
 
 ## Alati
 
-Kartica **Alati** sadrži biblioteku: ravne, kuglaste i bull nose glodalice, burgije, glodalice za skošenje i čeone glodalice, svaka sa T brojem, prečnikom, brojem žljebova i dužinom žljeba (plus radijus ugla, ugao vrha ili skošenja gdje se primjenjuje).
+Kartica **Alati** sadrži biblioteku: ravna, kuglasta i polukružna glodala, bušilice, glodala za skošenje i čeona glodala, svako s T brojem, prečnikom, žlijebovima i dužinom žlijeba (plus poluprečnik ugla, vrh ili ugao skošenja gdje se primjenjuju).
 
-Moji alati mogu se sačuvati u pretraživaču i prenijeti između računara kao datoteka: vidi [Biblioteka alata](topic:tool-library).
+Moji alati mogu se sačuvati u pregledaču i prenositi između računara kao datoteka: vidi [Biblioteka alata](topic:tool-library).
 
-Brzina vretena i posmak dolaze iz materijala: n = 1000 × brzina rezanja / (π × prečnik), posmak = n × žljebovi × opterećenje strugotine (burgije: n × posmak po okretaju). Brojevi su konzervativne početne vrijednosti iz objavljenih opsega, nisu podešene za tvoju mašinu; upiši brzinu rezanja, opterećenje strugotine, o/min ili posmak proizvođača alata da ih prepišeš. Kad brzina pređe maksimum mašine, ostaje na njemu, a posmak prati, održavajući opterećenje strugotine.
+Brzina vretena i posmak dolaze iz materijala: n = 1000 × brzina rezanja / (π × prečnik), posmak = n × broj žlijebova × debljina strugotine (bušilice: n × posmak po okretaju). Brojevi su oprezne početne vrijednosti iz objavljenih raspona, nisu podešene za vašu mašinu; unesite brzinu rezanja, debljinu strugotine, o/min ili posmak vašeg proizvođača alata da ih zamijenite. Kad brzina pređe maksimum mašine, zadržava se na njemu, a posmak je prati, čime se održava debljina strugotine.
 
-## Dodaj operacije
+## Dodavanje operacija
 
-Svako dugme na traci dodaje operaciju i, gdje treba geometriju, počinje odabir: klikni površine ili ivice u pogledu (klikni ponovo da ukloniš jednu), zatim {{ui:Završi odabir}} ili {{key:Esc}}.
+Svako dugme na alatnoj traci dodaje operaciju i, gdje treba geometriju, počinje odabir: kliknite površine ili ivice u prikazu (ponovo kliknite da ih ukinete), zatim {{ui:Završi odabir}} ili {{key:Esc}}.
 
 | Operacija | Odabir | Šta radi |
 |---|---|---|
-| {{ui:Površina}} | ništa | Cik-cak prolazi preko cijelog pripremka, preko njegovih ivica, do gornje strane modela |
-| {{ui:Džep}} | ravna površina poda, okrugla rupa, ili zatvoren lanac ivica | Čisti oblast prolazima ofseta iznutra prema van, na svakom koraku dubine; ostrva (površine koje stoje uzdignuto unutar poda) ostaju; pod otvoren sa svih strana (ništa više izvan njega) čisti se do ivice pripremka |
-| {{ui:Adaptivno}} | isto kao Džep | Čisti istu oblast u prolazima od kojih svaki reže zadatu širinu (**Angažovanje**, dio prečnika), tako da se glodalo nikad ne zaglavi u punoj širini utora, ni u uglovima; ulazi heliksom i završava zidove na svakom nivou. Uski rezovi dozvoljavaju dublji korak i veći posmak |
-| {{ui:Kontura}} | ravna površina (njen obris), okrugla površina, ili ivice | Prati obris ofsetovan radijusom alata, spolja ili iznutra, sa lukovima uvoda i izlaza i opcionim mostovima |
-| {{ui:Bušenje}} | rupe (klikni zid rupe ili njen obod) | Buši svaku rupu ugrađenim ciklusom: peck (G83), bušenje (G81) ili lomljenje strugotine (G73); ili zadaj prečnik da izbuši svaku rupu te veličine |
-| {{ui:Skošenje}} | obris površine ili ivice | Vodi glodalo za skošenje duž ivice tako da reže širinu koju postaviš |
-| {{ui:Paralelno}} | ništa (cijeli model) | 3D završna obrada paralelnim linijama pod bilo kojim uglom, prateći površinu kuglastim, bull-nose ili ravnim glodalom. Vidi [3D završna obrada](topic:finish-3d) |
-| {{ui:Scallop}} | ništa (cijeli model) | 3D završna obrada prolazima na zadatoj udaljenosti preko površine, tako da greben između njih ima visinu koju tražiš |
+| {{ui:Površina}} | ništa | Zig-zag prolazi preko cijelog sirovca, preko njegovih ivica, do gornje strane modela |
+| {{ui:Džep}} | ravna donja površina, okrugla rupa ili zatvoren lanac ivica | Čisti područje ofset prolazima iznutra prema van, na svakom koraku dubine; ostrva (površine koje stoje unutar dna) ostaju; dno otvoreno sa svih strana (ništa više izvan njega) čisti se do ivice sirovca |
+| {{ui:Adaptivno}} | isto kao Džep | Čisti isto područje prolazima od kojih svaki reže zadanu širinu (**Angažman**, dio prečnika), tako da glodalo nikad ne uzme puni utor, ni u uglovima; ulazi heliksom i završava zidove na svakom nivou. Uski rezovi dozvoljavaju dublji korak i veći posmak |
+| {{ui:Kontura}} | ravna površina (njen obris), okrugla površina ili ivice | Prati obris ofsetovan poluprečnikom alata, spolja ili iznutra, s lučnim ulaskom i izlaskom i opcionim držačima |
+| {{ui:Bušenje}} | rupe (kliknite zid ili obod rupe) | Buši svaku rupu standardnim ciklusom: isprekidano (G83), bušenje (G81) ili lomljenje strugotine (G73); ili zadajte prečnik da izbušite svaku rupu te veličine |
+| {{ui:Skošenje}} | obris površine ili ivice | Vodi glodalo za skošenje duž ivice tako da reže širinu koju postavite |
+| {{ui:Paralelno}} | ništa (cijeli model) | 3D završna obrada paralelnim linijama pod bilo kojim uglom, prateći površinu kuglastim, polukružnim ili ravnim glodalom. Vidi [3D završna obrada](topic:finish-3d) |
+| {{ui:Scallop}} | ništa (cijeli model) | 3D završna obrada u prolazima na zadanoj udaljenosti preko površine, tako da greben između njih ima visinu koju tražite |
 
-Odaberi operaciju na listi da promijeniš njen alat, visine (zazor, uvlačenje, visina posmaka, gore, dolje), korak dubine, korak bočno, pripremak koji ostaje, završni prolaz, ulaz (heliks, rampa ili uranjanje), glodanje u penjanju, mostove ili ciklus. {{ui:Gore}} i {{ui:Dolje}} mijenjaju redoslijed, {{ui:Isključi}} je izostavlja, {{ui:Izbriši}} je uklanja. Sve je u historiji poništavanja i sačuvano u datoteci dijela.
+Izaberite operaciju na listi da promijenite njen alat, visine (zazor, uvlačenje, visinu posmaka, vrh, dno), korak dubine, korak, materijal za ostavljanje, završni prolaz, ulazak (heliks, rampa ili uranjanje), glodanje u smjeru posmaka, držače ili ciklus. {{ui:Gore}} i {{ui:Dolje}} mijenjaju redoslijed, {{ui:Isključi}} je izostavlja, {{ui:Izbriši}} je uklanja. Sve je u historiji poništavanja i čuva se u datoteci dijela.
 
-Korak bočno džepa je najviše pola prečnika alata, pa je svaka tačka njegovog poda unutar jednog radijusa alata od nekog prolaza. Unutrašnji uglovi zadržavaju radijus alata.
+Korak džepa je najviše polovina prečnika alata, pa je svaka tačka njegovog dna unutar jednog poluprečnika alata od nekog prolaza. Unutrašnji uglovi zadržavaju poluprečnik alata.
 
-**Adaptivno čišćenje** održava angažovanje glodala blizu jedne vrijednosti. Angažovanje od 0.15 prečnika je ugao angažovanja oko 46°: luk ivice glodala u materijalu. Ofset džep, nasuprot tome, reže punu širinu na prvom prolazu i obuhvata se dalje u svakom unutrašnjem uglu. Između prolaza alat ostaje spušten dok se kreće kroz već isječen prostor, a inače se podiže i spušta u isječenom prostoru. Prolazi se računaju na finoj mreži preko oblasti (ćelije oko dvanaestine radijusa alata), pa angažovanje može biti do oko jedne ćelije šire od zadatog; zidovi se završavaju tačno. Velika otvorena oblast pravi dug program sa mnogo kratkih kretanja.
+**Adaptivno čišćenje** održava angažman glodala blizu jedne vrijednosti. Angažman od 0,15 prečnika je ugao angažmana od oko 46°: luk ivice glodala u materijalu. Ofset džep, nasuprot tome, reže punu širinu na prvom prolazu i obuhvata još više u svakom unutrašnjem uglu. Između prolaza alat ostaje spušten gdje prolazi kroz rezani zrak, a podiže se i spušta u rezanom zraku drugdje. Prolazi se računaju na finoj mreži preko područja (ćelije oko dvanaestine poluprečnika alata), pa angažman može biti širi od zadanog za oko jednu ćeliju; zidovi se završavaju tačno. Veliko otvoreno područje daje dug program s mnogo kratkih pomaka.
 
-## Simuliraj
+## Simulacija
 
-Putanje se ponovo prave nakon svake promjene (i dijela). {{ui:Simuliraj}} takođe prikazuje pripremak koji ostaje nakon cijelog programa. Panel prikazuje:
+Putanje se ponovo prave nakon svake promjene (i dijela). {{ui:Simuliraj}} takođe prikazuje sirovac koji ostaje nakon cijelog programa. Panel prikazuje:
 
-- **Vrijeme ciklusa**: posmačna kretanja pri svom posmaku, brza kretanja kao prave linije pri brzini brzog hoda podešavanja, plus vrijeme promjene alata. Prave mašine ubrzavaju, pa traju duže.
-- **Zarezi**: mjesta gdje je alat išao više od 0.02 mm ispod površine dijela. Crvene oznake ih prikazuju u pogledu.
-- **Pripremak koji ostaje na dijelu**.
+- **Vrijeme ciklusa**: pomaci posmaka na svom posmaku, brzi hodi kao prave linije na brzini hoda iz podešavanja, plus vrijeme promjene alata. Prave mašine ubrzavaju, pa traju duže.
+- **Urezivanja**: mjesta gdje je alat otišao više od 0,02 mm ispod površine dijela. Crvene oznake ih prikazuju u prikazu.
+- **Materijal koji ostaje na dijelu**.
 
-Pripremak je mapa visina gornje strane (Z-mapa), pa ne može prikazati podreze. Prevuci **Reprodukcija** da pomjeriš alat duž programa. U pogledu, posmačna kretanja su puna, a brza isprekidana, jedna boja po operaciji.
+Sirovac je mapa visina vrha (Z-mapa), pa ne može prikazati podreze. Povucite **Reprodukcija** da pomjerate alat duž programa. U prikazu su pomaci posmaka puni, a brzi hodi isprekidani, s jednom bojom po operaciji.
 
-Uz uključeno **Prikaži simulirani pripremak**, pripremak je obojen naspram modela, ćelija po ćelija: **zeleno** gdje je na modelu (unutar 0.02 mm), **crveno** gdje je alat zarezao u model, a gdje pripremak ostaje na modelu **žuto** za tanku koru, **narandžasto** za više, prelazeći u **sivo** neobrađenog pripremka na 1 mm ili više. Boje se ponovo prave sa svakom promjenom, iz iste mape visina kao brojevi na panelu, pa se zeleno i crveno slažu sa linijom Zarezi. Skošenje namjerno zarezuje u model i pokazuje crveno duž svoje ivice.
+Kad je uključeno **Prikaži simulirani sirovac**, sirovac se boji naspram modela, ćeliju po ćeliju: **zeleno** gdje je na modelu (unutar 0,02 mm), **crveno** gdje je alat zašao u model, a gdje materijal ostaje na modelu **žuto** za tanku kožu, **narandžasto** za više, prelazeći u **sivo** neobrađenog sirovca na 1 mm ili više. Boje se ponovo prave pri svakoj promjeni, iz iste mape visina kao brojevi u panelu, pa se zeleno i crveno slažu s redom Urezivanja. Skošenje namjerno zalazi u model i na svojoj ivici prikazuje crveno.
 
-## Post-procesiranje G-koda
+## Postprocesiranje G-koda
 
-Odaberi upravljač pod **Post** i pritisni {{ui:Preuzmi G-kod}} (ili {{ui:Post-procesor}} na traci):
+Izaberite upravljačku jedinicu pod **Post-procesor** i pritisnite {{ui:Preuzmi G-kod}} (ili {{ui:Post-procesor}} na alatnoj traci):
 
-| Upravljač | Datoteka | Napomene |
+| Upravljačka jedinica | Datoteka | Napomene |
 |---|---|---|
-| Fanuc-style ISO | .nc | %, O broj, brojevi linija, T M6 sa G43 H, ugrađeni ciklusi |
-| GRBL | .nc | Bez mijenjača alata i ugrađenih ciklusa: promjena alata pauzira sa M0, bušenje se piše kao obična kretanja |
-| LinuxCNC | .ngc | T M6 sa G43 H, ugrađeni ciklusi, M2 |
-| Vlastiti | bilo koja | Post koji si napisao ili promijenio: {{ui:Uredi postprocesor…}}, {{ui:Novi postprocesor…}}, {{ui:Uvezi datoteku postprocesora…}} |
+| Fanuc-style ISO | .nc | %, O broj, brojevi redova, T M6 s G43 H, standardni ciklusi |
+| GRBL | .nc | Nema mijenjača alata ni standardnih ciklusa: promjena alata pauzira s M0, bušenje je zapisano kao obični pomaci |
+| LinuxCNC | .ngc | T M6 s G43 H, standardni ciklusi, M2 |
+| Tokarilica tipa Fanuc | .nc | Za programe struganja: X kao prečnik, posmak po okretaju, G96 pod ograničenjem G50, G32 navoj |
+| LinuxCNC tokarilica | .ngc | Za programe struganja: G7 prečnici, G95, G96, G33 navoj; ne zapisuje pomak na početni položaj |
+| Vaš vlastiti | bilo koja | Postprocesor koji ste napisali ili promijenili: {{ui:Uredi postprocesor…}}, {{ui:Novi postprocesor…}}, {{ui:Uvezi datoteku postprocesora…}} |
 
-Svaka datoteka počinje komentarima za program, pripremak, radni ofset i alate. Koordinate su u milimetrima sa 3 decimale. {{ui:CSV putanje alata}} i {{ui:JSON putanje alata}} izvoze same pokrete.
+Svaka datoteka počinje komentarima za program, sirovac, pomak radnog koordinatnog sistema i alate. Koordinate su u milimetrima s 3 decimale. {{ui:Toolpath CSV}} i {{ui:Toolpath JSON}} izvoze same pomake.
 
-**Provjeri izlaz u simulatoru svoje mašine prije rezanja, i prvo ga pokreni u zraku iznad pripremka.** Tri ugrađena posta su polazne tačke koje prate dokumentovano ponašanje upravljača; nisu dokazane ni na jednoj konkretnoj mašini. Post koji promijeniš je tvoj da dokažeš. Kako napisati jedan: [Post procesori](topic:post-processors).
+**Provjerite izlaz u simulatoru vaše mašine prije rezanja i prvo ga pustite u zraku iznad sirovca.** Tri ugrađena postprocesora su polazne tačke koje slijede dokumentovano ponašanje upravljačkih jedinica; nisu dokazana ni na jednoj konkretnoj mašini. Postprocesor koji promijenite je vaš i na vama je da ga dokažete. Kako ga napisati: [Postprocesori](topic:post-processors).
 
 ## Tačan STEP za radionicu
 
-Ispod dugmadi za G-kod na kartici **Operacije**, {{ui:Tačan STEP (radne koordinate)}} preuzima `<part>-work.step`: dio kao tačno čvrsto tijelo (prave cilindre za rupe i izbočine, prave krugove za njihove ivice) sa ishodištem u radnom ishodištu ovog podešavanja i Z duž ose alata. To su koordinate koje G-kod koristi, pa CAM program ili provjerivač radionice poravnava model sa programom bez pomjeranja. Datoteka sadrži samo dio, ne pripremak ni putanje alata.
+Ispod dugmadi G-koda na kartici **Operacije**, {{ui:Tačan STEP (radne koordinate)}} preuzima `<dio>-work.step`: dio kao tačno čvrsto tijelo (pravi valjci za rupe i izbočine, prave kružnice za njihove ivice) s početkom u radnom početku ovog podešavanja i Z duž osi alata. To su koordinate koje koristi G-kod, pa CAM program ili provjerivač radionice poravnava model s programom bez pomjeranja. Datoteka sadrži samo dio, bez sirovca i putanja alata.
 
-{{ui:Izvoz}} › {{ui:STEP AP242 (tačno čvrsto tijelo)}} piše isto tijelo u vlastitom položaju dijela (Z gore): vidi [Izvoz za štampu, STEP i DXF](topic:export-files#for-other-cad-programs-step).
+{{ui:Izvoz}} › {{ui:STEP AP242 (tačno čvrsto tijelo)}} zapisuje isto tijelo u vlastitom položaju dijela (Z gore): vidi [Izvoz za štampanje, STEP i DXF](topic:export-files#for-other-cad-programs-step).
 
 ## Ograničenja
 
-- Džepovi, konture, bušenje i skošenja su 2.5-osni. Zakrivljene površine mogu se završiti u 3D ([paralelno i scallop](topic:finish-3d)), ali ne i grubo obraditi u 3D (konus ostaje kao stepenice dok ga ne završiš), i nema obrade ostatka. Adaptivno čišćenje je 2D (ravni podovi).
-- Samo tri ose: bez naginjanja, bez struganja, bez inspekcije.
-- Držači i drške se ne provjeravaju za sudare; upozorenje se pojavljuje kad je rez dublji od dužine žljeba.
-- Posmaci i brzine su početne vrijednosti. Post je tekst koji možeš uređivati, ali samo odlučuje kako se kretanja pišu; ne može promijeniti putanju alata, dodati ose niti znati tvoju mašinu ([Post procesori](topic:post-processors) navodi šta ne može).
+- Džepovi, konture, bušenje i skošenja su 2,5-osni. Zakrivljene dijelove grubo obrađuju i završavaju u 3D njihove vlastite operacije ([3D grubo obrađivanje i obrada preostalog materijala](topic:rough-3d), [3D završna obrada](topic:finish-3d)). Adaptivno čišćenje je 2D (ravna dna).
+- Nagnuti alati, 5-osna i završna obrada 4. osom, struganje i sondiranje postoje, svako sa svojim ograničenjima, i **nijedno nije pokrenuto na mašini**: vidi [4- i 5-osna obrada](topic:multi-axis), [Struganje](topic:turning) i [Sondiranje](topic:probing).
+- Držači i vrat alata se ne provjeravaju za sudare; upozorenje se pojavljuje kad je rez dublji od dužine žlijeba.
+- Posmaci i brzine su početne vrijednosti. Postprocesor je tekst koji možete uređivati, ali samo odlučuje kako se pomaci zapisuju; ne može promijeniti putanju alata, dodati ose niti znati vašu mašinu ([Postprocesori](topic:post-processors) navodi šta ne može).
 
-## Pošalji program mašini
+## Slanje programa na mašinu
 
-U CadCraft Studio u desktop verziji, sa mašinom podešenom u Studiu, **Pošalji mašini…** se pojavljuje pored **Preuzmi G-kod** i učitava isti program na mašinu u tvojoj mreži. Nikad se ne pokreće iz PartCraft-a: pokreni ga na mašini kad je jasno. U pretraživaču dugme nije prikazano (web stranica ne može doseći mašinu u tvojoj mreži): umjesto toga preuzmi program.
+U CadCraft Studiju na računaru, s mašinom podešenom u Studiju, {{ui:Pošalji na mašinu…}} se pojavljuje pored {{ui:Preuzmi G-kod}} i šalje isti program na mašinu u vašoj mreži. Nikad se ne pokreće iz PartCrafta: pokrenite ga na mašini kad je jasno da je sve spremno. U pregledaču dugme se ne prikazuje (web stranica ne može doći do mašine u vašoj mreži): umjesto toga preuzmite program.

@@ -72,7 +72,7 @@ export async function openLaser(ctx, flats = []) {
     fileName: () => ctx.fileBase(),
     confirm: (text) => ctx.confirm(text),
     serial: typeof navigator !== 'undefined' ? navigator.serial : undefined,
-    rerender: () => render(),
+    rerender: render,
   };
   const panel = laserPanel(host);
   function render() {

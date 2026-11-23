@@ -1,39 +1,39 @@
 ---
-title: Finishing 3D: paralel dan scallop
-summary: Selesaikan seluruh permukaan melengkung model dengan pahat ujung bola, bull nose, atau datar, dalam garis paralel pada sudut apa pun, atau dalam lintasan berjarak tertentu sehingga puncak di antaranya mempertahankan tinggi yang Anda minta. Apa yang dijamin lintasan, dan apa yang tidak.
-keywords: finishing 3d, finishing, paralel, raster, scallop, scallop konstan, cusp, ball nose, bull nose, permukaan, toleransi, stepover, lereng, stok yang ditinggalkan, drop cutter, gouge
-from: e1587d0a
+title: Finishing 3D: sejajar dan scallop
+summary: Selesaikan permukaan lengkung seluruh model dengan end mill bola, bull-nose, atau datar, dalam garis sejajar pada sudut apa pun atau dalam lintasan dengan jarak tertentu, sehingga punggungan di antaranya mempertahankan tinggi yang Anda minta. Apa yang dijamin lintasan dan apa yang tidak.
+keywords: finishing 3d, finishing, sejajar, raster, scallop, scallop konstan, cusp, ball nose, bull nose, permukaan, toleransi, stepover, kemiringan, sisa stok, drop cutter, gouge
+from: 942d2341
 ---
 
-Dua operasi di Manufacture memotong **seluruh permukaan model** dengan pahat yang dijaga tegak (tiga sumbu). Keduanya tidak memerlukan pilihan; mereka bekerja pada seluruh bagian model yang dapat dilihat dari atas. Kasarkan part terlebih dahulu (adaptif atau kantong); lintasan finishing di atas stok yang belum terpotong memberi peringatan bahwa ia akan memotong terlalu dalam.
+Dua operasi di Manufaktur memotong **seluruh permukaan model** dengan alat yang dijaga tegak (tiga sumbu). Keduanya tidak memerlukan pemilihan: keduanya bekerja pada seluruh bagian model yang dapat terlihat dari atas. Lakukan pengasaran pada benda terlebih dahulu (adaptif atau kantong); pass finishing di atas stok yang belum terpotong akan memberi peringatan bahwa alat akan memotong terlalu dalam.
 
-## Paralel
+## Sejajar
 
-Garis lurus melintasi model pada **sudut** yang Anda atur, berjarak **stepover** (pecahan dari diameter pahat). Setiap garis mengikuti permukaan: ujung pahat setinggi yang diperlukan agar tidak ada bagian pahat yang berada di bawah model, dan garis dipotong lebih halus di mana permukaan melengkung. Dengan **Zig-zag** menyala, pahat tetap turun di antara garis jika aman dilakukan (diperiksa sepanjang gerakan); jika tidak, ia terangkat.
+Garis lurus melintasi model pada **sudut** yang Anda atur, dengan **stepover** di antara garis (sebagian dari diameter alat). Setiap garis mengikuti permukaan: ujung alat berada setinggi yang diperlukan agar tidak ada bagian pemotong yang turun di bawah model, dan garis dipotong lebih halus di mana pun permukaan menekuk. Dengan **Zig-zag** aktif, alat tetap turun di antara garis jika aman (diperiksa sepanjang gerakan); jika tidak, alat naik.
 
-- **Toleransi**: seberapa jauh bagian lurus sebuah garis boleh berjarak dari ketinggian ujung yang sebenarnya (setengahnya dipakai sebagai batas di tengah setiap bagian). Bawaan 0.01 mm.
-- **Hanya di mana permukaan setidaknya … dan paling banyak … (°)**: selesaikan hanya area yang landai atau hanya yang curam. Di mana permukaan berada di luar rentang, garis dilewatkan dan pahat terangkat.
-- **Stok yang ditinggalkan**: model di-offset sejauh itu (pahat diperbesar dengan jarak itu: tepat untuk pahat ball dan bull nose; pahat datar meninggalkan minimal sebesar itu).
-- **Bawah**: tidak ada yang dipotong di bawah z ini.
+- **Tolerance**: seberapa jauh bagian lurus dari garis boleh menyimpang dari tinggi ujung alat yang sebenarnya (setengahnya dipakai sebagai batas di tengah setiap bagian). Default 0.01 mm.
+- **Only where the surface is at least … and at most … (°)**: selesaikan hanya area yang landai atau hanya area yang curam. Di tempat permukaan berada di luar rentang, garis dilewati dan alat naik.
+- **Sisa stok**: model yang diofset sejauh jarak itu (pemotong diperbesar sebesar itu: tepat untuk alat bola dan bull-nose; alat datar menyisakan setidaknya sebesar itu).
+- **Dasar**: tidak ada yang dipotong di bawah z ini.
 
 ## Scallop
 
-Lintasan yang menjaga jarak konstan di atas permukaan satu sama lain, sehingga puncak (scallop) yang tersisa di antara dua lintasan bertetangga memiliki **tinggi** yang Anda minta. Jarak diturunkan dari tinggi dan radius bola: s = 2·√(2·R·h − h²), misalnya sekitar 0.69 mm antar lintasan untuk bola Ø6 dan puncak 0.02 mm. Pahat bull nose menggunakan radius sudutnya. Pahat ujung datar ditolak: ia tidak memiliki puncak untuk diukur.
+Lintasan yang menjaga jarak konstan di atas permukaan dari satu sama lain, sehingga punggungan (scallop) yang tertinggal di antara dua lintasan yang bersebelahan memiliki **tinggi** yang Anda minta. Jaraknya diperoleh dari tinggi dan jari-jari bola: s = 2·√(2·R·h − h²), misalnya sekitar 0.69 mm antar lintasan untuk bola Ø6 dan punggungan 0.02 mm. Bull-nose memakai jari-jari sudutnya. End mill datar ditolak: tidak ada punggungan yang dapat diukur.
 
-Lintasan dimulai **dari tepi model, masuk ke dalam** atau **dari atas model, turun ke bawah**. Lintasan ini adalah kontur jarak di atas permukaan (bukan kontur ketinggian), sehingga pada lereng mereka berdekatan di denah dan pada bidang datar mereka berjauhan. Jarak diukur pada kisi di atas permukaan dan akurat hingga sekitar 1 %; tinggi puncak tepat di tempat permukaan datar atau melengkung landai, dan perkiraan di tempat ia melengkung cepat. **Climb** menjaga sisi permukaan yang lebih tinggi di sisi kanan pahat.
+Lintasan dimulai **dari tepi model, masuk ke dalam** atau **dari atas model, turun**. Lintasan ini adalah kontur jarak di atas permukaan (bukan kontur tinggi), sehingga pada lereng lintasannya berdekatan dalam denah, dan pada area datar lintasannya berjauhan. Jarak diukur pada grid di atas permukaan dan akurat hingga sekitar 1 %; tinggi punggungan tepat di tempat permukaan datar atau melengkung landai, dan perkiraan di tempat permukaan melengkung cepat. **Climb** menjaga sisi permukaan yang lebih tinggi berada di sebelah kanan pemotong.
 
-## Seberapa bagus lintasannya
+## Seberapa baik lintasannya
 
-Yang diperiksa oleh tes, dengan bentuk tertutup atau pencarian brute-force independen dari jejak pahat:
+Yang diperiksa oleh tes, dengan rumus tertutup atau pencarian brute-force independen pada jejak pemotong:
 
-- Ketinggian ujung di bawah pahat tepat untuk pahat bola, bull nose, dan datar pada muka, tepi, dan sudut mesh, dan tidak pernah di atas ketinggian sebenarnya; untuk garis paralel, lintasan tetap berada dalam toleransi darinya, tanpa gouge yang lebih dalam dari itu.
-- Panjang lintasan pada bidang miring sesuai dengan bentuk tertutup; lintasan scallop pada bidang berjarak sesuai yang diminta dan puncak di antaranya keluar pada tinggi yang diminta.
-- Simulasi stok tidak menunjukkan gouge setelah suatu lintasan dan menampilkan puncak yang tersisa.
+- Tinggi ujung di bawah alat tepat untuk alat bola, bull-nose, dan datar pada muka, tepi, dan sudut mesh, dan tidak pernah di atas tinggi sebenarnya; untuk garis sejajar, lintasan tetap dalam toleransinya, tanpa gouge yang lebih dalam dari itu.
+- Panjang lintasan pada bidang miring sesuai dengan rumus tertutup; lintasan scallop pada bidang berjarak sesuai yang diminta dan punggungan di antaranya muncul pada tinggi yang diminta.
+- Simulasi stok tidak menunjukkan gouge setelah suatu pass dan menampilkan punggungan yang tersisa.
 
-Yang bukan merupakan lintasan ini: ia adalah lintasan finishing dasar, bukan seluruh yang ditawarkan sistem produksi.
+Yang bukan termasuk lintasan ini: ini adalah lintasan finishing dasar, bukan seluruh yang ditawarkan sistem produksi.
 
-- Belum dibuat: waterline (z konstan), pembersihan pensil dan sudut, lintasan radial dan spiral, memproyeksikan kurva ke permukaan, deteksi area datar, rest machining, pemeriksaan tabrakan pemegang dan shank, serta kemiringan apa pun pada pahat.
-- Pusat pahat tetap di atas model: lintasan berhenti di tepi model alih-alih berjalan melewatinya, sehingga dinding vertikal tepat di tepi tidak difinis sampai ke kakinya.
-- Undercut tidak terlihat (permukaan adalah apa yang ditemui pahat dari atas).
-- Model adalah mesh dari kernel, sehingga lintasan mengikuti mesh (toleransi chord-nya sekitar 0.0002 dari diagonal part), bukan permukaan eksak.
-- Finishing model besar dengan toleransi halus menghasilkan program panjang dengan banyak gerakan pendek. Periksa keluarannya di simulator mesin Anda sebelum memotong.
+- Belum dibuat: finishing waterline (z konstan), pembersihan pensil dan sudut, lintasan radial dan spiral, memproyeksikan kurva ke permukaan, deteksi area datar, pemeriksaan tabrakan holder dan shank. Pengasaran dan pemesinan sisa adalah operasi tersendiri ([Pengasaran 3D dan pemesinan sisa](topic:rough-3d)); alat yang miring adalah [finishing 5 sumbu](topic:multi-axis#5-axis-finishing).
+- Pusat alat tetap di atas model: lintasan berhenti di tepi model alih-alih melewatinya, sehingga dinding vertikal tepat di tepi tidak diselesaikan sampai ke kakinya.
+- Undercut tidak terlihat (yang terlihat adalah permukaan yang ditemui alat dari atas).
+- Model adalah mesh dari kernel, sehingga lintasan mengikuti mesh (toleransi chord-nya sekitar 0.0002 dari diagonal benda), bukan permukaan eksak.
+- Finishing model besar dengan toleransi halus menghasilkan program panjang dengan banyak gerakan pendek. Periksa keluaran di simulator mesin Anda sendiri sebelum memotong.

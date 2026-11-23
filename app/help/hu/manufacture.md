@@ -1,92 +1,94 @@
 ---
 title: Szerszámpályák és G-kód készítése (Gyártás)
-summary: Állítsa be a nyersanyagot és a munkaorigót, válasszon szerszámokat, adjon hozzá homlokfelület-, zseb-, kontúr-, fúró- és letörési műveleteket lapok kijelölésével, fejezze be a teljes modellt 3D-ben (párhuzamos, hullámos simítás), szimulálja a nyersanyagot a modellel szemben a hibákért és a ciklusidőért, és töltse le a G-kódot az egyik beépített utófeldolgozóból vagy egy saját szerkesztésűből.
-keywords: pontos step, step műhelynek, munkakoordináták, CAM-átadás, párhuzamos, hullámos simítás, 3D simítás, simítás, golyós véglapmaró, szerszámkönyvtár, utófeldolgozó szerkesztése, egyedi utófeldolgozó, utófeldolgozó-szerkesztő, adaptív, adaptív nagyolás, állandó szerszámbevágás, trochoidális, hsm, nagysebességű megmunkálás, gyártás, CAM, szerszámpálya, G-kód, NC, CNC, marás, zseb, kontúr, profil, homlokmarás, fúrás, lépcsős fúrás, G83, G81, G73, letörés, nyersanyag, munkaeltolás, G54, utófeldolgozó, GRBL, LinuxCNC, előtolás és fordulatszám, szimuláció, sérülés, ciklusidő
-from: beeb29aa
+summary: Állítsa be a nyersanyagot és a munkadarab-nullpontot, válasszon szerszámokat, adjon hozzá lap-, zseb-, kontúr-, fúró- és letörési műveleteket felületek kijelölésével, simítsa a teljes modellt 3D-ben (párhuzamos, hullámos), szimulálja a nyersanyagot a modellhez képest bemarások és ciklusidő szempontjából, és töltse le a G-kódot a három beépített utófeldolgozó egyikéből vagy egy saját szerkesztésűből.
+keywords: pontos step, step a műhelynek, munkakoordináták, cam-átadás, párhuzamos, hullámos simítás, 3d simítás, simítás, golyós maró, szerszámkönyvtár, utófeldolgozó szerkesztése, egyéni utófeldolgozó, utófeldolgozó-szerkesztő, adaptív, adaptív kiürítés, állandó bekapcsolódás, trochoidális, hsm, nagysebességű megmunkálás, gyártás, cam, szerszámpálya, g-kód, nc, cnc, marás, zseb, kontúr, profil, homlokolás, fúrás, csúcsos fúrás, g83, g81, g73, letörés, nyersanyag, munkaeltolás, g54, utófeldolgozó, grbl, linuxcnc, előtolás és fordulatszám, szimuláció, bemarás, ciklusidő
+from: f8a03be8
 ---
 
-A Gyártás munkaterület az alkatrészből 3 tengelyes marógépekhez szerszámpályákat készít, és G-kódként írja ki őket. A legtöbb művelet **2,5 tengelyes**: a szerszám függőleges marad, a falakat egyenesen lefelé, a padlókat vízszintesen munkálja meg. A **Párhuzamos** és a **Hullámos simítás** görbe felületeket munkál meg 3D-ben (lásd: [3D simítás](topic:finish-3d)); a szerszám ilyenkor is függőleges marad (három tengely, döntés nélkül). A háló-kernel által az alkatrészhez adott, elnevezett lapokon dolgozik (lásd: [A háló-kernel](topic:solid-kernels)).
+A Gyártás munkaterület alakítja a munkadarabot szerszámpályákká, és G-kódként írja ki őket. A legtöbb művelet **2,5 tengelyes** marás: a szerszám függőleges marad, a falak egyenesen lefelé, a fenekek síkban vágódnak. A **3D nagyolás** és a **Maradék** 3D-ben üríti ki a görbült munkadarabokat ([3D nagyolás és maradékanyag-megmunkálás](topic:rough-3d)); a **Párhuzamos** és a **Hullámos simítás** simítja ezeket ([3D simítás](topic:finish-3d)). Forgótengelyes gépen bármely művelet használhat döntött szerszámot, két művelet pedig vágás közben mozgatja a forgótengelyeket ([4 és 5 tengelyes megmunkálás](topic:multi-axis)). Vannak esztergálási műveletek ([Esztergálás](topic:turning)) és tapintószondás műveletek is ([Tapintás](topic:probing)). A háló-kernel által a munkadarabnak adott, megnevezett lapokon dolgozik (lásd [A háló-kernel](topic:solid-kernels)).
 
-Laborverzió: minden programot ellenőrizzen a vezérlő saját szimulátorában, és először a nyersanyag feletti levegőben futtassa.
+Laboratóriumi változat: ellenőrizzen minden programot a vezérlője saját szimulátorában, és először a nyersanyag felett, levegőben futtassa.
 
 ## Beállítás
 
-1. Válassza a **Gyártás** lehetőséget a munkaterület-váltóban, majd a {{ui:Új felfogás}} gombot.
+1. Válassza a **Gyártás** elemet a munkaterület-váltóban, majd a {{ui:Új felfogás}} gombot.
 2. A **Beállítás** lapon adja meg:
-   - **Szerszámtengely (+Z)**: merre mutasson a szerszám az alkatrészbe. Az alapértelmezés a világ +Y (a PartCraft felfelé mutató iránya); ekkor a gép X tengelye a világ X, a gép Y tengelye a világ −Z.
-   - **Munkaorigó (G54)**: a nyersanyag sarka vagy közepe, felső vagy alsó oldalon, a modell felső középpontja, vagy a modell origója.
-   - **Nyersanyag**: doboz vagy henger, vagy a modell plusz ráhagyás (oldalak, felső, alsó), vagy rögzített méret.
-   - **Anyag** (ez adja a kezdő előtolásokat és fordulatszámokat), az **utófeldolgozó** (vezérlő), a gép maximális orsófordulatszáma, a gyorsjárati sebesség és a szerszámcsere ideje, a hűtőfolyadék és a programszám.
+   - **Szerszámtengely (+Z)**: melyik irányba mutat a szerszám a munkadarabba. Alapértelmezés a világ +Y (a PartCraft felfelé iránya); ekkor a gép X-e a világ X-e, a gép Y-ja pedig a világ −Z.
+   - **Munkadarab-nullpont (G54)**: a nyersanyag sarka vagy középpontja, felső vagy alsó oldala, a modell felső középpontja, vagy a modell nullpontja.
+   - **Nyersanyag**: doboz vagy henger, vagy a modell ráhagyással (oldalak, felső, alsó), vagy rögzített méret.
+   - **Anyag** (ez adja a kezdő előtolásokat és fordulatszámokat), az **utófeldolgozó** (vezérlő), a gép maximális orsófordulatszáma, gyorsjárati sebessége és szerszámcseréjének ideje, a hűtőfolyadék és a programszám.
 
 ## Szerszámok
 
-A **Szerszámok** lap tartalmazza a könyvtárat: sima, golyós és lekerekített sarkú véglapmarók, fúrók, letörőmarók és homlokmarók. Mindegyiknek van T-száma, átmérője, hornyainak száma és horonyhossza (valamint, ahol érvényes, sarokrádiusza, hegyszöge vagy letörési szöge).
+A **Szerszámok** lap tartalmazza a könyvtárat: lapos, golyós és lekerekített sarkú véggyalu-marók, fúrók, letörő marók és homlokmarók, mindegyiknek T-száma, átmérője, fogszáma és fogmagassága (ahol értelmezhető, a sarokrádiusz, a csúcs- vagy letörési szög is).
 
-A saját szerszámai a böngészőben menthetők, és fájlként számítógépek között áthelyezhetők: lásd: [A szerszámkönyvtár](topic:tool-library).
+A saját szerszámait a böngészőben menthetők, és fájlként átvihetők számítógépek között: lásd [A szerszámkönyvtár](topic:tool-library).
 
-Az orsó fordulatszámát és az előtolást az anyag adja: n = 1000 × vágósebesség / (π × átmérő), előtolás = n × hornyok száma × forgácsvastagság (fúróknál: n × előtolás fordulatonként). A számok közzétett tartományokból vett óvatos kiindulási értékek, nem az Ön gépére hangolva; a szerszámgyártó vágósebesség-, forgácsvastagság-, fordulatszám- vagy előtolás-adatait beírva felülírhatók. Ha a fordulatszám meghaladja a gép maximumát, ott marad, és az előtolás követi, így a forgácsvastagság megmarad.
+Az orsófordulatszámot és az előtolást az anyag adja: n = 1000 × vágósebesség / (π × átmérő), előtolás = n × fogszám × forgácsvastagság (fúrónál: n × fordulatonkénti előtolás). A számok közzétett tartományokból vett óvatos kezdőértékek, nem az ön gépéhez hangolták; a szerszámgyártó vágósebességét, forgácsvastagságát, fordulatszámát (rpm) vagy előtolását beírva felülbírálhatja őket. Ha a sebesség túllépi a gép maximumát, ott marad, és az előtolás követi, így a forgácsvastagság megmarad.
 
 ## Műveletek hozzáadása
 
-Minden eszköztárgomb hozzáad egy műveletet, és ahol geometria kell, megkezdődik a kijelölés: kattintson lapokra vagy élekre a nézetben (újabb kattintás eltávolítja), majd a {{ui:Kijelölés kész}} gombra vagy az {{key:Esc}} billentyűre.
+Az eszköztár minden gombja egy műveletet ad hozzá, és ahol geometria kell, kijelölést indít: kattintson a lapokra vagy élekre a nézetben (az ismételt kattintás eltávolítja), majd {{ui:Kijelölés kész}} vagy {{key:Esc}}.
 
 | Művelet | Kijelölés | Mit csinál |
 |---|---|---|
-| {{ui:Lap}} | semmi | Cikcakk menetek a teljes nyersanyagon, a szélein túl, a modell tetejéig |
-| {{ui:Zseb}} | egy lapos padlólap, egy kerek furat, vagy egy zárt élláncolat | Kitisztítja a területet befelé haladó, eltolt menetekben, minden lépcsőnél; a szigeteket (a padlón felálló lapokat) meghagyja; a mindenhol nyitott padlót (kívül nincs magasabb) a nyersanyag széléig tisztítja ki |
-| {{ui:Adaptív}} | ugyanaz, mint a Zseb | Ugyanazt a területet tisztítja olyan menetekben, amelyek mindegyike beállított szélességet vág (**Szerszámbevágás**, az átmérő töredéke), így a szerszám soha nem vág teljes szélességű hornyot, még sarkokban sem; spirálban merül be, és minden szinten befejezi a falakat. A keskeny vágások mélyebb lépést és nagyobb előtolást engednek |
-| {{ui:Kontúr}} | egy lapos lap (körvonala), egy kerek lap, vagy élek | A körvonalat követi, a szerszám sugarával eltolva, kívülről vagy belülről, be- és kilépő ívekkel, és opcionálisan fülekkel |
-| {{ui:Fúrás}} | furatok (kattintson a furat falára vagy peremére) | Minden furatot fix ciklussal fúr: lépcsős fúrás (G83), fúrás (G81) vagy forgácstörő fúrás (G73); vagy adjon meg egy átmérőt, és az ilyen méretű összes furatot fúrja |
-| {{ui:Letörés}} | egy lap körvonala vagy élek | Letörőmarót vezet az él mentén, hogy a beállított szélességet vágja |
-| {{ui:Párhuzamos}} | semmi (az egész modell) | 3D simítás párhuzamos vonalakban, bármilyen szögben, a felületet golyós, lekerekített sarkú vagy sima véglapmaróval követve. Lásd: [3D simítás](topic:finish-3d) |
-| {{ui:Hullámos simítás}} | semmi (az egész modell) | 3D simítás a felület fölött, beállított távolságra lévő menetekben, így a közöttük maradó gerinc a kért magasságú lesz |
+| {{ui:Lap}} | nincs | Cikkcakk menetek a teljes nyersanyagon, annak szélein túl, a modell felső lapjáig |
+| {{ui:Zseb}} | egy lapos aljzatlap, egy kerek furat, vagy egy zárt élsor | Befelé haladó, eltolt menetekkel üríti ki a tartományt, minden mélységi lépésnél; a szigetek (a fenéken belül felálló lapok) megmaradnak; a teljes körben nyitott fenék (kívül nincs magasabb rész) a nyersanyag széléig ki lesz ürítve |
+| {{ui:Adaptív}} | ugyanaz, mint a Zseb | Ugyanazt a tartományt üríti ki olyan menetekben, amelyek mindegyike egy beállított szélességet vág (**Bekapcsolódás**, az átmérő törtrésze), így a szerszám soha nem vág teljes szélességű hornyot, még sarkokban sem; spirálisan lép be, és minden szinten befejezi a falakat. Keskeny vágásnál mélyebb lépés és nagyobb előtolás engedhető meg |
+| {{ui:Kontúr}} | egy lapos felület (körvonala), egy kerek felület, vagy élek | A körvonalat követi, a szerszám sugarával eltolva, kívül vagy belül, be- és kilépő ívekkel, és választható fülekkel |
+| {{ui:Fúrás}} | furatok (kattintson a furat falára vagy peremére) | Minden furatot fix ciklussal fúr: csúcsos (G83), fúrás (G81) vagy forgácstörés (G73); vagy adjon meg átmérőt, hogy az adott méretű összes furatot fúrja |
+| {{ui:Letörés}} | egy lap körvonala vagy élek | Letörő marót futtat az él mentén, így a beállított szélességet vágja |
+| {{ui:Párhuzamos}} | nincs (a teljes modell) | 3D simítás párhuzamos vonalakban bármilyen szögben, a felületet követve golyós, lekerekített sarkú vagy lapos véggyalu-maróval. Lásd [3D simítás](topic:finish-3d) |
+| {{ui:Hullámos simítás}} | nincs (a teljes modell) | 3D simítás egymástól beállított távolságra lévő menetekben a felületen, így a köztük lévő gerinc a kért magasságot kapja |
 
-Válasszon egy műveletet a listából, ha meg akarja változtatni a szerszámát, magasságait (biztonsági, visszahúzási, előtolási magasság, felső, alsó), a lépésmélységet, a lépésközt, a meghagyandó ráhagyást, a simítási menetet, a belépést (spirál, rámpa vagy merülés), az egyirányú marást, a füleket vagy a ciklust. A {{ui:Fel}} és a {{ui:Le}} átrendezi, a {{ui:Letiltás}} kihagyja, a {{ui:Törlés}} eltávolítja. Minden a visszavonási előzményekben van, és az alkatrészfájlban mentődik.
+Válasszon ki egy műveletet a listából, ha meg akarja változtatni a szerszámát, a magasságait (biztonsági távolság, visszahúzás, előtolási magasság, felső és alsó határ), a mélységi lépését, az oldalirányú lépését, a hagyandó anyagot, a simítási menetet, a belépést (spirál, rámpa vagy merülés), az egyirányú marást, a füleket vagy a ciklust. A {{ui:Fel}} és a {{ui:Le}} átrendezi, a {{ui:Letiltás}} kihagyja, a {{ui:Törlés}} eltávolítja. Minden a visszavonási előzményekben van, és a munkadarab-fájlban mentődik.
 
-A zseb lépésköze legfeljebb a szerszámátmérő fele, így padlójának minden pontja egy szerszámsugáron belül esik valamelyik menethez. A belső sarkok megtartják a szerszám sugarát.
+A zseb oldalirányú lépése legfeljebb a szerszám átmérőjének fele, így a fenék minden pontja egy szerszámsugáron belül van valamelyik menettől. A belső sarkok megtartják a szerszám sugarát.
 
-Az **adaptív nagyolás** a szerszám bevágását egy érték közelében tartja. Az átmérő 0,15-ed részének megfelelő bevágás körülbelül 46°-os bevágási szöget jelent: a szerszámél ívét az anyagban. Ezzel szemben az eltolt zseb az első menetben teljes szélességgel vág, és minden belső sarokban tovább fordul körbe. A menetek között a szerszám lent marad, ahol levegőben nem vágott anyagon halad át, máshol pedig a levegőben felemelkedik és leereszkedik. A menetek finom rácson (a cellák a szerszámsugár körülbelül tizenketted részei) a régióra számítódnak, így a bevágás legfeljebb körülbelül egy cellával lehet szélesebb a beállítottnál; a falak pontosan készülnek el. Egy nagy, nyitott terület hosszú programot és sok rövid mozgást ad.
+Az **adaptív kiürítés** a vágó bekapcsolódását egy érték közelében tartja. Az átmérő 0,15-szörösének megfelelő bekapcsolódás körülbelül 46°-os bekapcsolódási szögnek felel meg: ez a vágóél íve az anyagban. Egy eltolt zseb ezzel szemben első menetében teljes szélességgel vág, és minden belső sarokban tovább fordul. A menetek között a szerszám ott marad lent, ahol vágatlan levegőn mozog, és máshol vágatlan levegőn emelkedik és süllyed. A menetek a tartomány finom rácsán készülnek (cellák kb. a szerszámsugár egytizenketted része), így a bekapcsolódás legfeljebb egy cellányival lehet szélesebb a beállítottnál; a falak pontosan készülnek. Nagy nyitott tartomány hosszú programot ad, sok rövid mozgással.
 
 ## Szimuláció
 
-A szerszámpályák minden módosítás után újra elkészülnek (az alkatrész is). A {{ui:Szimuláció}} a teljes program után megmaradt nyersanyagot is megmutatja. A panel a következőket mutatja:
+A szerszámpályák minden módosítás után újra készülnek (a munkadarabé is). A {{ui:Szimuláció}} a teljes program után megmaradt nyersanyagot is megmutatja. A panel a következőket mutatja:
 
-- **Ciklusidő**: az előtolásos mozgások az előtolásukkal, a gyorsjáratok egyenes vonalként a beállítás gyorsjárati sebességével, plusz a szerszámcsere ideje. A valódi gépek gyorsulnak, ezért tovább tartanak.
-- **Sérülések**: helyek, ahol a szerszám 0,02 mm-nél mélyebbre ment az alkatrész felületénél. A nézetben a piros jelölés mutatja őket.
-- **Az alkatrészen maradt nyersanyag**.
+- **Ciklusidő**: az előtolásos mozgások az előtolásukkal, a gyorsjáratok egyenes vonalként a beállítás gyorsjárati sebességével, plusz a szerszámcsere ideje. A valódi gépek gyorsítanak, ezért tovább tartanak.
+- **Bemarások**: helyek, ahol a szerszám 0,02 mm-nél mélyebbre ment a munkadarab felülete alá. A nézetben piros jelölés mutatja őket.
+- **A munkadarabon maradt nyersanyag**.
 
-A nyersanyag a felső oldal magassági térképe (Z-térkép), ezért nem mutat alávágásokat. Húzza a **Lejátszás** csúszkát, hogy a szerszámot végigmozgassa a programon. A nézetben az előtolásos mozgások folytonosak, a gyorsjáratok szaggatottak, műveletenként egy szín.
+A nyersanyag a felső oldal magassági térképe (Z-térkép), ezért nem mutat alámetszéseket. Húzza a **Lejátszás** csúszkát, hogy a szerszámot végigmozgassa a programon. A nézetben az előtolásos mozgások folytonos, a gyorsjáratok szaggatott vonallal jelennek meg, műveletenként egy színnel.
 
-Ha a **Szimulált nyersanyag megjelenítése** be van kapcsolva, a nyersanyag a modellhez képest, cellánként színeződik: **zöld** ott, ahol a modellen van (0,02 mm-en belül), **piros** ahol a szerszám belevágott a modellbe, és ahol a modellen nyersanyag maradt, **sárga** vékony rétegnél, **narancs** többnél, és 1 mm vagy több esetén elhalványul a nem munkált nyersanyag **szürkéjébe**. A színek minden módosításnál újra készülnek, ugyanabból a magassági térképből, mint a panel számai, így a zöld és a piros egyezik a Sérülések sorral. Egy letörés szándékosan vág a modellbe, és az élén pirosat mutat.
+Ha a **Szimulált nyersanyag megjelenítése** be van kapcsolva, a nyersanyag cellánként a modellhez képest van színezve: **zöld**, ahol a modellen van (0,02 mm-en belül); **piros**, ahol a szerszám a modellbe vágott; és ahol nyersanyag marad a modellen: **sárga** egy vékony rétegnél, **narancs** többnél, és 1 mm vagy több esetén a meg nem munkált nyersanyag **szürkéjébe** halványodik. A színek minden módosítás után újra készülnek, ugyanabból a magassági térképből, mint a panel számai, így a zöld és a piros egyezik a Bemarások sorral. A letörés szándékosan vág a modellbe, és a széle mentén piros jelenik meg.
 
 ## G-kód utófeldolgozása
 
-Válassza ki a vezérlőt az **Utófeldolgozó** alatt, és nyomja meg a {{ui:G-kód letöltése}} gombot (vagy az eszköztáron az {{ui:Utófeldolgozó}} gombot):
+Válassza ki a vezérlőt az **Utófeldolgozó** alatt, és nyomja meg a {{ui:G-kód letöltése}} gombot (vagy az eszköztáron a {{ui:Utófeldolgozó}} gombot):
 
 | Vezérlő | Fájl | Megjegyzések |
 |---|---|---|
-| Fanuc-jellegű ISO | .nc | %, O-szám, sorszámok, T M6 G43 H-val, fix ciklusok |
-| GRBL | .nc | Nincs szerszámváltó vagy fix ciklus: a szerszámcsere M0-val megáll, a fúrás sima mozgásokként íródik |
+| Fanuc-style ISO | .nc | %, O-szám, sorszámok, T M6 G43 H-val, fix ciklusok |
+| GRBL | .nc | Nincs szerszámtár vagy fix ciklus: a szerszámcsere M0-val megáll, a fúrás sima mozgásokként íródik |
 | LinuxCNC | .ngc | T M6 G43 H-val, fix ciklusok, M2 |
-| Saját | bármi | Saját vagy módosított utófeldolgozó: {{ui:Utófeldolgozó szerkesztése…}}, {{ui:Új utófeldolgozó…}}, {{ui:Utófeldolgozó fájl importálása…}} |
+| Fanuc-style lathe | .nc | Esztergaprogramokhoz: X átmérőként, fordulatonkénti előtolás, G96 G50-es határ alatt, G32 menetvágás |
+| LinuxCNC lathe | .ngc | Esztergaprogramokhoz: G7 átmérők, G95, G96, G33 menetvágás; nem ír referenciapont-felvételi mozgást |
+| Saját utófeldolgozó | bármely | Ön által írt vagy módosított utófeldolgozó: {{ui:Utófeldolgozó szerkesztése…}}, {{ui:Új utófeldolgozó…}}, {{ui:Utófeldolgozó fájl importálása…}} |
 
-Minden fájl megjegyzésekkel kezdődik a programról, a nyersanyagról, a munkaeltolásról és a szerszámokról. A koordináták milliméterben vannak, 3 tizedesjeggyel. A {{ui:Szerszámpálya CSV}} és a {{ui:Szerszámpálya JSON}} magukat a mozgásokat exportálja.
+Minden fájl megjegyzésekkel kezdődik a programról, a nyersanyagról, a munkaeltolásról és a szerszámokról. A koordináták milliméterben, 3 tizedesjegyig vannak. A {{ui:Toolpath CSV}} és a {{ui:Toolpath JSON}} magukat a mozgásokat exportálja.
 
-**A kimenetet a gépe saját szimulátorában ellenőrizze vágás előtt, és először a nyersanyag feletti levegőben futtassa.** A három beépített utófeldolgozó kiindulópont, amely a vezérlők dokumentált viselkedését követi; egyik sem lett bizonyítva egyetlen konkrét gépen sem. Az Ön által módosított utófeldolgozót Önnek kell bizonyítania. Hogyan írjon egyet: [Utófeldolgozók](topic:post-processors).
+**Vágás előtt ellenőrizze a kimenetet a gépe saját szimulátorában, és először a nyersanyag felett, levegőben futtassa.** A három beépített utófeldolgozó kiindulópont, amely a vezérlők dokumentált működését követi; egyetlen konkrét gépen sem lett bizonyítva. Az ön által módosított utófeldolgozót ön igazolja. Hogyan írjon ilyet: [Szerkeszthető utófeldolgozók](topic:post-processors).
 
 ## Pontos STEP a műhelynek
 
-A **Műveletek** lap G-kód-gombjai alatt a {{ui:Pontos STEP (munkakoordináták)}} letölti a `<part>-work.step` fájlt: az alkatrész pontos testként (valódi hengerek a furatokhoz és csapokhoz, valódi körök az éleikhez), origója a beállítás munkaorigójában, a Z pedig a szerszámtengely mentén. Ezek a koordináták, amelyeket a G-kód használ, így egy műhely saját CAM-programja vagy ellenőrzője a modellt mozgatás nélkül a programhoz igazítja. A fájl csak az alkatrészt tartalmazza, a nyersanyagot és a szerszámpályákat nem.
+A **Műveletek** lap G-kód gombjai alatt a {{ui:Pontos STEP (munkakoordináták)}} letölti a `<part>-work.step` fájlt: a munkadarabot pontos testként (valódi hengerek a furatoknak és csapoknak, valódi körök az éleiknek), origója ennek a beállításnak a munkadarab-nullpontjában, Z-je a szerszámtengely mentén. Ezek azok a koordináták, amelyeket a G-kód használ, így a műhely saját CAM-programja vagy ellenőrzője a modellt mozgatás nélkül a programhoz igazítja. A fájl csak a munkadarabot tartalmazza, nem a nyersanyagot vagy a szerszámpályákat.
 
-A {{ui:Exportálás}} › {{ui:STEP AP242 (pontos test)}} ugyanezt a testet írja ki az alkatrész saját helyzetében (Z felfelé): lásd: [Exportálás nyomtatáshoz, STEP és DXF](topic:export-files#for-other-cad-programs-step).
+A {{ui:Exportálás}} › {{ui:STEP AP242 (pontos test)}} ugyanazt a testet írja ki a munkadarab saját helyzetében (Z felfelé): lásd [Exportálás nyomtatáshoz, STEP és DXF](topic:export-files#for-other-cad-programs-step).
 
 ## Korlátok
 
-- A zsebek, kontúrok, fúrások és letörések 2,5 tengelyesek. Az ívelt lapok 3D-ben befejezhetők ([párhuzamos és hullámos simítás](topic:finish-3d)), de 3D-ben nem nagyolhatók (a kúp lépcsőkként marad, amíg nem fejezi be), és nincs maradékmegmunkálás. Az adaptív nagyolás 2D (sima padlók).
-- Csak három tengely: nincs döntés, nincs esztergálás, nincs ellenőrzés.
-- A tartók és szárak ütközését nem ellenőrzi; figyelmeztetés jelenik meg, ha a vágás mélyebb a horonyhossznál.
-- Az előtolások és fordulatszámok kiindulási értékek. Az utófeldolgozó szerkeszthető szöveg, de csak azt határozza meg, hogyan íródnak a mozgások; nem tudja megváltoztatni a szerszámpályát, tengelyeket hozzáadni, vagy ismerni a gépet ([Utófeldolgozók](topic:post-processors) felsorolja, mit nem tud).
+- A zsebek, kontúrok, fúrások és letörések 2,5 tengelyesek. A görbült munkadarabokat a saját műveleteik nagyolják és simítják 3D-ben ([3D nagyolás és maradékanyag-megmunkálás](topic:rough-3d), [3D simítás](topic:finish-3d)). Az adaptív kiürítés 2D (sík fenekek).
+- A döntött szerszámok, az 5 tengelyes és a 4. tengelyes simítás, az esztergálás és a tapintás megvannak, mindegyiknek saját korlátjai vannak, és **egyiket sem futtatták még gépen**: lásd [4 és 5 tengelyes megmunkálás](topic:multi-axis), [Esztergálás](topic:turning) és [Tapintás](topic:probing).
+- A szerszámtartók és szárak ütközését nem ellenőrzik; figyelmeztetés jelenik meg, ha a vágás mélyebb a fogmagasságnál.
+- Az előtolások és fordulatszámok kezdőértékek. Az utófeldolgozó szerkeszthető szöveg, de csak azt dönti el, hogyan íródnak ki a mozgások; nem tudja megváltoztatni a szerszámpályát, új tengelyeket adni, vagy ismerni a gépét ([Szerkeszthető utófeldolgozók](topic:post-processors) felsorolja, mire nem képes).
 
-## A program elküldése gépnek
+## A program küldése géphez
 
-Az asztali CadCraft Studio-ban, ha a Studióban be van állítva egy gép, a **Küldés gépre…** a **G-kód letöltése** mellett jelenik meg, és ugyanazt a programot feltölti a hálózatán lévő gépre. A PartCraftból sosem indul el: indítsa a gépnél, amikor tiszta a helyzet. Böngészőben a gomb nem látszik (egy weboldal nem éri el a hálózatán lévő gépet): töltse le helyette a programot.
+Az asztali CadCraft Studióban, ha a Studióban géphez van állítva, a **Küldés gépre…** a {{ui:G-kód letöltése}} mellett jelenik meg, és ugyanazt a programot a hálózatán lévő gépre tölti fel. A PartCraftból soha nem indul: a gépnél indítsa el, amikor minden tiszta. Böngészőben a gomb nem látszik (egy weboldal nem éri el a hálózatán lévő gépet): töltse le helyette a programot.

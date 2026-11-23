@@ -29,7 +29,7 @@ import { parsePost, renderPost } from './cam-postdef.js';
 import { BUILTIN_POSTS } from './cam-posts-builtin.js';
 
 export { num };
-export const EXT = { fanuc: 'nc', grbl: 'nc', linuxcnc: 'ngc' };
+export const EXT = { fanuc: 'nc', grbl: 'nc', linuxcnc: 'ngc', 'fanuc-lathe': 'nc', 'linuxcnc-lathe': 'ngc' };
 export { parsePost, renderPost };
 
 /** The three posts as code — kept as the reference the text posts (cam-posts-builtin.js) are tested against, byte for byte. */

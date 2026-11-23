@@ -6,7 +6,7 @@ order: 140
 keywords: exact step, step for the shop, work coordinates, cam handoff, parallel, scallop, 3d finishing, finishing, ball nose, tool library, edit post, custom post, post editor, adaptive, adaptive clearing, constant engagement, trochoidal, hsm, high speed machining, manufacture, CAM, toolpath, G-code, NC, CNC, mill, milling, pocket, contour, profile, facing, drill, peck, G83, G81, G73, chamfer, stock, work offset, G54, post processor, GRBL, LinuxCNC, feeds and speeds, simulation, gouge, cycle time
 ---
 
-The Manufacture workspace turns the part into toolpaths for a 3-axis milling machine and writes them as G-code. Most operations are **2.5-axis**: the tool stays vertical, walls are cut straight down and floors flat. **Parallel** and **Scallop** finish curved surfaces in 3D (see [3D finishing](topic:finish-3d)); the tool still stays vertical (three axes, no tilting). It works on the named faces the mesh kernel gives the part (see [The mesh kernel](topic:solid-kernels)).
+The Manufacture workspace turns the part into toolpaths and writes them as G-code. Most operations are **2.5-axis** milling: the tool stays vertical, walls are cut straight down and floors flat. **3D rough** and **Rest** clear curved parts in 3D ([3D roughing and rest machining](topic:rough-3d)); **Parallel** and **Scallop** finish them ([3D finishing](topic:finish-3d)). On a machine with rotary axes any operation can have a tilted tool, and two operations move the rotary axes while cutting ([4- and 5-axis machining](topic:multi-axis)). There are operations for a lathe ([Turning](topic:turning)) and for a touch probe ([Probing](topic:probing)). It works on the named faces the mesh kernel gives the part (see [The mesh kernel](topic:solid-kernels)).
 
 Lab build: check every program in your control's own simulator, and run it in the air above the stock first.
 
@@ -69,6 +69,8 @@ Choose the control under **Post** and press {{ui:Download G-code}} (or {{ui:Post
 | Fanuc-style ISO | .nc | %, O number, line numbers, T M6 with G43 H, canned cycles |
 | GRBL | .nc | No tool changer or canned cycles: a tool change pauses with M0, drilling is written as plain moves |
 | LinuxCNC | .ngc | T M6 with G43 H, canned cycles, M2 |
+| Fanuc-style lathe | .nc | For turning programs: X as a diameter, feed per revolution, G96 under a G50 limit, G32 threading |
+| LinuxCNC lathe | .ngc | For turning programs: G7 diameters, G95, G96, G33 threading; writes no homing move |
 | Your own | any | A post you wrote or changed: {{ui:Edit post…}}, {{ui:New post…}}, {{ui:Import post file…}} |
 
 Every file starts with comments for the program, stock, work offset and tools. Coordinates are in millimetres with 3 decimals. {{ui:Toolpath CSV}} and {{ui:Toolpath JSON}} export the moves themselves.
@@ -83,8 +85,8 @@ Under the G-code buttons on the **Operations** tab, {{ui:Exact STEP (work coordi
 
 ## Limits
 
-- Pockets, contours, drilling and chamfers are 2.5-axis. Curved faces can be finished in 3D ([parallel and scallop](topic:finish-3d)) but not roughed in 3D (a cone is left as steps until you finish it), and there is no rest machining. Adaptive clearing is 2D (flat floors).
-- Three axes only: no tilting, no turning, no inspection.
+- Pockets, contours, drilling and chamfers are 2.5-axis. Curved parts are roughed and finished in 3D by their own operations ([3D roughing and rest machining](topic:rough-3d), [3D finishing](topic:finish-3d)). Adaptive clearing is 2D (flat floors).
+- Tilted tools, 5-axis and 4th-axis finishing, turning and probing are there, each with limits of its own, and **none of them has been run on a machine**: see [4- and 5-axis machining](topic:multi-axis), [Turning](topic:turning) and [Probing](topic:probing).
 - Holders and shanks are not checked for collisions; a warning appears when a cut is deeper than the flute length.
 - Feeds and speeds are starting values. A post is text you can edit, but it only decides how the moves are written; it cannot change the toolpath, add axes or know your machine ([Post processors](topic:post-processors) lists what it cannot do).
 

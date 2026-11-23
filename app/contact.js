@@ -27,6 +27,7 @@
  * the contact patch test).
  */
 import { entry, t6, TRI6 } from './tetfea.js';
+import { dot3 as dot } from './geom-vec.js';   // shared helpers (0.11 PERF.74)
 
 const REGULAR = 1e-4;
 export const autoPenalty = (E, h, factor = 20) => factor * E / h;
@@ -57,7 +58,6 @@ const REF = [[0, 0], [1, 0], [0, 1], [0.5, 0], [0.5, 0.5], [0, 0.5]];
 /** Closest point of triangle abc to p (Ericson, Real-Time Collision Detection § 5.1.5) → { d2, w: [wa, wb, wc] }. */
 function closestTri(p, a, b, c) {
   const ab = [b[0] - a[0], b[1] - a[1], b[2] - a[2]], ac = [c[0] - a[0], c[1] - a[1], c[2] - a[2]], ap = [p[0] - a[0], p[1] - a[1], p[2] - a[2]];
-  const dot = (x, y) => x[0] * y[0] + x[1] * y[1] + x[2] * y[2];
   const d1 = dot(ab, ap), d2 = dot(ac, ap);
   let w;
   if (d1 <= 0 && d2 <= 0) w = [1, 0, 0];

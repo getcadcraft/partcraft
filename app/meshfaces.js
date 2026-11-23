@@ -29,6 +29,7 @@
  * A triangle no surface claims (e.g. a whole-body mirror, whose surfaces are not tracked) keeps face −1; its edges are not listed.
  */
 import * as V from './vec.js';
+import { sub3 as sub } from './geom-vec.js';   // shared helpers (0.11 PERF.74; tools/perf/util-copies.mjs)
 
 export const plane = (name, n, o) => ({ name, type: 'plane', n: V.norm(n), o: [...o] });
 export const cylinder = (name, o, d, r) => ({ name, type: 'cylinder', axis: { o: [...o], d: V.norm(d) }, r });
@@ -61,7 +62,6 @@ export function moveSurfs(surfs, M, suffix) {
   });
 }
 
-const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 const radial = (p, ax) => { const v = sub(p, ax.o); const h = V.dot(v, ax.d); return [Math.hypot(...sub(v, V.mul(ax.d, h))), h]; };
 
 /** Does triangle (points P, unit normal nt) lie on surface s? tol: distance in model units; sag: the chord sag of a round

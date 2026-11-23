@@ -39,6 +39,7 @@ export const COMMANDS = [
   C('file.new', 'file', 'bi-file-earmark-plus', 'new'),
   C('file.open', 'file', 'bi-folder2-open', 'open', { defKeys: ['Ctrl+O'] }),
   C('file.save', 'file', 'bi-download', 'save', { defKeys: ['Ctrl+S'] }),
+  C('file.save-older', 'file', 'bi-clock-history', 'save-older'),   // 0.11 DC.27
   C('file.link-save-back', 'file', 'bi-box-arrow-up-right', 'link-save-back', { optional: true }),   // 0.10 SU.1814: send the shape back to BimCraft
   C('file.std-part', 'file', 'bi-nut', 'std-part'),
   C('file.documents', 'file', 'bi-folder2-open', 'documents'),   // 0.8 SU.1058: the Documents panel (check out / in, revisions, release states)
@@ -187,6 +188,7 @@ export const COMMANDS = [
   C('cam.chamfer', 'manufacture', 'bi-triangle', 'manufacture-chamfer', { ws: 'manufacture' }),
   C('cam.parallel', 'manufacture', 'bi-list-nested', 'manufacture-parallel', { ws: 'manufacture' }),
   C('cam.scallop', 'manufacture', 'bi-water', 'manufacture-scallop', { ws: 'manufacture' }),
+  C('cam.more', 'manufacture', 'bi-three-dots', 'manufacture-more', { ws: 'manufacture' }),
   C('cam.simulate', 'manufacture', 'bi-play-circle', 'manufacture-simulate', { ws: 'manufacture' }),
   C('cam.post', 'manufacture', 'bi-file-earmark-code', 'manufacture-post', { ws: 'manufacture' }),
 
@@ -225,6 +227,7 @@ export const COMMANDS = [
   C('view.problems', 'view', 'bi-exclamation-triangle', '[data-problems-open]', { defKeys: ['Ctrl+Shift+M'], keyOnly: true, optional: true }),   // 0.8 CE.6: the shell's Problems panel (rebindable)
   C('view.measure', 'view', 'bi-rulers', 'view-measure', { defKeys: ['M'] }),
   C('view.mass', 'view', 'bi-speedometer2', 'view-mass'),
+  C('view.frame-check', 'view', 'bi-bounding-box', 'view-frame-check'),   // 0.11 SU.1811: Check this frame
   C('view.section', 'view', 'bi-scissors', 'view-section', { defKeys: ['X'] }),
   C('view.draft', 'view', 'bi-triangle-half', 'view-draft'),
   C('view.light', 'view', 'bi-boxes', 'view-light', { optional: true }),   // the Views menu's Lightweight display toggle: assemblies only
@@ -255,7 +258,7 @@ const rtab = (label, panels) => ({ label: 'input.m.' + label, panels: panels.map
 const LG = (id) => ({ id, size: 'lg' }), SM = (...ids) => ids.map((id) => ({ id, size: 'sm' }));   // 0.8 RIBBON-COMPACT (shell-08)
 const ids = (pre) => COMMANDS.filter((c) => c.id.startsWith(pre)).map((c) => c.id);
 
-const FILE_MENU = ['file.new', 'file.open', 'file.save', 'file.std-part', 'file.documents', '-', ...ids('export.'), '-', 'app.settings', 'app.palette', 'app.help'];
+const FILE_MENU = ['file.new', 'file.open', 'file.save', 'file.save-older', 'file.std-part', 'file.documents', '-', ...ids('export.'), '-', 'app.settings', 'app.palette', 'app.help'];
 
 export const STYLES = {
   partcraft: {
@@ -283,7 +286,7 @@ export const STYLES = {
         ['sketchedit', ['sketch.trim', 'sketch.extend', 'sketch.offset', 'sketch.fillet', 'sketch.mirror', 'sketch.lpattern', 'sketch.cpattern', 'sketch.project']],
       ]),
       rtab('surfaces', [['surfaces', ['feature.patch', 'feature.surfloft', 'feature.gordon', 'feature.stitch', 'feature.thicken', 'feature.offsetsurf', 'feature.extendsurf', 'feature.trimsurf']], ['sheetmetal', ['feature.sheetbase', 'feature.sheetflange']]]),
-      rtab('evaluate', [['measure', ['view.measure', 'view.mass']], ['inspect', ['view.section', 'view.draft', 'view.zebra', 'view.curvature', 'view.planes']]]),
+      rtab('evaluate', [['measure', ['view.measure', 'view.mass', 'view.frame-check']], ['inspect', ['view.section', 'view.draft', 'view.zebra', 'view.curvature', 'view.planes']]]),
       rtab('drawing', [['drawing', ['drawing.open', 'drawing.back', 'drawing.pdf']], ['annotation', ['drawing.datum', 'drawing.fcf', 'drawing.finish', 'drawing.detail']]]),
       rtab('assembly', [['assembly', ['asm.new', 'asm.back', 'asm.close']], ['components', ['asm.insert-copy', 'asm.insert-file', 'asm.edit']], ['mates', ['asm.joint', 'asm.check', 'asm.stackup', 'asm.motion', 'asm.contact']]]),
       rtab('studies', [['workspaces', ids('ws.')], ['simulation', ids('sim.')], ['generative', ids('gen.')], ['manufacture', ids('cam.')], ['form', ids('form.')], ['script', ids('script.')]]),

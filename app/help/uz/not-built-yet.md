@@ -1,167 +1,168 @@
 ---
-title: Hali qurilmagan imkoniyatlar
-summary: Ushbu PartCraft versiyasi hali bajarmaydigan hamma narsa — buralgan sweeplardan dyuym ko‘rinishigacha, chizma o‘lchamlari va yig‘ma ichidagi yig‘malargacha — va hozir o‘rniga nima qilish kerakligi.
-keywords: yo‘q, hali emas, cheklovlar, reja, aniq yadro, yumaloqlash, faska, qobiq, sweep, loft, STEP import, simulyatsiya, ishlab chiqarish, buralgan sweep, loft uchi tangensi, yuz yumaloqlash, tenglamalar, dyuym, chizma o‘lchamlari, yig‘ma ichidagi yig‘malar, bulut, planshet, telefon
-from: 9b868162
+title: Hali qurilmagan narsalar
+summary: Bu PartCraft qurilmasi hali bajarmaydigan hamma narsa: burama Sweep operatsiyalaridan dyuymli koʻrinishgacha, chizma oʻlchamlari va yigʻma qismlarigacha, bugungi kunda oʻrniga nima qilish kerakligi bilan.
+keywords: yoʻq, hali emas, cheklovlar, yoʻl xaritasi, aniq yadro, yumaloqlash, faska, qobiq, sweep, loft, STEP import, simulyatsiya, ishlab chiqarish, burama sweep, loft uchi tangensi, yuz yumaloqlash, tenglamalar, dyuym, chizma oʻlchamlari, yigʻma qismlar, bulut, planshet, telefon
+from: 97b10a29
 ---
 
-PartCraft erta versiya. Bu sahifa u hali bajarmaydigan narsalarni sanab beradi, shunda siz ularni qidirmaysiz, va bugun o‘rniga nima qilish kerakligini. Bularning hech biri uchun sana belgilanmagan.
+PartCraft erta qurilma. Bu sahifa u hali nimani bajarmasligini sanab oʻtadi, shuning uchun uni qidirmaysiz, va bugun oʻrniga nima qilish kerakligini. Hech narsa sanaga ega emas.
 
-## Aniq yadro talab qilinadi
+## Aniq yadroni talab qiladi
 
-Bu versiya hamma detallarni mesh yadrosi bilan quradi (qarang: [Mesh yadrosi](topic:solid-kernels)). Quyidagi hamma narsa aniq geometriya yadrosini talab qiladi, bu versiyada hali yo‘q. Ushbu xususiyatlar bilan saqlangan detallar baribir ochiladi: xususiyatlar tarixda qoladi, "qurilmagan" deb belgilanadi va saqlashda saqlanadi.
+Bu versiya har bir detalni toʻr yadrosi bilan quradi (qarang: [Toʻr yadrosi](topic:solid-kernels)). Quyidagilarning hammasi aniq geometriya yadrosini talab qiladi, bu versiyada hali yoʻq. Bu xususiyatlar bilan saqlangan detallar hali ochiladi: xususiyatlar tarixda qoladi, qurilmagan deb belgilanadi va saqlaganda saqlanadi.
 
-| Hali qurilmagan | Hozir o‘rniga |
+| Hali qurilmagan | Oʻrniga, bugun |
 |---|---|
-| {{ui:Fillet}} va {{ui:Chamfer}} dumaloq qirralarda; qirra bo‘ylab radiusi o‘zgaradigan yumaloqlashlar; uchrashgan joyida silliq aralashtirilgan yumaloqlashlar (mesh yadrosi ularni qiya kesadi) | Yumaloqlash va faska yassi yuzlar orasidagi to‘g‘ri qirralarda ishlaydi; boshqa burchaklarni ekstrudirlashdan oldin eskizda yumaloqlang ({{ui:Fillet}} eskizda, {{key:F}}) |
-| {{ui:Shell}} egri yuzlarni ochish; turli qalinlikdagi devorlar | Tekis yuzlarni oching; devor qalinroq bo‘lishi kerak bo‘lgan joyda ekstrudirlash bilan material qo‘shing |
-| {{ui:Sweep}}, {{ui:Loft}}, {{ui:Qoralama}} egri yuzlarda; ekstrudirlashni yuzgacha, keyingi yuzgacha yoki uchigacha; konusli ekstrudirlar | Ekstrudirlash yoki aylantirish, kerak bo‘lsa bosqichlarda; o‘lchagan chuqurligigacha ekstrudirlang |
-| {{ui:Qovurg‘a}}, {{ui:Asosiy flanets}}, {{ui:Qirra flanetsi}} va yassi shakllar | Plastinani yoki qovurg‘a profilini ekstrudirlang |
-| Sirtlar: {{ui:Forma}} ni detalga yakunlash, {{ui:Yama}}, {{ui:Sirtni loft qilish}}, {{ui:Gordon sirti}}, {{ui:Tikish}}, {{ui:Qalinlashtirish}}, {{ui:Sirtni siljitish}}, {{ui:Sirtni cho‘zish}}, {{ui:Sirtni qirqish}} | Mavjud emas |
-| Bir nechta jism: {{ui:Birlashtirish}}, {{ui:Jismni ko‘chirish}}, {{ui:Jismni masshtablash}}, {{ui:Yo‘l massivi}}, yangi jism yaratadigan xususiyatlar | Bitta qattiq jism; massivlar va aks ettirish nusxa xususiyatlari |
-| Eskizlar, tekisliklar, o‘qlar va nuqtalar faqat aniq yadro topa oladigan yuzlarda (yumaloqlash bilan yasalgan yuz, teshik devori, import qilingan qattiq jismning yuzi) | Asosiy tekisliklarda, referens tekisliklarda va ekstrudirlash va aylantirishning tekis yuzlarida eskiz chizing |
-| Generativ dizayn natijasini detal sifatida ochish yoki unga qo‘shish (u import qilingan qattiq jismga aylanadi) | Natijani STL yoki STEP sifatida yuklab oling |
-| Ochilgan STEP fayl egri yuzlarini aniq sirt sifatida tahrirlash; spline, buralgan va aylantirilgan yuzlarning aniq STEP i (STEP fayldan); spline tomonlar; modellashtirilgan rezba; STL / OBJ / 3MF jismlar va yig‘malar; boshqa detal modelyorlari uchun STEP | {{ui:Ochish}} STEP ni uchburchaklar sifatida o‘qiydi va fayldagi tekis yuzlar, silindrlar, konuslar, sferalar va torlarni eksport uchun saqlaydi ([STEP faylini ochish](topic:import-step)); {{ui:Eksport}} › {{ui:STEP AP242 (aniq yaxlit jism)}} har bir analitik yuzni aniq yozadi va ularni faset sifatida saqlaydi ([Eksport](topic:export-files#for-other-cad-programs-step)); boshqa detal modelyori uchun makros hali ham yozadi |
-| Chizma ko‘rinishlarida haqiqiy yoylar | Ko‘rinishlar va kesim ko‘rinishlari faset bo‘yicha chiziladi |
-| Aniq hajmlar, maydonlar va masofalar | {{ui:Measure}} faset qattiq jismning raqamlarini beradi, dumaloq detallarda biroz past; aniqroq **Egri chiziqlar** sozlamasi ularni yaqinlashtiradi |
+| Dumaloq qirralardagi {{ui:Yumaloqlash}} va {{ui:Faska}}; qirra boʻylab radiusi oʻzgaradigan yumaloqlashlar; uchrashgan joyda silliq aralashgan yumaloqlashlar (toʻr yadrosi ularni qiyshaytiradi) | Yumaloqlash va Faska yassi yuzlar orasidagi toʻgʻri qirralarda ishlaydi; boshqa burchaklarni ekstrudlashdan oldin eskizda yumaloqlang ({{ui:Yumaloqlash}} eskizda, {{key:F}}) |
+| {{ui:Qobiq}} egri yuzlarni ochish; turli qalinlikdagi devorlar | Yassi yuzlarni oching; devor qalinroq boʻlishi kerak boʻlgan joyda ekstrudlar bilan material qoʻshing |
+| Egri yuzlarda {{ui:Sweep}}, {{ui:Loft}}, {{ui:Qoralama}}; yuzgacha, keyingi yuzgacha yoki uchigacha ekstrudlash; konussimon ekstrudlar | Ekstrudlang yoki aylantiring, kerak boʻlsa bosqichlarda; oʻlchagan chuqurligigacha ekstrudlang |
+| {{ui:Qovurgʻa}}, {{ui:Asosiy flanets}}, {{ui:Qirra flanetsi}} va yassi naqshlar | Plastinani yoki qovurgʻaning profilini ekstrudlang |
+| Sirtlar: {{ui:Forma}} ni detalga pardozlash, {{ui:Yama}}, {{ui:Sirtni loft qilish}}, {{ui:Gordon sirti}}, {{ui:Tikish}}, {{ui:Qalinlashtirish}}, {{ui:Sirtni siljitish}}, {{ui:Sirtni choʻzish}}, {{ui:Sirtni qirqish}} | Mavjud emas |
+| Bir nechta jism: {{ui:Birlashtirish}}, {{ui:Jismni koʻchirish}}, {{ui:Jismni masshtablash}}, {{ui:Yoʻl massivi}}, yangi jism yaratadigan xususiyatlar | Bitta yaxlit jism; massivlar va koʻzgu nusxa xususiyatlari |
+| Faqat aniq yadro topa oladigan yuzlardagi eskizlar, tekisliklar, oʻqlar va nuqtalar (yumaloqlash bilan yaratilgan yuz, teshik devori, import qilingan jismning yuzi) | Asosiy tekisliklarda, referens tekisliklarda va ekstrudlar hamda aylantirishlarning yassi yuzlarida eskiz |
+| Generativ dizayn natijasi detal sifatida ochilgan yoki unga qoʻshilgan (u import qilingan jismga aylanadi) | Natijani STL yoki STEP sifatida yuklab oling |
+| Ochilgan STEP faylining egri yuzlarini aniq sirt sifatida tahrirlash; STEP faylidagi splayn, siljitilgan va aylantirilgan yuzlarning aniq STEP i, splayn tomonlar, modellashtirilgan rezbalar, STL / OBJ / 3MF jismlari va yigʻmalar; boshqa detal modelyorlari uchun STEP | {{ui:Ochish}} STEP ni uchburchaklar sifatida oʻqiydi va eksport uchun faylning yassi yuzlari, silindrlari, konuslari, sferalari va torlarini saqlaydi ([STEP faylini ochish](topic:import-step)); {{ui:Eksport}} › {{ui:STEP AP242 (aniq yaxlit jism)}} har bir analitik yuzni aniq yozadi va ularni faset sifatida saqlaydi ([Eksport](topic:export-files#for-other-cad-programs-step)); boshqa detal modelyori uchun makros hali ham yozadi |
+| Chizma koʻrinishlardagi haqiqiy yoylar | Koʻrinishlar va kesim koʻrinishlari fasetlardan chiziladi |
+| Aniq hajmlar, maydonlar va masofalar | {{ui:Oʻlchash}} faset jismning raqamlarini beradi, dumaloq detallarda biroz past; mayinroq **Egri chiziqlar** sozlamasi ularni yaqinlashtiradi |
 
-Quyidagi jadvallarning ba’zi qatorlari bu xususiyatlardan birini nimanidir boshqacha hal qilish usuli sifatida taklif qiladi. Bu takliflar aniq yadro qaytgandan keyin amal qiladi.
+Quyidagi jadvallardagi ayrim qatorlar bu xususiyatlardan birini boshqa narsa atrofida yoʻl sifatida taklif qiladi. Bu takliflar aniq yadro qaytgach kuchga kiradi.
 
 ## Xususiyatlar
 
-| Hali qurilmagan | Hozir o‘rniga |
+| Hali qurilmagan | Oʻrniga, bugun |
 |---|---|
-| Yuz yumaloqlashlari, to‘liq yumaloqlashlar, qirra bo‘ylab nuqtalarda belgilangan radiusli yumaloqlashlar | Doimiy yoki chiziqli o‘zgaruvchan {{ui:Fillet}}; bir nechta yumaloqlash xususiyatlari |
-| Turli devor qalinliklari bilan qobiqlar | Bitta {{ui:Shell}} qalinligi; devor qalinroq bo‘lishi kerak bo‘lgan joyda ekstrudirlash bilan material qo‘shing |
-| Erkin shakldagi (spline) yuzlarda qiyalik | {{ui:Qoralama}} tekis, silindrik va konus yuzlarda ishlaydi |
-| Buralgan sweeplar, yupqa devorli va sirt sweeplari; Loft xususiyatida uchdagi tangens; bitta yo‘naltiruvchi relsli loft; spline yo‘llari | Belgilangan yo‘nalishli yoki uchi masshtabli {{ui:Sweep}}; ikki yoki undan ko‘p yo‘naltiruvchi relsli loft: qarang: [Sweep, loft va qoralama](topic:sweep-loft-draft) |
-| Yoylardan yoki splinelardan qovurg‘alar; eskizga kvadrat o‘sgan qovurg‘alar (yuqoridan ko‘rinishdan); qovurg‘alarda qiyalik; bitta eskizdan bir nechta qovurg‘a | {{ui:Qovurg‘a}} qovurg‘aning o‘z tekisligidagi bitta zanjir chiziqdan: qarang: [Qovurg‘alar va gussetlar](topic:rib) |
-| "Gacha" egri sirtgacha; egri yuzda to‘xtaydigan "keyingi yuzgacha" | Tekis yuzgacha yoki referens tekislikkacha |
-| Qarama-qarshi teshiklar, dyuym va quvur rezbalari, konusli rezbalar, rezba oxiri va faskalangan rezba boshlanishi | Kichik chuqurlik bilan kengaytirilgan teshik; ISO metrik va trapetsiya rezbalar, bezak yoki modellashtirilgan: qarang: [Val va teshiklardagi rezbalar](topic:threads) |
-| Yupqa xususiyatli ekstrudirlar | Profilning ikkala devorini chizing |
-| Naqsh nusxalari bittadan o‘tkazib yuborilgan, to‘ldirish naqshlari | Alohida xususiyatlardan foydalaning; egri chiziq bo‘ylab naqshlar: {{ui:Yo‘l massivi}} |
-| Nusxa naqshlari, aks ettirishlar, yumaloqlashlar, faskalar, qobiqlar va import qilingan qattiq jismlarni nusxalash | Ular asoslangan eskiz yoki xususiyatni nusxalang yoki uni naqshlang |
-| Forma yuqori nuqtalarida aniq (G1) tangens; forma yamalarini kattaroq yuzlarga birlashtirish | Forma Darajasini oshiring: taxminiy yamalar kichrayadi; qarang: [Forma bilan erkin shakllar](topic:form-surfaces) |
-| Bitta xususiyatda bir nechta alohida yopiq bo‘laklardan iborat forma; formalar orasidagi ko‘priklar | Har bir Forma xususiyatida bitta yopiq bo‘lak; ularni {{ui:Ulash}} bilan ulang |
-| Ko‘rinishda sirt jismlarini tanlash (trim va yama nuqtalaridan tashqari); sirt yumaloqlashlari; untrim; G2 yamalar; egri qo‘shnilarga tangens Gordon sirtlari (tekisliklar va tekis yuzlarga tangens qurilgan) | Xususiyat panelidagi ro‘yxatdan nomi bo‘yicha tanlang; avval {{ui:Qalinlashtirish}}, so‘ng qattiq jismni yumaloqlang |
-| Tarixdagi jismlar ro‘yxati; yashirin jismlarni eksportdan chiqarib tashlash | Detal panelidagi jismlar ro‘yxatida jismlarni qayta nomlang va yashiring; jismni chiqarish uchun uni yaratgan xususiyatni o‘chiring yoki bostiring |
-| Silindr va konuslarni analitik saqlaydigan notekis masshtab; ofset sirtlarning notekis masshtabi | {{ui:Jismni masshtablash}} egri yuzlarni yopiq B-splinelarga aylantiradi (0,0000004 mm aniqlikda); bir tekis masshtab aniq qoladi |
-| Sirt jismlarini birlashtirish; Minkowski yig‘indilari | Avval {{ui:Tikish}} yoki {{ui:Qalinlashtirish}}, so‘ng {{ui:Birlashtirish}} |
-| Tolerantlik tahlili: burchaklarni buradigan stek-aplar (2D va 3D vektor halqalari), geometriyadan hisoblangan sezgirliklar, boshqa taqsimotli Monte Carlo, eskizdagi o‘lchamlardagi o‘lcham tolerantliklari, material holatidan bonus tolerantlik | Yig‘madagi {{ui:Toleranslar zanjiri}}: bitta yo‘nalish, eng yomon holat va RSS, tolerantliklar qo‘lda kiritiladi, sarlavha blokining umumiy toleranslaridan yoki GD&T ramkalaridan: qarang: [Tolerantlik zanjirlari](topic:tolerance-stackup) |
-| Joylashtirish: kesish tartibi va kirish chiziqlari, umumiy qirralarni bir marta kesish, birga saqlanishi kerak bo‘lgan detallar; rulon qoldiqlari, loyihalar orasida umumiy zaxira | {{ui:Varaqlarda yassi detallarni joylashtirish…}} oraliq, chekka chegaralari, burilishlar va tola bilan: qarang: [Yassi detallarni varaqlarda joylashtirish](topic:nest-flat-parts); qolgan plastinalar saqlanadi va avval ishlatiladi: qarang: [Qoldiqlarni saqlash va qayta ishlatish](topic:nest-offcuts); kesish rejasini kesish dasturingizda tuzing |
-| Listli metall: bukilgan qirralar, pog‘onalar, miter va kontur flanetslar; egri qirralardagi flanetslar yoki egilgan asosiy flanets yuzlarida; eskizdagi bukilmalar; burchak yopilmalari; shakllantiruvchi asboblar; qattiq jismni listli metallga aylantirish; kesmalari bor egilgan asosiy flanetsning yassi shakli; bukish jadvallari | {{ui:Asosiy flanets}} (plastina yoki egilgan profil), plastinaning to‘g‘ri qirralarida {{ui:Qirra flanetsi}} bukish bo‘shatishlari bilan, va K-faktorli yassi shakl: qarang: [Listli metall](topic:sheet-metal) |
-| Yig‘malarda qoralama tahlili; ajratish chizig‘ini topish; devor qalinligi tahlili | Loyihalash ish maydonida detaldagi {{ui:Qoralama tahlili}}: qarang: [Qolip va quyish uchun qoralamani tekshirish](topic:draft-analysis); yig‘madagi har bir detalni tekshirish uchun uni oching |
+| Yuz yumaloqlashlari, toʻliq dumaloq yumaloqlashlar, qirra boʻylab nuqtalarda radiuslari belgilangan yumaloqlashlar | Doimiy yoki chiziqli oʻzgaruvchan {{ui:Yumaloqlash}}; bir nechta yumaloqlash xususiyatlari |
+| Turli devor qalinliklaridagi qobiqlar | Bitta {{ui:Qobiq}} qalinligi; devor qalinroq boʻlishi kerak boʻlgan joyda ekstrudlar bilan material qoʻshing |
+| Erkin shakldagi (splayn) yuzlarda qoralama | {{ui:Qoralama}} yassi, silindrsimon va konussimon yuzlarda ishlaydi |
+| Buralgan Sweep turlari, yupqa devorli va sirt Sweep turlari; Loft xususiyatidagi oxirgi tangens; bitta yoʻnaltiruvchi relsli loft; splayn yoʻllar | Belgilangan yoʻnalishli yoki oxirgi masshtabli {{ui:Sweep}}; ikki yoki undan ortiq yoʻnaltiruvchi relsli loft: qarang: [Sweep, loft va qoralama](topic:sweep-loft-draft) |
+| Yoylar yoki splaynlardan qovurgʻalar; eskizga nisbatan toʻrtburchak oʻsgan qovurgʻalar (yuqori koʻrinishdan); qovurgʻalarda qoralama; bitta eskizdan bir nechta qovurgʻa | Qovurgʻaning oʻz tekisligida bitta chiziqlar zanjiridan {{ui:Qovurgʻa}}: qarang: [Qovurgʻalar va kronshteynlar](topic:rib) |
+| Egri sirtgacha "gacha", egri yuzda toʻxtovchi "keyingigacha" | Yassi yuzgacha yoki referens tekislikkacha |
+| Qarshi burgʻulangan teshiklar, dyuym va quvur rezbalari, konussimon rezbalar, rezba chiqish joylari va faskalangan rezba boshlanishlari | Kichik chuqurlikdagi qarshi kengaytirish (counterbore); ISO metrik va trapetsiyasimon rezbalar, koʻrinish yoki modellangan: qarang: [Val va teshiklardagi rezbalar, chizilgan yoki modellangan](topic:threads) |
+| Yupqa xususiyatli ekstrudlar | Profilning ikkala devorini chizing |
+| Massiv nusxalari bir-bir oʻtkazib yuboriladi, toʻldirish massivlari | Alohida xususiyatlardan foydalaning; egri chiziq boʻylab massivlar: {{ui:Yoʻl massivi}} |
+| Massivlarni, koʻzgularni, yumaloqlashlarni, faskalarni, qobiqlarni va import qilingan jismlarni nusxalash | Ular qurilgan eskiz yoki xususiyatni nusxalang yoki unga massiv qoʻllang |
+| Forma nuqtalarida aniq (G1) tangens; forma yamalarini kattaroq yuzlarga birlashtirish | Formaning Darajasini oshiring: taxminiy yamalar kichrayadi; qarang: [Erkin shakllar Forma bilan](topic:form-surfaces) |
+| Bitta xususiyatda bir nechta alohida yopiq boʻlaklardan tuzilgan forma; formalar orasidagi koʻprikler | Har bir Forma xususiyatida bitta yopiq boʻlak; ularni {{ui:Ulash}} bilan ulang |
+| Koʻrinishda sirt jismlarini tanlash (qirqish va yama nuqtalaridan tashqari); sirt yumaloqlashlari; qirqishni qaytarish; G2 yamalar; egri qoʻshnilarga tangens Gordon sirtlari (tekisliklar va yassi yuzlarga tangens qurilgan) | Ularni xususiyat panelida nomi boʻyicha tanlang; avval qalinlashtiring, soʻng jismni yumaloqlang |
+| Tarixda jismlar roʻyxati; yashirin jismlarni eksportdan chiqarib tashlash | Detal panelidagi jismlar roʻyxatida jismlarni nomlang va yashiring; jismni yaratgan xususiyatni oʻchirib tashlang yoki vaqtincha oʻchiring, shunda u chiqariladi |
+| Silindr va konuslarni analitik saqlaydigan notekis masshtab; siljitilgan sirtlarni notekis masshtablash | {{ui:Jismni masshtablash}} egri yuzlarni yaqin B-splaynlarga aylantiradi (0.0000004 mm ichida); tekis masshtab aniq qoladi |
+| Sirt jismlarini birlashtirish; Minkowski yigʻindilari | Avval {{ui:Tikish}} yoki {{ui:Qalinlashtirish}}, soʻng {{ui:Birlashtirish}} |
+| Tolerantlikni tahlil qilish: burchaklar boʻylab buriladigan toʻplamlar (2D va 3D vektor sirtmoqlari), geometriyadan hisoblangan sezgirliklar, boshqa taqsimotli Monte-Karlo, eskiz oʻlchamlaridagi oʻlcham tolerantliklari, material holatidan bonus tolerantlik | Yigʻmadagi {{ui:Toleranslar zanjiri}}: bir yoʻnalish, eng yomon holat va RSS, tolerantliklar kiritiladi, sarlavha blokining umumiy tolerantligidan yoki GD&T ramalaridan: qarang: [Toleranslar zanjirlari](topic:tolerance-stackup) |
+| Joylashtirish: kesish tartibi va kirish chiziqlari, umumiy qirralarni bir marta kesish, birga saqlanishi kerak boʻlgan detallar; rulonlarning qoldiqlari, loyihalar orasida umumiy zaxira | {{ui:Varaqlarda yassi detallarni joylashtirish…}} oraliq, chekka, aylantirish va tola yoʻnalishi bilan: qarang: [Varaqlarda yassi detallarni joylashtirish](topic:nest-flat-parts); qolgan plastinalar saqlanadi va birinchi navbatda ishlatiladi: qarang: [Qirqindilarni saqlash va qayta ishlatish](topic:nest-offcuts); kesishni kesgichingizning oʻz dasturida rejalashtiring |
+| List metall: buklar, pogʻonalar, miter va kontur flanetslar; egri qirralardagi yoki egilgan asosiy flanetsning yuzlaridagi flanetslar; eskizli egilishlar; burchak yopilmalari; shakllantiruvchi asboblar; jismni list metallga aylantirish; kesilgan egilgan asosiy flanetsning yassi shakli; egilish jadvallari | {{ui:Asosiy flanets}} (plastina yoki egilgan profil), plastinaning toʻgʻri qirralarida egilish boʻshatishlari bilan {{ui:Qirra flanetsi}} va K-koeffitsiyent bilan yassi naqsh: qarang: [List metall](topic:sheet-metal) |
+| Yigʻmalarda {{ui:Qoralama tahlili}}; ajratish chizigʻini topish; devor qalinligini tahlil qilish | Loyihalashda detaldagi {{ui:Qoralama tahlili}}: qarang: [Quyish va shakllantirish uchun qoralamani tekshirish](topic:draft-analysis); yigʻmaning har bir detalini tekshirish uchun oching |
 
 ## Eskizlar
 
-| Hali qurilmagan | Hozir o‘rniga |
+| Hali qurilmagan | Oʻrniga, bugun |
 |---|---|
-| Ellipslar, urinma yoylar, konik kesimlar, daraja yoki og‘irliklari belgilangan splinelar (NURBS) | Splinelar (kubik), yoylar va aylanalar Urinma bog‘lanishlari bilan |
-| Splinedagi nuqta (bog‘lanish), egrilik (G2) bog‘lanishlari | Spline o‘zining nuqtasini o‘tishi kerak bo‘lgan joyga qo‘ying |
-| Keyingi o‘zgarishlarni kuzatadigan splinelar ofset nusxalari; o‘tkir spline burchakli zanjirlarning ofseti | O‘zgarishdan keyin yana ofset qiling; avval burchakni yumaloqlang |
-| Asl nusxaga bog‘langan naqsh nusxalari; egri chiziq bo‘ylab naqshlar | O‘zgarishdan keyin yana naqshlang |
-| Erkin shakl yoki qiyshiq aylana qirralarni proeksiyalash; detal bilan o‘zgaradigan proeksiyalangan geometriya | To‘g‘ri va parallel aylana qirralarni proeksiyalang, so‘ng o‘lchamlang |
-| Haydovchi (referens) o‘lchamlar | O‘lchamlarni panel yoki detal faktlaridan o‘qing |
-| Kollinear bog‘lanishlar | 0 masofali parallel |
-| Boshqa dasturga joylash (tizim buferi) | DXF, STEP, STL yoki 3MF eksport qiling |
-| Yoylarni, nisbiy yoki qutb koordinatalarini yozish | Chiziqlar va aylanalarni yozing; yoylarni Yoy asbobi bilan chizing |
-| Ko‘rsatkichsiz geometriyani tanlash | Bosish yoki teginish kerak |
+| Ellipslar, tangens yoylar, konik kesimlar, belgilangan darajali yoki ogʻirlikli splaynlar (NURBS) | Splaynlar (kubik), yoylar va aylanalar Tangens bogʻliqliklari bilan |
+| Splayndagi nuqta (bogʻliqlik), egrilik (G2) bogʻliqliklari | Splaynning oʻz nuqtasini u oʻtishi kerak boʻlgan joyga qoʻying |
+| Keyingi oʻzgarishlarga ergashadigan splaynlarning siljitilgan nusxalari; oʻtkir splayn burchakli zanjirlarning siljishi | Oʻzgarishdan keyin yana siljiting; avval burchakni yumaloqlang |
+| Asl nusxaga bogʻlangan massiv nusxalari; egri chiziq boʻylab massivlar | Oʻzgarishdan keyin massivni yana qoʻllang |
+| Erkin shakldagi yoki egilgan aylana qirralarni proyeksiyalash, detalga ergashadigan proyeksiyalangan geometriya | Toʻgʻri va parallel aylana qirralarni proyeksiyalang, soʻng oʻlchang |
+| Boshqariladigan (referens) oʻlchamlar | Oʻlchamlarni paneldan yoki detal maʼlumotlaridan oʻqing |
+| Kollinear bogʻliqliklar | 0 masofali Parallel |
+| Boshqa dasturga joylashtirish (tizim buferi) | DXF, STEP, STL yoki 3MF ni eksport qiling |
+| Yoylarni, nisbiy yoki qutb koordinatalarini kiritish | Chiziqlar va aylanalarni kiriting; yoylarni {{ui:Yoy}} asbobi bilan chizing |
+| Geometriyani koʻrsatkichsiz tanlash | Bosish yoki teginish kerak |
 
-## Parametrlar va birliklar
+## Parametrlar va oʻlchov birliklari
 
-| Hali qurilmagan | Hozir o‘rniga |
+| Hali qurilmagan | Oʻrniga, bugun |
 |---|---|
-| Materiallarni o‘zgartiruvchi konfiguratsiyalar; xususiyatlarni o‘chiradigan CSV dizayn jadvali | Konfiguratsiyalar parametrlarni o‘rnatadi va xususiyatlarni yoqadi/o‘chiradi: qarang: [Konfiguratsiyalar va dizayn jadvallari](topic:design-tables); `partcraft variants` saqlangan konfiguratsiyalarni nomi bo‘yicha quradi, o‘chirilgan xususiyatlar bilan: qarang: [Konfiguratsiyalaringizdan variant paketi yarating](topic:variant-pack) |
-| Eng yangi xususiyatlarning o‘z panellaridagi tenglamalar (tekislik, sweep, qoralama va shunga o‘xshash) | Ularni skriptda yoki `partcraft set` bilan yozing ([Skriptlar va buyruq satri](topic:scripts-and-cli)) |
-| Dyuymdagi detal | O‘lchamlar millimetrda ko‘rsatiladi; raqam maydoniga yoki ifodaga `2in` yozing, u 50.8 bo‘ladi |
+| Materiallarni oʻzgartiradigan konfiguratsiyalar; xususiyatlarni oʻchiradigan CSV loyiha jadvali | Konfiguratsiyalar parametrlarni belgilaydi va xususiyatlarni yoqadi yoki oʻchiradi: qarang: [Konfiguratsiyalar va loyiha jadvallari](topic:design-tables); `partcraft variants` saqlangan konfiguratsiyalarni nomi boʻyicha quradi, oʻchirilgan xususiyatlar bilan birga: qarang: [Konfiguratsiyalardan variant toʻplamini tuzish](topic:variant-pack) |
+| Eng yangi xususiyatlarning oʻz panellaridagi raqamlarga tenglamalar (tekislik, sweep, qoralama va shunga oʻxshash) | Ularni skriptda yoki `partcraft set` bilan yozing ([Skriptlar va buyruq qatori](topic:scripts-and-cli)) |
+| Detal dyuymda koʻrsatilgan | Oʻlchamlar millimetrda koʻrsatiladi; raqam maydoniga yoki ifodaga `2in` deb yozing, u 50.8 boʻladi |
 
 ## Fayllar
 
-| Hali qurilmagan | Hozir o‘rniga |
+| Hali qurilmagan | Oʻrniga, bugun |
 |---|---|
-| Import qilingan STEP qattiq jismning o‘z xususiyatlarini tahrirlash (tarixsiz keladi) | O‘z xususiyatlaringiz bilan material qo‘shing yoki kesing |
-| STEP dan ranglar, nomlar, yig‘ma tuzilmasi va PMI ni o‘qish | Mavjud emas |
-| glTF, OBJ, IGES, Parasolid eksporti; 3D detalning DWG si (faqat variant paketi DWG yozadi: chizma varaqi) | Meshlar uchun STL yoki 3MF; qattiq jismlar uchun STEP; 2D uchun DXF |
-| Boshqa dasturlarning o‘z fayllarini ochish (`.3dm` fayllar bitta jism sifatida ochiladi: [.3dm modelini qattiq jism sifatida ochish](topic:open-3dm-files)) | STEP yoki yopiq STL, OBJ yoki 3MF meshini so‘rang: [STL, OBJ yoki 3MF ni ochish](topic:open-meshes) |
-| Eksport qilingan STEP dagi yig‘ma tuzilmasi (detal nomlari bilan daraxt) | Yig‘ma STEP joylashgan qattiq jismlarning bitta kompaundi |
-| Brauzer yuklab olishisiz o‘zingiz tanlagan jildga saqlash | Brauzerning yuklab olish sozlamalarida "saqlash joyini so‘rash"ni yoqing |
+| Import qilingan STEP jismining oʻz xususiyatlarini tahrirlash (u tarixsiz keladi) | Oʻz xususiyatlaringiz bilan material qoʻshing yoki kesib oling |
+| STEP dan ranglar, nomlar, yigʻma tuzilmasi va PMI ni oʻqish | Mavjud emas |
+| glTF, OBJ, IGES, Parasolid eksporti; 3D detalning DWG si (faqat variant toʻplami DWG yozadi: chizma varaq) | Toʻrlar uchun STL yoki 3MF; jismlar uchun STEP; 2D uchun DXF |
+| IGES, DXF yoki boshqa dasturlarning oʻz fayllarini ochish (`.3dm` fayllari bitta jism sifatida ochiladi: [.3dm modelini qattiq jism sifatida ochish](topic:open-3dm-files)) | STEP soʻrang yoki yopiq STL, OBJ yoki 3MF toʻr: [STL, OBJ yoki 3MF ni ochish](topic:open-meshes) |
+| Eksport qilingan STEP dagi yigʻma tuzilmasi (detal nomlari bilan daraxt) | Yigʻma STEP joylashtirilgan jismlarning bitta kompozitsiyasi |
+| Brauzer yuklab olishisiz tanlangan papkaga saqlash | Brauzerning yuklab olish sozlamalarida «saqlash joyini soʻrash» ni yoqing |
 
 ## Chizmalar
 
-| Hali qurilmagan | Hozir o‘rniga |
+| Hali qurilmagan | Oʻrniga, bugun |
 |---|---|
-| Uchta umumiy o‘lcham chegarasidan tashqari o‘lchamlar (teshik o‘lchamlari, joylashuvi, o‘lchamlardagi tolerantliklar) | PDF ni belgilang yoki DXF eksport qilib 2D CAD dasturida o‘lchang |
-| Bittadan ko‘p kesim yoki detal; tekislangan, uzilgan va yordamchi ko‘rinishlar | Bir chizmada bitta kesim va bitta detal |
-| Varaqda erkin matn, izohlar va jadvallar (sarlavha va revizion bloklardan tashqari) | Yakuniy pardozlash izohi yoki PDF ga qo‘shilgan matn |
-| Birinchi burchakli proyeksiya, harakatlanuvchi ko‘rinishlar, portret varaqlar | Uchinchi burchak, avtomatik joylashuv, A4–A0 va ANSI A–E gorizontal varaqlar |
-| Jonli kesim ko‘rinishi: bir vaqtning o‘zida bir nechta tekislik yoki kesim qutisi, kesim atrofidagi kontur, kesimni faylda saqlash | Bir tekislik bir vaqtda {{ui:Ko‘rinishlar}} › {{ui:Kesim ko‘rinishi}} dan; qarang: [Kesim ko‘rinishi bilan ichkariga qarash](topic:section-view) |
-| Yig‘ma chizmalari: ko‘proq ko‘rinishlar, siljitiladigan o‘lchamlar yoki ballonlar | Avtomatik ballonlar va detallar ro‘yxati bilan bitta izometrik (yoki yoyilgan) ko‘rinish |
-| GD&T va pardoz belgilarini nusxalash va joylashtirish | Har birini Datum, Frame yoki Finish bilan joylashtiring |
-| Qo‘llanmalar: Illustrate ning {{ui:Boshqa fayldan…}} dagi STEP fayllar, ModelCraft yoki BimCraft dan to‘g‘ridan-to‘g‘ri uzatilgan model, path tracer sifatidagi rasmlar, PDF ichidagi interaktiv 3D | STEP ni Loyihalash da oching va {{ui:Ochiq detaldan}} qo‘llanmani boshlang; modelni glTF (.glb) sifatida saqlang; 3D ko‘rinishning PNG rasmlari; interaktiv 3D fayl: qarang: [Illustrate da qo‘llanma boshlash](topic:illustrate) |
+| Uchta umumiy oʻlchamdan tashqari oʻlchamlar (teshik oʻlchamlari, joylashuvi, oʻlchamlardagi tolerantliklar) | PDF ga belgi qoʻying yoki DXF eksport qilib, uni 2D CAD dasturida oʻlchang |
+| Bir nechtadan ortiq kesim yoki detal; tekislangan, uzilgan va yordamchi koʻrinishlar | Har bir chizmada bitta kesim va bitta detal |
+| Varaqdagi erkin matn, izohlar va jadvallar (sarlavha va revizya bloklaridan tashqari) | Pardozlash izohi yoki PDF ga qoʻshilgan matn |
+| Birinchi burchakli proyeksiya, siljiydigan koʻrinishlar, portret varaqlar | Uchinchi burchak, avtomatik joylashuv, gorizontal A4–A0 varaqlar va ANSI A–E |
+| Jonli kesim koʻrinishi: bir vaqtda bir nechta tekislik yoki kesim qutisi, kesim atrofidagi kontur, kesimni faylda saqlash | Bir vaqtda bitta tekislik {{ui:Koʻrinishlar}} › {{ui:Kesim koʻrinishi}} dan; qarang: [Kesim koʻrinishi bilan ichkariga qarash](topic:section-view) |
+| Koʻproq koʻrinishli, oʻlchamli yoki siljitiladigan ballonli yigʻma chizmalar | Avtomatik ballonlar va detallar roʻyxati bilan bitta izometrik (yoki yoyilgan) koʻrinish |
+| GD&T va pardozlash belgilarini nusxalash va joylashtirish | Har birini Datum, Rama yoki Ishlov bilan joylashtiring |
+| Qoʻllanmalar: Illustrate dagi {{ui:Boshqa fayldan…}} dagi STEP fayllar, ModelCraft yoki BimCraft dan toʻgʻridan-toʻgʻri berilgan model, yoʻl kuzatuvchisi sifatidagi rasmlar, PDF ichidagi interaktiv 3D | Loyihalashda STEP ni oching va qoʻllanmani {{ui:Ochiq detaldan}} boshlang; modelni glTF (.glb) sifatida saqlang; 3D koʻrinishning PNG rasmlari; interaktiv 3D fayl: qarang: [Illustrate da qoʻllanma boshlash](topic:illustrate) |
 
-## Yig‘malar
+## Yigʻmalar
 
-| Hali qurilmagan | Hozir o‘rniga |
+| Hali qurilmagan | Oʻrniga, bugun |
 |---|---|
-| Gear, rack, cam va vint bog‘lanishlari; konus bilan chegaralangan sharsimon bog‘lanish; egri yuzlardagi yoki nuqtalar orasidagi bog‘lanishlar | Qattiq, aylanuvchi, slayder, silindrik, tekis, sharsimon va pin-in-slot bog‘lanishlari tekis yuzlarda, har bir qiymat o‘z chegaralari bilan: qarang: [Yig‘ma yasash](topic:build-assembly) |
-| Detallarni buradigan yoyilish bosqichlari va bog‘lanishlar joylashtiradigan detallarni sudrash | To‘g‘ri yoyilish bosqichlari; detalni qo‘lda siljitish uchun bog‘lanishni o‘chiring |
-| Yig‘ma ichidagi yig‘malar | Faqat bir daraja detal |
-| Tishli g‘ildiraklar, kulachoklar, kontakt | Mavjud emas |
+| Tishli, reyka, kulachok va vint birikmalari; konus bilan chegaralangan shar birikma; egri yuzlardagi yoki nuqtalar orasidagi birikmalar | Yassi yuzlardagi qattiq, aylanuvchi, sirpanuvchi, silindrik, tekis, shar va pin-slot birikmalar, har bir qiymat oʻz chegaralari bilan: qarang: [Yigʻma qurish](topic:build-assembly) |
+| Detallarni buruvchi yoyilgan qadamlar va birikmalar joylashtirgan detallarni sudrash | Toʻgʻri yoyish qadamlari; detalni qoʻlda siljitish uchun birikmani olib tashlang |
+| Kichik yigʻmalar | Faqat bitta darajadagi detallar |
+| Tishlilar, kulachoklar, kontakt | Mavjud emas |
 
 ## Ishlab chiqarish
 
-| Hali qurilmagan | Hozir o‘rniga |
+| Hali qurilmagan | Oʻrniga, bugun |
 |---|---|
-| 3D qo‘pol ishlov berish egri yuzlarda, 3D adaptiv tozalash, qoldiq ishlov; suv chizig‘i, qalam, radial va spiral pardozlash; adaptiv yo‘llar yoylar sifatida | 2,5 o‘q yuz, cho‘ntak, 2D adaptiv, kontur, burg‘u va faska: qarang: [Asbob yo‘llari va G-kod yarating](topic:manufacture); butun model uchun Parallel va Scallop pardozlash: qarang: [3D pardozlash](topic:finish-3d) |
-| 4 va 5 o‘qli asbob yo‘llari, tokarlik, zondlash | Bir tomonni bir vaqtda sozlang, Sozlash yorlig‘ida asbob o‘qi bilan |
-| Ushlagich va dastaning to‘qnashuvini tekshirish | Tishlar uzunligi ogohlantirishlarini kuzating va boshqaruvingizning simulyatorida tekshiring |
-| Zondlash, asbob muddati va kichik dastur sikllari; post ichidagi 4- va 5-o‘q hamda tokarlik kodlari; boshqa dasturlarning post fayllarini yuklash | Postni PartCraft ning o‘z formatida yozing yoki o‘zgartiring: qarang: [Tahrir qilinadigan post protsessorlari](topic:post-processors) |
-| Dyuymli G-kod (G20) | Faqat millimetr (G21) |
+| 3D da moslashuvchan tozalash va siljitilgan qoʻpol ishlov; waterline, qalam, radial va spiral pardozlash; yoylar sifatida yozilgan moslashuvchan oʻtishlar | Toʻgʻri qatorlarda 3D qoʻpol ishlov va qoldiq ishlov: qarang: [3D qoʻpol va qoldiq ishlov berish](topic:rough-3d); Parallel va Scallop pardozlash: qarang: [3D pardozlash](topic:finish-3d); 2.5 oʻqli yuza, oyma, 2D moslashuvchan, kontur, burgʻulash va faska: qarang: [Asbob yoʻllari va G-code yaratish](topic:manufacture) |
+| Swarf kesish, oqim chizigʻi va koʻp oʻqli qoʻpol yoʻllar, egilgan ishchi tekislik kodlari (G68.2), tutgich va stanokning toʻqnashuvni tekshirishi; 5 oʻqli va aylanma kesishlar simulyatsiyasi | Har qanday operatsiya uchun egilgan asbob, shar uchli frez bilan 5 oʻqli pardozlash va 4-oʻq aylanma pardozlash: qarang: [4 va 5 oʻqli ishlov berish](topic:multi-axis) |
+| Tokarlikda ichki teshish va rezbalar, G71/G76 sikllari, tokarlik yoʻllaridagi yoylar, jonli asboblar, qoʻshimcha shpindel | Tashqi tokarlik: yuzlash, qoʻpol, pardoz, ariqcha, ajratish, rezba, markazda burgʻulash: qarang: [Tokarlik stanokida tokarlik](topic:turning) |
+| Burchak yoki qirrani zondlash, asbob oʻrnatgich, oʻlchamni tolerantlik bilan solishtirish | Ishchi siljishini oʻrnatish uchun yuzni, yonni, teshikni yoki boʻrtiqni zondlash: qarang: [Zondlash](topic:probing) |
+| Tutgich va dastak toʻqnashuvini tekshirish | Tish uzunligi ogohlantirishlarini kuzating va boshqaruvingizning simulyatorida tekshiring |
+| Postdagi asbob umri va kichik dastur sikllari; boshqa dasturlarning post fayllarini yuklash | Postni PartCraft ning oʻz formatida yozing yoki oʻzgartiring: qarang: [Tahrirlanadigan postprotsessorlar](topic:post-processors) |
+| Dyuymli G-code (G20) | Faqat millimetr (G21) |
 
 ## Simulyatsiya va generativ dizayn
 
-| Hali qurilmagan | Hozir o‘rniga |
+| Hali qurilmagan | Oʻrniga, bugun |
 |---|---|
-| Chiziqsiz tadqiqotlar: oqish, katta egilishlar, detallar orasidagi kontakt, charchash | Chiziqli statik va tabiiy chastotalar: qarang: [Kuchlanish va egilishni tekshirish](topic:simulation); xavfsizlik koeffitsientini 1 dan ancha katta saqlang |
-| Chiziqsiz buklanish (nomukammalliklar, buklanishdan keyin, snap-through) | Yetarli zaxira bilan chiziqli buklanish yuk koeffitsientlari: qarang: [Issiqlik, termik kuchlanish va buklanish](topic:thermal-and-buckling) |
-| Yuzlar orasidagi nurlanish (ko‘rinish omillari), kontakt qarshiligi, haroratga bog‘liq materiallar, termik kuchlanishdagi inersiya (termik zarba to‘lqinlari) | Atrofga nurlanish, vaqt bo‘yicha barqaror yoki kvazi-statik termik kuchlanish, doimiy xususiyatlar: qarang: [Issiqlik, termik kuchlanish va buklanish](topic:thermal-and-buckling) |
-| O‘tkinchi issiqlik va termik yuklamali tadqiqotlar uchun avtomatik tozalash; xato kichik bo‘lganda meshni kattalashtirish; mahalliy miqdorga maqsad (bir joydagi eng yuqori kuchlanish) | **Avtomatik tozalash** statik, buklanish, tabiiy chastota va barqaror issiqlik tadqiqotlari uchun, butun detaldagi xato bo‘yicha: qarang: [Kuchlanish va egilishni tekshirish](topic:simulation); aks holda element o‘lchamini kamaytiring |
-| Bearing va bolt yuklari, masofaviy kuchlar, momentlar, prujinalar, belgilangan siljishlar | Yuzlardagi kuchlar va bosimlar, gravitatsiya; mahkamlangan va ishqalanishsiz yuzlar |
-| Yig‘malarni simulyatsiya qilish; yo‘nalishga qarab farq qiladigan materiallar (bosma qatlamlar, kompozitlar) | Bitta detal, bitta izotrop material |
-| Tetraedrik tadqiqotlar, issiqlik uzatish va generativ dizayn uchun bir nechta yechuvchi oqimlari; sahifa krossorigin izolyatsiya qilinmagan bo‘lsa, istalgan oqim | Voksel tadqiqotlari, buklanish, vaqt bo‘yicha kuchlanish va laminar oqim sahifa ruxsat bergan joyda oqimlardan foydalanadi: qarang: [PartCraft sozlamalari](topic:settings) |
-| Turbulent oqim loyiha aniqligi bilan (Spalart–Allmaras modeli eksperimental sifatida mavjud: quvur ishqalanishi 30 dan 34 % gacha yuqori, orqaga qadam qayta tegishi 21 dan 39 % gacha qisqa; rejalashtirilgan: devorlar yaqinida nozikroq katakchalar), oqimda issiqlik, vaqtga bog‘liq (vaqt aniq) oqim, erkin sirtlar, Nyuton bo‘lmagan suyuqliklar, aylanuvchi detallar | Laminar, barqaror, izotermik Nyuton suyuqligi oqimi yoki sifat naqshlari uchun eksperimental turbulent model: qarang: [Suyuqlik oqimini simulyatsiya qilish](topic:flow-simulation); Reynolds soni laminardan oshsa, panel ogohlantiradi |
-| Generativ dizaynda kuchlanish chegaralari va ishlab chiqarish qoidalari (osilishlar, frezalash yo‘nalishlari); bitta shaklda bir nechta material | Hajm uchun eng qattiq shakl; natijani Simulyatsiya da tekshiring: qarang: [Yuklamalardan shakl o‘stiring](topic:generative-design) |
-| Natija tahrirlanadigan (silliq, parametrik) qattiq jism sifatida | STL, faset STEP yoki natija import qilingan faset qattiq jism sifatida bo‘lgan detal |
-| Elektr mashinasi loyihasi: statorda aylanadigan rotor, burchakka qarshi moment, to‘yingan po‘lat, egilish nuqtasidan keyin kuchini yo‘qotadigan magnitlar, Fuko toklari va temir hamda mis yo‘qotishlari; 3-D yoki egri meshlarda magnit maydonlari | Analiz kutubxonasidagi setkada chiziqli 2-D magnitostatika: g‘altaklar, temir, meros chizig‘idagi doimiy magnitlar, bo‘shliqlar, induktivlik va tortish: qarang: [2-D magnit maydonlari](topic:magnetic-fields-2d) |
+| Chiziqli boʻlmagan tadqiqotlar: oqish, katta egilishlar, detallar orasidagi kontakt, charchash | Chiziqli statik va xos chastotalar: qarang: [Kuchlanish va egilishni tekshirish](topic:simulation); xavfsizlik koeffitsientini 1 dan ancha yuqori saqlang |
+| Chiziqli boʻlmagan buklash (nomukammallik, buklashdan keyin, snap-through) | Keng zaxira bilan chiziqli buklash yuklama koeffitsientlari: qarang: [Issiqlik, termik kuchlanish va buklash](topic:thermal-and-buckling) |
+| Yuzlar orasidagi nurlanish (koʻrinish koeffitsientlari), kontakt qarshiligi, harorat bogʻliq materiallar, termik kuchlanishdagi inertsiya (termik zarba toʻlqinlari) | Atrofga nurlanish, vaqt boʻyicha barqaror yoki kvazistatik termik kuchlanish, doimiy xossalar: qarang: [Issiqlik, termik kuchlanish va buklash](topic:thermal-and-buckling) |
+| Oʻtkinchi issiqlik va termik yuklamali tadqiqotlar uchun avtomatik aniqlash; xato kichik boʻlgan joyda toʻrni siyraklashtirish; mahalliy kattalik boʻyicha maqsad (bir joydagi eng katta kuchlanish) | Statik, buklash, xos chastota va barqaror termik tadqiqotlar uchun butun detal xatosi boʻyicha **Avtomatik aniqlash**: qarang: [Kuchlanish va egilishni tekshirish](topic:simulation); aks holda elementning oʻlchamini kamaytiring |
+| Tayanch va bolt yuklamalari, masofaviy kuchlar, momentlar, prujinalar, belgilangan siljishlar | Yuzlardagi kuchlar va bosimlar, gravitatsiya; qoʻzgʻalmas va ishqalanishsiz yuzlar |
+| Yigʻmalarni simulyatsiya qilish; yoʻnalish boʻyicha farq qiladigan materiallar (bosma qatlamlar, kompozitlar) | Bitta detal, bitta izotrop material |
+| Tetraedr tadqiqotlari, issiqlik uzatish va generativ dizayn uchun bir nechta yechuvchi oqimlari; sahifa cross-origin izolyatsiya qilinmagan boʻlsa, har qanday oqimlar | Voksel tadqiqotlari, buklash, vaqt boʻyicha kuchlanish va laminar oqim sahifa ruxsat bergan joyda oqimlardan foydalanadi: qarang: [PartCraft sozlamalari](topic:settings) |
+| Loyihaviy aniqlikdagi turbulent oqim (Spalart–Allmaras modeli tajribaviy sifatida kiritilgan: quvur ishqalanishi 30 dan 34 % gacha yuqori, orqaga qadam qayta biriktirilishi 21 dan 39 % gacha qisqa; rejalashtirilgan: devorlar yaqinida mayda katakchalar), oqimda issiqlik, nostatsionar (vaqt boʻyicha aniq) oqim, erkin sirtlar, Nyuton boʻlmagan suyuqliklar, aylanuvchi detallar | Nyuton suyuqligining laminar, barqaror, izotermik oqimi yoki sifat andozalari uchun tajribaviy turbulent model: qarang: [Suyuqlik oqimini simulyatsiya qilish](topic:flow-simulation); Reynolds soni laminardan oshganda panel ogohlantiradi |
+| Generativ dizaynda kuchlanish chegaralari va ishlab chiqarish qoidalari (osilmalar, frezalash yoʻnalishlari); bitta shakldagi bir nechta materiallar | Hajm uchun eng qattiq shakl; natijani Simulyatsiyada tekshiring: qarang: [Yuklamalardan shakl oʻstirish](topic:generative-design) |
+| Tahrirlanadigan (silliq, parametrik) jism sifatida natija | STL, faset STEP yoki natijani import qilingan faset jism sifatida oʻz ichiga olgan detal |
+| Elektr mashinasi loyihasi: statorda aylanuvchi rotor, burchakka qarshi moment, toʻyingan poʻlat, tizzasidan oʻtgach kuchini yoʻqotadigan magnitlar, girdob toklari va temir hamda mis yoʻqotishlari; 3D dagi yoki egri toʻrlardagi magnit maydonlar | Tahlil kutubxonasidagi toʻrda chiziqli 2D magnitostatika: gʻaltaklar, temir, qaytish chizigʻidagi doimiy magnitlar, boʻshliqlar, induktivlik va tortish: qarang: [2D dagi magnit maydonlar](topic:magnetic-fields-2d) |
 
 ## Skriptlar
 
-| Hali qurilmagan | Hozir o‘rniga |
+| Hali qurilmagan | Oʻrniga, bugun |
 |---|---|
-| Skript muharririda hover yordami, breakpointlar va qadamma-qadam | Topish, buklash va to‘ldirish mavjud (qarang: [Skriptlar yozish va ishga tushirish](topic:craftscript)); qolganlari uchun o‘z muharriringiz: Skriptlar guruhidagi {{ui:Saqlash}} va {{ui:Ochish}} skriptlarni ichkariga va tashqariga olib chiqadi; o‘rnatilgan funksiyalar ro‘yxati: [CraftScript tili](topic:craftscript-language) |
-| Breakpointlar va skript bo‘ylab qadamlash | Yo‘l davomida `disp` va `fprintf`; {{key:Mod+Enter}} bir vaqtda bir nechta tanlangan qatorni ishga tushiradi |
-| Skript ko‘rsatadigan grafiklar va jadvallar Loyihalash ish maydonida chiziladi; skriptlar detalning parametrlarini o‘zgartiradi | Ular Skript ish maydonida ko‘rsatiladi; skriptlar `param` bilan parametrlarni o‘qiydi (qarang: [Skriptlar yozish va ishga tushirish](topic:craftscript)), ularni {{ui:Parametrlar}} yorlig‘ida o‘zgartiradi |
-| Grafiklar bilan yonma-yon rasmlar va jadvallar; saqlashdan oldin grafikni tahrirlash (zoom, o‘q chegaralari) | Yonma-yon grafiklar ko‘rsatiladi; grafikni PNG, SVG yoki CSV sifatida saqlang va boshqa joyda tugating |
-| numpy va boshqa Python paketlari; Python oflayn; muharrirda Python ni buklash; Pascal Script | Python ning standart kutubxonasi, CraftScript va Lua: qarang: [Python da skriptlar](topic:craftscript-python) |
-| Lua funksiyalarini o‘rnatilgan funksiyalarga uzatish; skript ishlayotganda qurilgan nom bilan Lua dan kutubxona funksiyasini chaqirish | Kutubxona funksiyasining nomini skriptga yozing (`cs.static_tet(…)`) yoki uni CraftScript skriptidan chaqiring |
+| Skript muharririda sichqoncha koʻrsatkichi yordami, toʻxtash nuqtalari va bosqichma-bosqich ijro | Qidirish, yigʻish va toʻldirish mavjud (qarang: [Skriptlarni yozish va ishga tushirish](topic:craftscript)); qolganlari uchun oʻz muharriringiz: Skript guruhidagi {{ui:Saqlash}} va {{ui:Ochish}} skriptlarni ichkariga va tashqariga olib chiqadi; oʻrnatilgan funksiyalar [CraftScript tili](topic:craftscript-language) da sanab oʻtilgan |
+| Toʻxtash nuqtalari va skript boʻylab bosqichma-bosqich oʻtish | Yoʻl davomida `disp` va `fprintf`; {{key:Mod+Enter}} bir vaqtning oʻzida bir nechta tanlangan qatorlarni ishga tushiradi |
+| Skript koʻrsatadigan maydonlar va grafiklar Loyihalash ish maydonida chiziladi; detal parametrlarini oʻzgartiradigan skriptlar | Ular Skript ish maydonida koʻrsatiladi; skriptlar parametrlarni `param` bilan oʻqiydi (qarang: [Skriptlarni yozish va ishga tushirish](topic:craftscript)), ularni {{ui:Parametrlar}} yorligʻida oʻzgartiring |
+| Grafiklar bilan yonma-yon rasmlar va jadvallar; saqlashdan oldin grafikni tahrirlash (kattalashtirish, oʻq chegaralari) | Yonma-yon grafiklarni koʻrsatadi; grafikni PNG, SVG yoki CSV sifatida saqlang va boshqa joyda tugating |
+| numpy va boshqa Python paketlari; oflayn Python; muharrirda Python ni yigʻish; Pascal Script | Pythonning standart kutubxonasi, CraftScript va Lua: qarang: [Python da skriptlar](topic:craftscript-python) |
+| Lua funksiyalarini oʻrnatilgan funksiyalarga uzatish; skript ishlayotganda qurilgan nom boʻyicha Lua dan kutubxona funksiyasini chaqirish | Kutubxona funksiyasining nomini skriptga yozing (`cs.static_tet(…)`), yoki uni CraftScript skriptidan chaqiring |
 
 ## Ilova
 
-| Hali qurilmagan | Hozir o‘rniga |
+| Hali qurilmagan | Oʻrniga, bugun |
 |---|---|
-| Bulutda saqlash, ulashish va versiyalar tarixi | Hali mavjud emas. Fayllarni kompyuteringizga saqlang va versiyalarni nom bo‘yicha saqlang |
-| PartCraft iPad va iPhone da o‘rnatilgan ilova sifatida | Qurilmaning brauzerida PartCraft dan foydalaning; Android va kompyuterda u CadCraft Studio da ham ishlaydi (getcadcraft.com/download) |
-| Kontekst (o‘ng tugma) menyulari | Asboblar paneli va o‘ng panel |
-| Yangi holatdan to‘liq oflaynda ishlash | Faqat ilova oflayn foydalanish uchun saqlangan bo‘lsa: qarang: [Oflaynda ishlash](common:offline) |
+| Bulutli saqlash, ulashish va versiyalar tarixi | Hali mavjud emas. Fayllarni kompyuteringizga saqlang va versiyalarni nomi boʻyicha saqlang |
+| iPad va iPhone da oʻrnatilgan ilova sifatida PartCraft | Qurilmaning brauzerida PartCraft dan foydalaning; Android va ish stolida u CadCraft Studio da ham ishlaydi (getcadcraft.com/download) |
+| Kontekst (oʻng tugma) menyulari | Asboblar paneli va oʻng panel |
+| Yangidan toʻliq oflayn ishlash | Faqat ilova oflayn foydalanish uchun saqlangan boʻlsa: qarang: [Oflayn ishlash](common:offline) |
 
-Eng ko‘p nimani sog‘inayotganingizni sayt yordam sahifasi orqali yuboring: bu keyingi rejalarni belgilaydi.
+Sizga eng koʻp yetishmaydigan narsani sayt yordam sahifasi orqali xabar bering: u keyingi narsalarni shakllantiradi.
 
 ## Engineer (generatorlar va maydonlar)
 
-| Hali qurilmagan | Hozir o‘rniga |
+| Hali qurilmagan | Oʻrniga, bugun |
 |---|---|
-| Yaratilgan issiqlik almashtirgichdagi sarlavhalar, portlar va fitinglar; material mustahkamligi uchun harorat egri chiziqlari; kollektordagi tee yo‘qotishlari | Generatorlar yadro va quvurlarni quradi; Loyihalash da fitinglar qo‘shing; materialning xona harorati ko‘rsatkichlaridan xavfsizlik koeffitsienti bilan foydalaning |
-| Qo‘shimchalar katalogidan bir bosishda generatorlar qo‘shish | Engineer ish maydonidagi {{ui:Ochish}} fayldan generator qo‘shadi |
-| Generatorning o‘z voksel o‘lchamidan nozikroq maydon fayli; `.vdb` fayllarini o‘qish | Nozikroq maydonni skriptdan saqlang; `.vdb` faqat yoziladi, o‘qilmaydi |
-| Bosim idishlari kodi hisoblari | Darslikdagi yupqa va qalin devor formulalari, tanlangan xavfsizlik koeffitsienti bilan; kod marjasi emas |
+| Yaratilgan issiqlik almashtirgichda sarlavhalar, portlar va fitinglar; material mustahkamligi uchun harorat egri chiziqlari; kollektordagi tee yoʻqotishlari | Generatorlar yadro va quvurlarni quradi; Loyihalashda fitinglar qoʻshing; xavfsizlik koeffitsienti bilan materialning xona harorati koʻrsatkichlaridan foydalaning |
+| Qoʻshimchalar katalogidan generatorlarni bir bosishda qoʻshish | Engineer ish maydonidagi {{ui:Ochish}} fayldan generator qoʻshadi |
+| Generatorning oʻz voksel oʻlchamidan mayda maydon fayli; `.vdb` fayllarni oʻqish | Skriptdan mayda maydonni saqlang; `.vdb` yoziladi, oʻqilmaydi |
 | Boshqa ilovalar uchun generatorlar | Bu versiyada faqat PartCraft |

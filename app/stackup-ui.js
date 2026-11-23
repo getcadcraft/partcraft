@@ -208,6 +208,6 @@ export function createStackup(ctx) {
 
   return {
     get active() { return st.active; }, get picking() { return st.picking; },
-    start, stop, toggle, pick, keydown, refresh: () => render(),
+    start, stop, toggle, pick, keydown, refresh: render,
   };
 }

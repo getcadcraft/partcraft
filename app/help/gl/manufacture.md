@@ -1,92 +1,94 @@
 ---
-title: Facer traxectorias e G-code (Fabricación)
-summary: Prepare o material en bruto e a orixe de traballo, escolla as ferramentas, engada operacións de cara, cavidade, contorno, taladrado e chaflán escollendo caras, remate a peza enteira en 3D (paralela, scallop), simule o material en bruto contra o modelo para rebaixes e tempo de ciclo, e descargue o G-code dun dos tres post-procesadores integrados ou dun que edite vostede.
-keywords: step exacto, step para o taller, coordenadas de traballo, paso a CAM, paralela, scallop, acabado 3D, acabado, punta esférica, biblioteca de ferramentas, editar post, post personalizado, editor de post, adaptativo, desbaste adaptativo, enganche constante, trocoidal, hsm, mecanizado a alta velocidade, fabricación, CAM, traxectoria, G-code, NC, CNC, fresadora, fresado, cavidade, contorno, perfil, refrendado, taladrado, picado, G83, G81, G73, chaflán, material en bruto, desprazamento de orixe, G54, post-procesador, GRBL, LinuxCNC, avances e velocidades, simulación, rebaixe, tempo de ciclo
-from: beeb29aa
+title: Crear traxectorias e G-code (Fabricación)
+summary: Prepare o material en bruto e unha orixe de traballo, escolla as ferramentas, engada operacións de cara, cavidade, contorno, taladrado e chaflán seleccionando caras, acabe todo o modelo en 3D (paralela, scallop), simule o material contra o modelo para detectar rascaduras e o tempo de ciclo, e descargue o G-code dun dos tres post-procesadores integrados ou dun que vostede edite.
+keywords: paso exacto, step para o taller, coordenadas de traballo, entrega a CAM, paralela, scallop, acabado 3D, acabado, punta esférica, biblioteca de ferramentas, editar post, post personalizado, editor de post, adaptativo, limpeza adaptativa, compromiso constante, trocoidal, hsm, mecanizado a alta velocidade, fabricación, CAM, traxectoria, G-code, NC, CNC, fresado, cavidade, contorno, perfil, cara, taladrado, picotazo, G83, G81, G73, chaflán, material en bruto, desprazamento de orixe, G54, post-procesador, GRBL, LinuxCNC, avances e velocidades, simulación, rascadura, tempo de ciclo
+from: f8a03be8
 ---
 
-O espazo de traballo Fabricación converte a peza en traxectorias para unha máquina de fresado de 3 eixos e escríbeas como G-code. A maioría das operacións son de **2,5 eixos**: a ferramenta queda vertical, as paredes córtanse rectas cara abaixo e os fondos planos. **Paralela** e **Scallop** rematan superficies curvas en 3D (ver [Acabado 3D](topic:finish-3d)); a ferramenta segue vertical (tres eixos, sen inclinación). Traballa sobre as caras con nome que o núcleo de malla dá á peza (ver [O núcleo de malla](topic:solid-kernels)).
+O espazo de traballo Fabricación converte a peza en traxectorias e escríbeas como G-code. A maioría das operacións son fresado de **2,5 eixos**: a ferramenta mantense vertical, as paredes córtanse rectas cara abaixo e os fondos son planos. **Desbaste 3D** e **Restos** desbastan pezas curvas en 3D ([Desbaste 3D e mecanizado de restos](topic:rough-3d)); **Paralela** e **Scallop** as acaban ([Acabado 3D](topic:finish-3d)). Nunha máquina con eixos rotativos, calquera operación pode ter unha ferramenta inclinada, e dúas operacións moven os eixos rotativos mentres cortan ([Mecanizado de 4 e 5 eixos](topic:multi-axis)). Hai operacións para torno ([Torneado nun torno](topic:turning)) e para sonda de palpado ([Sondaxe](topic:probing)). Traballa sobre as caras con nome que o kernel de malla dá á peza (vexa [O kernel de malla](topic:solid-kernels)).
 
-Versión de laboratorio: comprobe cada programa no simulador do seu propio control, e execútea primeiro no aire, por riba do material en bruto.
+Compilación de laboratorio: comprobe cada programa no simulador do propio control e execútea primeiro no aire, por riba do material.
 
-## Configurar
+## Preparación
 
-1. Escolla **Fabricación** no selector de espazos de traballo, despois {{ui:New setup}}.
+1. Escolla **{{ui:Fabricación}}** no selector de espazos de traballo e logo {{ui:Nova preparación}}.
 2. Na lapela **Preparación** escolla:
-   - **Eixo da ferramenta (+Z)**: en que sentido apunta a ferramenta cara á peza. Por defecto é Y do mundo (arriba en PartCraft); o X da máquina é então o X do mundo, e o Y da máquina é −Z do mundo.
-   - **Orixe de traballo (G54)**: unha esquina ou o centro do material en bruto, a parte superior ou inferior, o centro superior do modelo, ou a orixe do modelo.
-   - **Material en bruto**: unha caixa ou un cilindro, ou o modelo máis desprazamentos (lados, parte superior, parte inferior) ou un tamaño fixo.
-   - **Material** (fixa os avances e velocidades iniciais), o **Post-procesador** (control), a velocidade máxima do fuso da máquina, a velocidade de avance rápido e o tempo de cambio de ferramenta, a refrixeración e o número de programa.
+   - **Eixo da ferramenta (+Z)**: en que sentido aponta a ferramenta cara á peza. O +Y do mundo (o «arriba» de PartCraft) é o predeterminado; entón o X da máquina é o X do mundo e o Y da máquina é −Z do mundo.
+   - **Orixe de traballo (G54)**: unha esquina ou o centro do material en bruto, arriba ou abaixo, o centro superior do modelo ou a orixe do modelo.
+   - **Material en bruto**: unha caixa ou un cilindro, ben o modelo máis desprazamentos (lados, arriba, abaixo), ben un tamaño fixo.
+   - **Material** (fixa os avances e as velocidades de partida), o **post** (control), a velocidade máxima do cabezal da máquina, a velocidade de avance rápido e o tempo de cambio de ferramenta, o refrigerante e o número de programa.
 
 ## Ferramentas
 
-A lapela **Ferramentas** garda a biblioteca: fresas de punta plana, esférica e de radio de esquina, brocas, fresas de chaflán e fresas de cara, cada unha cun número T, diámetro, estrías e lonxitude de estría (máis radio de esquina, ángulo de punta ou de chaflán onde aplique).
+A lapela **Ferramentas** garda a biblioteca: fresas planas, de punta esférica e de punta redonda, brocas, fresas de chaflán e fresas de planear, cada unha cun número T, diámetro, número de canles e lonxitude de canle (ademais do raio de esquina, do ángulo da punta ou do chaflán onde aplique).
 
-As miñas ferramentas pódense gardar no navegador e levalas entre ordenadores como ficheiro: ver [A biblioteca de ferramentas](topic:tool-library).
+As miñas ferramentas pódense gardar no navegador e levar de un ordenador a outro como ficheiro: vexa [A biblioteca de ferramentas](topic:tool-library).
 
-A velocidade do fuso e o avance veñen do material: n = 1000 × velocidade de corte / (π × diámetro), avance = n × estrías × carga de viruta (brocas: n × avance por volta). Os números son valores iniciais prudentes tirados de intervalos publicados, non axustados á súa máquina; escriba a velocidade de corte, a carga de viruta, as rpm ou o avance do fabricante da ferramenta para substituílos. Cando a velocidade pasa do máximo da máquina, mantense aí e o avance segue a velocidade, conservando a carga de viruta.
+A velocidade do cabezal e o avance veñen do material: n = 1000 × velocidade de corte / (π × diámetro), avance = n × canles × espesor de viruta (brocas: n × avance por volta). Os números son valores de partida prudentes, tomados de intervalos publicados e non axustados á súa máquina; escriba a velocidade de corte, o espesor de viruta, as rpm ou o avance do fabricante da ferramenta para substituílos. Cando a velocidade supera o máximo da máquina, mantense nese límite e o avance segue á velocidade, conservando o espesor de viruta.
 
 ## Engadir operacións
 
-Cada botón da barra engade unha operación e, cando precisa xeometría, comeza a escoller: faga clic en caras ou arestas na vista (faga clic de novo para quitar unha), despois {{ui:Done picking}} ou {{key:Esc}}.
+Cada botón da barra de ferramentas engade unha operación e, cando precisa xeometría, comeza a seleccionar: prema nas caras ou arestas da vista (prema de novo para quitar unha), e logo en {{ui:Selección feita}} ou en {{key:Esc}}.
 
-| Operación | Escoller | Que fai |
+| Operación | Selección | Que fai |
 |---|---|---|
-| {{ui:Face}} | nada | Pasadas en zig-zag sobre todo o material en bruto, máis aló das súas arestas, ata a parte superior do modelo |
-| {{ui:Pocket}} | unha cara plana de fondo, un burato redondo, ou unha cadea pechada de arestas | Limpa a rexión con pasadas de desprazamento de dentro cara a fóra, en cada descenso; as illas (caras que se erguen dentro do fondo) quedan; un fondo aberto por todo o contorno (nada máis alto fóra del) límpase ata a aresta do material en bruto |
-| {{ui:Adaptive}} | o mesmo que Cavidade | Limpa a mesma rexión en pasadas que cortan cada unha unha anchura fixa (**Enganche**, unha fracción do diámetro), así que a fresa nunca toma unha ranura de anchura completa, nin nas esquinas; entra por unha hélice e acaba as paredes en cada nivel. Os cortes estreitos permiten un descenso máis profundo e un avance maior |
-| {{ui:Contour}} | unha cara plana (o seu contorno), unha cara redonda, ou arestas | Segue o contorno desprazado polo radio da ferramenta, por fóra ou por dentro, con arcos de entrada e saída e lapelas opcionais |
-| {{ui:Drill}} | buratos (faga clic na parede ou no bordo dun burato) | Taladra cada burato cun ciclo fixo: picado (G83), taladrado (G81) ou rotura de viruta (G73); ou indique un diámetro para taladrar todos os buratos desa medida |
-| {{ui:Chamfer}} | o contorno ou as arestas dunha cara | Fai correr unha fresa de chaflán pola aresta para que corte a anchura que fixe |
-| {{ui:Parallel}} | nada (o modelo enteiro) | Acabado 3D en liñas paralelas a calquera ángulo, seguindo a superficie cunha fresa de punta esférica, de radio de esquina ou plana. Ver [Acabado 3D](topic:finish-3d) |
-| {{ui:Scallop}} | nada (o modelo enteiro) | Acabado 3D en pasadas separadas unha distancia fixa sobre a superficie, de xeito que a crista entre elas teña a altura que pida |
+| {{ui:Cara}} | nada | Pasadas en ziguezague sobre todo o material en bruto, máis aló das súas arestas, ata o alto do modelo |
+| {{ui:Cavidade}} | unha cara plana de fondo, un burato redondo ou unha cadea pechada de arestas | Limpa a rexión en pasadas de desprazamento de dentro cara a fóra, en cada paso de profundidade; as illas (caras que se erguen dentro do fondo) quedan sen cortar; un fondo aberto por todo o contorno (sen nada máis alto fóra del) límpase ata a aresta do material en bruto |
+| {{ui:Adaptativo}} | o mesmo que Cavidade | Limpa a mesma rexión en pasadas que cortan cada unha un ancho fixo (**Compromiso**, unha fracción do diámetro), de xeito que a fresa nunca toma unha ranura de ancho completo, nin sequera nas esquinas; entra por hélice e acaba as paredes en cada nivel. Os cortes estreitos permiten un paso de profundidade maior e un avance máis alto |
+| {{ui:Contorno}} | unha cara plana (o seu contorno), unha cara redonda ou arestas | Segue o contorno desprazado polo raio da ferramenta, por fóra ou por dentro, con arcos de entrada e saída e pestanas opcionais |
+| {{ui:Taladrado}} | buratos (prema na parede dun burato ou no seu bordo) | Fura cada burato cun ciclo fixo: picotazo (G83), taladrado (G81) ou rotura de viruta (G73); ou dea un diámetro para furar todos os buratos dese tamaño |
+| {{ui:Chaflán}} | o contorno dunha cara ou as súas arestas | Pasa unha fresa de chaflán ao longo da aresta para que corte o ancho que estableza |
+| {{ui:Paralela}} | nada (todo o modelo) | Acabado 3D en liñas paralelas a calquera ángulo, seguindo a superficie cunha fresa de punta esférica, redonda ou plana. Vexa [Acabado 3D](topic:finish-3d) |
+| {{ui:Scallop}} | nada (todo o modelo) | Acabado 3D en pasadas separadas unha distancia fixa sobre a superficie, de xeito que a cresta entre elas teña a altura que pida |
 
-Seleccione unha operación na lista para cambiar a súa ferramenta, alturas (seguridade, retracción, altura de avance, superior, inferior), profundidade por pasada, paso lateral, sobremedida, pasada de acabado, entrada (hélice, rampa ou picado), fresado en concordancia, lapelas ou ciclo. {{ui:Up}} e {{ui:Down}} reordenan, {{ui:Suppress}} a deixa fóra, {{ui:Delete}} a elimina. Todo está no historial de desfacer e gárdase no ficheiro da peza.
+Seleccione unha operación da lista para cambiar a súa ferramenta, alturas (seguridade, retirada, altura de avance, arriba, abaixo), profundidade de paso, paso lateral, material a deixar, pasada de acabado, entrada (hélice, rampa ou mergullo), fresado en concordancia, pestanas ou ciclo. {{ui:Subir}} e {{ui:Baixar}} reordenan, {{ui:Suprimir}} a deixa fóra e {{ui:Eliminar}} a quita. Todo entra no historial de desfacer e gárdase no ficheiro da peza.
 
-O paso lateral dunha cavidade é como máximo a metade do diámetro da ferramenta, así que cada punto do seu fondo queda a un radio de ferramenta dunha pasada. As esquinas interiores conservan o radio da ferramenta.
+O paso lateral dunha cavidade é como máximo a metade do diámetro da ferramenta, así que cada punto do seu fondo está a menos dun raio da ferramenta dunha pasada. As esquinas interiores conservan o raio da ferramenta.
 
-**O desbaste adaptativo** mantén o enganche da fresa preto dun valor. Un enganche de 0,15 do diámetro é un ángulo de enganche de preto de 46°: o arco da aresta da fresa no material. Unha cavidade desprazada, en cambio, corta a anchura completa na súa primeira pasada e dá volta máis en cada esquina interior. Entre pasadas a ferramenta mantense baixada cando se move por aire cortado, e sobe e baixa no aire cortado noutros lugares. As pasadas calcúlanse nunha cuadrícula fina sobre a rexión (celas de preto dun doceavo do radio da ferramenta), así que o enganche pode ser ata unha cela máis ancho do fixado; as paredes acábanse exactamente. Unha rexión aberta e grande fai un programa longo con moitos movementos curtos.
+**Limpeza adaptativa** mantén o compromiso da fresa preto dun valor fixo. Un compromiso de 0,15 do diámetro é un ángulo de compromiso de uns 46°: o arco da aresta da fresa dentro do material. Unha cavidade desprazada, en cambio, corta ancho completo na primeira pasada e dá máis voltas en cada esquina interior. Entre pasadas a ferramenta mantense baixada onde se move por aire cortado, e sobe e baixa en aire cortado noutros lugares. As pasadas calcúlanse sobre unha rede fina sobre a rexión (celas de aproximadamente unha doceava parte do raio da ferramenta), así que o compromiso pode superar en case unha cela o valor fixado; as paredes acábanse con exactitude. Unha rexión aberta e grande dá un programa longo con moitos movementos curtos.
 
 ## Simular
 
-As traxectorias fanse de novo despois de cada cambio (tamén as da peza). {{ui:Simulate}} mostra ademais o material en bruto que queda despois de todo o programa. O panel mostra:
+As traxectorias refanse despois de cada cambio (tamén as da peza). {{ui:Simular}} amosa ademais o material que queda despois de todo o programa. O panel amosa:
 
-- **Tempo de ciclo**: os movementos de avance a súa velocidade, os rápidos como liñas rectas á velocidade de avance rápido da preparación, máis o tempo de cambio de ferramenta. As máquinas reais aceleran, así que tardan máis.
-- **Sobrecortes**: lugares onde a ferramenta foi máis de 0,02 mm por baixo da superficie da peza. Marcas vermellas mostran os sobrecortes na vista.
+- **Tempo de ciclo**: os movementos de avance á súa velocidade, os rápidos como liñas rectas á velocidade de avance rápido da preparación, máis o tempo de cambio de ferramenta. As máquinas reais aceleran, así que tardan máis.
+- **Rascaduras**: sitios onde a ferramenta baixou máis de 0,02 mm por debaixo da superficie da peza. As marcas vermellas amosaas na vista.
 - **Material que queda na peza**.
 
-O material en bruto é un mapa de alturas da parte superior (un mapa Z), así que non pode mostrar contrasulcos. Arrastre **Reprodución** para mover a ferramenta ao longo do programa. Na vista, os movementos de avance son continuos e os rápidos son de trazos, cunha cor por operación.
+O material é un mapa de alturas do alto (un mapa Z), así que non pode amosar socavados. Arrastre a **Reprodución** para mover a ferramenta ao longo do programa. Na vista, os movementos de avance son sólidos e os rápidos son de trazos, cunha cor por operación.
 
-Con **Mostrar o material simulado** activado, o material en bruto colorease fronte ao modelo, cela a cela: **verde** onde está sobre o modelo (dentro de 0,02 mm), **vermello** onde a ferramenta entrou no modelo, e onde queda material sobre o modelo **amarelo** para unha pel fina, **laranxa** para máis, esvaecéndose ata o **gris** do material sen cortar a 1 mm ou máis. As cores refanse con cada cambio, desde o mesmo mapa de alturas que os números do panel, así que o verde e o vermello concordan coa liña de Sobrecortes. Un chaflán corta o modelo a propósito e mostra vermello ao longo da súa aresta.
+Con **Amosar o material simulado** activado, o material pinta-se fronte ao modelo, cela a cela: **verde** onde está sobre o modelo (a 0,02 mm), **vermello** onde a ferramenta cortou o modelo, e onde queda material sobre el **amarelo** para unha capa fina, **laranxa** para máis, desvanecendo ata o **gris** do material sen cortar a 1 mm ou máis. As cores refanse con cada cambio, a partir do mesmo mapa de alturas que os números do panel, así que o verde e o vermello coinciden coa liña de Rascaduras. Un chaflán corta o modelo a propósito e amosa vermello ao longo da súa aresta.
 
 ## Post-procesar o G-code
 
-Escolla o control en **Post-procesador** e prema {{ui:Download G-code}} (ou {{ui:Post}} na barra):
+Escolla o control en **Post** e prema en {{ui:Descargar G-code}} (ou en {{ui:Post}} da barra de ferramentas):
 
 | Control | Ficheiro | Notas |
 |---|---|---|
 | ISO estilo Fanuc | .nc | %, número O, números de liña, T M6 con G43 H, ciclos fixos |
-| GRBL | .nc | Sen cambiador de ferramentas nin ciclos fixos: un cambio de ferramenta pon unha pausa con M0, e o taladrado escríbese como movementos simples |
+| GRBL | .nc | Sen cambiador de ferramenta nin ciclos fixos: un cambio de ferramenta para con M0, e o taladrado escríbese como movementos simples |
 | LinuxCNC | .ngc | T M6 con G43 H, ciclos fixos, M2 |
-| Propio | calquera | Un post que escribiu ou cambiou vostede: {{ui:Edit post…}}, {{ui:New post…}}, {{ui:Import post file…}} |
+| Torno tipo Fanuc | .nc | Para programas de torno: X como diámetro, avance por volta, G96 baixo un límite G50, roscado con G32 |
+| Torno LinuxCNC | .ngc | Para programas de torno: diámetros con G7, G95, G96, roscado con G33; non escribe ningún movemento de referencia |
+| O seu propio | calquera | Un post que vostede escribiu ou cambiou: {{ui:Editar post-procesador…}}, {{ui:Novo post-procesador…}}, {{ui:Importar ficheiro de post-procesador…}} |
 
-Cada ficheiro comeza con comentarios sobre o programa, o material en bruto, o desprazamento de orixe e as ferramentas. As coordenadas están en milímetros con 3 decimais. {{ui:Toolpath CSV}} e {{ui:Toolpath JSON}} exportan os propios movementos.
+Cada ficheiro comeza con comentarios sobre o programa, o material, o desprazamento de orixe e as ferramentas. As coordenadas están en milímetros con 3 decimais. {{ui:Traxectorias CSV}} e {{ui:Traxectorias JSON}} exportan os movementos en si.
 
-**Comprobe a saída no simulador propio da máquina antes de cortar, e execútea primeiro no aire, por riba do material en bruto.** Os tres post-procesadores integrados son puntos de partida que seguen o comportamento documentado dos controis; non se probaron en ningunha máquina concreta. Un post que cambie é responsabilidade súa probalo. Como escribir un: [Post-procesadores](topic:post-processors).
+**Comprobe a saída no simulador da súa máquina antes de cortar, e execútea primeiro no aire, por riba do material.** Os tres post integrados son puntos de partida que seguen o comportamento documentado dos controis; non foron probados en ningunha máquina concreta. Un post que vostede cambie é cousa súa probalo. Para escribir un, vexa [Post-procesadores editables](topic:post-processors).
 
 ## STEP exacto para o taller
 
-Debaixo dos botóns de G-code na lapela **Operacións**, {{ui:Exact STEP (work coordinates)}} descarga `<part>-work.step`: a peza como sólido exacto (cilindros verdadeiros para buratos e saíntes, círculos verdadeiros para as súas arestas) coa orixe no punto de orixe de traballo desta preparación e Z ao longo do eixo da ferramenta. Esas son as coordenadas que usa o G-code, así que o programa CAM ou o comprobador do taller aliña o modelo co programa sen movelo. O ficheiro contén só a peza, non o material en bruto nin as traxectorias.
+Debaixo dos botóns de G-code da lapela **Operacións**, {{ui:STEP exacto (coordenadas de traballo)}} descarga `<part>-work.step`: a peza como sólido exacto (cilindros verdadeiros para os buratos e saíntes, círculos verdadeiros para os seus bordos), coa orixe na orixe de traballo desta preparación e Z ao longo do eixe da ferramenta. Son as coordenadas que usa o G-code, así que o programa CAM ou o verificador do taller aliña o modelo co programa sen movelo. O ficheiro contén só a peza, non o material nin as traxectorias.
 
-{{ui:Export}} › {{ui:STEP AP242 (exact solid)}} escribe o mesmo sólido na posición propia da peza (Z cara arriba): ver [Exportar para impresión, STEP e DXF](topic:export-files#for-other-cad-programs-step).
+{{ui:Exportar}} › {{ui:STEP AP242 (sólido exacto)}} escribe o mesmo sólido na posición propia da peza (Z cara arriba): vexa [Exportar para impresión, STEP e DXF](topic:export-files#for-other-cad-programs-step).
 
 ## Límites
 
-- As cavidades, contornos, taladrados e chafláns son de 2,5 eixos. As caras curvas poden rematarse en 3D ([paralela e scallop](topic:finish-3d)) pero non desbastarse en 3D (un cono déixase en escalóns ata que o remate), e non hai mecanizado de restos. O desbaste adaptativo é 2D (fondos planos).
-- Só tres eixos: sen inclinación, sen torneado, sen inspección.
-- Os portaferramentas e os vástagos non se comproban por colisións; aparece un aviso cando un corte é máis fondo que a lonxitude da estría.
-- Os avances e as velocidades son valores iniciais. Un post é texto que pode editar, pero só decide como se escriben os movementos; non pode cambiar a traxectoria, engadir eixos nin coñecer a súa máquina ([Post-procesadores](topic:post-processors) lista o que non pode facer).
+- As cavidades, os contornos, o taladrado e os chafláns son de 2,5 eixos. As pezas curvas desbástanse e acábanse en 3D polas súas propias operacións ([Desbaste 3D e mecanizado de restos](topic:rough-3d), [Acabado 3D](topic:finish-3d)). A limpeza adaptativa é 2D (fondos planos).
+- As ferramentas inclinadas, o acabado de 5 eixos e de 4º eixo, o torneado e a sondaxe existen, cada un cos seus límites, e **ningún deles foi executado nunha máquina**: vexa [Mecanizado de 4 e 5 eixos](topic:multi-axis), [Torneado nun torno](topic:turning) e [Sondaxe](topic:probing).
+- Os portaferramentas e os vástagos non se comprobán por colisións; aparece un aviso cando un corte é máis profundo que a lonxitude de canle.
+- Os avances e as velocidades son valores de partida. Un post é texto que se pode editar, pero só decide como se escriben os movementos: non pode cambiar a traxectoria, engadir eixos nin coñecer a súa máquina ([Post-procesadores editables](topic:post-processors) lista o que non pode facer).
 
 ## Enviar o programa a unha máquina
 
-En CadCraft Studio de escritorio, con unha máquina configurada en Studio, **Enviar a unha máquina…** aparece xunto a **Download G-code** e sube o mesmo programa á máquina da súa rede. Nunca se inicia desde PartCraft: arránquea na máquina cando estea claro. Nun navegador o botón non se mostra (unha páxina web non pode chegar a unha máquina da súa rede): descargue o programa.
+No CadCraft Studio de escritorio, cunha máquina configurada en Studio, **Enviar a unha máquina…** aparece xunto a {{ui:Descargar G-code}} e envía o mesmo programa á máquina da súa rede. Nunca se inicia desde PartCraft: inícieo na propia máquina cando estea claro. Nun navegador o botón non se amosa (unha páxina web non chega a unha máquina da súa rede): descargue o programa.

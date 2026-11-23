@@ -22,10 +22,7 @@
  * Book, A2.3, A3.6, A4.4).
  */
 
-const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
-const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-const len = (a) => Math.hypot(a[0], a[1], a[2]);
-const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+import { cross3 as cross, dot3 as dot, len3 as len, sub3 as sub } from './geom-vec.js';   // shared helpers (0.11 PERF.74; tools/perf/util-copies.mjs)
 const perp = (d) => { const a = Math.abs(d[0]) < 0.9 ? [1, 0, 0] : [0, 1, 0], c = cross(d, a), l = len(c); return [c[0] / l, c[1] / l, c[2] / l]; };
 
 export const EXACT_TYPES = ['sphere', 'cone', 'torus', 'revolution', 'extrusion', 'bspline'];

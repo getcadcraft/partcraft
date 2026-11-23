@@ -2,7 +2,7 @@
 /**
  * cam-tools.js — PartCraft's cutting tools and feeds/speeds (DOM-free).
  *
- *   tool {id, number (T word, 1–999), kind flat|ball|bull|drill|chamfer|face, name, d (mm), flutes, fluteLen,
+ *   tool {id, number (T word, 1–999), kind flat|ball|bull|drill|chamfer|face|turn|groove|probe, name, d (mm), flutes, fluteLen,
  *         cornerR (bull), angle (included: drill point 118, chamfer 90), tipD (chamfer), coating material
  *         carbide|hss, vc (m/min) | null, fz (mm/tooth; drills: mm/rev) | null, rpm | null, feed (mm/min) | null}
  *   speeds(tool, material, machine) → {rpm, feed, plunge, ramp, vc, fz, clamped, source}
@@ -15,6 +15,14 @@
  * speed), taken toward the conservative end of the ranges in Machinery's Handbook (speeds and feeds
  * tables) and end-mill makers' published charts (Harvey Tool, Kennametal). They are not tuned for any
  * machine; check your tool maker's chart and override vc/fz/rpm/feed per tool.
+ *
+ * 0.11 CAM.5/CAM.6 — lathe tools and the probe reuse the same record:
+ *   turn    a turning insert: cornerR = nose radius, angle = the insert's included angle (55, 80 …), lead = the cutting edge
+ *           angle against the feed direction (93 = the usual facing-and-turning holder), d = the insert's size (not used by paths)
+ *   groove  a grooving / parting blade: d = the blade's WIDTH, cornerR = corner radius, fluteLen = how deep it can go
+ *   probe   a touch probe: d = the stylus ball's diameter, fluteLen = the stylus length; it never turns (rpm 0), feed = probing feed
+ * Lathe feeds are per revolution (fz, mm/rev) and the speed is a surface speed (vc, m/min) the control holds (G96), or a fixed
+ * rpm when the tool has one. LATHE_FEED holds the starting feeds per revolution.
  */
 import { t } from './i18n.js';
 
@@ -26,7 +34,13 @@ export const KINDS = {
   drill: { get label() { return t('mfg.tool.kind.drill'); }, mills: false },
   chamfer: { get label() { return t('mfg.tool.kind.chamfer'); }, mills: true },
   face: { get label() { return t('mfg.tool.kind.face'); }, mills: true },
+  turn: { get label() { return t('mfg.tool.kind.turn'); }, mills: false, lathe: true },
+  groove: { get label() { return t('mfg.tool.kind.groove'); }, mills: false, lathe: true },
+  probe: { get label() { return t('mfg.tool.kind.probe'); }, mills: false, probe: true },
 };
+/** Starting feeds per revolution (mm/rev) for lathe tools, and the probing feed (mm/min). */
+export const LATHE_FEED = { turn: 0.2, groove: 0.08 };
+export const PROBE_FEED = 100;
 
 // vc: m/min for carbide milling; fzk: chip load per mm of diameter (mm/tooth), clamped to [fzMin, fzMax];
 // drill: vc factor for drilling and feed per rev per mm of diameter.
@@ -48,12 +62,15 @@ export function newTool(kind = 'flat', props = {}) {
   const base = {
     id: props.id || 't' + (++seq) + Math.random().toString(36).slice(2, 6), number: 1, kind, name: '', d: 6, flutes: 3, fluteLen: 20,
     cornerR: 0, angle: kind === 'drill' ? 118 : kind === 'chamfer' ? 90 : 0, tipD: kind === 'chamfer' ? 0 : 0, material: 'carbide',
-    vc: null, fz: null, rpm: null, feed: null,
+    vc: null, fz: null, rpm: null, feed: null, lead: 93,
   };
   if (kind === 'drill') { base.flutes = 2; base.fluteLen = 40; }
   if (kind === 'face') { base.d = 50; base.flutes = 5; base.fluteLen = 6; }
   if (kind === 'chamfer') { base.d = 12; base.flutes = 4; base.fluteLen = 6; }
   if (kind === 'bull') base.cornerR = 1;
+  if (kind === 'turn') { base.d = 12.7; base.flutes = 1; base.fluteLen = 12; base.cornerR = 0.4; base.angle = 55; }
+  if (kind === 'groove') { base.d = 3; base.flutes = 1; base.fluteLen = 15; base.cornerR = 0.2; }
+  if (kind === 'probe') { base.d = 6; base.flutes = 1; base.fluteLen = 50; }
   const t = { ...base, ...props, kind };
   if (!t.name) t.name = describeTool(t);
   return t;
@@ -67,6 +84,9 @@ export function describeTool(t) {
   if (t.kind === 'bull') return `⌀${fmt(t.d)} bull nose R${fmt(t.cornerR)}`;   // i18n-ignore: tool name data / G-code comment
   if (t.kind === 'chamfer') return `⌀${fmt(t.d)} chamfer mill ${fmt(t.angle)}°`;   // i18n-ignore: tool name data / G-code comment
   if (t.kind === 'drill') return `⌀${fmt(t.d)} drill ${fmt(t.angle)}°`;   // i18n-ignore: tool name data / G-code comment
+  if (t.kind === 'turn') return `turning insert ${fmt(t.angle)}° R${fmt(t.cornerR)}`;   // i18n-ignore: tool name data / G-code comment
+  if (t.kind === 'groove') return `grooving blade ${fmt(t.d)} mm`;   // i18n-ignore: tool name data / G-code comment
+  if (t.kind === 'probe') return `⌀${fmt(t.d)} touch probe`;   // i18n-ignore: tool name data / G-code comment
   return `⌀${fmt(t.d)} ${k}`;
 }
 
@@ -82,6 +102,11 @@ export function validateTool(tool) {
   if (T.kind === 'drill' && !(T.angle >= 60 && T.angle <= 180)) return t('mfg.tool.err.drill_angle');
   if (T.kind === 'chamfer' && !(T.angle >= 20 && T.angle <= 150)) return t('mfg.tool.err.chamfer_angle');
   if (T.kind === 'chamfer' && !(T.tipD >= 0 && T.tipD < T.d)) return t('mfg.tool.err.tip');
+  if (T.kind === 'turn' && !(T.cornerR > 0 && T.cornerR <= 5)) return t('mfg.tool.err.nose');
+  if (T.kind === 'turn' && !(T.angle >= 20 && T.angle <= 100)) return t('mfg.tool.err.insert_angle');
+  if (T.kind === 'turn' && !(T.lead >= 45 && T.lead <= 120)) return t('mfg.tool.err.lead');
+  if (T.kind === 'turn' && !(T.lead + T.angle < 180)) return t('mfg.tool.err.lead_insert');
+  if (T.kind === 'groove' && !(T.cornerR >= 0 && T.cornerR <= T.d / 2)) return t('mfg.tool.err.groove_corner');
   for (const k of ['vc', 'fz', 'rpm', 'feed']) if (T[k] !== null && !(T[k] > 0 && T[k] < 1e6)) return t('mfg.tool.err.override', { name: k });
   return null;
 }
@@ -104,6 +129,7 @@ export function readTool(j) {
     cornerR: num(j.cornerR ?? 0, 0, 125, w('corner_radius')), angle: num(j.angle ?? 0, 0, 180, w('angle')), tipD: num(j.tipD ?? 0, 0, 250, w('tip_diameter')),
     material: j.material === 'hss' ? 'hss' : 'carbide',
     vc: optNum(j.vc, 'vc'), fz: optNum(j.fz, 'fz'), rpm: optNum(j.rpm, 'rpm'), feed: optNum(j.feed, 'feed'),
+    lead: num(j.lead ?? 93, 0, 180, w('lead')),
   };
   if (!Number.isInteger(tool.number) || !Number.isInteger(tool.flutes)) throw new Error(t('mfg.tool.err.whole'));
   const v = validateTool(tool);
@@ -115,6 +141,11 @@ export function readTool(j) {
 /** Spindle speed and feeds for a tool in a material on a machine {maxRpm, minRpm}. */
 export function speeds(tool, material = 'aluminum', machine = {}) {
   const M = MATERIALS[material] || MATERIALS.aluminum;
+  if (tool.kind === 'probe') {
+    const feed = round1(tool.feed ?? PROBE_FEED);
+    return { rpm: 0, feed, plunge: feed, ramp: feed, vc: 0, fz: 0, clamped: null, source: speedsSource(), probe: true };
+  }
+  if (KINDS[tool.kind] && KINDS[tool.kind].lathe) return latheSpeeds(tool, material, machine, 50);
   const drill = tool.kind === 'drill';
   const hss = tool.material === 'hss' ? HSS_FACTOR : 1;
   // a chamfer or ball cuts at a smaller effective diameter; we use the nominal one (conservative for rpm)
@@ -134,12 +165,36 @@ export function speeds(tool, material = 'aluminum', machine = {}) {
 const round1 = (v) => Math.round(v * 10) / 10;
 
 /**
+ * Speeds for a lathe tool at a reference diameter (mm): the surface speed the control is asked to hold (css, m/min; null when the
+ * tool has a fixed rpm), the rpm at that diameter, the feed per revolution (mm/rev). rpmAt(d) gives the rpm at any diameter.
+ */
+export function latheSpeeds(tool, material = 'aluminum', machine = {}, refD = 50) {
+  const M = MATERIALS[material] || MATERIALS.aluminum;
+  const hss = tool.material === 'hss' ? HSS_FACTOR : 1;
+  const vc = tool.vc ?? M.vc * hss * (tool.kind === 'groove' ? 0.6 : 1);
+  const maxRpm = machine.maxRpm || 24000;
+  const fixed = tool.rpm ?? null;
+  const fr = tool.fz ?? LATHE_FEED[tool.kind] ?? 0.1;
+  const sp = { feed: fr, plunge: Math.round(fr * 500) / 1000, ramp: fr, fz: fr, source: speedsSource(), lathe: true, css: fixed !== null ? null : Math.round(vc), fixedRpm: fixed !== null ? Math.min(fixed, maxRpm) : null, maxRpm, refD };
+  sp.rpm = latheRpm(sp, refD);
+  sp.vc = fixed !== null ? (Math.PI * refD * sp.rpm) / 1000 : vc;
+  sp.clamped = sp.rpm >= maxRpm ? 'max' : null;
+  return sp;
+}
+/** The spindle speed of a lathe speeds record at diameter d (mm): the surface speed held up to the machine's maximum, or the fixed rpm. */
+export function latheRpm(sp, d) {
+  if (sp.fixedRpm !== null && sp.fixedRpm !== undefined) return Math.round(sp.fixedRpm);
+  return Math.round(Math.min(sp.maxRpm, (1000 * sp.css) / (Math.PI * Math.max(d, 0.5))));
+}
+
+/**
  * The tool's tip profile: h(ρ) = height of the cutting surface above the tip at radius ρ (∞ beyond the
  * cutting radius). Used by the stock simulation and the 3D drop cutter.
  */
 export function profile(tool) {
   const R = tool.d / 2;
   switch (tool.kind) {
+    case 'probe':
     case 'ball': return { R, h: (p) => (p > R ? Infinity : R - Math.sqrt(Math.max(0, R * R - p * p))) };
     case 'bull': {
       const rc = tool.cornerR, a = R - rc;
@@ -195,7 +250,7 @@ export function readLibrary(src) {
   if (!Array.isArray(j.tools) || j.tools.length > LIBRARY_MAX) throw new Error(t('mfg.lib.err.list'));
   return j.tools.map((x, k) => readTool({ ...x, id: 'lib' + k }));
 }
-const sameTool = (a, b) => ['kind', 'd', 'flutes', 'fluteLen', 'cornerR', 'angle', 'tipD', 'material', 'vc', 'fz', 'rpm', 'feed'].every((k) => a[k] === b[k]);
+const sameTool = (a, b) => ['kind', 'd', 'flutes', 'fluteLen', 'cornerR', 'angle', 'tipD', 'material', 'vc', 'fz', 'rpm', 'feed', 'lead'].every((k) => a[k] === b[k]);
 /**
  * Put tools into a list: a tool that is already there (same kind, size, flutes and overrides) is skipped; one whose T number is
  * taken gets the next free number; ids are made new. → {tools (the whole list), added, skipped, renumbered [{name, from, to}]}

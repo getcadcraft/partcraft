@@ -81,6 +81,7 @@ import { SURFACE_LABELS, SURFACE_BASE, SURFACE_EXACT_ONLY, SURFACE_DEFAULTS, sur
 import { SHEET_LABELS, SHEET_BASE, SHEET_EXACT_ONLY, SHEET_DEFAULTS, sheetDeps, readSheet, usesSheetMetal } from './sheetmetal.js';
 import { readPartParams } from './params-part.js';
 import { ChunkHistory, chunkJournal } from './history/index.js';   // 0.10 PERF.21 / PERF.24
+import { openBlock, takeNumber, savedCounter, narrowIds, idNumber, maxOf, OLD_LIMIT_9, FILE_IDS } from './history/ids.js';   // 0.11 DC.27: each session's feature ids from its own random tag
 import { readRef as readBimLink } from './partlink/index.js';   // 0.10 SU.1814: the link to a BIM element
 import { readConfigs } from './configs.js';
 import { RIB_LABELS, RIB_BASE, RIB_EXACT_ONLY, RIB_DEFAULTS, readRib, usesRib } from './rib.js';
@@ -163,7 +164,7 @@ export function nameFeatures(name) {
 
 /** Insert a new feature at the rollback bar (or the end); the bar moves past it. Returns it. */
 export function addFeature(part, type, props = {}) {
-  const f = { id: 'f' + part.seq++, type, name: nextName(part, type), ...DEFAULTS[type](), ...props };
+  const f = { id: 'f' + takeNumber(part), type, name: nextName(part, type), ...DEFAULTS[type](), ...props };
   if (type === 'import' && f.mesh && !f.step) delete f.step;   // a body from a mesh carries no STEP text (D7.49)
   const at = builtCount(part);
   part.features.splice(at, 0, f);
@@ -256,7 +257,22 @@ const hasConfigs = (part) => !!(part.configs && part.configs.rows && part.config
 const usesSheet = (part) => !!(part.material || (part.drawing && ((part.drawing.sheet && part.drawing.sheet !== 'a3') || part.drawing.title || (part.drawing.revisions && part.drawing.revisions.length) || part.drawing.holeTable || part.drawing.holeDims)));
 /** params (params-part.js) is written only when it holds a variable or an equation. */
 const hasParamsKey = (part) => !!(part.params && ((part.params.vars && part.params.vars.length) || (part.params.links && part.params.links.length)));
-export const toJSON = (part) => { const { params, configs, ...rest } = part; return JSON.stringify({ ...rest, ...(hasParamsKey(part) ? { params } : {}), ...(hasConfigs(part) ? { configs } : {}), version: fileVersion(part) }, null, 1); };
+export const toJSON = (part) => { const { params, configs, ...rest } = part; return JSON.stringify({ ...rest, seq: savedCounter(part, part.seq), ...(hasParamsKey(part) ? { params } : {}), ...(hasConfigs(part) ? { configs } : {}), version: fileVersion(part), formatVersion: FILE_IDS }, null, 1); };   // formatVersion (0.11 DC.27): ids from session blocks; older builds ignore it
+/** 0.11 DC.27: a part file was opened: this session hands out its new feature ids from a random tag of its own (history/ids.js), so
+ *  two people adding features to the same part do not make the same id (up to f + 16 digits: ID below). */
+export function takeIdBlock(part) { part.seq = openBlock(part, part.seq || 1, part.features.map((f) => idNumber(f.id))); return part.seq; }
+/**
+ * 0.11 DC.27: Save for an older version (0.10 and before read f + 9 digits): the part file (toJSON text) with every feature id above
+ * 999,999,999 numbered again from the lowest free number and every reference rewritten (history/ids.js narrowIds: planes, sketches,
+ * face and edge names like f12.face@f34#2, studies, parameters), seq after the highest, no formatVersion. Throws when they do not fit.
+ */
+export function olderCopy(text) {
+  const file = JSON.parse(text);
+  const { obj } = narrowIds(file, { ids: (file.features || []).map((f) => idNumber(f?.id)), limit: OLD_LIMIT_9 });
+  delete obj.formatVersion;
+  obj.seq = maxOf((obj.features || []).map((f) => idNumber(f?.id))) + 1;
+  return JSON.stringify(obj, null, 1);
+}
 
 // ---------------------------------------------------------------- studies (per-workspace data, version 3)
 const STUDY_READERS = new Map();   // key → reader(raw, { ids, part }) → clean value, or throws Error with a plain message
@@ -297,9 +313,9 @@ function readStudies(s, part, ids) {
 
 const num = (v, lo = -1e9, hi = 1e9) => typeof v === 'number' && Number.isFinite(v) && v >= lo && v <= hi;
 const vec3 = (v) => Array.isArray(v) && v.length === 3 && v.every((x) => num(x)) && Math.hypot(...v) <= 1e9;
-const ID = /^f\d{1,9}$/;
+const ID = /^f\d{1,16}$/;
 const text = (s, max = 120) => String(s ?? '').replace(/[\u0000-\u001f\u007f]/g, '').slice(0, max);
-const NAME_RE = /^f\d{1,9}\.[a-z]+(:[A-Za-z0-9_:-]{1,40})?([@~]f\d{1,9}(#(\d{1,4}|m))?){0,24}$/;
+const NAME_RE = /^f\d{1,16}\.[a-z]+(:[A-Za-z0-9_:-]{1,40})?([@~]f\d{1,16}(#(\d{1,4}|m))?){0,24}$/;
 const goodName = (n) => typeof n === 'string' && n.length <= 400 && NAME_RE.test(n);
 
 export function readPlane(p, ids, types = null) {

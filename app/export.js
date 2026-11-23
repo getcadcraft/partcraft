@@ -13,6 +13,7 @@
 import { byId, pointXY, arcAngles, loosePoints, splineCurve } from './sketch.js';
 import { tessellateTol } from './sketch-spline.js';
 import { planarGroupsMesh as planarGroups, boundaryLoops } from './faces.js';
+import { escXmlClean as xmlEsc } from './util.js';   // shared helpers (0.11 PERF.74; tools/perf/util-copies.mjs)
 
 const zUp = (x, y, z) => [x, -z, y];   // rotate +90° about X: model Y-up → Z-up
 
@@ -86,7 +87,6 @@ export function zipStored(files) {
   return out;
 }
 
-const xmlEsc = (s) => String(s).replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const num = (v) => { const r = Math.abs(v) < 1e-12 ? 0 : v; return Number(r.toPrecision(9)).toString(); };
 
 export function threeMf(mesh, name = 'part') {

@@ -36,6 +36,7 @@
 
 import { closestOnSurface, curvatureRadius } from './surfaces.js';
 import { t } from './i18n.js';
+import { cross3 as cross, sub3 as sub } from './geom-vec.js';   // shared helpers (0.11 PERF.74)
 
 // ---------------------------------------------------------------------------------------- triangle BVH
 
@@ -223,7 +224,6 @@ export function tetVolume(X, a, b, c, d) {
  *  Angles from θ = atan2(3V·|e| / (2·A₁A₂), −n₁·n₂) with face normals from the vertex order, so a flat tet reads 0° / 180°. */
 export function tetQuality(X, v) {
   const p = v.map((i) => [X[3 * i], X[3 * i + 1], X[3 * i + 2]]);
-  const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]], cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
   const vol = Math.abs(tetVolume(X, ...v));
   const sgn = tetVolume(X, ...v) >= 0 ? 1 : -1;
   // outward normals (×2 area) of the face opposite each vertex, for a positively ordered tet

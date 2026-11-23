@@ -13,7 +13,12 @@
  *          material (cam-tools MATERIALS key), machine {post fanuc|grbl|linuxcnc, maxRpm, rapid (mm/min), toolChange (s)},
  *          program (number), coolant flood|mist|off}
  *   op    {id, type face|pocket|adaptive|contour|drill|chamfer|parallel|scallop, name, tool (tool id), suppressed, geo {faces:[FaceRef], edges:[EdgeRef]},
- *          params {...} (OP_PARAMS)}
+ *          params {...} (OP_PARAMS), orient null | {tilt, turn} (degrees: the tool direction for this operation, cam-kin.js)}
+ *
+ * 0.11 Track CAM: more operation types (OP_GROUPS says which family each belongs to) — rough3d, rest3d (cam-rough3d.js), five,
+ * rotary (cam-multiaxis.js), turnface … turndrill (cam-turn.js), probe (cam-probe.js); setup.machine gains the rotary axes
+ * {kin none|a|b|ac|bc, rotaryIn table|head, tcp, pivot [x, y, z], tiltMax}; machineModel(regen, setup, orient) gives the part in a
+ * tilted frame (same origin, Z along the tilted tool). The study version stays 1: older builds refuse the new operation types.
  *
  * Machine frame: Z = the chosen world axis, X/Y right-handed (+y → X = world X, Y = −world Z, the top plane's
  * sketch axes). Every coordinate the CAM kernel hands out is in the work frame: machine axes, origin = the
@@ -25,10 +30,11 @@ import * as O from './cam-offset.js';
 import { readTool, starterLibrary, MATERIALS } from './cam-tools.js';
 import { parsePost } from './cam-postdef.js';
 import { ORIGINS } from './cam-origins.js';
+import { KINEMATICS, isTilted, orientMatrix, mulMV, mulTV } from './cam-kin.js';
 import { t } from './i18n.js';
+import { dot3 as d3 } from './geom-vec.js';   // shared helpers (0.11 PERF.74; tools/perf/util-copies.mjs)
 
 export const STUDY_VERSION = 1;
-const d3 = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 
 export const AXES = {
   '+y': { x: [1, 0, 0], y: [0, 0, -1], z: [0, 1, 0], get label() { return t('mfg.axis.py'); } },
@@ -47,19 +53,34 @@ export function originLabel(key) {
 export const POSTS = {
   get fanuc() { return t('mfg.post.fanuc'); },
   grbl: 'GRBL (.nc)', linuxcnc: 'LinuxCNC (.ngc)',   // i18n-ignore: control names + file extensions
+  get 'fanuc-lathe'() { return t('mfg.post.fanuc_lathe'); },
+  'linuxcnc-lathe': 'LinuxCNC lathe (.ngc)',   // i18n-ignore: control name + file extension
 };
 // labels are getters: the table is read at module load (also in workers before their catalog arrives), so t() runs only on use
 export const OP_TYPES = {
   get face() { return t('mfg.op.face'); }, get pocket() { return t('mfg.op.pocket'); }, get adaptive() { return t('mfg.op.adaptive'); },
   get contour() { return t('mfg.op.contour'); }, get drill() { return t('mfg.op.drill'); }, get chamfer() { return t('mfg.op.chamfer'); },
   get parallel() { return t('mfg.op.parallel'); }, get scallop() { return t('mfg.op.scallop'); },
+  get rough3d() { return t('mfg.op.rough3d'); }, get rest3d() { return t('mfg.op.rest3d'); },
+  get five() { return t('mfg.op.five'); }, get rotary() { return t('mfg.op.rotary'); },
+  get turnface() { return t('mfg.op.turnface'); }, get turnrough() { return t('mfg.op.turnrough'); }, get turnfinish() { return t('mfg.op.turnfinish'); },
+  get turngroove() { return t('mfg.op.turngroove'); }, get turnpart() { return t('mfg.op.turnpart'); }, get turnthread() { return t('mfg.op.turnthread'); },
+  get turndrill() { return t('mfg.op.turndrill'); }, get probe() { return t('mfg.op.probe'); },
 };
+/** The family of each operation type: mill (3 axes, may be given a tilted tool direction), multi (the rotary axes move while cutting), turn (lathe), probe. */
+export const OP_GROUPS = {
+  face: 'mill', pocket: 'mill', adaptive: 'mill', contour: 'mill', drill: 'mill', chamfer: 'mill', parallel: 'mill', scallop: 'mill', rough3d: 'mill', rest3d: 'mill',
+  five: 'multi', rotary: 'multi',
+  turnface: 'turn', turnrough: 'turn', turnfinish: 'turn', turngroove: 'turn', turnpart: 'turn', turnthread: 'turn', turndrill: 'turn',
+  probe: 'probe',
+};
+export const canTilt = (type) => OP_GROUPS[type] === 'mill';
 
 export function newSetup() {
   return {
     axis: '+y', origin: 'stock-top-min',
     stock: { kind: 'box', mode: 'offset', side: 2, top: 1, bottom: 0, size: [100, 100, 30], r: 50 },
-    material: 'aluminum', machine: { post: 'grbl', maxRpm: 24000, rapid: 5000, toolChange: 15 }, program: 1001, coolant: 'flood',
+    material: 'aluminum', machine: { post: 'grbl', maxRpm: 24000, rapid: 5000, toolChange: 15, kin: 'none', rotaryIn: 'table', tcp: false, pivot: [0, 0, 0], tiltMax: 110 }, program: 1001, coolant: 'flood',
   };
 }
 export function newStudy() { return { version: STUDY_VERSION, setup: newSetup(), tools: starterLibrary(), ops: [], posts: [] }; }
@@ -98,6 +119,23 @@ export const OP_PARAMS = {
   // 0.7 LC.15, 3D finishing of the whole model (cam-finish.js): stepover × D; tolerance, leave and bottom in mm; angles in degrees
   parallel: { ...HF, stepover: [0.005, 0.5, 0.1], tolerance: [0.001, 1, 0.01], angle: [0, 180, 0], leave: [0, 20, 0], zigzag: true, slopeFrom: [0, 90, 0], slopeTo: [0, 90, 90] },
   scallop: { ...HF, height: [0.001, 1, 0.02], tolerance: [0.001, 1, 0.01], leave: [0, 20, 0], from: ['edge', 'top'], climb: true, slopeFrom: [0, 90, 0], slopeTo: [0, 90, 90] },
+  // 0.11 CAM.1/CAM.2, 3D roughing and rest machining (cam-rough3d.js): stepover × D; minStock = stock thinner than this is not worth a pass (mm)
+  rough3d: { ...HF, feedHeight: H.feedHeight, stepover: [0.05, 0.9, 0.5], stepdown: [0.05, 100, 2], leave: [0, 20, 0.5], rampAngle: [0.5, 45, 3], minStock: [0, 20, 0.05], flats: true },
+  rest3d: { ...HF, feedHeight: H.feedHeight, stepover: [0.05, 0.9, 0.4], stepdown: [0.05, 100, 1], leave: [0, 20, 0.5], rampAngle: [0.5, 45, 3], minStock: [0.01, 20, 0.5], flats: true },
+  // 0.11 CAM.4 (cam-multiaxis.js). five: parallel passes with the tool leaning; towardNormal 0 = upright … 1 = square to the surface; lean = forward along the cut (°)
+  five: { ...HF, stepover: [0.005, 0.5, 0.1], tolerance: [0.001, 1, 0.01], angle: [0, 180, 0], leave: [0, 20, 0], zigzag: true, lean: [0, 45, 10], towardNormal: [0, 1, 1], maxTilt: [0, 90, 30] },
+  // rotary: the part turns about the work X axis through (axisY, axisZ); null = the middle of the stock
+  rotary: { clearance: [0, 500, 10], stepover: [0.005, 0.5, 0.1], tolerance: [0.001, 1, 0.01], leave: [0, 20, 0], pattern: ['along', 'around'], zigzag: true, axisY: [null], axisZ: [null], xFrom: [null], xTo: [null], angleFrom: [-3600, 3600, 0], angleTo: [-3600, 3600, 360] },
+  // 0.11 CAM.5, turning (cam-turn.js): Z along the setup's tool axis, radii from the middle of the stock; feeds per revolution
+  turnface: { clearance: [0.1, 100, 2], stepdown: [0.05, 10, 1], leave: [0, 5, 0], past: [0, 5, 0.5] },
+  turnrough: { clearance: [0.1, 100, 2], depth: [0.05, 20, 1.5], leave: [0, 5, 0.3], stopZ: [null], pullout: [0, 5, 0.5] },
+  turnfinish: { clearance: [0.1, 100, 2], leave: [0, 5, 0], stopZ: [null], tolerance: [0.001, 1, 0.01], feedFactor: [0.1, 1, 0.5] },
+  turngroove: { clearance: [0.1, 100, 2], zFrom: [null], zTo: [null], stepover: [0.1, 1, 0.8], minDepth: [0.01, 20, 0.5], leave: [0, 5, 0], peck: [0, 50, 0] },
+  turnpart: { clearance: [0.1, 100, 2], z: [null], past: [0, 5, 0.5], peck: [0, 50, 2] },
+  turnthread: { clearance: [0.1, 100, 2], diameter: [0.5, 2000, 20], pitch: [0.05, 50, 1.5], depth: [0, 50, 0], passes: [1, 100, 6], spring: [0, 10, 1], zStart: [null], length: [0.1, 2000, 15] },
+  turndrill: { clearance: [0.1, 100, 2], depth: [0.1, 2000, 10], peck: [0, 100, 3] },
+  // 0.11 CAM.6, probing (cam-probe.js): approach = how far from the surface the probing move starts, over = how far past it may go
+  probe: { clearance: H.clearance, retract: H.retract, action: ['set', 'measure'], approach: [0.5, 100, 5], over: [0.5, 100, 5], depth: [0.5, 200, 5] },
 };
 export function defaultParams(type) {
   const s = OP_PARAMS[type], out = {};
@@ -107,7 +145,7 @@ export function defaultParams(type) {
 let opSeq = 0;
 export function newOp(type, props = {}) {
   if (!OP_PARAMS[type]) throw new Error(t('mfg.op.unknown'));
-  return { id: props.id || 'o' + (++opSeq) + Math.random().toString(36).slice(2, 6), type, name: props.name || OP_TYPES[type], tool: props.tool || null, suppressed: false, geo: { faces: [], edges: [], ...(props.geo || {}) }, params: { ...defaultParams(type), ...(props.params || {}) } };
+  return { id: props.id || 'o' + (++opSeq) + Math.random().toString(36).slice(2, 6), type, name: props.name || OP_TYPES[type], tool: props.tool || null, suppressed: false, geo: { faces: [], edges: [], ...(props.geo || {}) }, params: { ...defaultParams(type), ...(props.params || {}) }, orient: props.orient ? readOrient(props.orient) : null };
 }
 
 // ---------------------------------------------------------------- reading untrusted studies
@@ -115,7 +153,7 @@ export function newOp(type, props = {}) {
 const clean = (s, n = 80) => String(s ?? '').replace(/[\u0000-\u001f\u007f]/g, '').slice(0, n);
 const isNum = (v) => typeof v === 'number' && Number.isFinite(v);
 const numIn = (v, lo, hi, what) => { if (!isNum(v) || v < lo || v > hi) throw new Error(t('mfg.study.range', { what })); return v; };
-const NAME_OK = /^f\d{1,9}\.[a-z]+(:[A-Za-z0-9_:-]{1,40})?([@~]f\d{1,9}(#(\d{1,4}|m))?){0,24}$/;
+const NAME_OK = /^f\d{1,16}\.[a-z]+(:[A-Za-z0-9_:-]{1,40})?([@~]f\d{1,16}(#(\d{1,4}|m))?){0,24}$/;
 const readAt = (a, what) => { if (!Array.isArray(a) || a.length !== 3 || !a.every((v) => isNum(v) && Math.abs(v) < 1e7)) throw new Error(t('mfg.study.point', { what })); return a.slice(); };
 function readFaceRef(r) {
   if (!r || typeof r.name !== 'string' || !NAME_OK.test(r.name)) throw new Error(t('mfg.study.face_ref'));
@@ -124,6 +162,14 @@ function readFaceRef(r) {
 function readEdgeRef(r) {
   if (!r || !Array.isArray(r.faces) || r.faces.length !== 2 || !r.faces.every((n) => typeof n === 'string' && (NAME_OK.test(n) || n === '?'))) throw new Error(t('mfg.study.edge_ref'));
   return { faces: r.faces.slice(), at: readAt(r.at, t('mfg.study.w.edge')) };
+}
+
+/** A tool direction from untrusted data: null, or {tilt 0–180, turn −360–360} in degrees. */
+export function readOrient(o) {
+  if (o === null || o === undefined) return null;
+  if (typeof o !== 'object') throw new Error(t('mfg.study.orient'));
+  const tilt = numIn(o.tilt, 0, 180, t('mfg.study.w.tilt')), turn = numIn(o.turn ?? 0, -360, 360, t('mfg.study.w.turn'));
+  return tilt === 0 ? null : { tilt, turn };
 }
 
 export function readSetup(j) {
@@ -146,6 +192,11 @@ export function readSetup(j) {
       maxRpm: numIn(j.machine?.maxRpm ?? 24000, 100, 200000, t('mfg.study.w.max_rpm')),
       rapid: numIn(j.machine?.rapid ?? 5000, 10, 200000, t('mfg.study.w.rapid')),
       toolChange: numIn(j.machine?.toolChange ?? 15, 0, 3600, t('mfg.study.w.tool_change')),
+      kin: KINEMATICS.includes(j.machine?.kin) ? j.machine.kin : 'none',
+      rotaryIn: j.machine?.rotaryIn === 'head' ? 'head' : 'table',
+      tcp: !!j.machine?.tcp,
+      pivot: Array.isArray(j.machine?.pivot) && j.machine.pivot.length === 3 ? j.machine.pivot.map((v, i) => numIn(v, -1e5, 1e5, t('mfg.study.w.pivot', { axis: 'xyz'[i] }))) : [0, 0, 0],
+      tiltMax: numIn(j.machine?.tiltMax ?? 110, 0, 180, t('mfg.study.w.tilt_max')),
     },
     program: numIn(j.program ?? 1001, 1, 9999, t('mfg.study.w.program')),
     coolant: ['flood', 'mist', 'off'].includes(j.coolant) ? j.coolant : 'flood',
@@ -188,7 +239,7 @@ export function readStudy(j) {
     return {
       id: o.id, type: o.type, name: clean(o.name) || OP_TYPES[o.type], tool: o.tool ?? null, suppressed: !!o.suppressed,
       geo: { faces: (geo.faces || []).map(readFaceRef), edges: (geo.edges || []).map(readEdgeRef) },
-      params: readParams(o.type, o.params),
+      params: readParams(o.type, o.params), orient: canTilt(o.type) ? readOrient(o.orient) : null,
     };
   });
   const posts = readPosts(j.posts);
@@ -203,11 +254,14 @@ export function readStudy(j) {
  * The part (an exact regen: faces, edges, mesh, stats) seen from the machine: work-frame coordinates,
  * the stock, height queries, face loops and holes. → model
  */
-export function machineModel(regen, setup) {
+export function machineModel(regen, setup, orient = null) {
   if (!regen || !regen.mesh || !regen.stats) throw new Error(t('mfg.no_solid'));
   const ax = AXES[setup.axis] || AXES['+y'];
   const rot = (p) => [d3(p, ax.x), d3(p, ax.y), d3(p, ax.z)];
-  const rotD = rot;
+  // 0.11 CAM.3: a tilted tool direction. Q's columns are the tilted frame's axes in the setup's frame; both share the work origin.
+  const tilted = isTilted(orient);
+  const Q = orientMatrix(tilted ? orient : null);
+  const rotD = tilted ? (p) => mulTV(Q, rot(p)) : rot;
   // exact model box (axis-aligned turns keep it exact)
   const wb = regen.stats.bbox;
   const corners = [];
@@ -235,20 +289,34 @@ export function machineModel(regen, setup) {
     'stock-bottom-min': [smin[0], smin[1], smin[2]], 'stock-bottom-centre': [sc[0], sc[1], smin[2]],
     'model-top-centre': [bc[0], bc[1], bmax[2]], 'model-origin': [0, 0, 0],
   }[setup.origin] || [smin[0], smin[1], smax[2]];
-  const toM = (p) => { const q = rot(p); return [q[0] - O0[0], q[1] - O0[1], q[2] - O0[2]]; };
-  const toWorld = (m) => {
+  const sh = (p) => [p[0] - O0[0], p[1] - O0[1], p[2] - O0[2]];
+  const toM = tilted ? (p) => mulTV(Q, sh(rot(p))) : (p) => sh(rot(p));
+  const toWorld = (m0) => {
+    const m = tilted ? mulMV(Q, m0) : m0;
     const q = [m[0] + O0[0], m[1] + O0[1], m[2] + O0[2]];
     return [0, 1, 2].map((k) => ax.x[k] * q[0] + ax.y[k] * q[1] + ax.z[k] * q[2]);
   };
-  const sh = (p) => [p[0] - O0[0], p[1] - O0[1], p[2] - O0[2]];
-  const stock = { kind: cyl ? 'cylinder' : 'box', min: sh(smin), max: sh(smax), c: cyl ? [cyl.c[0] - O0[0], cyl.c[1] - O0[1]] : null, r: cyl ? cyl.r : null };
-  const box = { min: sh(bmin), max: sh(bmax) };
+  // the setup's own stock and model box (work frame); a tilted frame sees the box that holds the turned stock
+  const stock0 = { kind: cyl ? 'cylinder' : 'box', min: sh(smin), max: sh(smax), c: cyl ? [cyl.c[0] - O0[0], cyl.c[1] - O0[1]] : null, r: cyl ? cyl.r : null };
+  let stock = stock0;
+  let box = { min: sh(bmin), max: sh(bmax) };
 
   // mesh
   const P = regen.mesh.positions, I = regen.mesh.indices;
   const nv = P.length / 3;
   const pos = new Float64Array(P.length);
   for (let i = 0; i < nv; i++) { const q = toM([P[i * 3], P[i * 3 + 1], P[i * 3 + 2]]); pos[i * 3] = q[0]; pos[i * 3 + 1] = q[1]; pos[i * 3 + 2] = q[2]; }
+  if (tilted) {
+    const mn = [Infinity, Infinity, Infinity], mx = [-Infinity, -Infinity, -Infinity];
+    for (let i = 0; i < pos.length; i += 3) for (let k = 0; k < 3; k++) { if (pos[i + k] < mn[k]) mn[k] = pos[i + k]; if (pos[i + k] > mx[k]) mx[k] = pos[i + k]; }
+    box = { min: mn, max: mx };
+    const sn = [Infinity, Infinity, Infinity], sx = [-Infinity, -Infinity, -Infinity];
+    for (const x of [stock0.min[0], stock0.max[0]]) for (const y of [stock0.min[1], stock0.max[1]]) for (const z of [stock0.min[2], stock0.max[2]]) {
+      const q = mulTV(Q, [x, y, z]);
+      for (let k = 0; k < 3; k++) { sn[k] = Math.min(sn[k], q[k]); sx[k] = Math.max(sx[k], q[k]); }
+    }
+    stock = { kind: 'box', min: sn, max: sx, c: null, r: null };
+  }
   const mesh = { positions: pos, indices: I, triFace: regen.mesh.triFace };
   const faces = (regen.faces || []).map((f) => {
     const g = { ...f, at: toM(f.at) };
@@ -405,7 +473,7 @@ export function machineModel(regen, setup) {
   }
 
   return {
-    axis: setup.axis, frame: ax, origin: O0, toM, toWorld, stock, box, top: box.max[2], bottom: box.min[2], faces, edges, mesh, tol,
+    axis: setup.axis, frame: ax, origin: O0, toM, toWorld, stock, stock0, orient: tilted ? orient : null, Q, box, top: box.max[2], bottom: box.min[2], faces, edges, mesh, tol,
     heightAt, topPlane, trianglesIn, materialBelow, faceLoops, cylinderInfo, holes, edgeLoop, isFloor,
     faceIndex: (ref) => findFace(regen.faces, ref),   // world-space refs (FaceRef/EdgeRef) → index, −1 when gone
     edgeIndex: (ref) => findEdge(regen.edges, ref),

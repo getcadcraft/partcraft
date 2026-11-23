@@ -78,6 +78,7 @@ import { evaluateVars } from './params.js';
 import { dependsOn } from './part.js';
 import { ISO_COARSE } from './design-features.js';
 import { t } from './i18n.js';
+import { add2, dot2, mid2 as mid, sub2 } from './geom-vec.js';   // shared helpers (0.11 PERF.74; tools/perf/util-copies.mjs)
 
 export const FORMAT_NOTE = 'Not yet tested in SolidWorks: PartCraft has never run this macro in SolidWorks.';
 
@@ -1140,7 +1141,6 @@ export function partToSwb(input, opts = {}) {
     const sk = f.sketch;
     const P = (e) => [e.x, e.y];
     const L = (e) => [pointXY(sk, e.p1), pointXY(sk, e.p2)];
-    const mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
     const perp = (a, b, d) => { const dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy) || 1; return [-dy / l * d, dx / l * d]; };
     let at, kind = 0, sys = c.value / 1000, k1 = k[0], k2 = k[1] || '', factor = 1;
     const size = Math.max(5, Math.abs(c.value) * 0.15);
@@ -1504,6 +1504,12 @@ export function partToSwb(input, opts = {}) {
 
   // ---------------------------------------------------------------- walk the history
 
+  // feature type -> what writes it (PERF.78, perf-finish-11 r2: was a switch; a type not listed is skipped with a note, as its default was)
+  const EMIT = {
+    sketch: emitSketch, extrude: emitExtrude, revolve: emitRevolve, hole: emitHole, lpattern: emitPattern, cpattern: emitPattern,
+    mirror: emitMirror, fillet: emitEdges, chamfer: emitEdges, shell: emitShell, plane: emitRefPlane,
+    import: (f) => skip(f, opts.stepFile ? t('xch.swm.why.import_file', { file: opts.stepFile }) : t('xch.swm.why.import')),
+  };
   const solidTypes = new Set(['extrude', 'revolve', 'hole', 'lpattern', 'cpattern', 'mirror', 'fillet', 'chamfer', 'shell', 'import', 'sweep', 'loft', 'draft']);
   part.features.forEach((f, i) => {
     const deps = dependsOn(f).filter((d) => skipped.has(d));
@@ -1511,19 +1517,9 @@ export function partToSwb(input, opts = {}) {
       const g = part.features.find((x) => x.id === deps[0]);
       skip(f, g ? t('xch.swm.why.needs', { name: g.name }) : t('xch.swm.why.needs_feature'));
     } else {
-      switch (f.type) {
-        case 'sketch': emitSketch(f, i); break;
-        case 'extrude': emitExtrude(f, i); break;
-        case 'revolve': emitRevolve(f, i); break;
-        case 'hole': emitHole(f, i); break;
-        case 'lpattern': case 'cpattern': emitPattern(f, i); break;
-        case 'mirror': emitMirror(f, i); break;
-        case 'fillet': case 'chamfer': emitEdges(f, i); break;
-        case 'shell': emitShell(f, i); break;
-        case 'plane': emitRefPlane(f, i); break;
-        case 'import': skip(f, opts.stepFile ? t('xch.swm.why.import_file', { file: opts.stepFile }) : t('xch.swm.why.import')); break;
-        default: skip(f, t('xch.swm.why.type', { type: f.type }));
-      }
+      const emit = Object.hasOwn(EMIT, f.type) ? EMIT[f.type] : null;
+      if (emit) emit(f, i);
+      else skip(f, t('xch.swm.why.type', { type: f.type }));
     }
     if (skipped.has(f.id) && (solidTypes.has(f.type) || !f.type)) checksOn = false;
     if (skipped.has(f.id) && !['sketch', 'plane', 'axis', 'point'].includes(f.type)) checksOn = false;
@@ -1673,9 +1669,6 @@ export function partToSwb(input, opts = {}) {
 }
 
 // small 2D helpers
-const sub2 = (a, b) => [a[0] - b[0], a[1] - b[1]];
-const add2 = (a, b) => [a[0] + b[0], a[1] + b[1]];
-const dot2 = (a, b) => a[0] * b[0] + a[1] * b[1];
 const norm2 = (a) => { const l = Math.hypot(a[0], a[1]) || 1; return [a[0] / l, a[1] / l]; };
 function intersect2(p, u, q2, v) {
   const d = u[0] * v[1] - u[1] * v[0];

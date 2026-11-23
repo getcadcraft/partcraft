@@ -32,6 +32,8 @@
  *   normalTail(z) = P(Z > z) · csv(stack, res) → text (RFC 4180, a leading ' before = + − @)
  */
 import { t } from './i18n.js';
+import { cross3 as cross, dot3 as dot } from './geom-vec.js';   // shared helpers (0.11 PERF.74; tools/perf/util-copies.mjs)
+import { csvCell as cell } from './util.js';   // shared helpers (0.11 PERF.74; tools/perf/util-copies.mjs)
 
 export const LIMITS = { stacks: 50, links: 100, mm: 1e6, tol: 1e4, label: 80, name: 60, outputs: 8 };
 export const SOURCES = ['typed', 'gdt', 'general', 'interface', 'measured'];
@@ -95,13 +97,11 @@ export function fromPicks(picks, dir, labels = {}) {
   }
   return links;
 }
-const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 export const unit = (v) => { const L = Math.hypot(v[0], v[1], v[2]); return L > 1e-12 ? [v[0] / L, v[1] / L, v[2] / L] : [1, 0, 0]; };
 const round = (v) => Math.round(v * 1e9) / 1e9;
 
 // ------------------------------------------------------------------------------------------------ vector stacks (STACK-DIR)
 
-const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
 const RAD = Math.PI / 180;
 export const isVector = (stack) => !!(stack.outputs && stack.outputs.length) || (stack.links || []).some((l) => l.dir);
 
@@ -256,7 +256,6 @@ export function readStackups(raw, instIds = []) {
   return out;
 }
 
-const cell = (v) => { let s = String(v ?? ''); if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
 const f4 = (v) => (Number.isFinite(v) ? String(+v.toFixed(4)) : '');
 
 /** The stack-up as CSV: one row per link (ranked), then the results. */

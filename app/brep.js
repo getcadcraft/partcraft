@@ -68,7 +68,7 @@ export function nameFeatures(name) {
   for (const k of String(name || '').matchAll(/[@~](f\d+)/g)) out.add(k[1]);
   return [...out];
 }
-export const NAME_RE = /^f\d{1,9}\.[a-z]+(:[A-Za-z0-9_:-]{1,40})?([@~]f\d{1,9}(#(\d{1,4}|m))?){0,24}$/;
+export const NAME_RE = /^f\d{1,16}\.[a-z]+(:[A-Za-z0-9_:-]{1,40})?([@~]f\d{1,16}(#(\d{1,4}|m))?){0,24}$/;
 
 /** The face name a PlaneRef points at (old files: feature + face + entity). */
 export function refName(ref) {
@@ -675,7 +675,7 @@ const FEATURES = {
 };
 
 // the Design features of brep-design.js (reference geometry, sweep, loft, draft, the extended extrude)
-const LIB = { fail, SMap, profileCurves, profileFaces, nameSweep, sketchOf, resolvePlane, resolveDir, occtMessage, describeName: (...a) => describeName(...a), nearest: (...a) => nearest(...a), bodyRange, refName };
+const LIB = { fail, SMap, profileCurves, profileFaces, nameSweep, sketchOf, resolvePlane, resolveDir, occtMessage, describeName, nearest, bodyRange, refName };
 installDesign(FEATURES, LIB);
 // the freeform features of surface.js (form, patch, surface loft, stitch, thicken, offset/extend/trim surface)
 installSurface(FEATURES, { ...LIB, splineGeom });

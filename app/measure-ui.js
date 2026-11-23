@@ -173,7 +173,7 @@ export function createMeasure(ctx) {
     const dl = el('dl', { className: 'pc-dl pc-measure-dl' });
     for (const [k, v] of r) dl.append(el('dt', {}, k), el('dd', {}, String(v)));
     const kids = [el('div', { className: 'pc-measure-head' }, el('strong', {}, st.mass ? t('ui.measure.mass') : t('ui.measure.title')),
-      el('button', { type: 'button', className: 'pc-btn pc-btn-sm', 'data-measure-close': '', title: t('ui.measure.close.title'), onclick: () => stop() }, t('ui.measure.close')))];
+      el('button', { type: 'button', className: 'pc-btn pc-btn-sm', 'data-measure-close': '', title: t('ui.measure.close.title'), onclick: stop }, t('ui.measure.close')))];
     if (st.busy) kids.push(el('p', { className: 'pc-note' }, t('ui.measure.working')));
     else if (!r.length) kids.push(el('p', { className: 'pc-note' }, t('ui.measure.empty')));
     else kids.push(dl);
@@ -190,9 +190,9 @@ export function createMeasure(ctx) {
       kids.push(el('label', { className: 'pc-measure-mat' }, el('span', {}, t('ui.measure.material')), sel));
     }
     kids.push(el('div', { className: 'pc-actions' },
-      el('button', { type: 'button', className: 'pc-btn pc-btn-sm', 'data-measure-copy': '', disabled: !r.length, onclick: () => copy() }, t('ui.measure.copy')),
-      el('button', { type: 'button', className: 'pc-btn pc-btn-sm', 'data-measure-mass': '', onclick: () => mass() }, t('ui.measure.mass')),
-      el('button', { type: 'button', className: 'pc-btn pc-btn-sm', 'data-measure-clear': '', disabled: !r.length, onclick: () => clear() }, t('ui.measure.clear'))));
+      el('button', { type: 'button', className: 'pc-btn pc-btn-sm', 'data-measure-copy': '', disabled: !r.length, onclick: copy }, t('ui.measure.copy')),
+      el('button', { type: 'button', className: 'pc-btn pc-btn-sm', 'data-measure-mass': '', onclick: mass }, t('ui.measure.mass')),
+      el('button', { type: 'button', className: 'pc-btn pc-btn-sm', 'data-measure-clear': '', disabled: !r.length, onclick: clear }, t('ui.measure.clear'))));
     card.replaceChildren(...kids);
   }
   async function copy() {

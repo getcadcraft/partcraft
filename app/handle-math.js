@@ -16,12 +16,8 @@
  *   niceStep(v) → the step a drag rounds to: a tenth of the value's order of magnitude (25 → 1, 3 → 0.1, 150 → 10)
  */
 import * as S from './sketch.js';
+import { add3 as add, cross3 as cross, dot3 as dot, scale3 as mul, sub3 as sub } from './geom-vec.js';   // shared helpers (0.11 PERF.74; tools/perf/util-copies.mjs)
 
-const add = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
-const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
-const mul = (a, k) => [a[0] * k, a[1] * k, a[2] * k];
-const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
 const norm = (a) => { const l = Math.hypot(...a); return l > 1e-300 ? mul(a, 1 / l) : a; };
 const world = (fr, u, v) => add(fr.o, add(mul(fr.x, u), mul(fr.y, v)));
 

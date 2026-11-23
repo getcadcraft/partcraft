@@ -117,6 +117,7 @@ export async function mountPartcraftWorkspace(root) {
     soon();
   }
 
+  function pickFeature(ids) { const r = (window.ccState?.refs(ids) || []).filter((x) => !x.kind || x.kind === 'feature'); const ok = r.length ? !!window.ccPickers?.partcraft?.apply(r) : false; if (ok) soon(); return ok; }
   const adapter = {
     ...base,
     app: 'partcraft', root, stage, panels: { left, right }, t: T,
@@ -130,8 +131,11 @@ export async function mountPartcraftWorkspace(root) {
       return { document: p.part || null, name: (p.mode === 'assembly' && p.asm?.name) || p.part?.name || '', dirty: !!p.dirty,
         busy: !!root.querySelector('[data-busy]:not([hidden])'), selection: sel, tool,
         toolLabel: tool === 'select' ? '' : TOOL_CMD[tool] ? base.tool(TOOL_CMD[tool]).label : T('ws.tool.drawing'),
-        other: p.workspace === 'illustrate' && !!doc };
+        other: p.workspace === 'illustrate' && !!doc,
+        mode: { drawing: 'paper', sketch: 'sketch', assembly: 'assembly' }[p.mode] || '3d' };   // 0.11 UI.25: into ccState (kinds: each pick's own kind, feature | edge | face | plane)
     },
+    // 0.11 UI.25: ccState.select / reveal / highlight: a feature of the part ({ kind: 'feature', id } or a bare id), the same pick SuperCad's panels use
+    select: pickFeature, reveal: pickFeature, highlight: pickFeature,
     ribbon: base.ribbon,
     contextTab() {   // a sketch, the sheet, an assembly or Illustrate opens its own tab; the person may pick another after
       const p = pc(); if (!p) return null;
@@ -173,7 +177,7 @@ export async function mountPartcraftWorkspace(root) {
     views: {
       list: VIEWS, token: () => 'part', initial: () => 'model',
       current: () => (ctx?.block('viewtabs')?.mode === 'open' ? engine?.view()?.id || null : viewNow()),
-      go: (id) => goView(id),
+      go: goView,
     },
     entered(c) {
       ctx = c; lastMode = null;
@@ -216,7 +220,7 @@ export async function mountPartcraftWorkspace(root) {
   for (const s of ['[data-tree]', '.pc-status', '[data-props-h]', '[data-right-tabs]', '[data-busy]', '[data-params]']) {
     const n = root.querySelector(s); if (n) mo.observe(n, { subtree: true, childList: true, characterData: true, attributes: s === '[data-right-tabs]' || s === '[data-busy]', attributeFilter: s === '[data-right-tabs]' ? ['aria-selected'] : s === '[data-busy]' ? ['hidden'] : undefined });
   }
-  engine = mountWorkspaces(adapter);
+  engine = mountWorkspaces(window.ccState?.adapt ? window.ccState.adapt(adapter) : adapter);   // 0.11 UI.25: kinds, mode, view, problems into ccState
   engine.refresh();
   window.partcraftWorkspace = Object.freeze({ engine, inspect: () => { const st = adapter.state(); return { layout: engine.layout, view: engine.view()?.id || null, state: { ...st, document: st.document ? st.name : null }, contextTab: adapter.contextTab() }; } });   // tests, the console
   return engine;

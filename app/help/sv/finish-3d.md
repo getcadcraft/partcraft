@@ -1,39 +1,39 @@
 ---
-title: 3D-efterbearbetning: parallell och skallop
-summary: Efterbearbeta hela modellens krökta yta med en kul-, rundnäs- eller planfräs, i parallella linjer i valfri vinkel eller i banor med ett bestämt avstånd, så att åsarna mellan dem håller den höjd du begär. Vad banorna garanterar, och vad de inte gör.
-keywords: 3d-efterbearbetning, efterbearbetning, parallell, raster, skallop, konstant skallop, udd, kulfräs, rundnäsfräs, yta, tolerans, stegavstånd, lutning, material att lämna, drop cutter, urgröpning
-from: e1587d0a
+title: 3D-finbearbetning: parallell och kammusslor
+summary: Finbearbeta hela modellens krökta yta med en kul-, hörnradie- eller planfräs, i parallella linjer i valfri vinkel eller i banor med ett valt avstånd så att krönen mellan dem får den höjd du anger. Vad banorna garanterar och vad de inte gör.
+keywords: 3D-finbearbetning, finbearbetning, parallell, raster, kammusslor, konstant kammussla, krön, kulfräs, hörnradiefräs, yta, tolerans, stegavstånd, lutning, material att lämna, fallande verktyg, överskärning
+from: 942d2341
 ---
 
-Två operationer i Manufacture skär **hela modellens yta** med verktyget hållet lodrätt (tre axlar). De tar inga val: de arbetar på all del av modellen som kan ses uppifrån. Grovbearbeta delen först (adaptiv eller ficka); en efterbearbetningsgång över oskuret material varnar att den skulle skära djupt.
+Två operationer i Tillverkning skär **hela modellens yta** med verktyget hållet lodrätt (tre axlar). De tar inga val: de arbetar på all modell som kan ses uppifrån. Grovbearbeta delen först (adaptiv eller ficka); en finbearbetningsgång över oskuret material varnar för att den skulle skära djupt.
 
 ## Parallell
 
-Raka linjer över modellen i den **vinkel** du ställer in, med **stegavstånd** emellan (en bråkdel av verktygets diameter). Varje linje följer ytan: verktygsspetsen är så hög som den måste vara för att ingen del av fräsen ska gå under modellen, och linjen skärs finare där ytan böjer sig. Med **Sicksack** på står verktyget kvar mellan linjerna där det kan göra det säkert (kontrolleras längs rörelsen); annars lyfter det.
+Raka linjer över modellen i den **vinkel** du anger, med **stegavstånd** emellan (en bråkdel av verktygets diameter). Varje linje följer ytan: verktygsspetsen ligger så högt som den måste för att ingen del av fräsen ska gå under modellen, och linjen skärs finare där ytan böjer sig. Med **Sicksack** på står verktyget kvar i materialet mellan linjerna där det är säkert att göra så (kontrolleras längs förflyttningen); annars lyfter det.
 
-- **Tolerans**: hur långt en rak bit av en linje får vara från den verkliga spetshöjden (hälften används som gräns vid mitten av varje bit). Standard 0.01 mm.
-- **Endast där ytan är minst … och högst … (°)**: efterbearbeta endast flacka områden eller endast branta. Där ytan ligger utanför intervallet utelämnas linjen, och verktyget lyfter.
-- **Material att lämna**: modellen förskjuten med det avståndet (fräsen växt med det: exakt för kul- och rundnästverktyg; ett plant verktyg lämnar minst så mycket).
+- **Tolerans**: hur långt en rak del av en linje får ligga från den verkliga spetshöjden (hälften används som gräns i mitten av varje del). Standard 0.01 mm.
+- **Endast där ytan är minst … och högst … (°)**: finbearbeta bara flacka områden eller bara branta. Där ytan ligger utanför intervallet utelämnas linjen och verktyget lyfter.
+- **Material att lämna**: modellen förskjuten med det avståndet (fräsen växt med det: exakt för kul- och hörnradieverktyg; ett plant verktyg lämnar minst så mycket).
 - **Botten**: inget skärs under denna z.
 
-## Skallop
+## Kammusslor
 
-Banor som håller ett konstant avstånd över ytan från varandra, så att åsen (skallopen) som lämnas mellan två närliggande banor får den **höjd** du begär. Avståndet följer av höjden och kulans radie: s = 2·√(2·R·h − h²), till exempel cirka 0.69 mm mellan banor för en Ø6-kula och en 0.02 mm ås. Ett rundnästverktyg använder sin hörnradie. En plan ändfräs vägras: den har ingen ås att dimensionera.
+Gångar som har ett konstant avstånd över ytan från varandra, så att krönet (kammusslan) som blir kvar mellan två närliggande gångar får den **höjd** du anger. Avståndet följer av höjden och kulans radie: s = 2·√(2·R·h − h²), till exempel ungefär 0.69 mm mellan gångar för en Ø6-kulfräs och ett krön på 0.02 mm. En hörnradiefräs använder sin hörnradie. En plan fräs avvisas: den har inget krön att dimensionera.
 
-Banorna startar **från modellens kant, inåt**, eller **från dess topp, nedåt**. De är konturer av avståndet över ytan (inte av höjd), så på en lutning ligger de tätt i plan och på ett plan ligger de långt isär. Avståndet mäts på ett rutnät över ytan och är bra inom cirka 1 %; åshöjden är exakt där ytan är plan eller svagt krökt, och ungefärlig där den kröks snabbt. **Medfräsning** håller den högre sidan av ytan på fräsens högra sida.
+Gångarna börjar vid **modellens kant, inåt** eller vid **dess överkant, nedåt**. De är konturer av avståndet över ytan (inte av höjden), så de ligger tätt i plan i en lutning och glest på en platt yta. Avståndet mäts på ett rutnät över ytan och är riktigt inom ca 1 %; krönhöjden är exakt där ytan är plan eller svagt krökt och approximativ där den kröks snabbt. **Medfräsning** håller ytans högre sida på fräsens högra sida.
 
 ## Hur bra banorna är
 
-Vad testerna kontrollerar, med slutna former eller en oberoende brute-force-sökning av fräsens fotavtryck:
+Vad testerna kontrollerar, med slutna formler eller en oberoende brute force-sökning av fräsens fotavtryck:
 
-- Spetshöjden under verktyget är exakt för kul-, rundnäs- och plana verktyg på ytor, kanter och hörn i nätet, och aldrig över den verkliga höjden. För parallella linjer stannar banan inom toleransen från den, utan någon urgröpning djupare än så.
-- Banlängder på ett lutande plan stämmer med den slutna formen; skallopbanor på ett plan ligger det begärda avståndet från varandra, och åsen mellan dem får den begärda höjden.
-- Materialsimuleringen visar ingen urgröpning efter en gång och visar de åsar som finns kvar.
+- Spetshöjden under verktyget är exakt för kul-, hörnradie- och plana verktyg på ytor, kanter och hörn i nätet, och aldrig över den verkliga höjden; för parallella linjer ligger banan inom toleransen från den, utan någon överskärning djupare än så.
+- Banlängder på ett lutande plan stämmer med den slutna formeln; kammusslegångar på ett plan ligger på det begärda avståndet och krönet mellan dem blir den begärda höjden.
+- Materialsimuleringen visar ingen överskärning efter en gång och visar de krön som blir kvar.
 
-Dessa banor är inte hela bilden: de är grundläggande efterbearbetningsgångar, inte allt ett produktionssystem erbjuder.
+Vad dessa banor inte är: de är grundläggande finbearbetningsgångar, inte allt ett produktionssystem erbjuder.
 
-- Finns inte ännu: vattenlinje (konstant z), penn- och hörnrensning, radiella och spiralformade gångar, projicering av en kurva på ytan, detektering av plana områden, restbearbetning, kontroll av hållare och skaft mot kollision, samt lutning av verktyget.
-- Verktygets centrum stannar över modellen: banorna slutar vid modellens kant i stället för att löpa av den, så en lodrät vägg precis vid kanten efterbearbetas inte ända ned till foten.
-- Underskärningar syns inte (ytan är det som verktyget möter uppifrån).
-- Modellen är nätet från kärnan, så banorna följer nätet (dess kordtolerans är cirka 0.0002 av delens diagonal), inte den exakta ytan.
-- Att efterbearbeta en stor modell med fin tolerans ger ett långt program med många korta rörelser. Kontrollera utdata i din maskins egna simulator innan du skär.
+- Finns inte ännu: vattenlinje-finbearbetning (konstant z), penn- och hörnrensning, radiella och spiralformade gångar, projicering av en kurva på ytan, detektering av plana områden, kontroll av hållare och skaft mot kollision. Grov- och restbearbetning är egna operationer ([3D-grovbearbetning och restbearbetning](topic:rough-3d)); ett verktyg som lutar är [5-axlig finbearbetning](topic:multi-axis#5-axis-finishing).
+- Verktygscentrum stannar över modellen: banorna slutar vid modellens kant i stället för att gå över den, så en lodrät vägg precis vid kanten blir inte finbearbetad ända ner till foten.
+- Underskärningar ses inte (ytan är det verktyget möter uppifrån).
+- Modellen är nätet från kärnan, så banorna följer nätet (dess kordtolerans är ungefär 0.0002 av delens diagonal), inte den exakta ytan.
+- Finbearbetning av en stor modell med fin tolerans ger ett långt program med många korta förflyttningar. Kontrollera utdata i din maskins egna simulator före skärning.

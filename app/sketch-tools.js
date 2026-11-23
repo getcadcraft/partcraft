@@ -28,10 +28,10 @@ import * as S from './sketch.js';
 import * as SP from './sketch-spline.js';
 import { t as tr } from './i18n.js';
 import { curveOf, intersect, paramOf, pointOn, rangeOf, normAng, tangentOn } from './sketch-intersect.js';
+import { dist2 as dist, dot3 as dot } from './geom-vec.js';   // shared helpers (0.11 PERF.74; tools/perf/util-copies.mjs)
 
 export const OFFSET_TOL = 0.001;   // mm: spline offsets are fitted within this
 
-const dist = (a, b) => Math.hypot(b[0] - a[0], b[1] - a[1]);
 const tolOf = (sk) => 1e-7 * Math.max(1, S.extent(sk));
 const setPt = (sk, id, [x, y]) => { const p = S.byId(sk, id); p.x = x; p.y = y; };
 const usedBy = (sk, pid, except) => sk.entities.some((e) => e.type !== 'point' && e.id !== except && S.pointsOf(e).includes(pid));
@@ -560,7 +560,6 @@ export function addSlot(sk, a, b, w) {
  */
 export function projectEdge(sk, frame, edge) {
   if (!edge) throw new Error(tr('model.sketch_tools.project_pick'));
-  const dot = (u, v) => u[0] * v[0] + u[1] * v[1] + u[2] * v[2];
   const loc = (p) => { const d = [p[0] - frame.o[0], p[1] - frame.o[1], p[2] - frame.o[2]]; return [dot(d, frame.x), dot(d, frame.y)]; };
   const tol = 1e3 * tolOf(sk);
   if (edge.type === 'line') {

@@ -35,13 +35,34 @@
  * EXPR: a variable, a number, yes/no/none, text, `a??b` (a, else b), `a == b`, `a != b`, `not a`, `a and b`, `a or b`.
  * A name that is not a variable is plain text (G81, mist, r).
  *
- * Events, in the order a program runs them: start · (per operation) operation · tool-change · spindle · approach ·
+ * Events, in the order a program runs them: start · (per operation) operation · tool-change · index · spindle · approach ·
  * coolant-on · rapid · feed · arc · cycle-start · cycle-hole · cycle-end · end.
+ *
+ * 0.11 Track CAM (CAM.7) — rotary axes, lathes and probing:
+ *   machine lathe                     a top-level line: this post writes turning programs (X and Z only). A lathe post
+ *                                     refuses milling paths and a milling post refuses turning paths.
+ *   lathe-x diameter | radius         how X is written on a lathe (diameter is the default)
+ *   on index                          before an operation whose tool direction differs from the last one (and before the first
+ *                                     operation on a machine with rotary axes): rot.a rot.b rot.c are the positions to go to,
+ *                                     first.x first.y first.z where the tool goes next. A machine with rotary axes needs it.
+ *   on rapid-rotary · feed-rotary     the moves of an operation whose rotary axes move while it cuts (rot.a/b/c with x y z;
+ *                                     `inverse` yes when the feed has to be written as inverse time, invf = 1/minutes)
+ *   on rotary-end                     after such an operation
+ *   on probe-move                     a move that stops when the probe trips (probe.n 1–4, probe.axis x|y|z, probe.k 1|2|3)
+ *   on probe-set                      what to do with what was found (probe.kind z|x|y|centre, probe.action set|measure,
+ *                                     probe.expect, probe.cx, probe.cy)
+ *   on thread                         a threading move on a lathe (thread.lead, mm per revolution)
+ * The rotary positions come from the machine in Setup (cam-kin.js: which axes, table or head, whether the control keeps the
+ * tool tip on the path). Without tool-tip control a table machine's X Y Z are written as the turned table carries them
+ * (about the pivot in Setup); arcs and canned cycles are kept while the written frame is only turned about Z, otherwise arcs
+ * become short lines and cycles the moves they stand for. A letter word whose value is empty (A{rot.a} on a machine with no
+ * A axis) is left out.
  */
 import { expandCycle } from './cam-cycle.js';
 import { q, num, safeComment } from './cam-fmt.js';
 import { describeTool } from './cam-tools.js';
 import { ORIGINS } from './cam-origins.js';
+import { solveAngles, outputTransform, mulMV, mulMM, keepsZ, kinMessage } from './cam-kin.js';
 import { t } from './i18n.js';
 
 export class PostError extends Error {
@@ -50,11 +71,15 @@ export class PostError extends Error {
 
 /** Events and the variables each one sees (names; the editor's reference list). */
 export const POST_VARS = {
-  global: ['name', 'program', 'setup.axis', 'setup.origin', 'setup.coolant', 'stock.kind', 'stock.d', 'stock.sx', 'stock.sy', 'stock.sz', 'stock.minx', 'stock.miny', 'stock.minz', 'stock.maxx', 'stock.maxy', 'stock.maxz', 'cool', 'offset', 'at.x', 'at.y', 'at.z', 'at.f'],
-  tool: ['tool.number', 'tool.desc', 'tool.kind', 'tool.d', 'tool.flutes', 'tool.fluteLen'],
-  operation: ['op.name', 'op.type'],
+  global: ['name', 'program', 'setup.axis', 'setup.origin', 'setup.coolant', 'stock.kind', 'stock.d', 'stock.sx', 'stock.sy', 'stock.sz', 'stock.minx', 'stock.miny', 'stock.minz', 'stock.maxx', 'stock.maxy', 'stock.maxz', 'cool', 'offset', 'at.x', 'at.y', 'at.z', 'at.f',
+    'kin', 'rotary', 'tcp', 'rot.a', 'rot.b', 'rot.c', 'pivot.x', 'pivot.y', 'pivot.z'],
+  tool: ['tool.number', 'tool.desc', 'tool.kind', 'tool.d', 'tool.flutes', 'tool.fluteLen', 'tool.nose'],
+  operation: ['op.name', 'op.type', 'op.kind', 'op.tilt', 'op.turn'],
   toolChange: ['previous'],
-  spindle: ['rpm'],
+  spindle: ['rpm', 'spin.mode', 'spin.css', 'spin.max'],
+  rotary: ['rot.moved', 'inverse', 'invf'],
+  probe: ['probe.n', 'probe.k', 'probe.axis', 'probe.kind', 'probe.action', 'probe.expect', 'probe.cx', 'probe.cy'],
+  thread: ['thread.lead'],
   approach: ['first.x', 'first.y', 'first.z'],
   coolant: ['coolant.mode'],
   motion: ['x', 'y', 'z', 'f', 'moved'],
@@ -65,9 +90,11 @@ export const POST_EVENTS = {
   start: ['global', 'tool'], operation: ['global', 'operation'], 'tool-change': ['global', 'tool', 'toolChange'], spindle: ['global', 'spindle'],
   approach: ['global', 'tool', 'approach'], 'coolant-on': ['global', 'coolant'], rapid: ['global', 'motion'], feed: ['global', 'motion'],
   arc: ['global', 'motion', 'arc'], 'cycle-start': ['global', 'cycle'], 'cycle-hole': ['global', 'cycle'], 'cycle-end': ['global', 'cycle'], end: ['global'],
+  index: ['global', 'tool', 'approach'], 'rapid-rotary': ['global', 'motion', 'rotary'], 'feed-rotary': ['global', 'motion', 'rotary'], 'rotary-end': ['global'],
+  'probe-move': ['global', 'motion', 'probe'], 'probe-set': ['global', 'probe'], thread: ['global', 'motion', 'thread'],
 };
 const KNOWN = new Set(Object.values(POST_VARS).flat());
-const NAMESPACES = new Set(['tool', 'op', 'stock', 'setup', 'first', 'hole', 'arc', 'at', 'cycle', 'coolant']);
+const NAMESPACES = new Set(['tool', 'op', 'stock', 'setup', 'first', 'hole', 'arc', 'at', 'cycle', 'coolant', 'rot', 'probe', 'thread', 'spin', 'pivot']);
 const FILTERS = { upper: (s) => String(s).toUpperCase(), lower: (s) => String(s).toLowerCase(), safe: safeComment, int: (s) => String(Math.round(+s)) };
 
 // ------------------------------------------------------------------------------------------------ parsing
@@ -155,7 +182,7 @@ function parseWord(w, ctx, ln) {
 /** Text → a post definition. */
 export function parsePost(text) {
   const lines = String(text).replace(/\r\n?/g, '\n').split('\n');
-  const def = { id: '', name: '', ext: 'nc', lineStep: 0, point: false, canned: true, groups: {}, events: {} };
+  const def = { id: '', name: '', ext: 'nc', lineStep: 0, point: false, canned: true, groups: {}, events: {}, lathe: false, latheDia: true };
   const ctx = { names: new Set(), groupOf: new Map() };
   // pre-pass: names made by `set` and `for`, and the modal groups (so the order of lines does not matter)
   lines.forEach((raw, k) => {
@@ -185,6 +212,8 @@ export function parsePost(text) {
           if (rest !== 'yes' && rest !== 'no') throw new PostError(ln, 'cam.post.err.yes_no', { name: kw });
           if (kw === 'decimal-point') def.point = rest === 'yes'; else def.canned = rest === 'yes';
           return;
+        case 'machine': if (rest !== 'mill' && rest !== 'lathe') throw new PostError(ln, 'cam.post.err.machine'); def.lathe = rest === 'lathe'; return;
+        case 'lathe-x': if (rest !== 'diameter' && rest !== 'radius') throw new PostError(ln, 'cam.post.err.lathe_x'); def.latheDia = rest === 'diameter'; return;
         case 'modal': return;   // read in the pre-pass
         case 'end': throw new PostError(ln, 'cam.post.err.end');
         case 'on': {
@@ -295,6 +324,7 @@ class Runner {
     if (w.modal) {
       if (w.addr) {
         const val = this.ev(w.expr);
+        if (val === null || val === undefined || val === '') return null;   // A{rot.a} on a machine with no A axis
         if (typeof val === 'number') {
           if (!w.force && this.slot[w.addr] != null && q(this.slot[w.addr]) === q(val)) return null;
           this.slot[w.addr] = val;
@@ -309,6 +339,7 @@ class Runner {
       this.group[g] = txt;
       return { text: txt };
     }
+    if (w.addr) { const val = this.ev(w.expr); if (val === null || val === undefined || val === '') return null; }
     const txt = this.text(w.parts, point);
     return txt ? { text: txt } : null;
   }
@@ -353,7 +384,7 @@ class Runner {
   toolVars(tl, p = 'tool') {
     const v = this.v;
     v[p + '.number'] = String(tl.number); v[p + '.desc'] = describeTool(tl); v[p + '.kind'] = tl.kind; v[p + '.d'] = tl.d;
-    v[p + '.flutes'] = String(tl.flutes); v[p + '.fluteLen'] = tl.fluteLen;
+    v[p + '.flutes'] = String(tl.flutes); v[p + '.fluteLen'] = tl.fluteLen; v[p + '.nose'] = tl.cornerR ?? null;
   }
   /** A point move: kind rapid|feed (p = [x, y, z], f) or arc (m with c, sw). */
   move(kind, p, m = null) {
@@ -374,6 +405,44 @@ class Runner {
     }
     this.fire(kind);
   }
+  /** A lathe move: X (diameter or radius) and Z only. kind rapid | feed | thread; p = [radius, 0, z]. */
+  latheMove(kind, p, m = null) {
+    const v = this.v, S = this.slot;
+    v.x = this.def.latheDia ? 2 * p[0] : p[0]; v.y = null; v.z = p[2];
+    v.f = m && m.f !== undefined ? m.f : null;
+    v['thread.lead'] = kind === 'thread' ? m.f : null;
+    const diff = (L, val) => S[L] == null || q(val) !== q(S[L]);
+    v.moved = diff('X', v.x) || diff('Z', v.z);
+    this.need(kind);
+    this.fire(kind);
+  }
+  /** A move with rotary positions: p in the written frame, ang {a, b, c}. kind rapid-rotary | feed-rotary. */
+  rotaryMove(kind, p, ang, extra) {
+    const v = this.v, S = this.slot;
+    v.x = p[0]; v.y = p[1]; v.z = p[2];
+    v['rot.a'] = ang.a; v['rot.b'] = ang.b; v['rot.c'] = ang.c;
+    v.f = extra.f ?? null; v.inverse = !!extra.inverse; v.invf = extra.invf ?? null;
+    const diff = (L, val) => val != null && (S[L] == null || q(val) !== q(S[L]));
+    v['rot.moved'] = diff('A', ang.a) || diff('B', ang.b) || diff('C', ang.c);
+    v.moved = v['rot.moved'] || diff('X', p[0]) || diff('Y', p[1]) || diff('Z', p[2]);
+    this.fire(kind);
+  }
+  /** Refuse a program this post has no event for. */
+  need(name) { if (!this.def.events[name]) throw new Error(t('cam.post.err.no_event', { post: this.def.name, name })); }
+}
+
+/** Points along an arc move (XY plane, helical) from `from`, within tol of the arc. */
+function arcPoints(from, m, tol = 0.005) {
+  const r = Math.hypot(from[0] - m.c[0], from[1] - m.c[1]);
+  const a0 = Math.atan2(from[1] - m.c[1], from[0] - m.c[0]);
+  const da = r > tol ? 2 * Math.acos(Math.max(-1, 1 - tol / r)) : Math.PI / 4;
+  const n = Math.max(2, Math.ceil(Math.abs(m.sw) / da));
+  const out = [];
+  for (let i = 1; i <= n; i++) {
+    const a = a0 + (m.sw * i) / n;
+    out.push(i === n ? m.p : [m.c[0] + r * Math.cos(a), m.c[1] + r * Math.sin(a), from[2] + ((m.p[2] - from[2]) * i) / n]);
+  }
+  return out;
 }
 
 /** Run a parsed post over a program ({setup, model: {stock}, paths}) → {text, ext, post}. */
@@ -389,38 +458,135 @@ export function renderPost(def, program, { name = 'Part' } = {}) {
   v['stock.sx'] = s.max[0] - s.min[0]; v['stock.sy'] = s.max[1] - s.min[1]; v['stock.sz'] = s.max[2] - s.min[2];
   v['stock.minx'] = s.min[0]; v['stock.miny'] = s.min[1]; v['stock.minz'] = s.min[2];
   v['stock.maxx'] = s.max[0]; v['stock.maxy'] = s.max[1]; v['stock.maxz'] = s.max[2];
+  const machine = setup.machine || {};
+  const rotaryMachine = (machine.kin || 'none') !== 'none';
+  v.kin = machine.kin || 'none'; v.rotary = rotaryMachine; v.tcp = rotaryMachine && !!machine.tcp;
+  const pv = machine.pivot || [0, 0, 0];
+  v['pivot.x'] = pv[0]; v['pivot.y'] = pv[1]; v['pivot.z'] = pv[2];
+  v['rot.a'] = null; v['rot.b'] = null; v['rot.c'] = null;
+  if (paths.some((p) => p.kind === 'lathe') && !def.lathe) throw new Error(t('cam.post.err.need_lathe', { post: def.name }));
+  if (def.lathe && paths.some((p) => p.kind !== 'lathe')) throw new Error(t('cam.post.err.lathe_only', { post: def.name }));
   R.tools = [];
   for (const p of paths) if (p.tool && !R.tools.find((x) => x.id === p.tool.id)) R.tools.push(p.tool);
   R.fire('start');
   const coolOn = setup.coolant === 'mist' || setup.coolant === 'flood' ? setup.coolant : null;
   let tool = null, rpm = null;
+  let ang = null;          // the rotary positions as last written (null before the first index)
+  const sameAng = (a, b) => !!a && !!b && ['a', 'b', 'c'].every((k) => (a[k] == null && b[k] == null) || (a[k] != null && b[k] != null && q(a[k]) === q(b[k])));
+  const solve = (vec) => { try { return solveAngles(machine, vec, ang); } catch (e) { throw new Error(kinMessage(e)); } };
+  const xfOf = (a) => { try { return outputTransform(machine, a); } catch (e) { throw new Error(kinMessage(e)); } };
   for (const p of paths) {
-    v['op.name'] = p.op.name; v['op.type'] = p.op.type || null;
+    v['op.name'] = p.op.name; v['op.type'] = p.op.type || null; v['op.kind'] = p.kind || null;
+    const Q = p.frame && p.frame.Q ? p.frame.Q : null;
+    v['op.tilt'] = Q ? p.frame.orient.tilt : null; v['op.turn'] = Q ? p.frame.orient.turn : null;
     R.fire('operation');
-    const first = p.moves[0];
     if (!tool || tool.id !== p.tool.id) {
       v.previous = !!tool;
       tool = p.tool; rpm = null;
       R.toolVars(tool);
       R.fire('tool-change');
     }
-    if (p.speeds.rpm !== rpm) { rpm = p.speeds.rpm; v.rpm = String(rpm); R.fire('spindle'); }
-    v['first.x'] = first.p[0]; v['first.y'] = first.p[1]; v['first.z'] = first.p[2];
+    // ---- a lathe path: X and Z
+    if (p.kind === 'lathe') {
+      const sk = p.speeds.css != null ? 'css:' + p.speeds.css : 'rpm:' + p.speeds.rpm;
+      if (sk !== rpm) {
+        rpm = sk;
+        v['spin.mode'] = p.speeds.css != null ? 'css' : 'rpm'; v['spin.css'] = p.speeds.css != null ? String(p.speeds.css) : null;
+        v['spin.max'] = String(Math.round(p.speeds.maxRpm || machine.maxRpm || 0)); v.rpm = String(p.speeds.rpm);
+        R.fire('spindle');
+      }
+      const f0 = p.moves[0].p;
+      v['first.x'] = def.latheDia ? 2 * f0[0] : f0[0]; v['first.y'] = null; v['first.z'] = f0[2];
+      R.fire('approach');
+      R.latheMove('rapid', f0);
+      if (coolOn && !v.cool) { v['coolant.mode'] = coolOn; R.fire('coolant-on'); v.cool = true; }
+      for (const m of p.moves.slice(1)) R.latheMove(m.k, m.p, m);
+      continue;
+    }
+    // ---- where this path's coordinates land in the written frame, and the rotary positions it needs
+    const multi = p.kind === 'multi';
+    let tx = null, zKept = true;
+    const m0 = p.moves[0];
+    let firstAng = null;
+    if (rotaryMachine || Q || multi) {
+      firstAng = solve(multi ? m0.a || [0, 0, 1] : Q ? mulMV(Q, [0, 0, 1]) : [0, 0, 1]);
+      const X = xfOf(firstAng);
+      if (!multi) {
+        const M = Q ? mulMM(X.M, Q) : X.M;
+        const same = M.every((row, i) => row.every((c, j) => Math.abs(c - (i === j ? 1 : 0)) < 1e-15));
+        if (!same || X.d.some((c) => Math.abs(c) > 1e-12)) { tx = (pt) => { const o = mulMV(M, pt); return [o[0] + X.d[0], o[1] + X.d[1], o[2] + X.d[2]]; }; zKept = keepsZ(M); }
+      }
+    }
+    const out = (pt) => (tx ? tx(pt) : pt);
+    const first = multi ? (() => { const X = xfOf(firstAng); const o = mulMV(X.M, m0.p); return [o[0] + X.d[0], o[1] + X.d[1], o[2] + X.d[2]]; })() : out(m0.p);
+    v['first.x'] = first[0]; v['first.y'] = first[1]; v['first.z'] = first[2];
+    if (firstAng && rotaryMachine && !sameAng(firstAng, ang)) {
+      R.need('index');
+      v['rot.a'] = firstAng.a; v['rot.b'] = firstAng.b; v['rot.c'] = firstAng.c;
+      R.fire('index');
+      ang = firstAng;
+    }
+    if (p.kind !== 'probe' && p.speeds.rpm !== rpm) { rpm = p.speeds.rpm; v.rpm = String(rpm); R.fire('spindle'); }
     R.fire('approach');
-    R.move('rapid', first.p);
-    if (coolOn && !v.cool) { v['coolant.mode'] = coolOn; R.fire('coolant-on'); v.cool = true; }
+    // ---- a path whose rotary axes move while it cuts
+    if (multi) {
+      R.need('rapid-rotary'); R.need('feed-rotary');
+      let prevTip = null;
+      p.moves.forEach((m, k) => {
+        const a = solve(m.a || [0, 0, 1]);
+        const X = xfOf(a), o = mulMV(X.M, m.p), w = [o[0] + X.d[0], o[1] + X.d[1], o[2] + X.d[2]];
+        const turned = !sameAng(a, ang);
+        let invf = null;
+        if (m.k !== 'rapid' && prevTip) {
+          const dist = Math.hypot(m.p[0] - prevTip[0], m.p[1] - prevTip[1], m.p[2] - prevTip[2]);
+          const deg = ang ? Math.max(...['a', 'b', 'c'].map((c) => (a[c] != null && ang[c] != null ? Math.abs(a[c] - ang[c]) : 0))) : 0;
+          invf = 1 / Math.max(dist / m.f, deg / 3600, 1e-6);   // 1/minutes: the tip at its feed, a turn on the spot at 10°/s
+        }
+        R.rotaryMove(m.k === 'rapid' ? 'rapid-rotary' : 'feed-rotary', w, a, { f: m.f, inverse: m.k !== 'rapid' && !machine.tcp && turned, invf });
+        if (k === 0 && coolOn && !v.cool) { v['coolant.mode'] = coolOn; R.fire('coolant-on'); v.cool = true; }
+        ang = a; prevTip = m.p;
+      });
+      R.fire('rotary-end');
+      continue;
+    }
+    R.move('rapid', first);
+    if (coolOn && !v.cool && p.kind !== 'probe') { v['coolant.mode'] = coolOn; R.fire('coolant-on'); v.cool = true; }
+    let lp = m0.p;           // where the tool is, in the path's own coordinates
     for (const m of p.moves.slice(1)) {
-      if (m.k !== 'cycle') { R.move(m.k, m.p, m); continue; }
-      if (!def.canned) { for (const e of expandCycle(m)) R.move(e.k, e.p, e); continue; }
-      v['cycle.kind'] = m.kind; v['cycle.init'] = m.init; v.feed = m.f;
+      if (m.k === 'probeset') {
+        v['probe.kind'] = m.kind; v['probe.action'] = m.action; v['probe.expect'] = m.expect; v['probe.cx'] = m.cx; v['probe.cy'] = m.cy;
+        R.need('probe-set'); R.fire('probe-set');
+        continue;
+      }
+      if (m.k === 'probe') {
+        const w = out(m.p);
+        v.x = w[0]; v.y = w[1]; v.z = w[2]; v.f = m.f; v.moved = true;
+        v['probe.n'] = String(m.n); v['probe.axis'] = m.axis; v['probe.k'] = String({ x: 1, y: 2, z: 3 }[m.axis]);
+        R.need('probe-move'); R.fire('probe-move');
+        lp = m.p;
+        continue;
+      }
+      if (m.k === 'arc') {
+        if (zKept) { const c = out([m.c[0], m.c[1], m.p[2]]); R.move('arc', out(m.p), tx ? { ...m, c: [c[0], c[1]] } : m); }
+        else for (const pt of arcPoints(lp, m)) R.move('feed', out(pt), { f: m.f });
+        lp = m.p;
+        continue;
+      }
+      if (m.k !== 'cycle') { R.move(m.k, out(m.p), m); lp = m.p; continue; }
+      const lastHole = m.holes[m.holes.length - 1];
+      if (!def.canned || !zKept) { for (const e of expandCycle(m)) R.move(e.k, out(e.p), e); lp = [lastHole.at[0], lastHole.at[1], lastHole.ret === 'r' ? lastHole.r : m.init]; continue; }
+      const dzc = tx ? tx([0, 0, 0])[2] : 0;
+      v['cycle.kind'] = m.kind; v['cycle.init'] = m.init + dzc; v.feed = m.f;
       R.fire('cycle-start');
       const hv = (hl, k) => {
-        v['hole.x'] = hl.at[0]; v['hole.y'] = hl.at[1]; v['hole.z'] = hl.z; v['hole.r'] = hl.r; v['hole.q'] = hl.q; v['hole.top'] = hl.top;
+        const at = tx ? tx([hl.at[0], hl.at[1], 0]) : hl.at;
+        v['hole.x'] = at[0]; v['hole.y'] = at[1]; v['hole.z'] = hl.z + dzc; v['hole.r'] = hl.r + dzc; v['hole.q'] = hl.q; v['hole.top'] = hl.top + dzc;
         v['hole.return'] = hl.ret === 'r' ? 'r' : 'init'; v['hole.first'] = k === 0;
       };
       m.holes.forEach((hl, k) => { hv(hl, k); R.fire('cycle-hole'); });
-      hv(m.holes[m.holes.length - 1], m.holes.length - 1);
+      hv(lastHole, m.holes.length - 1);
       R.fire('cycle-end');
+      lp = [lastHole.at[0], lastHole.at[1], lastHole.ret === 'r' ? lastHole.r : m.init];
     }
   }
   R.fire('end');

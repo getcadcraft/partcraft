@@ -16,8 +16,8 @@ import { attachSA, wallStats, wallForceCorrection, YPLUS_RANGE, STABILIZER } fro
 import { refineMesh } from './fea.js';
 import { threadFlow } from './flow-par.js';
 import { t } from './i18n.js';   // laminar runs step on the solver threads when the pool is up (bit-identical)
+import { dot3 as dotv } from './geom-vec.js';   // shared helpers (0.11 PERF.74; tools/perf/util-copies.mjs)
 
-const dotv = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 
 export function solveFlow(job, onProgress = () => {}) {
   const t0 = Date.now();

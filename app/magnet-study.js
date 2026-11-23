@@ -25,6 +25,7 @@
  */
 import * as S from './sketch.js';
 import { t } from './i18n.js';
+import { pointInRing as inPoly } from './geom2d.js';   // shared helpers (0.11 PERF.74; tools/perf/util-copies.mjs)
 
 export const ROLES = ['air', 'iron', 'magnet', 'coil'];
 export const MU0 = 4e-7 * Math.PI;
@@ -59,7 +60,6 @@ export const defaultSpecs = (n) => Array.from({ length: n }, () => ({ role: 'iro
 // ---------------------------------------------------------------------------------------------------- geometry
 const area = (p) => { let a = 0; for (let i = 0, j = p.length - 1; i < p.length; j = i++) a += p[j][0] * p[i][1] - p[i][0] * p[j][1]; return a / 2; };
 const boxOf = (p) => { let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity; for (const [x, y] of p) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; } return [x0, y0, x1, y1]; };
-const inPoly = (x, y, poly) => { let c = false; for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) { const [xi, yi] = poly[i], [xj, yj] = poly[j]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c; } return c; };
 const orient = (a, b, c) => (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]);
 /** Do segments ab and cd cross in their interiors (touching ends do not count)? */
 function segCross(a, b, c, d) {

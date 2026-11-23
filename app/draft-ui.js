@@ -57,7 +57,7 @@ export function createDraft(ctx) {
     const modeSel = el('select', { className: 'pc-select', 'aria-label': t('analysis.show'), 'data-analysis-mode': '' }, ...MODES.map((m) => el('option', { value: m, selected: st.mode === m }, t('analysis.mode.' + m))));
     modeSel.addEventListener('change', () => { setMode(modeSel.value); });
     const head = el('div', { className: 'pc-measure-head' }, el('strong', {}, t('analysis.title.' + st.mode)),
-      el('button', { type: 'button', className: 'pc-btn pc-btn-sm', 'data-draft-close': '', title: t('draft.close.title'), onclick: () => stop() }, t('draft.close')));
+      el('button', { type: 'button', className: 'pc-btn pc-btn-sm', 'data-draft-close': '', title: t('draft.close.title'), onclick: stop }, t('draft.close')));
     const showRow = el('div', { className: 'pc-section-row' }, el('span', { className: 'k' }, t('analysis.show')), modeSel);
     if (st.mode === 'zebra') {
       const n = el('input', { type: 'number', className: 'pc-input', min: '4', max: '64', step: '2', value: String(st.stripes), 'aria-label': t('analysis.stripes'), 'data-zebra-stripes': '' });
@@ -76,7 +76,7 @@ export function createDraft(ctx) {
       ...PULL_KEYS.map((k) => el('option', { value: k, selected: st.key === k }, t('draft.pull.' + k.replace('+', 'p').replace('-', 'm')))),
       el('option', { value: 'face', selected: st.key === 'face', disabled: !st.face }, t('draft.pull.face')));
     sel.addEventListener('change', () => { st.key = sel.value; apply(); render(); });
-    const pickBtn = el('button', { type: 'button', className: 'pc-btn pc-btn-sm' + (st.picking ? ' is-primary' : ''), 'data-draft-pick': '', onclick: () => arm() }, st.picking ? t('draft.picking') : t('draft.pick'));
+    const pickBtn = el('button', { type: 'button', className: 'pc-btn pc-btn-sm' + (st.picking ? ' is-primary' : ''), 'data-draft-pick': '', onclick: arm }, st.picking ? t('draft.picking') : t('draft.pick'));
     const rev = el('input', { type: 'checkbox', checked: st.reverse, 'data-draft-reverse': '' });
     rev.addEventListener('change', () => { st.reverse = rev.checked; apply(); render(); });
     const min = el('input', { type: 'number', className: 'pc-input', min: '0', max: '45', step: '0.5', value: String(st.min), 'aria-label': t('draft.min'), 'data-draft-min': '' });

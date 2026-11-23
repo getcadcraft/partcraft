@@ -1,79 +1,79 @@
 ---
 title: Što još nije izrađeno
-summary: Sve što ova verzija PartCraft još ne radi, od uvijajućih provlačenja do prikaza u inčima, kota crteža i podsklopova, uz to što umjesto toga raditi danas.
-keywords: nedostaje, još nije, ograničenja, plan razvoja, egzaktna jezgra, zaobljenje, skošenje, ljuska, provlačenje, loft, uvoz STEP, simulacija, izrada, uvijanje provlačenja, tangentnost kraja lofta, zaobljenje plohe, jednadžbe, inči, kote crteža, podsklopovi, oblak, tablet, telefon
-from: 9b868162
+summary: Sve što ova verzija PartCrafta još ne radi, od uvijanja provlačenja do prikaza u inčima, kota crteža i podsklopova, s onim što umjesto toga radite danas.
+keywords: nedostaje, još nije, ograničenja, ograničenje, plan razvoja, točna jezgra, zaobljenje, skošenje, ljuska, provlačenje, loft, uvoz STEP, simulacija, proizvodnja, uvijeni provlak, tangencija kraja lofta, zaobljenje plohe, jednadžbe, inči, kote crteža, podsklopovi, oblak, tablet, telefon
+from: 97b10a29
 ---
 
-PartCraft je rana verzija. Ova stranica navodi što ona još ne radi, da to ne tražite, i što raditi umjesto toga danas. Ništa ovdje nema rok.
+PartCraft je rana verzija. Ova stranica navodi što još ne radi, kako je ne biste tražili, i što umjesto toga radite danas. Ništa ovdje nema datum.
 
-## Treba egzaktnu jezgru
+## Treba točna jezgra
 
-Ova verzija izrađuje svaki dio jezgrom mreže (vidi [Jezgra mreže](topic:solid-kernels)). Sve dolje treba egzaktnu geometrijsku jezgru, a ova verzija je još nema. Dijelovi spremljeni s tim značajkama se i dalje otvaraju: značajke ostaju u povijesti, označene kao neizrađene, i čuvaju se pri spremanju.
+Ova verzija gradi svaki dio s jezgrom mreže (vidi [Jezgra mreže](topic:solid-kernels)). Sve dolje navedeno treba točnu geometrijsku jezgru, koje ova verzija još nema. Dijelovi spremljeni s tim značajkama i dalje se otvaraju: značajke ostaju u povijesti, označene kao neizrađene, i zadržavaju se pri spremanju.
 
 | Još nije izrađeno | Umjesto toga, danas |
 |---|---|
-| {{ui:Fillet}} i {{ui:Chamfer}} na zaobljenim bridovima; zaobljenja čiji se polumjer mijenja duž brida; zaobljenja glatko stopljena tamo gdje se susreću (jezgra mreže ih reže pod kutom) | Zaobljenje i skošenje rade na ravnim bridovima između ravnih ploha; ostale kutove zaobljite u skici prije izvlačenja ({{ui:Fillet}} u skici, {{key:F}}) |
-| {{ui:Shell}} koji otvara zakrivljene plohe; stijenke različitih debljina | Otvorite ravne plohe; dodajte materijal izvlačenjem tamo gdje stijenka mora biti deblja |
-| {{ui:Sweep}}, {{ui:Loft}}, {{ui:Draft}} na zakrivljenim plohama; izvlačenje do plohe, sljedeće plohe ili vrha; sužena izvlačenja | Izvucite ili rotirajte, po koracima gdje treba; izvucite do dubine koju izmjerite |
-| {{ui:Rib}}, {{ui:Base flange}}, {{ui:Edge flange}} i ravni uzorci | Izvucite ploču ili profil rebra |
-| Površine: dovršavanje {{ui:Form}} u dio, {{ui:Patch}}, {{ui:Loft surface}}, {{ui:Gordon surface}}, {{ui:Stitch}}, {{ui:Thicken}}, {{ui:Offset surface}}, {{ui:Extend surface}}, {{ui:Trim surface}} | Nije dostupno |
-| Više tijela: {{ui:Combine}}, {{ui:Move body}}, {{ui:Scale body}}, {{ui:Path pattern}}, značajke koje prave novo tijelo | Jedno puno tijelo; uzorci i zrcaljenje kopiraju značajke |
-| Skice, ravnine, osi i točke na plohama koje može naći samo egzaktna jezgra (ploha nastala zaobljenjem, stijenka rupe, ploha uvezenog tijela) | Skicirajte na osnovnim ravninama, referentnim ravninama i ravnim plohama izvlačenja i rotacija |
-| Rezultat generativnog dizajna otvoren kao dio ili dodan u njega (postaje uvezeno puno tijelo) | Preuzmite rezultat kao STL ili STEP |
-| Uređivanje zakrivljenih ploha otvorene STEP datoteke kao egzaktnih površina; egzaktni STEP splajnova, provučenih i rotiranih ploha iz STEP datoteke, bokova splajna, modeliranih navoja, tijela i sklopova u STL / OBJ / 3MF formatu; STEP za ostale modelare dijelova | {{ui:Open}} čita STEP kao trokute i zadržava ravne plohe, valjke, stošce, kugle i torusa datoteke za izvoz ([Otvaranje STEP datoteke](topic:import-step)); {{ui:Export}} › {{ui:STEP AP242 (exact solid)}} zapisuje svaku analitičku plohu egzaktno i zadržava je kao fasete ([Izvoz](topic:export-files#for-other-cad-programs-step)); makro za drugog modelera dijelova još zapisuje |
-| Pravi lukovi u prikazima crteža | Prikazi i presjeci crtaju se iz fasetiranih ploha |
-| Egzaktni volumeni, površine i udaljenosti | {{ui:Measure}} daje brojke fasetiranog tijela, nešto manje na okruglim dijelovima; finija postavka **Krivulje** ih približava |
+| {{ui:Zaobljenje}} i {{ui:Skošenje}} na zaobljenim bridovima; zaobljenja kojima se polumjer mijenja duž brida; zaobljenja glatko stopljena tamo gdje se spajaju (jezgra mreže ih spaja kosim rezom) | Zaobljenje i skošenje rade na ravnim bridovima između ravnih ploha; ostale kutove zaoblite u skici prije izvlačenja ({{ui:Zaobljenje}} u skici, {{key:F}}) |
+| {{ui:Ljuska}} koja otvara zakrivljene plohe; stijenke različitih debljina | Otvorite ravne plohe; dodajte materijal izvlačenjem gdje stijenka treba biti deblja |
+| {{ui:Provlačenje}}, {{ui:Loft}}, {{ui:Nagib}} na zakrivljenim plohama; izvlačenje do plohe, sljedeće plohe ili vrha; koničnih izvlačenja | Izvucite ili rotirajte, u koracima gdje treba; izvucite do dubine koju izmjerite |
+| {{ui:Rebro}}, {{ui:Osnovna prirubnica}}, {{ui:Rubna prirubnica}} i ravni uzorci | Izvucite ploču ili profil rebra |
+| Plohe: završna obrada {{ui:Oblik}} u dio, {{ui:Zakrpa}}, {{ui:Loft površina}}, {{ui:Gordonova površina}}, {{ui:Zašij}}, {{ui:Zadebljaj}}, {{ui:Odmakni površinu}}, {{ui:Produži površinu}}, {{ui:Skrati površinu}} | Nije dostupno |
+| Više tijela: {{ui:Kombiniraj}}, {{ui:Pomakni tijelo}}, {{ui:Skaliraj tijelo}}, {{ui:Uzorak po putanji}}, značajke koje stvaraju novo tijelo | Jedno puno tijelo; uzorci i zrcaljenje kopiraju značajke |
+| Skice, ravnine, osi i točke na plohama koje samo točna jezgra može naći (ploha nastala zaobljenjem, stijenka rupe, ploha uvezenog tijela) | Skicirajte na osnovnim ravninama, referentnim ravninama i ravnim plohama izvlačenja i rotacija |
+| Ishod generativnog dizajna otvoren kao dio ili dodan u njega (postaje uvezeno tijelo) | Preuzmite ishod kao STL ili STEP |
+| Uređivanje zakrivljenih ploha otvorene STEP datoteke kao točnih ploha; točni STEP splajn, provučenih i rotiranih ploha iz STEP datoteke, bočne strane splajna, modelirani navoji, tijela STL / OBJ / 3MF i sklopovi; STEP za druge modelare dijelova | {{ui:Otvori}} čita STEP kao trokute i zadržava ravne plohe, valjke, stošce, kugle i torusi datoteke za izvoz ([Otvaranje STEP datoteke](topic:import-step)); {{ui:Izvoz}} › {{ui:STEP AP242 (egzaktno tijelo)}} zapisuje svaku analitičku plohu točno i zadržava ih kao mrežu trokuta ([Izvoz](topic:export-files#for-other-cad-programs-step)); makro za drugi modeler dijelova i dalje zapisuje |
+| Pravi lukovi u prikazima crteža | Prikazi i prikazi presjeka crtaju se iz mreže trokuta |
+| Točni volumeni, površine i udaljenosti | {{ui:Mjeri}} daje brojke tijela iz mreže trokuta, pomalo niske na zaobljenim dijelovima; finija postavka **Krivulje** ih približava |
 
-Neki redovi u tablicama ispod predlažu jednu od ovih značajki kao način da se nešto drugo zaobiđe. Ti prijedlozi vrijede kad se egzaktna jezgra vrati.
+Neki retci u tablicama ispod predlažu jednu od ovih značajki kao zaobilazni put. Ti prijedlozi vrijede kad se vrati točna jezgra.
 
 ## Značajke
 
 | Još nije izrađeno | Umjesto toga, danas |
 |---|---|
-| Zaobljenja ploha, puna zaobljenja, zaobljenja s polumjerima zadanim u točkama duž brida | Stalni ili linearno promjenjivi {{ui:Fillet}}; više značajki zaobljenja |
-| Ljuske s različitim debljinama stijenki | Jedna debljina {{ui:Shell}}; dodajte materijal izvlačenjem tamo gdje stijenka mora biti deblja |
-| Nagib na slobodnim (splajn) plohama | {{ui:Draft}} radi na ravnim, valjkastim i stožastim plohama |
-| Uvijajuća provlačenja, tankostijena i plošna provlačenja; tangentnost kraja na značajki Loft; loft s jednom vodećom šinom; putanje od splajna | {{ui:Sweep}} s fiksnom orijentacijom ili skaliranjem kraja; loft s dvije ili više vodećih šina: vidi [Provlačenje, loft i nagib](topic:sweep-loft-draft) |
-| Rebra iz lukova ili splajnova; rebra izrasla kvadratno prema skici (iz pogleda odozgo); nagib na rebrima; više rebara iz jedne skice | {{ui:Rib}} iz jednog lanca linija u vlastitoj ravnini rebra: vidi [Rebra i ojačanja](topic:rib) |
+| Zaobljenja ploha, puna zaobljenja, zaobljenja s polumjerima postavljenim u točkama duž brida | {{ui:Zaobljenje}} konstantnog ili linearno promjenjivog polumjera; više značajki zaobljenja |
+| Ljuske s različitim debljinama stijenki | Jedna debljina za {{ui:Ljuska}}; dodajte materijal izvlačenjem gdje stijenka treba biti deblja |
+| Nagib na slobodnim (splajn) plohama | {{ui:Nagib}} radi na ravnim, cilindričnim i stožastim plohama |
+| Uvijeni provlaci, provlaci tankih stijenki i ploha; tangencija kraja na značajki Loft; loft s jednom vodilicom; putanje splajna | {{ui:Provlačenje}} s fiksnom orijentacijom ili krajnjim mjerilom; loft s dvije ili više vodilica: vidi [Provlačenje, loft i nagib](topic:sweep-loft-draft) |
+| Rebra iz lukova ili splajnova; rebra izrasla okomito na skicu (iz pogleda odozgo); nagib na rebrima; više rebara iz jedne skice | {{ui:Rebro}} iz jednog lanca linija u vlastitoj ravnini rebra: vidi [Rebra i rebra za učvršćenje](topic:rib) |
 | „Do“ zakrivljene plohe, „do sljedeće“ zaustavljanje na zakrivljenoj plohi | Do ravne plohe ili referentne ravnine |
-| Protuprobušene rupe, palčasti i cijevni navoji, stožasti navoji, izlazi navoja i pokošeni početci navoja | Upuštanje male dubine; metrički ISO i trapezni navoji, kozmetički ili modelirani: vidi [Navoji na osovinama i provrtima, crtani ili modelirani](topic:threads) |
+| Upuštene rupe, inčni i cijevni navoji, konični navoji, izlazi navoja i skošeni početci navoja | Upuštanje male dubine; ISO metrički i trapezni navoji, kozmetički ili modelirani: vidi [Navoji na osovinama i provrtima, nacrtani ili modelirani](topic:threads) |
 | Izvlačenja tankih značajki | Nacrtajte obje stijenke profila |
-| Kopije uzorka preskočene jedna po jedna, uzorci ispune | Koristite zasebne značajke; uzorci duž krivulje: {{ui:Path pattern}} |
-| Kopiranje uzoraka, zrcaljenja, zaobljenja, skošenja, ljuske i uvezena tijela | Kopirajte skicu ili značajku na kojoj su izrađeni, ili napravite uzorak |
-| Egzaktna (G1) tangentnost u izvanrednim točkama oblika; spajanje zakrpa oblika u veće plohe | Podignite Razinu oblika: aproksimirane zakrpe postaju manje; vidi [Slobodni oblici s Oblik](topic:form-surfaces) |
-| Oblik sastavljen od nekoliko odvojenih zatvorenih dijelova u jednoj značajci; mostovi između oblika | Jedan zatvoreni dio po značajci Oblik; spojite ih s Join |
-| Biranje tijela površina u prikazu (osim točaka obrezivanja i zakrpe); zaobljenja površina; uklanjanje obrezivanja; G2 zakrpe; Gordonove površine tangentne na zakrivljene susjede (tangentne na ravnine i ravne plohe su izrađene) | Odaberite ih imenom na ploči značajke; prvo zadebljajte, zatim zaobljujte tijelo |
-| Popis tijela u povijesti; izostavljanje skrivenih tijela iz izvoza | Preimenujte i sakrijte tijela na popisu tijela na ploči dijela; obrišite ili potisnite značajku koja je napravila tijelo da ga izostavite |
-| Nejednoliko skaliranje koje zadržava valjke i stošce analitičkima; nejednolično skaliranje odmaknutih površina | {{ui:Scale body}} čini zakrivljene plohe B-splajn zatvorenima (unutar 0,0000004 mm); jednoliko skaliranje ostaje egzaktno |
-| Kombiniranje tijela površina; Minkowskijevi zbrojevi | {{ui:Stitch}} ili {{ui:Thicken}} prvo, zatim {{ui:Combine}} |
-| Analiza tolerancija: lanci tolerancija koji skreću za kutove (2D i 3D vektorske petlje), osjetljivosti izvedene iz geometrije, Monte Carlo s drugim razdiobama, tolerancije veličine na dimenzijama skice, bonus tolerancija iz uvjeta materijala | {{ui:Stack-up}} u sklopu: jedan smjer, najgori slučaj i RSS, tolerancije upisane ručno, iz opće tolerancije bloka naslova ili iz GD&T okvira: vidi [Lanci tolerancija](topic:tolerance-stackup) |
-| Slaganje: redoslijed rezanja i uvodni potezi, rezanje zajedničkih rubova jednom, dijelovi koji se moraju držati zajedno; ostaci rola, zaliha dijeljena među projektima | {{ui:Nest flat parts on sheets…}} s razmakom, marginama, okretima i smjerom vlakana: vidi [Slaganje ravnih dijelova na limove](topic:nest-flat-parts); ostaci ploča čuvaju se i koriste prvi: vidi [Čuvanje i ponovna upotreba odrezaka](topic:nest-offcuts); plan rezanja u vlastitom softveru rezača |
-| Lim: podvijanja (hems), prijelomi, zakošene i konturne prirubnice; prirubnice na zakrivljenim bridovima ili na plohama savijene osnovne prirubnice; skicirana savijanja; zatvaranje kutova; alati za oblikovanje; pretvaranje tijela u lim; ravni uzorak savijene osnovne prirubnice s rezovima; tablice savijanja | {{ui:Base flange}} (ploča ili savijeni profil), {{ui:Edge flange}} na ravnim bridovima ploče s rasterećenjima savijanja i ravni uzorak s K-faktorom: vidi [Lim](topic:sheet-metal) |
-| Analiza nagiba na sklopovima; traženje linije razdvajanja; analiza debljine stijenke | {{ui:Draft analysis}} na dijelu u Designu: vidi [Provjera nagiba za kalupljenje i lijevanje](topic:draft-analysis); otvorite svaki dio sklopa da ga provjerite |
+| Preskočene pojedinačne kopije uzorka, uzorci ispune | Koristite zasebne značajke; uzorci duž krivulje: {{ui:Uzorak po putanji}} |
+| Kopiranje uzoraka, zrcaljenja, zaobljenja, skošenja, ljuske i uvezena tijela | Kopirajte skicu ili značajku na kojoj su izgrađeni ili napravite uzorak |
+| Točna (G1) tangencija u posebnim točkama oblika; spajanje zakrpa oblika u veće plohe | Povisite razinu oblika: aproksimirane zakrpe postaju manje; vidi [Slobodni oblici s Oblikom](topic:form-surfaces) |
+| Oblik sastavljen od više zasebnih zatvorenih dijelova u jednoj značajki; mostovi između oblika | Jedan zatvoreni dio po značajki Oblik; spojite ih naredbom Spoji |
+| Odabir tijela ploha u prikazu (osim točaka skraćivanja i zakrpe); zaobljenja ploha; poništavanje skraćivanja; G2 zakrpe; Gordonove plohe tangentne na zakrivljene susjede (tangencija na ravnine i ravne plohe je izrađena) | Odaberite ih po imenu na ploči značajke; prvo zadebljajte, zatim zaobljujte puno tijelo |
+| Popis tijela u povijesti; izostavljanje skrivenih tijela iz izvoza | Preimenujte i sakrijte tijela na popisu tijela na ploči dijela; izbrišite ili potisnite značajku koja je stvorila tijelo da ga izostavite |
+| Neujednačeno mjerilo koje zadržava valjke i stošce analitičkima; neujednačeno skaliranje odmaknutih ploha | {{ui:Skaliraj tijelo}} pretvara zakrivljene plohe u zatvorene B-splajnove (unutar 0.0000004 mm); ujednačeno mjerilo ostaje točno |
+| Spajanje tijela ploha; Minkowskijeve sume | Prvo {{ui:Zašij}} ili {{ui:Zadebljaj}}, zatim {{ui:Kombiniraj}} |
+| Analiza tolerancija: lanci tolerancija koji skreću za kutove (2D i 3D vektorske petlje), osjetljivosti izračunate iz geometrije, Monte Carlo s drugim raspodjelama, tolerancije veličina na kotama skice, bonus tolerancija iz stanja materijala | {{ui:Lanac tolerancija}} u sklopu: jedan smjer, najgori slučaj i RSS, tolerancije upisane, iz opće tolerancije zaglavlja crteža ili iz GD&T okvira: vidi [Lanci tolerancija](topic:tolerance-stackup) |
+| Slaganje: redoslijed rezanja i ulazi, rezanje zajedničkih bridova jednom, dijelovi koji moraju ostati zajedno; ostaci role, sirovac dijeljen među projektima | {{ui:Slaganje ravnih dijelova na limove…}} s razmacima, marginama, okretanjem i smjerom vlakana: vidi [Slaganje ravnih dijelova na limove](topic:nest-flat-parts); preostale ploče čuvaju se i koriste prve: vidi [Čuvanje i ponovna upotreba otpadaka](topic:nest-offcuts); planirajte rezanje u vlastitom softveru za rezanje |
+| Lim: rubovi, prijelazi, pokošene i konturne prirubnice; prirubnice na zakrivljenim bridovima ili plohama savijene osnovne prirubnice; nacrtani savoji; zatvaranja kutova; alati za oblikovanje; pretvorba tijela u lim; ravna ploha savijene osnovne prirubnice s rezovima; tablice savijanja | {{ui:Osnovna prirubnica}} (ploča ili savijeni profil), {{ui:Rubna prirubnica}} na ravnim bridovima ploče s rasterećenjima savoja i ravni uzorak s K-faktorom: vidi [Lim](topic:sheet-metal) |
+| Analiza nagiba na sklopovima; pronalaženje linije rastavljanja; analiza debljine stijenke | {{ui:Analiza nagiba}} na dijelu u Dizajnu: vidi [Provjera nagiba za prešanje i lijevanje](topic:draft-analysis); otvorite svaki dio sklopa i provjerite ga |
 
 ## Skice
 
 | Još nije izrađeno | Umjesto toga, danas |
 |---|---|
-| Elipse, tangentni lukovi, konike, splajnovi zadanog stupnja ili težina (NURBS) | Splajnovi (kubični), lukovi i kružnice s odnosima tangentnosti |
-| Točka na splajnu (odnos), odnosi zakrivljenosti (G2) | Postavite vlastitu točku splajna tamo gdje mora proći |
-| Pomaknute kopije splajnova koje slijede kasnije promjene; pomaci lanaca s oštrim kutovima splajna | Ponovno pomaknite nakon promjene; prvo zaobljite kut |
-| Kopije uzorka koje ostaju povezane s izvornikom; uzorci duž krivulje | Ponovno napravite uzorak nakon promjene |
-| Projiciranje slobodnih ili nagnutih kružnih bridova; projicirana geometrija koja prati dio | Projicirajte ravne i paralelne kružne bridove, zatim kotirajte |
-| Vođene (referentne) dimenzije | Očitajte veličine s ploče ili iz podataka o dijelu |
-| Kolinearni odnosi | Paralelno s udaljenošću 0 |
-| Lijepljenje u drugi program (sistemski međuspremnik) | Izvezite DXF, STEP, STL ili 3MF |
-| Upisivanje lukova, relativnih ili polarnih koordinata | Upišite linije i kružnice; lukove crtajte alatom Luk |
-| Odabir geometrije bez pokazivača | Potreban je klik ili dodir |
+| Elipse, tangentni lukovi, konike, splajnovi zadanog stupnja ili težina (NURBS) | Splajnovi (kubični), lukovi i kružnice s tangentnim odnosima |
+| Točka na splajnu (odnos), odnosi zakrivljenosti (G2) | Postavite vlastitu točku splajna tamo gdje mora prolaziti |
+| Odmaknute kopije splajnova koje prate kasnije promjene; odmaci lanaca s oštrim kutovima splajna | Odmaknite ponovno nakon promjene; prvo zaoblite kut |
+| Kopije uzoraka koje ostaju povezane s izvornikom; uzorci duž krivulje | Ponovno napravite uzorak nakon promjene |
+| Projiciranje slobodnih ili nagnutih kružnih bridova, projicirana geometrija koja prati dio | Projicirajte ravne i paralelne kružne bridove, zatim kotirajte |
+| Vođene (referentne) kote | Očitajte veličine s ploče ili podataka o dijelu |
+| Kolinearni odnosi | Paralelno s udaljenosti 0 |
+| Lijepljenje u drugi program (međuspremnik sustava) | Izvezite DXF, STEP, STL ili 3MF |
+| Upisivanje lukova, relativnih ili polarnih koordinata | Upišite linije i kružnice; lukove nacrtajte alatom Luk |
+| Odabir geometrije bez pokazivača | Treba klik ili dodir |
 
 ## Parametri i jedinice
 
 | Još nije izrađeno | Umjesto toga, danas |
 |---|---|
-| Konfiguracije koje mijenjaju materijale; CSV tablica dizajna koja isključuje značajke | Konfiguracije postavljaju parametre i uključuju ili isključuju značajke: vidi [Konfiguracije i tablice dizajna](topic:design-tables); `partcraft variants` izrađuje spremljene konfiguracije po imenu, uključujući isključene značajke: vidi [Napravite paket varijanti iz konfiguracija](topic:variant-pack) |
-| Jednadžbe na brojevima panela najnovijih značajki (ravnina, provlačenje, nagib i slično) | Napišite ih u skripti ili s `partcraft set` ([Skripte i naredbeni redak](topic:scripts-and-cli)) |
-| Dio prikazan u inčima | Veličine se prikazuju u milimetrima; upišite `2in` u okvir za broj ili izraz i postaje 50.8 |
+| Konfiguracije koje mijenjaju materijale; CSV tablica dizajna koja isključuje značajke | Konfiguracije postavljaju parametre i uključuju ili isključuju značajke: vidi [Konfiguracije i tablice dizajna](topic:design-tables); `partcraft variants` gradi spremljene konfiguracije po imenu, uključujući isključene značajke: vidi [Napravite paket varijanti iz svojih konfiguracija](topic:variant-pack) |
+| Jednadžbe u brojevima na pločama najnovijih značajki (ravnina, provlačenje, nagib i slično) | Napišite ih u skripti ili naredbom `partcraft set` ([Skripte i naredbeni redak](topic:scripts-and-cli)) |
+| Dio prikazan u inčima | Veličine se prikazuju u milimetrima; upišite `2in` u polje za broj ili izraz i postat će 50.8 |
 
 ## Datoteke
 
@@ -81,87 +81,89 @@ Neki redovi u tablicama ispod predlažu jednu od ovih značajki kao način da se
 |---|---|
 | Uređivanje vlastitih značajki uvezenog STEP tijela (dolazi bez povijesti) | Dodajte ili izrežite materijal vlastitim značajkama |
 | Čitanje boja, naziva, strukture sklopa i PMI iz STEP-a | Nije dostupno |
-| Izvoz glTF, OBJ, IGES, Parasolid; DWG 3D dijela (DWG piše samo paket varijanti: list crteža) | STL ili 3MF za mreže; STEP za tijela; DXF za 2D |
-| Otvaranje IGES, DXF ili tuđih datoteka drugih programa (datoteke `.3dm` otvaraju se kao jedno tijelo: [Otvaranje .3dm modela kao punog tijela](topic:open-3dm-files)) | Zatražite STEP ili zatvoreni STL, OBJ ili 3MF: [Otvaranje STL, OBJ ili 3MF kao punog tijela](topic:open-meshes) |
-| Struktura sklopa (stablo s nazivima dijelova) u izvezenom STEP-u | Sklopni STEP je jedan složeni zapis postavljenih tijela |
-| Spremanje u mapu po vašem izboru bez preuzimanja preglednikom | Uključite „pitaj gdje spremiti“ u postavkama preuzimanja preglednika |
+| Izvoz glTF, OBJ, IGES, Parasolid; DWG 3D dijela (samo paket varijanti zapisuje DWG: list crteža) | STL ili 3MF za mreže; STEP za tijela; DXF za 2D |
+| Otvaranje IGES, DXF ili vlastitih datoteka drugih programa (datoteke `.3dm` otvaraju se kao jedno tijelo: [Otvaranje .3dm modela kao punog tijela](topic:open-3dm-files)) | Zatražite STEP ili zatvorenu mrežu STL, OBJ ili 3MF: [Otvaranje STL, OBJ ili 3MF](topic:open-meshes) |
+| Struktura sklopa (stablo s nazivima dijelova) u izvezenom STEP-u | STEP sklopa je jedan složeni dio od postavljenih tijela |
+| Spremanje u mapu po vašem izboru bez preuzimanja preglednika | Uključite „pitaj gdje spremiti“ u postavkama preuzimanja preglednika |
 
 ## Crteži
 
 | Još nije izrađeno | Umjesto toga, danas |
 |---|---|
-| Kote izvan tri ukupne veličine (veličine rupa, položaji, tolerancije veličina) | Označite PDF ili izvezite DXF i kotirajte ga u 2D CAD programu |
+| Kote osim tri ukupne veličine (veličine rupa, položaji, tolerancije veličina) | Označite PDF ili izvezite DXF i kotirajte ga u 2D CAD programu |
 | Više od jednog presjeka ili detalja; poravnati, izlomljeni i pomoćni prikazi | Jedan presjek i jedan detalj po crtežu |
-| Slobodni tekst, bilješke i tablice na listu (osim blokova naslova i revizije) | Napomena o završnoj obradi, ili tekst dodan u PDF-u |
-| Projekcija prvog kuta, pomični prikazi, uspravni listovi | Treći kut, automatski raspored, vodoravni listovi A4–A0 i ANSI A–E |
-| Živi prikaz presjeka: više ravnina ili kutija presjeka odjednom, obris oko reza, spremanje presjeka u datoteci | Jedna ravnina po jedan put iz {{ui:Views}} › {{ui:Section view}}; vidi [Pogled iznutra s prikazom presjeka](topic:section-view) |
-| Sklopni crteži s više prikaza, kota ili balona koje možete pomicati | Jedan izometrijski (ili rastavljeni) prikaz s automatskim balonima i popisom dijelova |
-| Kopiranje i lijepljenje GD&T i simbola završne obrade | Postavite svaki s Datum, Frame ili Finish |
-| Priručnici: STEP datoteke u {{ui:From another file…}} programa Illustrate, model izravno iz ModelCraft ili BimCraft, slike kvalitete praćenja zraka, interaktivni 3D unutar PDF-a | Otvorite STEP u Designu i pokrenite priručnik {{ui:From the open part}}; spremite model kao glTF (.glb); PNG slike 3D prikaza; interaktivna 3D datoteka: vidi [Pokretanje priručnika u Illustrateu](topic:illustrate) |
+| Slobodni tekst, bilješke i tablice na listu (osim zaglavlja i bloka revizija) | Napomena o završnoj obradi ili tekst dodan u PDF |
+| Projekcija prvog kuta, pomični prikazi, uspravni listovi | Treći kut, automatski raspored, ležeći listovi A4–A0 i ANSI A–E |
+| Živi prikaz presjeka: više ravnina ili kutija presjeka odjednom, obris oko reza, spremanje presjeka u datoteku | Jedna ravnina u jednom trenutku iz {{ui:Pogledi}} › {{ui:Prikaz presjeka}}; vidi [Pogled unutra pomoću prikaza presjeka](topic:section-view) |
+| Crteži sklopova s više prikaza, kota ili balona koje možete pomicati | Jedan izometrijski (ili rastavljeni) prikaz s automatskim balonima i popisom dijelova |
+| Kopiranje i lijepljenje GD&T i simbola završne obrade | Postavite svaki s Referenca, Okvir ili {{ui:Završna obrada}} |
+| Priručnici: STEP datoteke u {{ui:Iz druge datoteke…}} aplikacije Illustrate, model predan izravno iz ModelCraft ili BimCraft, slike u kvaliteti praćenja zraka, interaktivni 3D unutar PDF-a | Otvorite STEP u Dizajnu i pokrenite priručnik {{ui:Iz otvorenog dijela}}; spremite model kao glTF (.glb); PNG slike 3D prikaza; interaktivna 3D datoteka: vidi [Pokretanje priručnika u Illustrateu](topic:illustrate) |
 
 ## Sklopovi
 
 | Još nije izrađeno | Umjesto toga, danas |
 |---|---|
-| Zupčasti, zupčasta letva, bregasti i vijčani zglobovi; kuglasti zglob ograničen na stožac; zglobovi na zakrivljenim plohama ili između točaka | Kruti, rotacijski, klizni, cilindrični, ravninski, kuglasti i čep u utoru na ravnim plohama, svaka vrijednost sa svojim granicama: vidi [Izrada sklopa](topic:build-assembly) |
-| Rastavljeni koraci koji okreću dijelove, i povlačenje dijelova koje postavljaju zglobovi | Ravni koraci rastavljanja; uklonite zglob da pomaknete dio rukom |
+| Zupčasti, zupčana letva, bregasti i vijčani zglobovi; kuglasti zglob ograničen na stožac; zglobovi na zakrivljenim plohama ili između točaka | Kruti, rotacijski, klizni, cilindrični, ravninski, kuglasti i zglobovi čep-u-utoru na ravnim plohama, svaka vrijednost sa svojim ograničenjima: vidi [Izrada sklopa](topic:build-assembly) |
+| Koraci rastavljanja koji okreću dijelove i povlačenje dijelova koje postavljaju zglobovi | Ravni koraci rastavljanja; uklonite zglob da ručno pomaknete dio |
 | Podsklopovi | Samo jedna razina dijelova |
 | Zupčanici, bregovi, kontakt | Nije dostupno |
 
-## Izrada
+## Proizvodnja
 
 | Još nije izrađeno | Umjesto toga, danas |
 |---|---|
-| 3D grubo glodanje zakrivljenih ploha, 3D adaptivno čišćenje, čišćenje ostatka; završno glodanje vodenom linijom, olovkom, radijalno i spiralno; adaptivni prolazi zapisani kao lukovi | Glodanje 2.5-osno: ravnine, džepovi, 2D adaptivno, kontura, bušenje i skošenje: vidi [Izrada putanja alata i G-koda](topic:manufacture); Parallel i Scallop završno glodanje cijelog modela: vidi [3D završna obrada](topic:finish-3d) |
-| Putanje alata u 4 i 5 osi, tokarenje, mjerenje sondom | Postavite jednu stranu po jednu, s osi alata na kartici Setup |
-| Provjere sudara držača i drške | Pazite na upozorenja o duljini žlijeba i provjerite u simulatoru upravljača |
-| Sondiranje, ciklusi vijeka alata i potprograma, 4. i 5. os te kodovi tokarilice u postprocesoru; učitavanje tuđih datoteka postprocesora | Napišite ili promijenite postprocesor u vlastitom formatu PartCrafta: vidi [Postprocesori koje možete uređivati](topic:post-processors) |
+| 3D prilagodljivo čišćenje i odmaknuto grubo obrađivanje u 3D; završna obrada waterline, olovkom, radijalna i spiralna; prilagodljivi prolazi zapisani kao lukovi | 3D grubo obrađivanje ravnim redovima i dorada ostataka: vidi [3D grubo obrađivanje i dorada ostataka](topic:rough-3d); završna obrada Paralelno i Zubasto (scallop): vidi [3D završna obrada](topic:finish-3d); 2.5-osna ploha, džep, 2D prilagodljivo, kontura, bušenje i skošenje: vidi [Izrada putanja alata i G-koda](topic:manufacture) |
+| Rezanje bočnom stranom glodala, putanje linija toka i višeosnog grubog obrađivanja, kodovi nagnute radne ravnine (G68.2), provjere sudara držača i stroja; simulacija 5-osnih i rotacijskih rezova | Nagnuti alat za bilo koju operaciju, 5-osna završna obrada kuglastim glodalom i rotacijska završna obrada 4. osi: vidi [4- i 5-osna obrada](topic:multi-axis) |
+| Bušenje i unutarnji navoji na tokarilici, ciklusi G71/G76, lukovi u putanjama tokarenja, aktivni alati, pomoćno vreteno | Vanjsko tokarenje: planiranje, grubo, završno, utor, odrezivanje, navoj, bušenje na središtu: vidi [Tokarenje na tokarilici](topic:turning) |
+| Sondiranje kuta ili kuta obratka, mjerač alata, mjerenje veličine naspram tolerancije | Sondiranje plohe, strane, rupe ili izbočine radi postavljanja radnog pomaka: vidi [Ticanje](topic:probing) |
+| Provjere sudara držača i prihvata | Pazite na upozorenja o duljini zubaca i provjerite u simulatoru upravljača |
+| Ciklusi vijeka alata i potprograma u postprocesoru; učitavanje tuđih datoteka postprocesora | Napišite ili promijenite postprocesor u vlastitom formatu PartCrafta: vidi [Postprocesori koje možete uređivati](topic:post-processors) |
 | G-kod u inčima (G20) | Samo milimetri (G21) |
 
 ## Simulacija i generativni dizajn
 
 | Još nije izrađeno | Umjesto toga, danas |
 |---|---|
-| Nelinearne studije: popuštanje, velike deformacije, kontakt između dijelova, zamor | Linearno statičko i prirodne frekvencije: vidi [Provjera naprezanja i progiba](topic:simulation); držite faktor sigurnosti znatno iznad 1 |
-| Nelinearno izvijanje (nesavršenosti, poslije-izvijanje, preskakanje) | Linearni faktori opterećenja izvijanja uz veliku rezervu: vidi [Toplina, toplinska naprezanja i izvijanje](topic:thermal-and-buckling) |
-| Zračenje između ploha (faktori pogleda), kontaktni otpor, materijali ovisni o temperaturi, inercija u toplinskom naprezanju (toplinski udarni valovi) | Zračenje prema okolini, stalno ili kvazistatičko toplinsko naprezanje tijekom vremena, stalna svojstva: vidi [Toplina, toplinska naprezanja i izvijanje](topic:thermal-and-buckling) |
-| Automatsko profinjavanje za prolaznu toplinu i studije s toplinskim opterećenjem; grublja mreža tamo gdje je greška mala; cilj na lokalnoj veličini (vršno naprezanje na jednoj točki) | **Profini automatski** za statičke, izvijanje, prirodne frekvencije i stacionarne toplinske studije, na pogrešci cijelog dijela: vidi [Provjera naprezanja i progiba](topic:simulation); inače smanjite veličinu elementa |
-| Opterećenja ležajeva i vijaka, daljinske sile, momenti, opruge, zadani pomaci | Sile i tlakovi na plohama, gravitacija; učvršćene i bezfrikcijske plohe |
+| Nelinearne analize: popuštanje, veliki progibi, kontakt između dijelova, zamor | Linearna statika i prirodne frekvencije: vidi [Provjera naprezanja i progiba](topic:simulation); držite faktor sigurnosti znatno iznad 1 |
+| Nelinearno izvijanje (nesavršenosti, poslijeizvijanje, preskakanje) | Linearni faktori opterećenja izvijanja s velikom marginom: vidi [Toplina, toplinsko naprezanje i izvijanje](topic:thermal-and-buckling) |
+| Zračenje među plohama (faktori pogleda), kontaktni otpor, materijali ovisni o temperaturi, inercija u toplinskom naprezanju (toplinski udarni valovi) | Zračenje u okolinu, ustaljeno ili kvazistatičko toplinsko naprezanje tijekom vremena, konstantna svojstva: vidi [Toplina, toplinsko naprezanje i izvijanje](topic:thermal-and-buckling) |
+| Automatsko profinjenje za prolaznu toplinu i analize s toplinskim opterećenjem; grublja mreža gdje je greška mala; cilj na lokalnu veličinu (vršno naprezanje na jednom mjestu) | **Automatsko profinjenje** za statičke, izvijanje, prirodne frekvencije i ustaljene toplinske analize, prema grešci na cijelom dijelu: vidi [Provjera naprezanja i progiba](topic:simulation); inače smanjite veličinu elementa |
+| Opterećenja ležajeva i vijaka, udaljene sile, momenti, opruge, zadani pomaci | Sile i tlakovi na plohama, gravitacija; fiksne i bez trenja plohe |
 | Simulacija sklopova; materijali koji se razlikuju po smjeru (ispisani slojevi, kompoziti) | Jedan dio, jedan izotropni materijal |
-| Više niti rješavača za tetraedarske studije, prijenos topline i generativni dizajn; bilo koje niti na stranici koja nije izolirana po podrijetlu | Voxel studije, izvijanje, naprezanje tijekom vremena i laminarni tok koriste niti gdje stranica dopušta: vidi [Postavke PartCrafta](topic:settings) |
-| Turbulentni tok s točnošću za dizajn (model Spalart–Allmaras ulazi kao eksperimentalan: trenje u cijevi 30 do 34 % veće, ponovno pripajanje iza stepenice 21 do 39 % kraće; planirano: finije ćelije uz stijenke), toplina u toku, nestacionarni (vremenski točan) tok, slobodne površine, nenjutnovske tekućine, rotirajući dijelovi | Laminarni, stacionarni, izotermni tok njutnovske tekućine, ili eksperimentalni turbulentni model za kvalitativne obrasce: vidi [Simulacija toka fluida](topic:flow-simulation); ploča upozorava kad je Reynoldsov broj iznad laminarnog |
-| Granice naprezanja i pravila izrade (nagibi, smjerovi glodanja) u generativnom dizajnu; više materijala u jednom obliku | Najkrući oblik za zadani volumen; provjerite rezultat u Simulaciji: vidi [Rast oblika iz opterećenja](topic:generative-design) |
-| Rezultat kao uredivo (glatko, parametarsko) puno tijelo | STL, STEP s fasetama ili dio s rezultatom kao uvezenim tijelom s fasetama |
-| Električni strojevi: rotor koji se okreće u statoru, moment prema kutu, zasićeni čelik, magneti koji gube snagu iza koljena, vrtložne struje i gubici u željezu i bakru; magnetska polja u 3D ili na zakrivljenim mrežama | Linearna 2-D magnetostatika na mreži u knjižnici analize: zavojnice, željezo, trajni magneti na pravcu povrata, zračni rasporci, induktivitet i privlačenje: vidi [Magnetska polja u 2-D](topic:magnetic-fields-2d) |
+| Više niti rješavača za tetraedarske analize, prijenos topline i generativni dizajn; bilo kakve niti na stranici koja nije izolirana od izvora | Voxel analize, izvijanje, naprezanje tijekom vremena i laminarni tok koriste niti gdje stranica to dopušta: vidi [Postavke PartCrafta](topic:settings) |
+| Turbulentni tok s točnošću za projektiranje (model Spalart–Allmaras je uključen kao eksperimentalni: trenje u cijevi 30 do 34 % veće, ponovno pripajanje nakon stepenice 21 do 39 % kraće; planirano: finije ćelije uz stijenke), toplina u toku, nestacionarni (vremenski točan) tok, slobodne površine, nenewtonske tekućine, rotirajući dijelovi | Laminarni, ustaljeni, izotermni tok newtonovske tekućine ili eksperimentalni turbulentni model za kvalitativne obrasce: vidi [Simulacija strujanja fluida](topic:flow-simulation); ploča upozorava kad je Reynoldsov broj iznad laminarnog |
+| Granice naprezanja i proizvodna pravila (previsi, smjerovi glodanja) u generativnom dizajnu; više materijala u jednom obliku | Najkruti oblik za volumen; provjerite ishod u Simulaciji: vidi [Razvoj oblika iz opterećenja](topic:generative-design) |
+| Ishod kao tijelo koje se može uređivati (glatko, parametarsko) | STL, STEP s mrežom trokuta ili dio s ishodom kao uvezenim tijelom s mrežom trokuta |
+| Projektiranje električnih strojeva: rotor koji se okreće u statoru, moment naspram kuta, zasićeni čelik, magneti koji gube snagu iza koljena, vrtložne struje i gubici u željezu i bakru; magnetska polja u 3D ili na zakrivljenim mrežama | Linearna 2D magnetostatika na mreži u biblioteci analize: zavojnice, željezo, trajni magneti na njihovoj liniji povrata, zračni raspori, induktivitet i sila privlačenja: vidi [Magnetska polja u 2D](topic:magnetic-fields-2d) |
 
 ## Skripte
 
 | Još nije izrađeno | Umjesto toga, danas |
 |---|---|
-| Pomoć pri pokazivanju, prekidne točke i korak po korak u uređivaču skripti | Pronalaženje, sklapanje i dovršavanje su u uređivaču (vidi [Pisanje i pokretanje skripti](topic:craftscript)); za ostalo, vlastiti uređivač: {{ui:Save}} i {{ui:Open}} u grupi Skripta prenose skripte unutra i van; ugrađene funkcije navedene su u [Jezik CraftScript](topic:craftscript-language) |
+| Pomoć pri lebdenju, prekidne točke i korak po korak u uređivaču skripti | Traženje, sažimanje i dovršavanje su uključeni (vidi [Pisanje i pokretanje skripti](topic:craftscript)); za ostalo, vlastiti uređivač: {{ui:Spremi}} i {{ui:Otvori}} u grupi Skripta prenose skripte unutra i van; ugrađene funkcije navedene su u [Jezik CraftScript](topic:craftscript-language) |
 | Prekidne točke i korak kroz skriptu | `disp` i `fprintf` usput; {{key:Mod+Enter}} pokreće nekoliko odabranih redaka odjednom |
-| Polja i grafovi koje skripta prikazuje, nacrtani u radnom prostoru Design; skripte koje mijenjaju parametre dijela | Prikazuju se u radnom prostoru Script; skripte čitaju parametre s `param` (vidi [Pisanje i pokretanje skripti](topic:craftscript)), a mijenjaju ih na kartici {{ui:Parameters}} |
-| Slike i tablice uz grafove; uređivanje grafa (zumiranje, granice osi) prije spremanja | Uz strane grafove prikazuje se usporedno; spremite graf kao PNG, SVG ili CSV i završite ga drugdje |
-| numpy i drugi paketi Pythona; Python bez mreže; sklapanje Pythona u uređivaču; Pascal Script | Standardna biblioteka Pythona, CraftScript i Lua: vidi [Skripte u Pythonu](topic:craftscript-python) |
-| Predavanje Lua funkcija ugrađenim funkcijama; pozivanje funkcije biblioteke iz Lue imenom sastavljenim dok skripta radi | Napišite ime funkcije biblioteke u skripti (`cs.static_tet(…)`) ili je pozovite iz skripte CraftScript |
+| Polja i grafikoni koje skripta prikazuje crtaju se u radnom prostoru Dizajn; skripte koje mijenjaju parametre dijela | Prikazuju se u radnom prostoru Skripta; skripte čitaju parametre s `param` (vidi [Pisanje i pokretanje skripti](topic:craftscript)), a mijenjaju ih na kartici {{ui:Parametri}} |
+| Slike i tablice uz grafikone; uređivanje grafikona (zumiranje, granice osi) prije spremanja | Uz stranu prikazuje grafikone; spremite grafikon kao PNG, SVG ili CSV i dovršite ga drugdje |
+| numpy i ostali paketi Pythona; Python izvan mreže; sažimanje Pythona u uređivaču; Pascal Script | Standardna biblioteka Pythona, CraftScript i Lua: vidi [Skripte u Pythonu](topic:craftscript-python) |
+| Prosljeđivanje Lua funkcija ugrađenim funkcijama; pozivanje funkcije biblioteke iz Lua-e po imenu sastavljenom dok skripta radi | Napišite ime funkcije biblioteke u skripti (`cs.static_tet(…)`) ili je pozovite iz CraftScript skripte |
 
 ## Aplikacija
 
 | Još nije izrađeno | Umjesto toga, danas |
 |---|---|
 | Spremanje u oblak, dijeljenje i povijest verzija | Još nije dostupno. Spremajte datoteke na računalo i čuvajte verzije po imenu |
-| PartCraft kao instalirana aplikacija na iPadu i iPhoneu | Koristite PartCraft u pregledniku uređaja; na Androidu i na računalu radi i u CadCraft Studiu (getcadcraft.com/download) |
-| Kontekstni (desni klik) izbornici | Traka alata i desna ploča |
-| Potpuni rad izvan mreže od početka | Samo kad je aplikacija spremljena za rad izvan mreže: vidi [Rad izvan mreže](common:offline) |
+| PartCraft kao instalirana aplikacija na iPadu i iPhoneu | Koristite PartCraft u pregledniku uređaja; na Androidu i na radnoj površini radi i u aplikaciji CadCraft Studio (getcadcraft.com/download) |
+| Kontekstni (desni klik) izbornici | Alatna traka i desna ploča |
+| Potpuni rad izvan mreže od prvog pokretanja | Samo kad je aplikacija spremljena za rad izvan mreže: vidi [Rad izvan mreže](common:offline) |
 
-Što vam najviše nedostaje javite preko stranice za podršku na webu: to oblikuje što slijedi.
+Javite što vam najviše nedostaje preko stranice za podršku na web-mjestu: to oblikuje što slijedi.
 
-## Engineer (generatori i polja)
+## Inženjer (generatori i polja)
 
 | Još nije izrađeno | Umjesto toga, danas |
 |---|---|
-| Priključci, spojnice i fitinzi na generiranom izmjenjivaču topline; krivulje temperature za čvrstoću materijala; gubici T-komada u razdjelniku | Generatori izrađuju jezgru i cijevi; dodajte fitinge u Designu; upotrijebite brojke materijala na sobnoj temperaturi s faktorom sigurnosti |
-| Dodavanje generatora iz direktorija dodataka jednim klikom | {{ui:Open}} u radnom prostoru Engineer dodaje generator iz datoteke |
-| Datoteka polja finija od vlastite veličine voxela generatora; čitanje `.vdb` datoteka | Spremite finije polje iz skripte; `.vdb` se zapisuje, ne čita |
-| Proračuni posuda pod tlakom prema normi | Udžbeničke formule za tanku i debelu stijenku, s faktorom sigurnosti koji odaberete; nije normativna rezerva |
-| Generatori za ostale aplikacije | Samo PartCraft u ovoj verziji |
+| Zaglavlja, priključci i spojnice na generiranom izmjenjivaču topline; krivulje temperature za čvrstoću materijala; gubici T-komada u razdjelniku | Generatori grade jezgru i cijevi; spojnice dodajte u Dizajnu; koristite podatke materijala za sobnu temperaturu uz faktor sigurnosti |
+| Dodavanje generatora iz imenika dodataka jednim klikom | {{ui:Otvori}} u radnom prostoru Inženjer dodaje generator iz datoteke |
+| Datoteka polja finija od vlastite veličine voxela generatora; čitanje datoteka `.vdb` | Spremite finije polje iz skripte; `.vdb` se zapisuje, ne čita |
+| Proračuni prema normi za posude pod tlakom | Udžbenički formule za tanke i debele stijenke, uz faktor sigurnosti koji odaberete; nije marža norme |
+| Generatori za ostale aplikacije | U ovoj verziji samo PartCraft |

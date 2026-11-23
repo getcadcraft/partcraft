@@ -1,29 +1,29 @@
 ---
 title: 可编辑的后处理器
-summary: 后处理器是一个简短的文本文件，它把刀具路径转换为控制系统使用的G代码。复制一个内置后处理器，修改所需的行（行号、换刀、回原点动作、程序结束代码），在输入时查看它生成的G代码，并与零件一同保存。
-keywords: 后处理器, 后处理, G代码, NC, GRBL, LinuxCNC, 编辑后处理器, 自定义后处理器, cpost, 换刀, M6, G43, 固定循环, 行号, 模态, 事件, 变量
-from: 36ab8a38
+summary: 后处理器是一个简短的文本文件，将刀具路径转换为适用于你的数控系统的 G 代码。复制一个内置后处理器，修改所需的行（行号、换刀、回零移动、结束代码），边输入边查看其写出的 G 代码，并与零件一同保存。
+keywords: 后处理器, post, postprocessor, G代码, NC, GRBL, LinuxCNC, 编辑后处理器, 自定义后处理器, cpost, 换刀, M6, G43, 固定循环, 行号, 模态, 事件, 变量
+from: c78d0cae
 ---
 
-同一条刀具路径，对于不同的控制系统需要写成不同的格式：有行号或没有行号，`M6`或暂停，`G28`或`G53`，`M30`或`M2`。**后处理器**就是说明这些差异的简短文本。PartCraft 的三个内置后处理器（Fanuc风格、GRBL和LinuxCNC）都以这种格式编写，因此你自己的后处理器可以从其中一个复制开始。
+同一条刀具路径，对不同的数控系统必须以不同的方式写出：行号或无行号，`M6`或暂停，`G28`或`G53`，`M30`或`M2`。**后处理器**是说明这些差异的简短文本。PartCraft 的三种内置后处理器（Fanuc 式、GRBL 和 LinuxCNC）均以此格式编写，因此你自己的后处理器可以从其中一个副本开始。
 
-切削前，请先在机床自己的仿真器中检查输出，并先让刀具在毛坯上方空走一遍。内置后处理器输出的内容与采用此格式之前完全一致（测试会逐字节比对数百个程序的输出），但这些内容尚未在你的机器上得到验证；你修改过的后处理器，需要由你自己来验证。
+切削前，请在机床自身的模拟器中检查输出，并先在毛坯上方空切。内置后处理器所写的内容与本格式出现之前完全一致（测试会逐字节比对数百个程序的输出），但这里的任何内容都未在你的机床上验证，而你修改过的后处理器需要由你自行验证。
 
-## 新建后处理器
+## 制作后处理器
 
-在“制造”中，于**后处理器**下：
+在制造工作空间中，于**后处理器**下：
 
-- {{ui:编辑后处理器…}}：对内置控制系统，打开**你自己的副本**；对你自己的后处理器，则打开该后处理器。
-- {{ui:新建后处理器…}}：从一个包含所有事件的小型空白后处理器开始。
-- {{ui:导入后处理器文件…}}：读取`.cpost`文本文件（即编辑器中**另存为文件…**得到的文件）。
+- 在内置数控系统上点击{{ui:编辑后处理器…}}会打开**你自己的副本**。在你自己的后处理器上，它会打开该后处理器。
+- {{ui:新建后处理器…}}从一个包含所有事件的小型空白后处理器开始。
+- {{ui:导入后处理器文件…}}读取`.cpost`文本文件（在编辑器中点击**另存为文件…**得到的文件）。
 
-编辑器会在你输入时显示文本、一行提示文本能否被正确读取（以及哪一行有误），以及该后处理器生成的G代码。**预览方式**可选择一个运行所有事件的小型示例程序，或本零件自身的程序。{{ui:保存}}会把后处理器保存在零件文件中（最多20个后处理器），并将其设为控制系统。后处理器随零件一起保存；若要在另一个零件中使用，请先将其另存为文件，再在那里导入。
+编辑器显示文本、说明其是否可读（以及哪一行有误）的提示行，以及你输入时后处理器写出的 G 代码。**预览方式**选择一个运行全部事件的小型示例程序，或本零件自身的程序。{{ui:保存}}会将后处理器保存在零件文件中（最多 20 个后处理器），并将其选为数控系统。后处理器随零件一起保存；若要在其他零件中使用，请将其保存为文件，然后在该零件中导入。
 
 ## 后处理器的样子
 
 ```
 post mymill
-name My mill (.nc)
+name 我的铣床 (.nc)
 extension nc
 line-numbers off
 decimal-point no
@@ -46,40 +46,55 @@ on rapid
 end
 ```
 
-以`//`开头的行和空行会被忽略。文件开头是设置，然后每个事件对应一个`on <event>`块，并以`end`结束。省略的事件不会输出任何内容。
+以`//`开头的行以及空行会被忽略。文件顶部为设置；然后是每个事件的`on <event>`块，以`end`结束。省略的事件不写出任何内容。
 
 | 设置 | 含义 |
 |---|---|
-| `post <id>` | 后处理器的标识：字母、数字、`-`和`_` |
-| `name <text>` | 控制系统列表中显示的名称 |
+| `post <id>` | 后处理器的 id：字母、数字、`-` 与 `_` |
+| `name <text>` | 数控系统列表中显示的名称 |
 | `extension <ext>` | 文件扩展名：nc、ngc、tap … |
-| `line-numbers 10` / `off` | 每个`emit`行带有`N10`、`N20` …，或不带行号 |
-| `decimal-point yes` / `no` | 写作`10.`而非`10`（注释中从不带小数点） |
-| `canned-cycles yes` / `no` | `no`：孔会被写成其所代表的G0/G1移动 |
-| `modal <group> <words>` | 某组的字（如`modal motion G0 G1 G2 G3`），仅在其变化时才写出 |
+| `line-numbers 10` / `off` | 每个`emit`行上的`N10`、`N20` …，或无行号 |
+| `decimal-point yes` / `no` | 写作`10.`而非`10`（注释永不带小数点） |
+| `canned-cycles yes` / `no` | `no`：孔写为其所代表的 G0/G1 移动 |
+| `modal <group> <words>` | 某组的词（如`modal motion G0 G1 G2 G3`），仅在其改变时写出 |
 
 ## 事件
 
-对于一个程序，事件按以下顺序运行：`start`；然后对每个操作依次运行`operation`、`tool-change`（换刀时）、`spindle`（转速改变时）、`approach`（移动到第一个点的动作，在第一个快速移动之前）、`coolant-on`，接着其移动依次为`rapid`、`feed`和`arc`；每个固定循环依次为`cycle-start`、每个孔一次`cycle-hole`，以及`cycle-end`；最后是`end`。
+按以下顺序为一个程序运行：`start`；然后对每项操作依次为`operation`、`tool-change`（换刀时）、`spindle`（转速改变时）、`approach`（移动至第一点的移动，位于第一次快速移动之前）、`coolant-on`，接着其移动为`rapid`、`feed`与`arc`，每个固定循环为`cycle-start`，每个孔一次`cycle-hole`，再加`cycle-end`；最后是`end`。
 
-每个事件都可以使用其所属运动类型的变量，写作`{name}`：程序（`name`、`program`、`setup.axis`、`setup.origin`、`setup.coolant`），毛坯（`stock.kind`、`stock.d`、`stock.sx`、`stock.sy`、`stock.sz`、`stock.minx` … `stock.maxz`），刀具（`tool.number`、`tool.desc`、`tool.kind`、`tool.d`、`tool.flutes`、`tool.fluteLen`），操作（`op.name`、`op.type`），`rpm`，移动点（`x`、`y`、`z`、`f`，以及当某个轴改变时为真的`moved`），圆弧（`arc.g` 为2或3、`arc.i`、`arc.j`、`arc.cx`、`arc.cy`）和孔（`hole.x`、`hole.y`、`hole.z`、`hole.r`、`hole.q`、`hole.return`、`hole.first`、`cycle.kind`、`cycle.init`、`feed`）。编辑器中的**事件与变量**列表会显示每个事件可以访问哪些变量。可以读取和设置的状态有：`cool`、`offset`，以及`at.x`、`at.y`、`at.z`、`at.f`（最后一次写出的值）。
+除三轴以外的部分，还有更多事件（没有某事件的后处理器会拒绝此类程序，并指出其所缺的事件）：
+
+| 事件 | 时机 | 其变量 |
+|---|---|---|
+| `index` | 在刀具方向与上一项不同的操作之前，以及带旋转轴的机床上第一项操作之前 | `rot.a`、`rot.b`、`rot.c`（要移动到的位置；机床没有的轴为空）、`first.x`、`first.y`、`first.z` |
+| `rapid-rotary`、`feed-rotary` | 切削时旋转轴运动的操作的移动 | `x`、`y`、`z`、`rot.a`、`rot.b`、`rot.c`、`f`、`rot.moved`、`inverse`（当进给必须为反时间时为 yes）、`invf`（1/分钟） |
+| `rotary-end` | 此类操作之后 | |
+| `probe-move` | 测头触发时停止的移动 | `x`、`y`、`z`、`f`、`probe.n`（1 至 4）、`probe.axis`（x、y 或 z）、`probe.k`（1、2 或 3） |
+| `probe-set` | 一次探测循环的触碰之后 | `probe.kind`（`"z"`、`"x"`、`"y"` 或`centre`）、`probe.action`（`set` 或 `measure`）、`probe.expect`、`probe.cx`、`probe.cy` |
+| `thread` | 车床上的螺纹移动 | `x`、`z`、`thread.lead` |
+
+每个事件同样可用：`kin`（none、a、b、ac、bc）、`rotary`与`tcp`（yes 或 no，来自装夹中的机床）、`pivot.x`、`pivot.y`、`pivot.z`、操作的`op.tilt`与`op.turn`，以及车床上的`spin.mode`（css 或 rpm）、`spin.css`、`spin.max`与`tool.nose`。值为空的带字母词（如在没有 A 轴的机床上的`A{rot.a}`）会从该行中省略。应以引号内的文本与 x、y、z 比较（`if probe.kind == "z"`）：不加引号时，它们是移动的坐标。
+
+后处理器顶部另有两行可使其成为车床后处理器：`machine lathe`（此时仅写出 X 与 Z，并拒绝铣削路径，正如铣削后处理器拒绝车削路径）以及`lathe-x diameter`或`lathe-x radius`。
+
+每个事件可使用其自身移动类型的变量，写作`{name}`：程序（`name`、`program`、`setup.axis`、`setup.origin`、`setup.coolant`）、毛坯（`stock.kind`、`stock.d`、`stock.sx`、`stock.sy`、`stock.sz`、`stock.minx` … `stock.maxz`）、刀具（`tool.number`、`tool.desc`、`tool.kind`、`tool.d`、`tool.flutes`、`tool.fluteLen`）、操作（`op.name`、`op.type`）、`rpm`、移动的点（`x`、`y`、`z`、`f`，以及`moved`：某轴改变时为 true）、圆弧（`arc.g` 为 2 或 3、`arc.i`、`arc.j`、`arc.cx`、`arc.cy`）与孔（`hole.x`、`hole.y`、`hole.z`、`hole.r`、`hole.q`、`hole.return`、`hole.first`、`cycle.kind`、`cycle.init`、`feed`）。编辑器的**事件与变量**列表显示每个事件可见的变量。可读写的状态：`cool`、`offset`，以及`at.x`、`at.y`、`at.z`、`at.f`（最后写出的值）。
 
 ## 语句
 
 | 语句 | 作用 |
 |---|---|
-| `raw TEXT` | 按原样输出的一行（无行号） |
-| `comment TEXT` | 输出`(TEXT)`，并去除非ASCII字符和括号 |
-| `emit WORD WORD …` | 一行字；输出为空的字会被省略；若没有字，则不输出该行 |
-| `word WORD …` | 向正在构建的行添加字；单独的`emit`会结束该行 |
-| `if EXPR` … `else` … `end` | 条件：`a == b`、`a != b`、`not a`、`a and b`、`a or b`、`a??b`（a 有值则用 a，否则用 b） |
+| `raw TEXT` | 原样写出的一行（无行号） |
+| `comment TEXT` | `(TEXT)`，其中的非 ASCII 字符与括号会被去除 |
+| `emit WORD WORD …` | 一行词；输出为空的词被省略；无词则无行 |
+| `word WORD …` | 将词添加到正在构建的行中；单独的`emit`结束该行 |
+| `if EXPR` … `else` … `end` | 条件：`a == b`、`a != b`、`not a`、`a and b`、`a or b`、`a??b`（a，否则 b） |
 | `for tool in tools` … `end` | 对程序所用的每把刀具执行一次 |
 | `set NAME EXPR` | 记住一个值（`set offset tool.number`） |
-| `reset NAME …` | 清除模态字（一组、如`Z`这样的地址字母，或`at.z`） |
-| `do rapid X Y Z` | 对一个点执行`rapid`事件 |
+| `reset NAME …` | 忘记模态词（某组、地址字母如`Z`，或`at.z`） |
+| `do rapid X Y Z` | 为一个点运行`rapid`事件 |
 
-字是带有`{variable|filter}`空位的文本。过滤器有`upper`、`lower`、`pad:N`（补零）、`cut:N`（取前N个字符）、`safe`（注释安全的ASCII）和`int`。以`~`结尾的字是**模态**的：只有与上次写出的内容不同时才会写出（`G1~`、`X{x}~`）。以`~!`结尾的字每次都会写出，并且仍会被记住。不是变量的名称会作为普通文本（`G81`、`mist`）。数值四舍五入到0.001 mm，并省略末尾的零。
+词是带有`{variable|filter}`空位的文本。过滤器为`upper`、`lower`、`pad:N`（补零）、`cut:N`（前 N 个字符）、`safe`（注释安全的 ASCII）与`int`。以`~`结尾的词是**模态**的：仅当其与上次写出的内容不同时才写出（`G1~`、`X{x}~`）。以`~!`结尾的词每次都写出，并且仍被记住。不是变量的名称按原文处理（`G81`、`mist`）。数字四舍五入到 0.001 mm，并去掉末尾的零。
 
-## 后处理器不能做什么
+## 后处理器做不到的事
 
-它只决定移动如何写出，仅此而已。它不能更改刀具路径、调整操作顺序、分割圆弧、添加轴、了解机床的行程或运动学，也不能对坐标进行运算（没有`+`）。探测、刀具寿命和子程序循环，以及第4轴和第5轴输出和车削代码，均尚未实现。其他程序的`.cps`式后处理文件无法加载：此处使用的是另一种更简单的格式。
+它只决定移动如何写出，仅此而已。它不能改变刀具路径、调整操作顺序、分割圆弧、增加轴、了解你机床的行程或运动学，也不能对坐标做运算（没有`+`）。旋转位置本身来自装夹中描述的机床，而非后处理器：后处理器可以改变其符号或字母，但不能改变运动学。刀具寿命与子程序循环尚未实现。其他程序的`.cps`式后处理器文件无法加载：这是另一种更简单的格式。

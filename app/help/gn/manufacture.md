@@ -1,92 +1,94 @@
 ---
-title: Toolpath ha G-code ojapo (Manufactura)
-summary: Stock ha trabajo origen omoĩ, herramienta ojeporu, cara, pocket, contour, taladro ha chaflán operación cara selección-pe, 3D terminación (paralela, scallop), stock modelo ndive simulación (gouge ha ciclo tiempo), G-code ojeipe tres post térã ojapo'ỹ mba'e.
-keywords: exact step, step para taller, coordenadas de trabajo, cam handoff, paralela, scallop, terminación 3d, terminación, ball nose, biblioteca de herramientas, editar post, post personalizado, editor de post, adaptive, desbaste adaptativo, compromiso constante, trochoidal, hsm, mecanizado a alta velocidad, manufactura, CAM, toolpath, G-code, NC, CNC, fresadora, fresado, pocket, contour, perfil, refrentado, taladro, peck, G83, G81, G73, chaflán, stock, desfase de trabajo, G54, postprocesador, GRBL, LinuxCNC, avances y velocidades, simulación, gouge, tiempo de ciclo
-from: beeb29aa
+title: Hacer trayectorias y G-code (Fabricación)
+summary: Preparar material bruto y origen de trabajo, elegir herramientas, agregar operaciones de cara, pocket, contorno, taladro y chaflán eligiendo caras, acabar todo el modelo en 3D (paralela, scallop), simular el material contra el modelo por cortes excesivos y tiempo de ciclo, y descargar G-code desde uno de los tres postprocesadores integrados o uno que editás vos.
+keywords: exact step, step para taller, coordenadas de trabajo, entrega cam, paralela, scallop, acabado 3d, acabado, punta esférica, biblioteca de herramientas, editar post, post personalizado, editor de post, adaptativo, desbaste adaptativo, compromiso constante, trocoidal, hsm, mecanizado a alta velocidad, fabricación, CAM, trayectoria, G-code, NC, CNC, fresadora, fresado, pocket, contorno, perfil, refrentado, taladro, picoteo, G83, G81, G73, chaflán, material bruto, desplazamiento de trabajo, G54, postprocesador, GRBL, LinuxCNC, avances y velocidades, simulación, corte excesivo, tiempo de ciclo
+from: f8a03be8
 ---
 
-Manufactura workspace pieza toolpath 3-eje fresadora-pe ojapo ha G-code-pe ojeikuaa. Opa operación **2.5-eje**: herramienta vertical oiko, pared recto, piso plano. **Parallel** ha **Scallop** curva superficie 3D-pe terminación (ver [3D terminación](topic:finish-3d)); herramienta vertical ojeikuaa (tres eje, ndaipóri inclinación). Malla kernel ojehechauka cara ojeporu ojapo (ver [Malla kernel](topic:solid-kernels)).
+El espacio de Fabricación convierte la pieza en trayectorias y las escribe como G-code. La mayoría de las operaciones son fresado **2,5 ejes**: la herramienta queda vertical, las paredes se cortan rectas hacia abajo y los fondos planos. **3D desbaste** y **Resto** desbastan piezas curvas en 3D ([3D desbaste y mecanizado de resto](topic:rough-3d)); **Paralela** y **Scallop** las acaban ([acabado 3D](topic:finish-3d)). En una máquina con ejes rotativos cualquier operación puede llevar herramienta inclinada, y dos operaciones mueven los ejes rotativos mientras cortan ([mecanizado 4 y 5 ejes](topic:multi-axis)). Hay operaciones para torno ([Torneado](topic:turning)) y para palpador ([Palpado](topic:probing)). Trabaja sobre las caras nombradas que da el kernel de malla a la pieza (ver [El kernel de malla](topic:solid-kernels)).
 
-Lab versión: opa program control-pe simulador ojeikuaa, stock ántes aire-pe ojapo.
+Versión de laboratorio: revisá cada programa en el simulador propio del control, y primero corrélo en el aire sobre el material.
 
 ## Preparación
 
-1. **Manufacture** workspace cambiador-pe ojepyrũ, upéi {{ui:New setup}}.
-2. **Setup** pestaña-pe ojapo:
-   - **Tool axis (+Z)**: herramienta pieza-pe mba'éichapa ojeikuaa. World +Y (PartCraft arriba) ojepyrũ; máquina X world X, máquina Y world −Z.
-   - **Work origin (G54)**: stock esquina térã centro, arriba térã abajo, modelo arriba centro, térã modelo origen.
-   - **Stock**: caja térã cilindro, modelo más lado, arriba, abajo, térã tamaño fijo.
-   - **Material** (feeds ha velocidad ojepyrũ), **post** (control), máquina spindle máximo, rapid ha herramienta cambio tiempo, refrigerante ha programa número.
+1. Elegí **Fabricación** en el selector de espacio de trabajo y después {{ui:New setup}}.
+2. En la pestaña **Setup** elegí:
+   - **Eje de herramienta (+Z)**: hacia dónde apunta la herramienta dentro de la pieza. +Y del mundo (arriba de PartCraft) es lo predeterminado; entonces X de máquina es X del mundo e Y de máquina es −Z del mundo.
+   - **Origen de trabajo (G54)**: una esquina o centro del material, arriba o abajo, el centro superior del modelo, o el origen del modelo.
+   - **Material bruto**: caja o cilindro, sea el modelo más desplazamientos (lados, arriba, abajo) o tamaño fijo.
+   - **Material** (fija los avances y velocidades iniciales), el **postprocesador** (control), la velocidad máxima del husillo de la máquina, la velocidad de avance rápido y el tiempo de cambio de herramienta, refrigerante y número de programa.
 
 ## Herramientas
 
-**Tools** pestaña-pe biblioteca: plano, bola ha bull nose end mill, taladro, chaflán fresa ha cara fresa, cada T número, diámetro, flauta ha flauta largo-pe (esquina radio, punta térã chaflán ángulo ojapo jave).
+La pestaña **Tools** tiene la biblioteca: fresas planas, de punta esférica y punta redonda, brocas, fresas de chaflán y fresas de refrentar, cada una con número T, diámetro, filos y largo de filo (además radio de esquina, ángulo de punta o de chaflán donde corresponda).
 
-Herramienta propio navegador-pe guardava ha archivo-pe computadora-kuéra mbojojáva: [Herramienta biblioteca](topic:tool-library).
+Mis herramientas se pueden guardar en el navegador y pasar entre computadoras como archivo: ver [La biblioteca de herramientas](topic:tool-library).
 
-Spindle velocidad ha avance material-gui: n = 1000 × cutting speed / (π × diámetro), avance = n × flauta × chip load (taladro: n × avance rev-pe). Número conservador ojepyrũ publicado rango-gui, máquina-pe ojapo'ỹ; herramienta fabricante cutting speed, chip load, rpm térã avance omoĩ ojeity. Velocidad máximo máquina rupi jave hendy, avance ojeporu, chip load ojejuhu.
+La velocidad del husillo y el avance salen del material: n = 1000 × velocidad de corte / (π × diámetro), avance = n × filos × carga de viruta (brocas: n × avance por vuelta). Los números son valores iniciales conservadores de rangos publicados, no ajustados a tu máquina; escribí la velocidad de corte, carga de viruta, rpm o avance de tu fabricante de herramientas para cambiarlos. Cuando la velocidad supera el máximo de la máquina, queda fijada allí y el avance la sigue, manteniendo la carga de viruta.
 
-## Operación ojapo
+## Agregar operaciones
 
-Toolbar botón opa operación ojapo, geometría ojeporavo jave, cara térã borde vista-pe clic (clic upéi ojeity), upéi {{ui:Done picking}} térã {{key:Esc}}.
+Cada botón de la barra agrega una operación y, si necesita geometría, empieza a elegir: hacé clic en caras o aristas de la vista (otro clic la quita), después {{ui:Done picking}} o {{key:Esc}}.
 
-| Operación | Selección | Mba'e ojapo |
+| Operación | Elegir | Qué hace |
 |---|---|---|
-| {{ui:Face}} | nada | Opa stock-pe zigzag pasada, borde ipuka, modelo arriba-pe |
-| {{ui:Pocket}} | plano piso cara, redondo orificio, térã cerrado borde cadena | Offset pasada-pe región ojeipe adentro-afuera, cada paso-pe; islas (piso adentro cara ojeipe) ndojapo; piso afuera abierto (afuera ndaipóri más alto) stock borde-pe ojeipe |
-| {{ui:Adaptive}} | Pocket ndive oikoháicha | Región ojeipe pasada-pe, cada pasada ancho ojeporu (**Engagement**, diámetro fracción), cutter ranura ndojeporu'ỹ, esquina-pe avei; helix-pe ingresa ha pared nivel-pe terminación. Estrecho corte profundo paso ha avance alto |
-| {{ui:Contour}} | plano cara (contorno), redondo cara, térã borde | Contorno herramienta radio offset-gui ojeipe, afuera térã adentro, lead-in ha lead-out arco ha tab ojeporu |
-| {{ui:Drill}} | orificio (orificio pared térã borde clic) | Ciclo fijo-pe orificio ojapo: peck (G83), drill (G81) térã chip break (G73); térã diámetro omoĩ tamaño ndive orificio opa taladro |
-| {{ui:Chamfer}} | cara contorno térã borde | Chaflán fresa borde rehe ojapo, ojapo ancho ojehechauka |
-| {{ui:Parallel}} | nada (modelo opa) | 3D terminación línea paralela ángulo opa-pe, bola, bull-nose térã plano end mill superficie rehe. Ver [3D terminación](topic:finish-3d) |
-| {{ui:Scallop}} | nada (modelo opa) | 3D terminación pasada distancia omoĩva superficie rehe, pasada ndive borde altura omoĩ |
+| {{ui:Face}} | nada | Pasadas en zigzag sobre todo el material, más allá de sus bordes, hasta la cara superior del modelo |
+| {{ui:Pocket}} | una cara plana de fondo, un agujero redondo o una cadena cerrada de aristas | Limpia la región con pasadas de desplazamiento de adentro hacia afuera, en cada paso de profundidad; las islas (caras que se levantan dentro del fondo) quedan; un fondo abierto por todos lados (nada más alto afuera) se limpia hasta el borde del material |
+| {{ui:Adaptive}} | igual que Pocket | Limpia la misma región en pasadas que cortan un ancho fijo (**Compromiso**, fracción del diámetro), así la fresa nunca toma una ranura de ancho completo, ni siquiera en esquinas; entra en hélice y acaba las paredes en cada nivel. Cortes angostos permiten paso más profundo y avance más alto |
+| {{ui:Contour}} | una cara plana (su contorno), una cara redonda o aristas | Sigue el contorno desplazado por el radio de la herramienta, afuera o adentro, con arcos de entrada y salida y lengüetas opcionales |
+| {{ui:Drill}} | agujeros (hacé clic en la pared o en el borde de un agujero) | Taladra cada agujero con un ciclo fijo: picoteo (G83), taladrado (G81) o rotura de viruta (G73); o dá un diámetro para taladrar cada agujero de esa medida |
+| {{ui:Chamfer}} | el contorno de una cara o sus aristas | Pasa una fresa de chaflán por la arista para cortar el ancho que fijaste |
+| {{ui:Parallel}} | nada (todo el modelo) | Acabado 3D en líneas paralelas a cualquier ángulo, siguiendo la superficie con fresa de punta esférica, redonda o plana. Ver [Acabado 3D](topic:finish-3d) |
+| {{ui:Scallop}} | nada (todo el modelo) | Acabado 3D en pasadas a una distancia fija sobre la superficie, para que la cresta entre ellas tenga la altura pedida |
 
-Lista-pe operación selección herramienta, altura (clearance, retract, feed height, top, bottom), step-down, stepover, dejar stock, terminación pasada, entry (helix, ramp térã plunge), climb milling, tabs térã ciclo ojeity. {{ui:Up}} ha {{ui:Down}} ojeity, {{ui:Suppress}} ojapo'ỹ, {{ui:Delete}} eliminar. Opa undo historia-pe ha pieza archivo-pe guardava.
+Elegí una operación en la lista para cambiar su herramienta, alturas (libramiento, retroceso, altura de avance, arriba, abajo), profundidad por pasada, paso lateral, material a dejar, pasada de acabado, entrada (hélice, rampa o inmersión), fresado en concordancia, lengüetas o ciclo. {{ui:Up}} y {{ui:Down}} reordenan, {{ui:Suppress}} la deja fuera, {{ui:Delete}} la quita. Todo queda en el historial de deshacer y se guarda en el archivo de la pieza.
 
-Pocket stepover ojapo mitã herramienta diámetro, piso punto opa pasada herramienta radio-pe. Esquina adentro herramienta radio ojeguerekóva.
+El paso lateral de un pocket es como máximo la mitad del diámetro de la herramienta, así cada punto de su fondo queda dentro de un radio de herramienta de alguna pasada. Las esquinas interiores conservan el radio de la herramienta.
 
-**Adaptive clearing** cutter engagement peteĩ valor-pe ojekóva. 0,15 diámetro engagement 46° ángulo: material-pe cutter borde arco. Offset pocket primera pasada full ancho ojapo, esquina adentro más ojevy. Pasada-pe herramienta aire corte-pe ojapo, aire corte ojeporuva upe ojeguejy ha ojeguejy. Pasada fino malla-pe región-pe (celda herramienta radio duodécimo), engagement omoĩva-gui peteĩ celda ancho ojapo ikatu; pared exacto. Región guasu programa mboyve ojapo, moviemiento ojapo tuichave.
+**Desbaste adaptativo** mantiene el compromiso de la fresa cerca de un valor. Un compromiso de 0,15 del diámetro es un ángulo de compromiso de unos 46°: el arco del borde de la fresa dentro del material. Un pocket con desplazamiento, en cambio, corta ancho completo en su primera pasada y da más vueltas en cada esquina interior. Entre pasadas la herramienta queda abajo donde se mueve por aire ya cortado, y sube y baja en aire cortado en otros lugares. Las pasadas se calculan sobre una cuadrícula fina de la región (celdas de un doceavo del radio de la herramienta), así el compromiso puede superar hasta una celda lo fijado; las paredes se acaban exactas. Una región grande y abierta hace un programa largo con muchos movimientos cortos.
 
-## Simulación
+## Simular
 
-Toolpath ojapo cambio rire (pieza avei). {{ui:Simulate}} programa rire stock ojeipe ojehechauka. Panel ojehechauka:
+Las trayectorias se rehacen después de cada cambio (también las de la pieza). {{ui:Simulate}} muestra además el material que queda después de todo el programa. El panel muestra:
 
-- **Cycle time**: avance movimiento avance-pe, rapid recta línea setup rapid-pe, herramienta cambio tiempo ndive. Máquina real aceleración, heta pe'a.
-- **Gouges**: herramienta modelo cara 0,02 mm rupi jave. Vista-pe rojo marca.
-- **Stock left on the part**: pieza-pe stock oiko.
+- **Tiempo de ciclo**: los movimientos de corte a su avance, los rápidos como líneas rectas a la velocidad de avance rápido de la preparación, más el tiempo de cambio de herramienta. Las máquinas reales aceleran, así que tardan más.
+- **Cortes excesivos**: lugares donde la herramienta bajó más de 0,02 mm bajo la superficie de la pieza. Marcas rojas los muestran en la vista.
+- **Material que queda en la pieza**.
 
-Stock arriba altura mapa (Z-map), undercut ndojehechauka. **Playback** ojeity herramienta programa-pe ojeguejy. Vista-pe avance movimiento sólido, rapid guión, operación color peteĩ.
+El material es un mapa de alturas de la parte superior (mapa Z), así que no puede mostrar socavaduras. Arrastrá **Reproducción** para mover la herramienta a lo largo del programa. En la vista, los movimientos de corte son sólidos y los rápidos punteados, un color por operación.
 
-**Show the simulated stock** ojapo jave, stock modelo rehe color: **verde** modelo-pe (0,02 mm-pe), **rojo** herramienta modelo-pe ojeporta, stock modelo-pe oiko jave **amarillo** pe'a mbyky, **naranja** heta, **gris** 1 mm térã más ojeipe. Color ojapo cada cambio, altura mapa ndive panel número-gui, verde ha rojo Gouges línea-pe ojejuhu. Chaflán modelo-pe ojapo ojapo, borde rojo.
+Con **Mostrar el material simulado** activado, el material se colorea contra el modelo, celda por celda: **verde** donde está sobre el modelo (dentro de 0,02 mm), **rojo** donde la herramienta entró en el modelo, y donde queda material sobre el modelo **amarillo** para una capa delgada, **naranja** para más, pasando al **gris** del material sin cortar a 1 mm o más. Los colores se rehacen con cada cambio, desde el mismo mapa de alturas que los números del panel, así verde y rojo coinciden con la línea de Cortes excesivos. Un chaflán entra en el modelo a propósito y muestra rojo a lo largo de su borde.
 
-## G-code ojeipe
+## Postprocesar el G-code
 
-**Post** control ojeporavo ha {{ui:Download G-code}} (térã toolbar {{ui:Post}}) ojapo:
+Elegí el control en **Post** y apretá {{ui:Download G-code}} (o {{ui:Post}} en la barra):
 
-| Control | Archivo | Mba'e |
+| Control | Archivo | Notas |
 |---|---|---|
-| Fanuc-style ISO | .nc | %, O número, línea número, T M6 G43 H, ciclo fijo |
-| GRBL | .nc | Herramienta cambiador ndaipóri, ciclo fijo ndaipóri: herramienta cambio M0-pe omoĩ, taladro movimiento simple-pe |
-| LinuxCNC | .ngc | T M6 G43 H, ciclo fijo, M2 |
-| Ambue | cualquiera | Ojapo térã ojeity post: {{ui:Edit post…}}, {{ui:New post…}}, {{ui:Import post file…}} |
+| Estilo Fanuc ISO | .nc | %, número O, números de línea, T M6 con G43 H, ciclos fijos |
+| GRBL | .nc | Sin cambiador de herramienta ni ciclos fijos: un cambio de herramienta se pausa con M0, el taladrado se escribe como movimientos simples |
+| LinuxCNC | .ngc | T M6 con G43 H, ciclos fijos, M2 |
+| Torno estilo Fanuc | .nc | Para programas de torneado: X como diámetro, avance por vuelta, G96 bajo un límite G50, roscado G32 |
+| Torno LinuxCNC | .ngc | Para programas de torneado: diámetros G7, G95, G96, roscado G33; no escribe movimiento de referencia |
+| Propio | cualquiera | Un postprocesador que escribiste o cambiaste: {{ui:Edit post…}}, {{ui:New post…}}, {{ui:Import post file…}} |
 
-Opa archivo comentario programa, stock, trabajo desfase ha herramienta-pe ojepyrũ. Coordenada milímetro 3 decimal-pe. {{ui:Toolpath CSV}} ha {{ui:Toolpath JSON}} movimiento-kuéra ojeipe.
+Cada archivo empieza con comentarios del programa, material, desplazamiento de trabajo y herramientas. Las coordenadas están en milímetros con 3 decimales. {{ui:Toolpath CSV}} y {{ui:Toolpath JSON}} exportan los movimientos en sí.
 
-**Máquina simulador-pe salida ojehecha ántes cortar, stock rededor aire-pe ojapo ántes.** Mbohapy built-in post ojapo: control ojeporu ojehechauka ojeporu punto; máquina peteĩ-pe ojehecha'ỹ. Post ojeity ojapo, ndojapo propio. Post ojapo: [Postprocesadores](topic:post-processors).
+**Revisá la salida en el simulador propio de tu máquina antes de cortar, y corrélo primero en el aire sobre el material.** Los tres postprocesadores integrados son puntos de partida que siguen el comportamiento documentado de los controles; no fueron probados en ninguna máquina en particular. Un postprocesador que cambiás es tuyo para probarlo. Cómo escribir uno: [Postprocesadores](topic:post-processors).
 
-## Exacto STEP taller-pe
+## Exact STEP para el taller
 
-**Operations** pestaña G-code botón-pe, {{ui:Exact STEP (work coordinates)}} `<part>-work.step` ojeipe: pieza sólido exacto (orificio cilindro, borde círculo) trabajo origen-pe, Z herramienta eje-pe. G-code coordenadas-pe, taller CAM programa modelo línea-pe mover'ỹ. Archivo pieza ndive, stock ni toolpath ndaipóri.
+Debajo de los botones de G-code, en la pestaña **Operations**, {{ui:Exact STEP (work coordinates)}} descarga `<part>-work.step`: la pieza como sólido exacto (cilindros verdaderos para agujeros y resaltos, círculos verdaderos para sus aristas), con el origen en el origen de trabajo de esta preparación y Z a lo largo del eje de herramienta. Esas son las coordenadas que usa el G-code, así el programa CAM o verificador del taller alinea el modelo con el programa sin moverlo. El archivo tiene solo la pieza, no el material ni las trayectorias.
 
-{{ui:Export}} › {{ui:STEP AP242 (exact solid)}} mismo sólido pieza posición-pe (Z arriba): ver [Impresión, STEP ha DXF exportar](topic:export-files#for-other-cad-programs-step).
+{{ui:Export}} › {{ui:STEP AP242 (exact solid)}} escribe el mismo sólido en la posición propia de la pieza (Z arriba): ver [Exportar para impresión, STEP y DXF](topic:export-files#for-other-cad-programs-step).
 
-## Límite
+## Límites
 
-- Pocket, contour, taladro ha chaflán 2.5-eje. Curva cara 3D-pe terminación ikatu ([paralela ha scallop](topic:finish-3d)) ndaikatúi 3D desbaste (cono escalón-pe oiko terminación peve), resto mecanizado ndaipóri. Adaptive clearing 2D (plano piso).
-- Tres eje solamente: inclinación ndaipóri, torno ndaipóri, inspección ndaipóri.
-- Soporte ha vástago colisión ndojehechaukáva; flauta largo más corte jave advertencia ojehechauka.
-- Avance ha velocidad punto de partida. Post texto ojeity ikatu, movimiento ojapo ojeporu, toolpath ojeity'ỹ, eje ojapo'ỹ, máquina ndojeikuaa ([Postprocesadores](topic:post-processors) ndojapo'ỹ mba'e ojehechauka).
+- Pockets, contornos, taladrado y chaflanes son de 2,5 ejes. Las piezas curvas se desbastan y acaban en 3D con sus propias operaciones ([3D desbaste y mecanizado de resto](topic:rough-3d), [acabado 3D](topic:finish-3d)). El desbaste adaptativo es 2D (fondos planos).
+- Herramientas inclinadas, acabado de 5 ejes y de 4º eje, torneado y palpado existen, cada uno con límites propios, y **ninguno se ejecutó todavía en una máquina**: ver [mecanizado 4 y 5 ejes](topic:multi-axis), [Torneado](topic:turning) y [Palpado](topic:probing).
+- Portaherramientas y mangos no se revisan por colisión; aparece un aviso cuando un corte es más profundo que el largo de filo.
+- Avances y velocidades son valores iniciales. Un postprocesador es un texto que podés editar, pero solo decide cómo se escriben los movimientos; no puede cambiar la trayectoria, agregar ejes ni conocer tu máquina ([Postprocesadores](topic:post-processors) lista lo que no puede hacer).
 
-## Programa máquina-pe ohupi
+## Enviar el programa a una máquina
 
-CadCraft Studio desktop-pe, Studio-pe máquina preparación ndive, **Send to a machine…** **Download G-code** rehe ojehechauka; programa máquina-pe ojeipe red-pe. PartCraft-gui ndojapói'ỹ: máquina-pe ojapo ojepyrũ ojeikuaa jave. Navegador-pe botón ndojehecha: programa ojepapa.
+En CadCraft Studio de escritorio, con una máquina configurada en Studio, **Enviar a una máquina…** aparece junto a **Download G-code** y sube el mismo programa a la máquina en tu red. Nunca se inicia desde PartCraft: arrancalo en la máquina cuando esté claro. En el navegador el botón no se muestra (una página web no puede llegar a una máquina de tu red): descargá el programa.

@@ -1,39 +1,39 @@
 ---
-title: Dhamaystirka 3D: isbarbar-socod iyo scallop
-summary: Dhamaystir dusha curved ee moodelka oo dhan adigoo isticmaalaya ball, bull-nose ama flat end mill, xariiqyo isbarbar socda xagal kasta ama marro u kala fogaadaya masaafo la dejiyey, si ridges-ka u dhexeeya ay ku hayaan dhererka aad weydiisay. Waxa jidadku ballanqaadaan iyo waxa aanay ballanqaadin.
-keywords: dhamaystirka 3d, dhamaystir, isbarbar, raster, scallop, scallop joogto ah, cusp, ball nose, bull nose, dusha, tolerance, stepover, slope, agabka la reebayo, drop cutter, gouge
-from: e1587d0a
+title: Dhamaystirka 3D: isbarbar iyo skallop
+summary: Dhammaystir dusha qalloocan ee moodeelka oo dhan adigoo isticmaalaya qalab bar dhamaad, bull-nose ama falaar ah, xariiqyo isbarbar ah oo xagal kasta leh ama marin masaafo la cayimay u dhexeysa si cirifyada ka dhexeeya ay u hayaan dhererka aad codsatay. Waxa waddooyinku dammaanad qaadayaan iyo waxa aysan dammaanad qaadin.
+keywords: dhamaystirka 3d, dhamaystir, isbarbar, raster, skallop, skallop joogto ah, cusp, bar kubbad, bar bull nose, dusha, tolerance, stepover, janjeer, agab la reebo, drop cutter, godan
+from: 942d2341
 ---
 
-Laba hawlood oo Manufacture ah ayaa **dusha moodelka oo dhan** jarta iyada oo qalabka si toosan loo hayo (saddex axes). Ma qaadanayaan wax doorasho ah: waxay ka shaqeeyaan qaybta moodelka oo dhan ee laga arki karo sare. Qaybta hore marka hore jar (adaptive ama pocket); dhamaystir ku socota agab aan la jarin waxay digeysaa inay gunti gaadhi doonto.
+Laba howlgal oo ku jira Wax soo saarka ayaa jari doona **dusha moodeelka oo dhan** iyadoo qalabka lagu hayo toosan (saddex tiir). Ma qaataan wax xulasho ah: waxay ku shaqeeyaan qaybta moodeelka oo dhan ee laga arki karo kor ka. Marka hore qaybta ku dhow (adaptive ama pocket); marinka dhamaystirka ee agab aan la jarin ku jira wuxuu digniin siinayaa inay jari doonto qoto dheer.
 
 ## Isbarbar
 
-Xariiqyo toosan oo moodelka dhex mara **xagal** aad dejiso, **stepover** kala fogaansho (qayb ka mid ah dhexroorka qalabka). Xariiq kasta waxay raacaa dusha: barta qalabka waxay ahaataa sidii ay u baahan tahay si qalabka oo dhan uusan uga hooseeyn moodelka, xariiqyada waxaa la jarayaa si wanaagsan meel kasta oo dusha ay wareegto. **Zig-zag** marka uu shidan yahay, qalabku wuu hoos ku sii jiraa xariiqyada u dhexeeya meelaha ay ammaan ku tahay (waa la hubiyaa dhinaca dhaqdhaqaaqa); haddii kale wuu kor u qaadaa.
+Xariiqyo toosan oo dhinac-dhinac ah moodeelka oo ku jira **xagasha** aad dejisay, oo u dhexeeya **tallaabo-kala-fogaan** (qayb ka mid ah dhexroorka qalabka). Xariiq kasta wuxuu raacaa dusha: meesha ay qalabka dhabta ah ku taal waa sare sida loo baahan yahay in aan qayb kasta oo qalabka ah ka hoosreyn moodeelka, xariiqna wuxuu noqdaa mid si fiican loo jaray meel kasta oo dusha ay ku fiiqanto. Marka **Zig-zag** la furo, qalabku wuxuu ku sii jiraa xariiqyada dhexdooda meelaha ay ku badbaado tahay (waa la hubiyaa dhaqdhaqaaqa); haddii kale wuu kor u qaadaa.
 
-- **Tolerance**: intee in le'eg ayuu qayb toosan oo xariiq ah ka fogaan karaa heerka runta ah ee barta qalabka (half of it is used as the limit at the middle of each piece). Caadi 0.01 mm.
-- **Only where the surface is at least … and at most … (°)**: dhamaystir kaliya meelaha hoose ama kaliya meelaha janjeera. Meelaha ka baxsan kala duwanaanta xariiqa waa la ka tagaa oo qalabku wuu kor u qaadaa.
-- **Stock to leave**: moodelka oo la kala fogeeyay masaafadaas (qalabka la balaadhiyay: saxan ball iyo bull-nose; qalab siman waxa uu ka tagaa ugu yaraan masaafadaas).
-- **Bottom**: wax aan lagu jarin z-kan ka hooseeya.
+- **Dulqaadka**: intee le'eg qayb toosan oo xariiq ah ayaa ka fogaan karta dhererka saxda ah ee dhabta ah ee qalabka (nus ayaa loo adeegsadaa xadka dhexda qayb kasta). Caadiga ah 0.01 mm.
+- **Kaliya meelaha dusha ay ka ugu yaraan … ilaa ka badan … (°)**: dhamaystir meelaha yaryar oo keliya ama kuwa janjeerka badan oo keliya. Meelaha dusha ka baxsan kala-duwanaanshaha ayaa xariiqa laga reebaa oo qalabku kor ayuu u kacaa.
+- **Agab la reebo**: moodeelka oo laga dhigay masaafadaas (qalabka oo la weyneeyay: saxda qalabyada kubbadda iyo bull-nose; qalab falaar ah wuxuu reebaa ugu yaraan masaafadaas).
+- **Hoose**: wax aan la jari doonin ka hooseeya z-kan.
 
-## Scallop
+## Skallop
 
-Marro kala fogaansho joogto ah ka dhex dhaxaysa dusha, si ridge (scallop) ka dhex haray laba marro isku dhow uu yeelanayo **dhererka** aad weydiisay. Masaafada waxay ka soo baxaysaa dhererka iyo radius-ka ball-ka: s = 2·√(2·R·h − h²), tusaale ahaan qiyaastii 0.69 mm marro dhexdooda ball Ø6 ah iyo ridge 0.02 mm ah. Bull-nose-ku wuxuu isticmaalaa radius-ka geeskiisa. Flat end mill waa la diidaa: ma leh ridge la cabbiro.
+Marino ku qaadan masaafo joogto ah oo dusha ah, si cirifka (skallop) ka dhexeeya labo marin oo dariska ah uu u yeesho **dhererka** aad codsatay. Masaafada waxay ka soo baxdaa dhererka iyo radius-ka kubbadda: s = 2·√(2·R·h − h²), tusaale ahaan qiyaastii 0.69 mm marinada ka dhexeeya kubbad Ø6 ah iyo cirif 0.02 mm ah. Qalab bull-nose wuxuu isticmaalaa radius-ka geeskiisa. Falaar dhamaad (flat end mill) waa la diidaa: ma leh cirif uu ku cabbiro.
 
-Marrada waxay ka bilaabmaan **geesta moodelka, gelaya gudaha** ama **sare moodelka, hoos u dhaca**. Waa kontuurrada masaafada dusha dushiisa (ma aha dhererka), sidaas darteed dhulka saaran waxay ku dhowyihiin qorshe, dhulka siman waxay ku fogaadaan. Masaafada waxaa lagu cabbiraa grid dusha dushiisa, waana saxan tahay ilaa 1 %; dhererka ridge-ka waa saxan meelaha siman ama curved si tartiib tartiib ah, malaha meelaha ay si degdeg ah u wareegaan. **Climb** wuxuu ilaalinayaa dhinaca sare ee dusha ee gacanta midig ee qalabka.
+Marinnada waxay ka bilaabmaan **geesta moodeelka, gudaha u socda** ama **sare ka, hoos u socda**. Waa xariiqyada masaafada dusha (ma aha kuwa dhererka), marka sagxadaha janjeerka leh waxay ku dhow yihiin qorshaha, sagxadaha sinaanta ahna waxay ku baaxad weyn yihiin. Masaafada waxaa lagu cabbiraa shabakad dusha ka dul taal, waana sax ilaa qiyaastii 1 %; dhererka cirifka waa sax meelaha dusha sinaanta leh ama si tartiib ah u qalloocan, waxaana ku dhow meelaha si degdeg ah u qalloocan. **Climb** wuxuu dusha dhinaca sare ku haya midig qalabka.
 
-## Sida jidadku u fiican yihiin
+## Sida waddooyinku u wanaagsan yihiin
 
-Waxa tijaabooyinku hubiyaan, iyaga oo leh qaacido run ah ama raadinta madaxbanaan ee qaybta qalabka:
+Waxa tijaabooyinku hubiyaan, iyagoo adeegsanaya qaacido xiran ama baaritaan xoog ah oo madax-bannaan oo ku saabsan dhululubta qalabka:
 
-- Dhererka barta qalabka hoosteeda waa saxan ball, bull-nose iyo qalab siman oo wejiyada, geesaha iyo geeska mesh-ka, mararka qaarkoodna kama sarreeyo heerka runta ah; isbarbar-socodka wuxuu ku dhex jiraa tolerance-ka, gouge ka qoto dheer ma jiro.
-- Dhererka jidadka dusha dhulka ah wuxuu la mid yahay qaacidada; marrada scallop-ka ee diyaarad waa masaafo la weydiiyey, ridge-ka dhexdooda wuxuu noqdaa dhererka la weydiiyey.
-- Simulation-ka agabka ma muujinayo gouge marka dhamaato marka, wuxuuna muujinayaa ridges-ka hadhay.
+- Dhererka barta qalabka ee hoosta qalabka waa sax bar kubbad, bull-nose iyo qalab sinaan ah oo ku taal wejiyada, geesaha iyo kulmaanta shabakadda, weligiinna kama sarreeyo dhererka dhabta ah; xariiqyada isbarbar ah, waddadu waxay ku jirtaa dulqaadkaas, iyadoo aan godan oo ka qoto dheer dulqaadkaas la arag.
+- Dhererka waddooyinka ee dusha sinaanta ah waxay u dhigmaan qaacidada xiran; marinnada skallop ee dusha sinaanta ah waa masaafada la codsaday oo ka fog, cirifka ka dhexeeyana wuxuu yimaadaa dhererka la codsaday.
+- Tijaabada agabka ayaa muujisa ma jiro godan ka dib marin, waxayna muujinaysaa cirifyada ka hara.
 
-Jidadkan waxay ma aha:  waa dhamaystir aasaasi ah, ma aha wax walba oo nidaam wax soo saarku bixiyo.
+Waxa aan ahayn waddooyinkan: waa marino dhamaystir oo aasaasi ah, ma aha wax kasta oo nidaam wax soo saar casri ah bixiyo.
 
-- Weli lama dhisin: waterline (z joogto ah), pencil iyo nadiifinta geeska, marrada xagal iyo dhamaystirka giraanta, curve la saarayo dusha, ogaanshaha dhulka siman, machining-ka hadhaaga, hubinta holder-ka iyo shank-ka, iyo wax jeexjeexid ah oo qalabka ah.
-- Xarunta qalabka waxay ku sii jirtaa moodelka: jidadku waxay joogsadaan geesta moodelka halkii ay ka sii bixi lahaayeen, sidaas darteed darbi toosan oo geesta ku taal lama dhamaysto ilaa saldhigiisa.
-- Hoos-jaris ma la arko (dusha ayaa kaliya ah waxa qalabku sare ka kulmo).
-- Moodelka waa mesh-ka kernel-ka, sidaas darteed jidadku waxay raacaan mesh-ka (tolerance-ka chord-ka ee qiyaastii 0.0002 ee dhererka ugu weyn ee qaybta), ma aha dusha saxda ah.
-- Dhamaystirka moodel weyn oo tolerance fiican ah wuxuu samaynayaa barnaamij dheer oo dhaqdhaqaaq gaaban badan. Hubi natiijada simulator-ka mashiinkaaga ka hor intaadan jari.
+- **Lama dhisin**: dhamaystirka waterline (dhererka joogto ah), nadiifinta pencil iyo geesaha, marinnada radial iyo spiral, mashruuca qalooca dusha, ogaanshaha dhulka sinaanta ah, hubinta is-jiidhka qabashada iyo gees-hoosta qalabka. Jarista iyo jiifsashada qayb-qayb ah waa howlgallo gaar ah ([3D roughing and rest machining](topic:rough-3d)); qalab leexda waa [5-axis finishing](topic:multi-axis#5-axis-finishing).
+- Dhexda qalabka waxay sii jirtaa moodeelka dushiisa: waddooyinku waxay joogsadaan geesta moodeelka halkii ay ka baxeen, sidaas darteed darbi toosan oo ku dhow geesta ma dhamaysmo ilaa cagtiisa.
+- Ka-hoos-gal lama arko (dusha waa waxa qalabku ka kulmo kor ka).
+- Moodeelka waa mesh-ka kernel-ka, marka waddooyinku raacaan mesh-ka (dulqaadka chord-ka qiyaastii 0.0002 ee dhererka dhererka qaybta), ma aha dusha saxda ah.
+- Dhamaystirka moodeel weyn oo dulqaad fiican leh wuxuu sameeyaa barnaamij dheer oo leh dhaqdhaqaaqyo gaaban oo badan. Hubi wax-soo-saarka simulator-ka mashiinkaaga ka hor inta aanad jarin.

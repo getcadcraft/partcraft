@@ -23,6 +23,7 @@
  */
 import { t as tr } from './i18n.js';
 import { registerParamField } from './params-part.js';
+import { add2 as add, cross2 as cross, dot2 as dot, len2 as len, scale2 as mul, sub2 as sub } from './geom-vec.js';   // shared helpers (0.11 PERF.74; tools/perf/util-copies.mjs)
 
 // numbers a parameter or equation can drive (params-part.js)
 registerParamField('sheetbase', 't', { get label() { return tr('sheet.param.t'); }, kind: 'length', min: 0.01, max: 100 });
@@ -104,9 +105,7 @@ export function lineChain(segs) {
 }
 
 // ---------------------------------------------------------------- the bent profile of an open base flange
-const sub = (a, b) => [a[0] - b[0], a[1] - b[1]], add = (a, b) => [a[0] + b[0], a[1] + b[1]], mul = (a, s) => [a[0] * s, a[1] * s];
-const len = (a) => Math.hypot(a[0], a[1]), unit = (a) => mul(a, 1 / len(a)), left = (a) => [-a[1], a[0]];
-const cross = (a, b) => a[0] * b[1] - a[1] * b[0], dot = (a, b) => a[0] * b[0] + a[1] * b[1];
+const unit = (a) => mul(a, 1 / len(a)), left = (a) => [-a[1], a[0]];
 
 /** An arc segment in profileFaces' form, from a to b about c (radius r), the short way unless sweep says otherwise. */
 function arcSeg(id, c, r, a, b, ccw) {

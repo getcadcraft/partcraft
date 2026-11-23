@@ -796,9 +796,9 @@ export function readAssembly(raw) {
     const out = { inst: e.inst, plane: null };
     if (!e.plane || typeof e.plane !== 'object') throw new Error(t('model.assembly.file.joint_no_face'));
     // part.js's plane check (named faces too); any feature id is let through, so a joint to a deleted feature opens and says so
-    try { out.plane = readPlane(e.plane, { has: (id) => typeof id === 'string' && /^f\d{1,9}$/.test(id) }); } catch { throw new Error(t('model.assembly.file.joint_bad_face')); }
+    try { out.plane = readPlane(e.plane, { has: (id) => typeof id === 'string' && /^f\d{1,16}$/.test(id) }); } catch { throw new Error(t('model.assembly.file.joint_bad_face')); }
     if (e.axis) {
-      if (!/^f\d{1,9}$/.test(e.axis.feature) || !(e.axis.index === undefined || (Number.isInteger(e.axis.index) && e.axis.index >= 0 && e.axis.index < 10000))) throw new Error(t('model.assembly.file.joint_bad_axis'));
+      if (!/^f\d{1,16}$/.test(e.axis.feature) || !(e.axis.index === undefined || (Number.isInteger(e.axis.index) && e.axis.index >= 0 && e.axis.index < 10000))) throw new Error(t('model.assembly.file.joint_bad_axis'));
       out.axis = { feature: e.axis.feature, ...(e.axis.index !== undefined ? { index: e.axis.index } : {}) };
     }
     return out;

@@ -1,29 +1,29 @@
 ---
 title: Posprocesadores que puede editar
-summary: Un posprocesador es un archivo de texto corto que convierte la trayectoria de la herramienta en código G para su control. Copie uno de los posprocesadores integrados, cambie las líneas que necesite (números de línea, cambio de herramienta, movimientos de origen, código de fin), vea el código G que escribe mientras escribe y guárdelo con la pieza.
-keywords: posprocesador, post, postprocesador, código G, NC, GRBL, LinuxCNC, editar posprocesador, posprocesador personalizado, cpost, cambio de herramienta, M6, G43, ciclo fijo, números de línea, modal, evento, variable
-from: 36ab8a38
+summary: Un posprocesador es un archivo de texto breve que convierte la trayectoria en código G para su control. Copie uno de los integrados, cambie las líneas que necesite (números de línea, cambio de herramienta, movimientos de referencia, código final), vea el código G que escribe mientras teclea y guárdelo con la pieza.
+keywords: posprocesador, postprocesador, código G, NC, GRBL, LinuxCNC, editar posprocesador, posprocesador personalizado, cpost, cambio de herramienta, M6, G43, ciclo fijo, números de línea, modal, evento, variable
+from: c78d0cae
 ---
 
-El mismo recorrido de herramienta debe escribirse de forma distinta según el control: con o sin números de línea, `M6` o una pausa, `G28` o `G53`, `M30` o `M2`. Un **posprocesador** es el texto breve que indica cómo hacerlo. Los tres posprocesadores integrados de PartCraft (de estilo Fanuc, GRBL y LinuxCNC) están escritos en este formato, así que un posprocesador propio puede empezar como copia de uno de ellos.
+La misma trayectoria tiene que escribirse de forma distinta para cada control: con números de línea o sin ellos, `M6` o una pausa, `G28` o `G53`, `M30` o `M2`. Un **posprocesador** es el texto breve que indica cómo. Los tres posprocesadores integrados de PartCraft (estilo Fanuc, GRBL y LinuxCNC) están escritos en este formato, así que un posprocesador propio puede empezar como copia de uno de ellos.
 
-Compruebe la salida en el simulador de su propia máquina antes de mecanizar, y pruebe primero el programa en el aire sobre el material. Los posprocesadores integrados escriben exactamente lo que escribían antes de que existiera este formato (las pruebas comparan su salida byte a byte en cientos de programas), pero nada de esto se ha probado en su máquina, y un posprocesador que modifique es responsabilidad suya comprobarlo.
+Compruebe la salida en el simulador de su máquina antes de mecanizar, y pruébela primero en el aire, por encima del material en bruto. Los posprocesadores integrados escriben exactamente lo que escribían antes de que existiera este formato (las pruebas comparan su salida byte a byte en cientos de programas), pero nada de esto se ha probado en su máquina, y un posprocesador que usted cambie es responsabilidad suya demostrarlo.
 
 ## Crear uno
 
 En Fabricación, bajo **Posprocesador**:
 
-- {{ui:Editar posprocesador…}} en un control integrado abre **su propia copia** de este. En uno de sus posprocesadores, lo abre a él.
-- {{ui:Nuevo posprocesador…}} empieza con un posprocesador pequeño y en blanco que contiene todos los eventos.
-- {{ui:Importar archivo de posprocesador…}} lee un archivo de texto `.cpost` (el que obtiene con **Guardar como archivo…** en el editor).
+- {{ui:Editar posprocesador…}} sobre un control integrado abre **su propia copia** de él. Sobre uno de sus posprocesadores, abre ese posprocesador.
+- {{ui:Nuevo posprocesador…}} empieza desde un posprocesador pequeño en blanco con todos los eventos.
+- {{ui:Importar archivo de posprocesador…}} lee un archivo de texto `.cpost` (el archivo que se obtiene con **Guardar como archivo…** en el editor).
 
-El editor muestra el texto, una línea que indica si se lee correctamente (y qué línea está mal), y el código G que escribe el posprocesador, a medida que escribe. **Previsualizar con** elige un programa de ejemplo pequeño que ejecuta todos los eventos, o el programa propio de esta pieza. {{ui:Guardar}} conserva el posprocesador en el archivo de la pieza (hasta 20 posprocesadores) y lo elige como control. Los posprocesadores viajan con la pieza; para usar uno en otra pieza, guárdelo como archivo e impórtelo allí.
+El editor muestra el texto, una línea que indica si se lee (y qué línea es errónea), y el código G que escribe el posprocesador, mientras teclea. **Vista previa con** elige un programa de muestra pequeño que ejecuta todos los eventos, o el propio programa de esta pieza. {{ui:Guardar}} conserva el posprocesador en el archivo de la pieza (hasta 20 posprocesadores) y lo elige como control. Los posprocesadores viajan con la pieza; para usarlo en otra pieza, guárdelo como archivo e impórtelo allí.
 
-## Qué aspecto tiene un posprocesador
+## Qué aspecto tiene
 
 ```
 post mymill
-name Mi fresadora (.nc)
+name My mill (.nc)
 extension nc
 line-numbers off
 decimal-point no
@@ -46,40 +46,55 @@ on rapid
 end
 ```
 
-Las líneas que empiezan por `//` y las líneas vacías se ignoran. Al principio van los ajustes; después, un bloque `on <evento>` por cada evento, cerrado con `end`. Un evento que omita no escribe nada.
+Las líneas que empiezan con `//` y las líneas en blanco se ignoran. Al principio van los ajustes; después, un bloque `on <evento>` para cada evento, cerrado con `end`. Un evento que omita no escribe nada.
 
 | Ajuste | Significado |
 |---|---|
 | `post <id>` | El identificador del posprocesador: letras, dígitos, `-` y `_` |
-| `name <texto>` | Lo que muestra la lista de controles |
+| `name <text>` | Lo que muestra la lista de controles |
 | `extension <ext>` | La extensión del archivo: nc, ngc, tap … |
 | `line-numbers 10` / `off` | `N10`, `N20` … en cada línea `emit`, o ninguno |
-| `decimal-point yes` / `no` | `10.` en lugar de `10` (los comentarios nunca llevan punto) |
+| `decimal-point yes` / `no` | `10.` en lugar de `10` (los comentarios nunca llevan el punto) |
 | `canned-cycles yes` / `no` | `no`: los agujeros se escriben como los movimientos G0/G1 que representan |
-| `modal <grupo> <palabras>` | Palabras de un grupo (`modal motion G0 G1 G2 G3`) que solo se escriben cuando cambian |
+| `modal <group> <words>` | Palabras de un grupo (`modal motion G0 G1 G2 G3`) que solo se escriben cuando cambian |
 
 ## Eventos
 
-Se ejecutan en este orden para un programa: `start`; después, para cada operación, `operation`, `tool-change` (cuando cambia la herramienta), `spindle` (cuando cambia la velocidad), `approach` (el movimiento hasta el primer punto, antes del primer rápido), `coolant-on`, luego sus movimientos como `rapid`, `feed` y `arc`, y cada ciclo fijo como `cycle-start`, un `cycle-hole` por agujero y `cycle-end`; por último, `end`.
+Se ejecutan en este orden para un programa: `start`; después, para cada operación, `operation`, `tool-change` (cuando cambia la herramienta), `spindle` (cuando cambia la velocidad), `approach` (el movimiento hasta el primer punto, antes del primer rápido), `coolant-on`, y luego sus movimientos como `rapid`, `feed` y `arc`, y cada ciclo fijo como `cycle-start`, un `cycle-hole` por agujero y `cycle-end`; por último, `end`.
 
-Cada evento puede usar las variables de su propio tipo de movimiento, escritas `{nombre}`: el programa (`name`, `program`, `setup.axis`, `setup.origin`, `setup.coolant`), el material (`stock.kind`, `stock.d`, `stock.sx`, `stock.sy`, `stock.sz`, `stock.minx` … `stock.maxz`), la herramienta (`tool.number`, `tool.desc`, `tool.kind`, `tool.d`, `tool.flutes`, `tool.fluteLen`), la operación (`op.name`, `op.type`), `rpm`, el punto de un movimiento (`x`, `y`, `z`, `f`, y `moved`: verdadero cuando cambia un eje), los arcos (`arc.g` 2 o 3, `arc.i`, `arc.j`, `arc.cx`, `arc.cy`) y los agujeros (`hole.x`, `hole.y`, `hole.z`, `hole.r`, `hole.q`, `hole.return`, `hole.first`, `cycle.kind`, `cycle.init`, `feed`). La lista **Eventos y variables** del editor muestra qué evento ve cada una. Estado que puede leer y definir: `cool`, `offset`, y `at.x`, `at.y`, `at.z`, `at.f` (los últimos valores escritos).
+Más eventos, para lo que va más allá de tres ejes (un posprocesador sin el evento rechaza ese programa e indica el evento que le falta):
+
+| Evento | Cuándo | Sus variables |
+|---|---|---|
+| `index` | Antes de una operación cuya dirección de herramienta difiere de la anterior, y antes de la primera operación en una máquina con ejes rotativos | `rot.a`, `rot.b`, `rot.c` (las posiciones a las que ir; vacías para un eje que la máquina no tiene), `first.x`, `first.y`, `first.z` |
+| `rapid-rotary`, `feed-rotary` | Los movimientos de una operación cuyos ejes rotativos se mueven mientras corta | `x`, `y`, `z`, `rot.a`, `rot.b`, `rot.c`, `f`, `rot.moved`, `inverse` (sí cuando el avance debe ser en tiempo inverso), `invf` (1/minutos) |
+| `rotary-end` | Tras una operación de ese tipo | |
+| `probe-move` | Un movimiento que se detiene cuando el palpador hace contacto | `x`, `y`, `z`, `f`, `probe.n` (1 a 4), `probe.axis` (x, y o z), `probe.k` (1, 2 o 3) |
+| `probe-set` | Tras los contactos de un ciclo de palpado | `probe.kind` (`"z"`, `"x"`, `"y"` o `centre`), `probe.action` (`set` o `measure`), `probe.expect`, `probe.cx`, `probe.cy` |
+| `thread` | Un movimiento de roscado en un torno | `x`, `z`, `thread.lead` |
+
+Además, para todos los eventos: `kin` (none, a, b, ac, bc), `rotary` y `tcp` (yes o no, según la máquina de la configuración), `pivot.x`, `pivot.y`, `pivot.z`, `op.tilt` y `op.turn` de la operación, y en un torno `spin.mode` (css o rpm), `spin.css`, `spin.max` y `tool.nose`. Una palabra con letra cuyo valor esté vacío, como `A{rot.a}` en una máquina sin eje A, se omite de la línea. Compare x, y y z como texto entre comillas (`if probe.kind == "z"`): sin comillas, son las coordenadas del movimiento.
+
+Dos líneas más al principio de un posprocesador lo convierten en posprocesador de torno: `machine lathe` (entonces escribe solo X y Z, y rechaza las trayectorias de fresado como lo hace un posprocesador de fresado con las de torneado) y `lathe-x diameter` o `lathe-x radius`.
+
+Cada evento puede usar las variables de su propio tipo de movimiento, escritas `{nombre}`: las del programa (`name`, `program`, `setup.axis`, `setup.origin`, `setup.coolant`), las del material en bruto (`stock.kind`, `stock.d`, `stock.sx`, `stock.sy`, `stock.sz`, `stock.minx` … `stock.maxz`), las de la herramienta (`tool.number`, `tool.desc`, `tool.kind`, `tool.d`, `tool.flutes`, `tool.fluteLen`), las de la operación (`op.name`, `op.type`), `rpm`, el punto de un movimiento (`x`, `y`, `z`, `f`, y `moved`: verdadero cuando cambió un eje), los arcos (`arc.g` 2 o 3, `arc.i`, `arc.j`, `arc.cx`, `arc.cy`) y los agujeros (`hole.x`, `hole.y`, `hole.z`, `hole.r`, `hole.q`, `hole.return`, `hole.first`, `cycle.kind`, `cycle.init`, `feed`). La lista de **Eventos y variables** del editor muestra qué evento ve cada cosa. Estado que puede leer y fijar: `cool`, `offset`, y `at.x`, `at.y`, `at.z`, `at.f` (los últimos valores escritos).
 
 ## Instrucciones
 
 | Instrucción | Qué hace |
 |---|---|
-| `raw TEXTO` | Una línea exactamente como se escribe (sin número de línea) |
-| `comment TEXTO` | `(TEXTO)` sin los caracteres no ASCII ni los corchetes |
-| `emit PALABRA PALABRA …` | Una línea de palabras; las palabras que salen vacías se omiten; sin palabras, no hay línea |
-| `word PALABRA …` | Añade palabras a la línea en construcción; un `emit` sin nada la cierra |
-| `if EXPR` … `else` … `end` | Condiciones: `a == b`, `a != b`, `not a`, `a and b`, `a or b`, `a??b` (a; si no, b) |
+| `raw TEXT` | Una línea exactamente como se escribe (sin número de línea) |
+| `comment TEXT` | `(TEXT)` sin caracteres no ASCII ni paréntesis |
+| `emit WORD WORD …` | Una línea de palabras; las palabras que quedan vacías se omiten; sin palabras, no hay línea |
+| `word WORD …` | Añade palabras a la línea que se está construyendo; un `emit` vacío la cierra |
+| `if EXPR` … `else` … `end` | Condiciones: `a == b`, `a != b`, `not a`, `a and b`, `a or b`, `a??b` (a, si no b) |
 | `for tool in tools` … `end` | Una vez por cada herramienta que usa el programa |
-| `set NOMBRE EXPR` | Recuerda un valor (`set offset tool.number`) |
-| `reset NOMBRE …` | Olvida palabras modales (un grupo, una letra de dirección como `Z`, o `at.z`) |
+| `set NAME EXPR` | Recuerda un valor (`set offset tool.number`) |
+| `reset NAME …` | Olvida palabras modales (un grupo, una letra de dirección como `Z`, o `at.z`) |
 | `do rapid X Y Z` | Ejecuta el evento `rapid` para un punto |
 
-Una palabra es texto escrito con huecos `{variable|filtro}`. Los filtros son `upper`, `lower`, `pad:N` (relleno con ceros), `cut:N` (primeros N caracteres), `safe` (ASCII apto para comentarios) e `int`. Una palabra que termina en `~` es **modal**: solo se escribe cuando difiere de lo último escrito (`G1~`, `X{x}~`). Una palabra que termina en `~!` se escribe siempre y también se recuerda. Un nombre que no es variable es texto fijo (`G81`, `mist`). Los números se redondean a 0,001 mm y se escriben sin ceros finales.
+Una palabra es texto escrito con huecos `{variable|filtro}`. Los filtros son `upper`, `lower`, `pad:N` (relleno con ceros), `cut:N` (primeros N caracteres), `safe` (ASCII seguro para comentarios) e `int`. Una palabra que termina en `~` es **modal**: solo se escribe cuando difiere de lo último escrito (`G1~`, `X{x}~`). Una palabra que termina en `~!` se escribe siempre y también se recuerda. Un nombre que no es variable es texto normal (`G81`, `mist`). Los números se redondean a 0.001 mm y se escriben sin ceros finales.
 
 ## Lo que un posprocesador no puede hacer
 
-Decide solo cómo se escriben los movimientos, nada más. No puede cambiar una trayectoria, ordenar operaciones, dividir un arco, añadir un eje, conocer el recorrido o la cinemática de su máquina, ni hacer operaciones aritméticas con coordenadas (no hay `+`). Los ciclos de palpado, de vida de herramienta y de subprogramas, la salida de los ejes 4.º y 5.º y los códigos de torno aún no están construidos. Un archivo de posprocesador de estilo `.cps` de otro programa no puede cargarse: este es un formato distinto y más sencillo.
+Decide solo cómo se escriben los movimientos, nada más. No puede cambiar una trayectoria, ordenar operaciones, dividir un arco, añadir un eje, conocer el recorrido o la cinemática de su máquina, ni hacer operaciones aritméticas con coordenadas (no hay `+`). Las posiciones de los ejes rotativos vienen de la máquina descrita en Configuración, no del posprocesador: un posprocesador puede cambiar su signo o sus letras, pero no la cinemática. Los ciclos de vida de herramienta y de subprogramas no están implementados. Un archivo de posprocesador `.cps` de otro programa no puede cargarse: este es un formato distinto y más sencillo.

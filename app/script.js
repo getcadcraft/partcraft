@@ -250,7 +250,7 @@ export function scriptToPart(text, { readFile = null } = {}) {
     let id = null;
     if (idProp) {
       const v = idProp.body.slice(2).trim();
-      if (!/^f\d{1,9}$/.test(v)) fail(idProp.n, t('xch.script.feature_id'));
+      if (!/^f\d{1,16}$/.test(v)) fail(idProp.n, t('xch.script.feature_id'));
       else if (metas.some((m) => m.id === v)) fail(idProp.n, t('xch.script.id_twice', { id: v }));
       else id = v;
     }

@@ -34,6 +34,7 @@
  */
 import * as V from './vec.js';
 import { t } from './i18n.js';
+import { lerp3 as lerp, mid2 as mid } from './geom-vec.js';   // shared helpers (0.11 PERF.74; tools/perf/util-copies.mjs)
 
 export const FORMAT = 'partcraft-form';
 export const VERSION = 1;
@@ -46,7 +47,6 @@ export const ek = (a, b) => (a < b ? a + ',' + b : b + ',' + a);
 const keyPair = (k) => k.split(',').map(Number);
 const clone = (form) => ({ format: FORMAT, version: VERSION, verts: form.verts.map((p) => [...p]), faces: form.faces.map((f) => [...f]), creases: (form.creases || []).map((c) => [...c]), corners: [...(form.corners || [])], sym: form.sym ? { ...form.sym } : null });
 const avg = (pts) => { const s = [0, 0, 0]; for (const p of pts) { s[0] += p[0]; s[1] += p[1]; s[2] += p[2]; } const n = pts.length || 1; return [s[0] / n, s[1] / n, s[2] / n]; };
-const lerp = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
 const comb = (terms) => { const s = [0, 0, 0]; for (const [w, p] of terms) { s[0] += w * p[0]; s[1] += w * p[1]; s[2] += w * p[2]; } return s; };
 // fail(key, fills): the message comes from the language file (t is looked up here, at module scope: many functions
 // below have a local `t` (the topology), which must never meet a t() call)
@@ -127,7 +127,7 @@ export function subdivide(m, track = null) {
       const c = f[k];
       F.push([c, eIdx.get(ek(c, f[(k + 1) % L])), fv, eIdx.get(ek(f[(k + L - 1) % L], c))]);
       if (track) {
-        const U = track[fi].uv, mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+        const U = track[fi].uv;
         nt.push({ root: track[fi].root, uv: [U[k], mid(U[k], U[(k + 1) % L]), [U.reduce((s, q) => s + q[0], 0) / L, U.reduce((s, q) => s + q[1], 0) / L], mid(U[(k + L - 1) % L], U[k])] });
       }
     }

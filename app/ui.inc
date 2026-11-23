@@ -30,6 +30,7 @@ $__tools = [
         ['new', 'file-earmark-plus', Lang::t('ui.tb.file.new'), Lang::t('ui.tb.file.new.title')],
         ['open', 'folder2-open', Lang::t('ui.tb.file.open'), Lang::t('ui.tb.file.open.title')],
         ['save', 'download', Lang::t('ui.tb.file.save'), Lang::t('ui.tb.file.save.title')],
+        ['save-older', 'clock-history', Lang::t('ui.tb.file.save_older'), Lang::t('ui.tb.file.save_older.title')],   // 0.11 DC.27: a copy for 0.10 and older (Save writes the large ids)
         ['std-part', 'nut', Lang::t('ui.tb.file.std_part'), Lang::t('ui.tb.file.std_part.title')],
         ['documents', 'folder2-open', Lang::t('input.cmd.file.documents'), Lang::t('sx.vault.cmd.help')],   // 0.8 SU.1058 (vault-08, mounted by engineer): the Documents panel
     ],
@@ -196,6 +197,7 @@ $__tools = [
               <div class="pc-menu-list pc-menu-right" role="menu">
                 <button type="button" role="menuitemcheckbox" aria-checked="false" data-cmd="view-measure" title="<?= Lang::e('ui.tb.views.measure.title') ?>"><?= Lang::e('ui.tb.views.measure') ?> <kbd>M</kbd></button>
                 <button type="button" role="menuitem" data-cmd="view-mass" title="<?= Lang::e('ui.tb.views.mass.title') ?>"><?= Lang::e('ui.tb.views.mass') ?></button>
+                <button type="button" role="menuitem" data-cmd="view-frame-check" title="<?= Lang::e('ui.tb.views.frame.title') ?>"><?= Lang::e('ui.tb.views.frame') ?></button>
                 <button type="button" role="menuitemcheckbox" aria-checked="false" data-cmd="view-section" title="<?= Lang::e('section.menu.title') ?>"><?= Lang::e('section.menu') ?> <kbd>X</kbd></button>
                 <button type="button" role="menuitemcheckbox" aria-checked="false" data-cmd="view-light" title="<?= Lang::e('asm.light.title') ?>"><?= Lang::e('asm.light.menu') ?></button>
                 <button type="button" role="menuitemcheckbox" aria-checked="false" data-cmd="view-draft" title="<?= Lang::e('draft.menu.title') ?>"><?= Lang::e('draft.menu') ?></button>

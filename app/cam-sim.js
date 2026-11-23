@@ -20,10 +20,11 @@
  * rapid rate + tool changes at the stated time; real machines accelerate and move rapids axis by axis.
  */
 import * as O from './cam-offset.js';
-import { profile } from './cam-tools.js';
+import { profile, latheRpm } from './cam-tools.js';
 import { segments, segLength } from './cam-paths.js';
 
 import { t } from './i18n.js';
+import { lerp3 as mix } from './geom-vec.js';   // shared helpers (0.11 PERF.74; tools/perf/util-copies.mjs)
 const DZ = 0.01;
 
 export class Sim {
@@ -223,7 +224,6 @@ export class Sim {
     return out;
   }
 }
-const mix = (a, b, u) => [a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u, a[2] + (b[2] - a[2]) * u];
 /** The colours of the stock-versus-model view (the legend in the panel uses the same). */
 export const GOUGE_RGB = [0.88, 0.19, 0.16], ON_RGB = [0.2, 0.7, 0.35], THIN_RGB = [0.96, 0.85, 0.25], MID_RGB = [0.92, 0.5, 0.15], STOCK_RGB = [0.62, 0.66, 0.74];
 
@@ -238,7 +238,9 @@ export function cycleTime(program, setup) {
     let f = 0, r = 0;
     for (const s of segments([ph])) {
       const L = segLength(s);
-      if (s.k === 'rapid') r += L / rapid; else f += L / s.f;
+      if (s.k === 'rapid') r += L / rapid;
+      else if (ph.kind === 'lathe') f += L / (s.f * Math.max(1, latheRpm(ph.speeds, Math.abs(s.a[0]) + Math.abs(s.b[0]))));   // mm/rev × rpm at the mean diameter
+      else f += L / s.f;
     }
     perOp[ph.op.id] = (f + r) * 60;
     feed += f; rap += r;

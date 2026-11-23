@@ -17,16 +17,19 @@ export function camProgram({ study, regen, cell = 0 }, ctx = { progress() {}, tr
   const model = machineModel(regen, st.setup);
   const sim = new Sim(model, { cell });
   ctx.progress(0.05);
-  const prog = generateProgram(st, regen, { sim, model });
+  // 0.11 CAM.3: a tilted tool direction is simulated on a height map of its own (the full stock seen from that direction)
+  const prog = generateProgram(st, regen, { sim, model, simFor: (m) => new Sim(m, { cell }) });
   ctx.progress(0.9);
   const report = sim.report();
   const time = cycleTime(prog, st.setup);
   const zmap = sim.toMesh(Math.max(1, Math.round(Math.max(sim.nx, sim.ny) / 400)), { colors: true });
   ctx.transfer(zmap.positions.buffer, zmap.indices.buffer, zmap.colors.buffer);
   const gouges = [];
-  for (const p of prog.paths) if (p.sim) for (const a of p.sim.at) gouges.push(a);
+  for (const p of prog.paths) if (p.sim && !p.frame && !p.kind) for (const a of p.sim.at) gouges.push(a);
+  // gouges and rapid cuts found in the other simulations (tilted directions, the lathe's stock) count too
+  for (const p of prog.paths) if (p.sim && (p.frame || p.kind)) { report.gouges += p.sim.gouges || 0; report.rapidCuts = (report.rapidCuts || 0) + (p.sim.rapidCuts || 0); }
   return {
-    paths: prog.paths.map((p) => ({ op: p.op.id, tool: p.tool ? p.tool.id : null, speeds: p.speeds || null, moves: p.moves, warnings: p.warnings || [], info: p.info || {}, error: p.error || null, suppressed: !!p.suppressed, sim: p.sim || null })),
+    paths: prog.paths.map((p) => ({ op: p.op.id, tool: p.tool ? p.tool.id : null, speeds: p.speeds || null, moves: p.moves, warnings: p.warnings || [], info: p.info || {}, error: p.error || null, suppressed: !!p.suppressed, sim: p.sim || null, kind: p.kind || null, frame: p.frame || null, tip: p.tip || null })),
     report, time, stock: model.stock, origin: model.origin, axis: model.axis, zmap, gouges,
   };
 }

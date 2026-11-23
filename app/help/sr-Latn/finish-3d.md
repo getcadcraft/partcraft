@@ -1,39 +1,39 @@
 ---
-title: 3D završna obrada: paralelno i ljuskasto
-summary: Završi celu zakrivljenu površ modela kuglastim, polukružnim ili ravnim glodalom, paralelnim linijama pod bilo kojim uglom ili prolazima na zadatom rastojanju, tako da grebeni među njima zadrže visinu koju tražiš. Šta putanje garantuju, a šta ne.
-keywords: 3d završna obrada, završna obrada, paralelno, rastersko, ljuskasto, konstantno ljuskasto, greben, kuglasto glodalo, polukružno glodalo, površ, tolerancija, korak, nagib, materijal za ostavljanje, spuštajući rezač, urez
-from: e1587d0a
+title: Završna 3D obrada: paralelno i lučenje
+summary: Završno obradite celu zakrivljenu površinu modela kuglastom, zaobljenom ili ravnom glodalicom, paralelnim linijama pod bilo kojim uglom ili u prolazima na zadatom razmaku, tako da grebeni između njih zadrže visinu koju tražite. Šta putanje garantuju, a šta ne.
+keywords: 3D završna obrada, završna obrada, paralelno, raster, lučenje, konstantno lučenje, greben, kuglasta glava, zaobljena glava, površina, tolerancija, korak prelaza, nagib, ostavljeni višak, spuštajuće glodalo, zadiranje
+from: 942d2341
 ---
 
-Dve operacije u Manufacture seku **celu površ modela** dok je alat držan vertikalno (tri ose). Nemaju izbor: rade na svemu što se vidi odozgo. Prvo grubo obradi deo (adaptivno ili džepom); završni prolaz preko neobrađenog materijala upozorava da bi sekao duboko.
+Dve operacije u Proizvodnji seku **celu površinu modela** dok je alat održavan uspravno (tri ose). Ne traže nikakav izbor: rade na svemu delu modela koji se može videti odozgo. Najpre gruba obrada dela (prilagodljivo ili džep); završni prolaz preko neobrađenog sirovca upozorava da bi sekao duboko.
 
 ## Paralelno
 
-Prave linije preko modela pod **uglom** koji podesiš, na razmaku **korak** (deo prečnika alata). Svaka linija prati površ: vrh alata je onoliko visoko koliko mora da bude da nijedan deo rezača ne ide ispod modela, a linija se seče finije gde se površ savija. Uz uključeno **Cik-cak**, alat ostaje spušten između linija gde to može bezbedno (proverava se duž kretanja); inače se diže.
+Prave linije preko modela pod **uglom** koji podesite, na **koraku prelaza** (deo prečnika alata). Svaka linija prati površinu: vrh alata je onoliko visoko koliko mora biti da nijedan deo glodala ne ide ispod modela, a linija se seče finije tamo gde se površina savija. Kada je uključen **Cik-cak**, alat ostaje spušten između linija gde to može bezbedno (proverava se duž kretanja); inače se podiže.
 
-- **Tolerancija**: koliko ravan deo linije može da odstupa od prave visine vrha (polovina se koristi kao granica u sredini svakog dela). Podrazumevano 0,01 mm.
-- **Samo gde je površ najmanje … a najviše … (°)**: završi samo blage ili samo strme oblasti. Gde je površ van opsega, linija se izostavlja i alat se diže.
-- **Materijal za ostavljanje**: model pomeren za tu udaljenost (rezač uvećan za nju: tačno za kuglaste i polukružne alate; ravan alat ostavlja najmanje toliko).
-- **Dno**: ništa se ne seče ispod ove z.
+- **Tolerancija**: koliko ravan deo linije može biti udaljen od stvarne visine vrha alata (polovina se koristi kao granica u sredini svakog dela). Podrazumevano 0.01 mm.
+- **Samo tamo gde je površina najmanje … a najviše … (°)**: obrađuju se samo blaga ili samo strma područja. Gde je površina van opsega, linija se izostavlja i alat se podiže.
+- **Ostavljeni višak**: model pomeren za to rastojanje (glodalo uvećano za njega: tačno za kuglaste i zaobljene alate; ravan alat ostavlja najmanje toliko).
+- **Dno**: ništa se ne seče ispod ove z-visine.
 
-## Ljuskasto
+## Lučenje
 
-Prolazi koji održavaju stalnu udaljenost preko površi jedni od drugih, tako da greben (ljuska) ostavljen između dva susedna prolaza ima **visinu** koju tražiš. Udaljenost sledi iz visine i poluprečnika kuglice: s = 2·√(2·R·h − h²), na primer oko 0,69 mm između prolaza za kuglicu Ø6 i greben od 0,02 mm. Polukružni alat koristi poluprečnik svog ugla. Ravno glodalo se odbija: nema greben da se dimenzioniše.
+Prolazi koji na površini održavaju stalno rastojanje jedan od drugog, tako da greben (lučenje) ostao između dva susedna prolaza ima **visinu** koju tražite. Rastojanje sledi iz visine i poluprečnika kuglice: s = 2·√(2·R·h − h²), na primer oko 0.69 mm između prolaza za kuglicu Ø6 i greben od 0.02 mm. Zaobljeni alat koristi poluprečnik svog ugla. Ravna glodalica se odbija: nema greben čiju veličinu može da odredi.
 
-Prolazi počinju **od ivice modela, ulazeći unutra**, ili **od njegovog vrha, spuštajući se**. Oni su konture rastojanja preko površi (ne visine), pa su na nagibu bliski u tlocrtu, a na ravnom široko razmaknuti. Rastojanje se meri na mreži preko površi i tačno je do oko 1 %; visina grebena je tačna gde je površ ravna ili blago zakrivljena, a približna gde se brzo savija. **Penjanje** drži višu stranu površi sa desne strane rezača.
+Prolazi počinju **od ivice modela, ulazeći unutra**, ili **od njegovog vrha, spuštajući se**. Oni su konture rastojanja preko površine (a ne visine), pa su na nagibu blizu u tlocrtu, a na ravnom široko razmaknuti. Rastojanje se meri na mreži preko površine i tačno je do oko 1 %; visina grebena je tačna gde je površina ravna ili blago zakrivljena, a približna gde se brzo savija. **U istom smeru** održava višu stranu površine na desnoj strani glodala.
 
 ## Koliko su putanje dobre
 
-Šta testovi proveravaju, zatvorenim formulama ili nezavisnom grubom pretragom otiska rezača:
+Šta testovi proveravaju, zatvorenim formulama ili nezavisnim potpunim pretraživanjem otiska glodala:
 
-- Visina vrha ispod alata je tačna za kuglasti, polukružni i ravni alat na površima, ivicama i uglovima mreže, i nikad nije iznad prave visine; za paralelne linije putanja ostaje u okviru tolerancije od nje, bez ureza dubljeg od toga.
-- Dužine putanja na nagnutoj ravni se slažu sa zatvorenom formulom; ljuskasti prolazi na ravni su na traženom rastojanju, a greben između njih ispada na traženoj visini.
-- Simulacija materijala ne pokazuje urez posle prolaza i prikazuje grebene koji ostaju.
+- Visina vrha ispod alata je tačna za kuglasti, zaobljeni i ravni alat na površima, ivicama i uglovima mreže i nikad nije iznad stvarne visine; za paralelne linije putanja ostaje unutar tolerancije, bez zadiranja dubljeg od nje.
+- Dužine putanja na nagnutoj ravni slažu se sa zatvorenom formulom; prolazi lučenja na ravni su na traženom rastojanju, a greben između njih ispada na traženoj visini.
+- Simulacija sirovca posle prolaza ne pokazuje zadiranje i prikazuje grebene koji ostaju.
 
-Šta ove putanje nisu: to su osnovni završni prolazi, a ne ceo skup onoga što nudi proizvodni sistem.
+Šta ove putanje nisu: to su osnovni završni prolazi, a ne sve što pruža proizvodni sistem.
 
-- Nije izgrađeno: vodeća linija (stalno z), čišćenje olovkom i uglova, radijalni i spiralni prolazi, projektovanje krive na površ, detekcija ravnih površina, obrada ostataka, provere sudara držača i drške, i bilo kakvo naginjanje alata.
-- Centar alata ostaje iznad modela: putanje staju na ivici modela umesto da idu preko nje, pa vertikalni zid tačno na ivici nije završen do svog podnožja.
-- Podrezi se ne vide (vidi se samo ono što alat dodiruje odozgo).
-- Model je mreža iz jezgra, pa putanje prate mrežu (njena tolerancija tetive je oko 0,0002 dijagonale dela), a ne tačnu površ.
-- Završna obrada velikog modela na finoj toleranciji pravi dug program sa mnogo kratkih pomeranja. Proveri izlaz u simulatoru svoje mašine pre rezanja.
+- Nije napravljeno: završna obrada konstantne z-visine (waterline), čišćenje olovkom i uglova, radijalni i spiralni prolazi, projektovanje krive na površinu, otkrivanje ravnih područja, provera sudara držača i drške. Grubo obrađivanje i obrada ostatka su zasebne operacije ([3D grubo obrađivanje i obrada ostatka](topic:rough-3d)); alat koji se naginje je [5-osna završna obrada](topic:multi-axis#5-axis-finishing).
+- Centar alata ostaje iznad modela: putanje staju na ivici modela umesto da izlaze preko nje, pa se uspravni zid tačno na ivici ne završava do svog podnožja.
+- Podsečenja se ne vide (površina je ono što alat dodiruje odozgo).
+- Model je mreža iz jezgra, pa putanje prate mrežu (njena tetivna tolerancija je oko 0.0002 dijagonale dela), a ne tačnu površinu.
+- Završna obrada velikog modela finom tolerancijom pravi dugačak program s mnogo kratkih kretanja. Proverite izlaz u simulatoru vaše mašine pre sečenja.
